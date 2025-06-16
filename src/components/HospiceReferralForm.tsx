@@ -1,3 +1,4 @@
+
 // File: src/components/HospiceReferralForm.tsx
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -149,7 +150,7 @@ const HospiceReferralForm = () => {
       confettiPiece.style.width = '8px';
       confettiPiece.style.height = '8px';
       confettiPiece.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-      conf confettiPiece.style.left = Math.random() * 100 + '%';
+      confettiPiece.style.left = Math.random() * 100 + '%';
       confettiPiece.style.top = '-10px';
       confettiPiece.style.animation = `confetti ${3 + Math.random() * 2}s ease-out forwards`;
       confettiPiece.style.transform = `rotate(${Math.random() * 360}deg)`;
