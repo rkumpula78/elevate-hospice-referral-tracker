@@ -116,31 +116,50 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
   const updatePatientMutation = useMutation({
     mutationFn: async (data: any) => {
       if (!referralData?.patients?.id) {
-        // If no patient is linked, you might want to create one here or disallow patient updates.
-        // For now, if no patient is linked, we just won't update patient data.
-        throw new Error("No patient linked to this referral to update.");
+        // If no patient is linked, CREATE a new patient
+        const { data: newPatient, error: insertError } = await supabase
+          .from('patients')
+          .insert([data])
+          .select()
+          .single();
+        if (insertError) throw insertError;
+        
+        // Link the new patient to the referral
+        await supabase
+          .from('referrals')
+          .update({ patient_id: newPatient.id })
+          .eq('id', referralId);
+
+        return newPatient; // Return the new patient data
+      } else {
+        // If patient is linked, UPDATE existing patient
+        const { data: updatedPatient, error: updateError } = await supabase
+          .from('patients')
+          .update(data)
+          .eq('id', referralData.patients.id)
+          .select()
+          .single();
+        if (updateError) throw updateError;
+        return updatedPatient; // Return the updated patient data
       }
-      const { error } = await supabase
-        .from('patients')
-        .update(data)
-        .eq('id', referralData.patients.id);
-      
-      if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['patients'] });
       queryClient.invalidateQueries({ queryKey: ['referral', referralId] }); // Invalidate referral to get updated patient data
-      toast({ title: 'Patient details updated successfully' });
+      toast({ title: 'Patient details saved successfully' });
     },
     onError: (error) => {
-      toast({ title: 'Error updating patient details', description: error.message, variant: 'destructive' });
+      toast({ title: 'Error saving patient details', description: error.message, variant: 'destructive' });
     }
   });
 
   // Upload document mutation (for patient documents)
   const uploadDocumentMutation = useMutation({
     mutationFn: async ({ file, documentType }: { file: File; documentType: string }) => {
-      if (!referralData?.patients?.id) throw new Error("Cannot upload document: No patient linked to this referral.");
+      // Must have a patient ID to upload documents
+      if (!referralData?.patients?.id) {
+        throw new Error("Cannot upload document: Patient record must be created first.");
+      }
       
       setUploading(true);
       const patientIdForDoc = referralData.patients.id;
@@ -248,7 +267,6 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     
-    // Separate data for referrals table and patients table
     const referralUpdateData: { [key: string]: any } = {};
     const patientUpdateData: { [key: string]: any } = {};
 
@@ -260,7 +278,7 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
       'insurance_verification', 'medical_records_received'
     ];
 
-    // Define fields for the 'patients' table
+    // Define fields for the 'patients' table (subset, as comprehensive fields are in patient sections)
     const patientFields = [
       'first_name', 'last_name', 'date_of_birth', 'ssn', 'primary_insurance',
       'secondary_insurance', 'medicare_number', 'medicaid_number', 'phone', 'address',
@@ -269,7 +287,7 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
       'funeral_arrangements', 'msw_notes', 'diagnosis', 'caregiver_name',
       'caregiver_contact', 'spiritual_preferences', 'height', 'weight', 'dme_needs',
       'transport_needs', 'special_medical_needs', 'physician', 'attending_physician',
-      'upcoming_appointments', 'prior_hospice_info', 'next_steps', 'notes', 'insurance'
+      'upcoming_appointments', 'prior_hospice_info', 'next_steps', 'notes', 'insurance' // 'insurance' here is for patient's referral source
     ];
 
     for (const [key, value] of formData.entries()) {
@@ -298,23 +316,15 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
     }
 
     try {
-      // Execute both mutations in parallel if possible, or sequentially
+      // Execute referral update first
       await updateReferralMutation.mutateAsync(referralUpdateData);
       
-      // Only attempt to update patient data if a patient is linked
-      if (referralData?.patients?.id) {
-        await updatePatientMutation.mutateAsync(patientUpdateData);
-      } else {
-        console.warn("No patient linked to this referral. Patient data not updated.");
-        toast({
-          title: "Referral Updated",
-          description: "No patient linked to update patient-specific fields.",
-          variant: "default"
-        });
-      }
-
+      // Execute patient update/creation
+      await updatePatientMutation.mutateAsync(patientUpdateData);
+      
+      // Close dialog on success
       onOpenChange(false);
-      toast({ title: 'Referral and Patient details saved successfully' });
+
     } catch (error: any) {
       console.error('Submission error:', error);
       toast({ title: 'Error saving changes', description: error.message, variant: 'destructive' });
@@ -333,14 +343,15 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
     );
   }
 
-  if (!referralData) return null;
+  // Provide an empty object if no patient data is linked, so sub-components don't crash
+  const currentPatientData = referralData?.patients || {};
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold">
-            Edit Referral: {referralData.patient_name}
+            Edit Referral: {referralData?.patient_name || 'N/A'}
           </DialogTitle>
         </DialogHeader>
 
@@ -353,61 +364,54 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <TabsContent value="patient-info" className="space-y-4">
-              {referralData.patients ? (
-                <>
-                  <PatientOverviewSection 
-                    patient={referralData.patients}
-                    isOpen={openSections.overview}
-                    onToggle={() => toggleSection('overview')}
-                  />
+              {/* Always render patient sections, passing empty object if no patient linked */}
+              <PatientOverviewSection 
+                patient={currentPatientData}
+                isOpen={openSections.overview}
+                onToggle={() => toggleSection('overview')}
+              />
 
-                  <ResponsiblePartySection 
-                    patient={referralData.patients}
-                    isOpen={openSections.responsibleParty}
-                    onToggle={() => toggleSection('responsibleParty')}
-                  />
+              <ResponsiblePartySection 
+                patient={currentPatientData}
+                isOpen={openSections.responsibleParty}
+                onToggle={() => toggleSection('responsibleParty')}
+              />
 
-                  <LegalMedicalSection 
-                    patient={referralData.patients}
-                    isOpen={openSections.legalMedical}
-                    onToggle={() => toggleSection('legalMedical')}
-                  />
+              <LegalMedicalSection 
+                patient={currentPatientData}
+                isOpen={openSections.legalMedical}
+                onToggle={() => toggleSection('legalMedical')}
+              />
 
-                  <MedicalHistorySection 
-                    patient={referralData.patients}
-                    isOpen={openSections.medicalHistory}
-                    onToggle={() => toggleSection('medicalHistory')}
-                  />
+              <MedicalHistorySection 
+                patient={currentPatientData}
+                isOpen={openSections.medicalHistory}
+                onToggle={() => toggleSection('medicalHistory')}
+              />
 
-                  <AppointmentSection 
-                    patient={referralData.patients}
-                    isOpen={openSections.appointments}
-                    onToggle={() => toggleSection('appointments')}
-                  />
+              <AppointmentSection 
+                patient={currentPatientData}
+                isOpen={openSections.appointments}
+                onToggle={() => toggleSection('appointments')}
+              />
 
-                  <NextStepsSection 
-                    patient={referralData.patients}
-                    isOpen={openSections.nextSteps}
-                    onToggle={() => toggleSection('nextSteps')}
-                  />
+              <NextStepsSection 
+                patient={currentPatientData}
+                isOpen={openSections.nextSteps}
+                onToggle={() => toggleSection('nextSteps')}
+              />
 
-                  <DocumentsSection 
-                    patient={referralData.patients}
-                    documents={documents || []}
-                    isOpen={openSections.documents}
-                    onToggle={() => toggleSection('documents')}
-                    uploading={uploading}
-                    onFileUpload={handleFileUpload}
-                    onDownloadFile={downloadFile}
-                    onDeleteDocument={(doc) => deleteDocumentMutation.mutate(doc)}
-                  />
-                </>
-              ) : (
-                <div className="p-4 text-center text-muted-foreground">
-                  No patient record linked to this referral yet.
-                  {/* You might add functionality here to create/link a new patient */}
-                </div>
-              )}
+              <DocumentsSection 
+                patient={currentPatientData}
+                documents={documents || []}
+                isOpen={openSections.documents}
+                onToggle={() => toggleSection('documents')}
+                uploading={uploading}
+                onFileUpload={handleFileUpload}
+                // Only allow download/delete if patient ID exists
+                onDownloadFile={currentPatientData.id ? downloadFile : () => toast({ title: 'Patient record not saved yet', description: 'Save patient info before managing documents.', variant: 'destructive' })}
+                onDeleteDocument={currentPatientData.id ? (doc) => deleteDocumentMutation.mutate(doc) : () => toast({ title: 'Patient record not saved yet', description: 'Save patient info before managing documents.', variant: 'destructive' })}
+              />
             </TabsContent>
 
             <TabsContent value="referral-source" className="space-y-4">
