@@ -1,4 +1,4 @@
-
+// File: src/components/crm/EditReferralDialog.tsx
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -11,6 +11,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
+import { format } from 'date-fns'; // Added for formatting date of birth if needed
 
 interface EditReferralDialogProps {
   open: boolean;
@@ -83,8 +84,10 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
     const updateData = {
       patient_name: formData.get('patient_name'),
       patient_phone: formData.get('patient_phone'),
+      // Add patient_dob for referral if it's available and relevant
+      date_of_birth: formData.get('date_of_birth') || null, // Assuming you might add DOB for referrals
       diagnosis: formData.get('diagnosis'),
-      insurance: formData.get('insurance'),
+      insurance: formData.get('insurance'), // This field is used for patient's insurance in current schema
       referring_physician: formData.get('referring_physician'),
       assigned_marketer: formData.get('assigned_marketer'),
       priority: formData.get('priority'),
@@ -148,6 +151,16 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
                   />
                 </div>
                 <div>
+                  <Label htmlFor="date_of_birth">Patient Date of Birth</Label>
+                  <Input
+                    id="date_of_birth"
+                    name="date_of_birth"
+                    type="date"
+                    // Assuming referral might have DOB, if not, adjust here or in schema
+                    defaultValue={referral.date_of_birth ? format(new Date(referral.date_of_birth), 'yyyy-MM-dd') : ''}
+                  />
+                </div>
+                <div>
                   <Label htmlFor="diagnosis">Diagnosis</Label>
                   <Input
                     id="diagnosis"
@@ -156,7 +169,7 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
                   />
                 </div>
                 <div>
-                  <Label htmlFor="insurance">Insurance</Label>
+                  <Label htmlFor="insurance">Patient's Insurance</Label>
                   <Input
                     id="insurance"
                     name="insurance"
@@ -225,7 +238,7 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
                     defaultValue={referral.referral_contact_email || ''}
                   />
                 </div>
-                <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-4 md:col-span-2">
                   <div className="flex items-center space-x-2">
                     <Checkbox
                       id="insurance_verification"
