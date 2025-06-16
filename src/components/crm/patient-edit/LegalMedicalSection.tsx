@@ -1,4 +1,4 @@
-
+// File: src/components/crm/patient-edit/LegalMedicalSection.tsx
 import React from 'react';
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -35,7 +35,7 @@ const LegalMedicalSection = ({ patient, isOpen, onToggle }: LegalMedicalSectionP
               name="dnr_status"
               defaultChecked={patient.dnr_status || false}
             />
-            <Label htmlFor="dnr_status">Do Not Resuscitate (DNR) Status</Label>
+            <Label htmlFor="dnr_status">Do Not Resuscitate (DNR) Status (Y/N)</Label>
           </div>
           <div className="md:col-span-2">
             <Label htmlFor="funeral_arrangements">Funeral Arrangements/Mortuary</Label>
@@ -44,6 +44,7 @@ const LegalMedicalSection = ({ patient, isOpen, onToggle }: LegalMedicalSectionP
               name="funeral_arrangements"
               defaultValue={patient.funeral_arrangements || ''}
               rows={3}
+              placeholder="e.g., Mortuary name, contact info, pre-paid plans"
             />
           </div>
           <div className="md:col-span-2">
