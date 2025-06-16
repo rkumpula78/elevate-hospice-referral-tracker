@@ -9,6 +9,7 @@ import { Plus, Phone, Mail, Calendar, User, ArrowUpDown, ArrowUp, ArrowDown, Edi
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import AddReferralDialog from './AddReferralDialog';
+import EditReferralDialog from './EditReferralDialog';
 
 type ReferralStatus = 'pending' | 'contacted' | 'scheduled' | 'admitted' | 'declined' | 'lost' | 'admitted_our_hospice' | 'admitted_other_hospice' | 'lost_death' | 'lost_move' | 'lost_other_hospice';
 type SortField = 'patient_name' | 'organizations.name' | 'assigned_marketer' | 'diagnosis' | 'priority' | 'status' | 'referral_date';
@@ -21,6 +22,8 @@ const ReferralsList = () => {
   const [selectedPriority, setSelectedPriority] = useState<string>('all');
   const [selectedMarketer, setSelectedMarketer] = useState<string>('all');
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [editingReferralId, setEditingReferralId] = useState<string>('');
   const [sortField, setSortField] = useState<SortField>('referral_date');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
 
@@ -129,6 +132,11 @@ const ReferralsList = () => {
       case 'low': return 'bg-gray-100 text-gray-800';
       default: return 'bg-gray-100 text-gray-800';
     }
+  };
+
+  const handleEditReferral = (referralId: string) => {
+    setEditingReferralId(referralId);
+    setShowEditDialog(true);
   };
 
   if (isLoading) {
@@ -296,7 +304,7 @@ const ReferralsList = () => {
               </TableCell>
               <TableCell>
                 <div className="flex space-x-2">
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" onClick={() => handleEditReferral(referral.id)}>
                     <Edit className="w-3 h-3 mr-1" />
                     Edit
                   </Button>
@@ -314,6 +322,12 @@ const ReferralsList = () => {
       <AddReferralDialog 
         open={showAddDialog} 
         onOpenChange={setShowAddDialog} 
+      />
+      
+      <EditReferralDialog 
+        open={showEditDialog} 
+        onOpenChange={setShowEditDialog} 
+        referralId={editingReferralId}
       />
     </div>
   );
