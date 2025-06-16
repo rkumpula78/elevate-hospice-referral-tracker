@@ -1,3 +1,4 @@
+// File: src/components/HospiceReferralForm.tsx
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -75,7 +76,7 @@ const HospiceReferralForm = () => {
   };
 
   const validatePhone = (phone: string) => {
-    const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
+    const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/; // Basic phone validation
     return phoneRegex.test(phone.replace(/[\s\-\(\)]/g, ''));
   };
 
@@ -117,7 +118,7 @@ const HospiceReferralForm = () => {
     }
 
     if (formData.medicareNumber && !validateMedicareNumber(formData.medicareNumber)) {
-      newErrors.medicareNumber = 'Please enter a valid Medicare number (11 characters)';
+      newErrors.medicareNumber = 'Please enter a valid Medicare number (11 alphanumeric characters)';
     }
 
     setErrors(newErrors);
@@ -148,7 +149,7 @@ const HospiceReferralForm = () => {
       confettiPiece.style.width = '8px';
       confettiPiece.style.height = '8px';
       confettiPiece.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-      confettiPiece.style.left = Math.random() * 100 + '%';
+      conf confettiPiece.style.left = Math.random() * 100 + '%';
       confettiPiece.style.top = '-10px';
       confettiPiece.style.animation = `confetti ${3 + Math.random() * 2}s ease-out forwards`;
       confettiPiece.style.transform = `rotate(${Math.random() * 360}deg)`;
@@ -407,7 +408,7 @@ const HospiceReferralForm = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label htmlFor="medicareNumber" className="text-sm font-medium text-gray-700">
-                      Medicare Number (Optional)
+                      Medicare/Policy Number (Optional)
                     </Label>
                     <Input
                       id="medicareNumber"
@@ -426,7 +427,7 @@ const HospiceReferralForm = () => {
                     <Label htmlFor="insuranceProvider" className="text-sm font-medium text-gray-700">
                       Insurance Provider (Optional)
                     </Label>
-                    <Select onValueChange={(value) => handleInputChange('insuranceProvider', value)}>
+                    <Select value={formData.insuranceProvider} onValueChange={(value) => handleInputChange('insuranceProvider', value)}>
                       <SelectTrigger className="transition-all duration-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-gray-300 rounded-lg">
                         <SelectValue placeholder="Select insurance provider" />
                       </SelectTrigger>
@@ -467,7 +468,7 @@ const HospiceReferralForm = () => {
                   <Label htmlFor="advanceDirectives" className="text-sm font-medium text-gray-700">
                     Advance Directives or DNR Status (Optional)
                   </Label>
-                  <Select onValueChange={(value) => handleInputChange('advanceDirectives', value)}>
+                  <Select value={formData.advanceDirectives} onValueChange={(value) => handleInputChange('advanceDirectives', value)}>
                     <SelectTrigger className="transition-all duration-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-gray-300 rounded-lg">
                       <SelectValue placeholder="Does the patient have an Advance Directive or DNR order?" />
                     </SelectTrigger>
