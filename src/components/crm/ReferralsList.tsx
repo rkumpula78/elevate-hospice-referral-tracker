@@ -10,10 +10,12 @@ import { Plus, Phone, Mail, Calendar } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 
+type ReferralStatus = 'pending' | 'contacted' | 'scheduled' | 'admitted' | 'declined' | 'lost';
+
 const ReferralsList = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [selectedStatus, setSelectedStatus] = useState<string>('all');
+  const [selectedStatus, setSelectedStatus] = useState<ReferralStatus | 'all'>('all');
 
   const { data: referrals, isLoading } = useQuery({
     queryKey: ['referrals', selectedStatus],
@@ -34,7 +36,7 @@ const ReferralsList = () => {
   });
 
   const updateStatusMutation = useMutation({
-    mutationFn: async ({ id, status }: { id: string, status: string }) => {
+    mutationFn: async ({ id, status }: { id: string, status: ReferralStatus }) => {
       const { error } = await supabase
         .from('referrals')
         .update({ status })
@@ -79,7 +81,7 @@ const ReferralsList = () => {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <div className="flex space-x-2">
-          <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+          <Select value={selectedStatus} onValueChange={(value: ReferralStatus | 'all') => setSelectedStatus(value)}>
             <SelectTrigger className="w-40">
               <SelectValue placeholder="Filter by status" />
             </SelectTrigger>
@@ -141,7 +143,7 @@ const ReferralsList = () => {
               <TableCell>
                 <Select
                   value={referral.status || 'pending'}
-                  onValueChange={(value) => 
+                  onValueChange={(value: ReferralStatus) => 
                     updateStatusMutation.mutate({ id: referral.id, status: value })
                   }
                 >

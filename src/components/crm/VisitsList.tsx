@@ -9,8 +9,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus, Clock, CheckCircle, Calendar } from "lucide-react";
 import { format } from "date-fns";
 
+type VisitType = 'admission' | 'routine' | 'urgent' | 'discharge';
+
 const VisitsList = () => {
-  const [selectedType, setSelectedType] = useState<string>('all');
+  const [selectedType, setSelectedType] = useState<VisitType | 'all'>('all');
 
   const { data: visits, isLoading } = useQuery({
     queryKey: ['visits', selectedType],
@@ -48,7 +50,7 @@ const VisitsList = () => {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <div className="flex space-x-2">
-          <Select value={selectedType} onValueChange={setSelectedType}>
+          <Select value={selectedType} onValueChange={(value: VisitType | 'all') => setSelectedType(value)}>
             <SelectTrigger className="w-40">
               <SelectValue placeholder="Filter by type" />
             </SelectTrigger>
