@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -10,8 +9,11 @@ import ReferralsList from "@/components/crm/ReferralsList";
 import PatientsList from "@/components/crm/PatientsList";
 import VisitsList from "@/components/crm/VisitsList";
 import OrganizationsList from "@/components/crm/OrganizationsList";
+import QuickAddDialog from "@/components/crm/QuickAddDialog";
 
 const Dashboard = () => {
+  const [showQuickAdd, setShowQuickAdd] = useState(false);
+
   // Fetch dashboard statistics
   const { data: stats } = useQuery({
     queryKey: ['dashboard-stats'],
@@ -39,7 +41,7 @@ const Dashboard = () => {
           <h1 className="text-3xl font-bold">CRM Dashboard</h1>
           <p className="text-muted-foreground">Manage referrals, patients, and care coordination</p>
         </div>
-        <Button>
+        <Button onClick={() => setShowQuickAdd(true)}>
           <Plus className="w-4 h-4 mr-2" />
           Quick Add
         </Button>
@@ -149,6 +151,11 @@ const Dashboard = () => {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <QuickAddDialog 
+        open={showQuickAdd} 
+        onOpenChange={setShowQuickAdd} 
+      />
     </div>
   );
 };

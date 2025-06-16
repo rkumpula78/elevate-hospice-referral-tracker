@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus, Phone, Mail, Calendar } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import AddReferralDialog from './AddReferralDialog';
 
 type ReferralStatus = 'pending' | 'contacted' | 'scheduled' | 'admitted' | 'declined' | 'lost';
 
@@ -16,6 +16,7 @@ const ReferralsList = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedStatus, setSelectedStatus] = useState<ReferralStatus | 'all'>('all');
+  const [showAddDialog, setShowAddDialog] = useState(false);
 
   const { data: referrals, isLoading } = useQuery({
     queryKey: ['referrals', selectedStatus],
@@ -96,7 +97,7 @@ const ReferralsList = () => {
             </SelectContent>
           </Select>
         </div>
-        <Button>
+        <Button onClick={() => setShowAddDialog(true)}>
           <Plus className="w-4 h-4 mr-2" />
           Add Referral
         </Button>
@@ -177,6 +178,11 @@ const ReferralsList = () => {
           ))}
         </TableBody>
       </Table>
+
+      <AddReferralDialog 
+        open={showAddDialog} 
+        onOpenChange={setShowAddDialog} 
+      />
     </div>
   );
 };
