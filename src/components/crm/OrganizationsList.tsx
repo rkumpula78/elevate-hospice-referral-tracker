@@ -35,7 +35,18 @@ const OrganizationsList = () => {
       case 'skilled_nursing': return 'bg-blue-100 text-blue-800';
       case 'physician_office': return 'bg-green-100 text-green-800';
       case 'clinic': return 'bg-purple-100 text-purple-800';
+      case 'referral_source': return 'bg-orange-100 text-orange-800';
+      case 'marketer': return 'bg-indigo-100 text-indigo-800';
       default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getTypeLabel = (type: string) => {
+    switch (type) {
+      case 'skilled_nursing': return 'Skilled Nursing';
+      case 'physician_office': return 'Physician Office';
+      case 'referral_source': return 'Referral Source';
+      default: return type.charAt(0).toUpperCase() + type.slice(1);
     }
   };
 
@@ -48,11 +59,13 @@ const OrganizationsList = () => {
       <div className="flex justify-between items-center">
         <div className="flex space-x-2">
           <Select value={selectedType} onValueChange={setSelectedType}>
-            <SelectTrigger className="w-40">
+            <SelectTrigger className="w-48">
               <SelectValue placeholder="Filter by type" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Types</SelectItem>
+              <SelectItem value="referral_source">Referral Source</SelectItem>
+              <SelectItem value="marketer">Marketer</SelectItem>
               <SelectItem value="hospital">Hospital</SelectItem>
               <SelectItem value="skilled_nursing">Skilled Nursing</SelectItem>
               <SelectItem value="physician_office">Physician Office</SelectItem>
@@ -93,7 +106,7 @@ const OrganizationsList = () => {
               </TableCell>
               <TableCell>
                 <Badge className={getTypeColor(org.type)}>
-                  {org.type.replace('_', ' ')}
+                  {getTypeLabel(org.type)}
                 </Badge>
               </TableCell>
               <TableCell>{org.contact_person}</TableCell>

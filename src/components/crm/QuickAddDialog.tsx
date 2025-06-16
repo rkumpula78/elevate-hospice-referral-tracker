@@ -8,9 +8,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { FileText, Calendar, Building } from "lucide-react";
+import { FileText, Calendar, Building, Users } from "lucide-react";
 import AddReferralDialog from './AddReferralDialog';
 import ScheduleVisitDialog from './ScheduleVisitDialog';
+import AddOrganizationDialog from './AddOrganizationDialog';
 
 interface QuickAddDialogProps {
   open: boolean;
@@ -20,6 +21,8 @@ interface QuickAddDialogProps {
 const QuickAddDialog = ({ open, onOpenChange }: QuickAddDialogProps) => {
   const [showAddReferral, setShowAddReferral] = useState(false);
   const [showScheduleVisit, setShowScheduleVisit] = useState(false);
+  const [showAddMarketer, setShowAddMarketer] = useState(false);
+  const [showAddReferralSource, setShowAddReferralSource] = useState(false);
 
   const quickAddOptions = [
     {
@@ -41,12 +44,21 @@ const QuickAddDialog = ({ open, onOpenChange }: QuickAddDialogProps) => {
       }
     },
     {
-      title: "New Organization",
-      description: "Add a referring organization",
+      title: "Add Marketer",
+      description: "Add a new marketer to track",
+      icon: Users,
+      action: () => {
+        onOpenChange(false);
+        setShowAddMarketer(true);
+      }
+    },
+    {
+      title: "Add Referral Source",
+      description: "Add a new referring organization",
       icon: Building,
       action: () => {
-        // TODO: Implement add organization functionality
-        console.log("Add organization");
+        onOpenChange(false);
+        setShowAddReferralSource(true);
       }
     }
   ];
@@ -92,6 +104,18 @@ const QuickAddDialog = ({ open, onOpenChange }: QuickAddDialogProps) => {
       <ScheduleVisitDialog 
         open={showScheduleVisit} 
         onOpenChange={setShowScheduleVisit} 
+      />
+
+      <AddOrganizationDialog 
+        open={showAddMarketer} 
+        onOpenChange={setShowAddMarketer}
+        organizationType="marketer"
+      />
+
+      <AddOrganizationDialog 
+        open={showAddReferralSource} 
+        onOpenChange={setShowAddReferralSource}
+        organizationType="referral_source"
       />
     </>
   );

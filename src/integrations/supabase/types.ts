@@ -399,6 +399,11 @@ export type Database = {
         | "admitted"
         | "declined"
         | "lost"
+        | "admitted_our_hospice"
+        | "admitted_other_hospice"
+        | "lost_death"
+        | "lost_move"
+        | "lost_other_hospice"
       visit_type: "admission" | "routine" | "urgent" | "discharge"
     }
     CompositeTypes: {
@@ -530,6 +535,11 @@ export const Constants = {
         "admitted",
         "declined",
         "lost",
+        "admitted_our_hospice",
+        "admitted_other_hospice",
+        "lost_death",
+        "lost_move",
+        "lost_other_hospice",
       ],
       visit_type: ["admission", "routine", "urgent", "discharge"],
     },

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,7 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import AddReferralDialog from './AddReferralDialog';
 
-type ReferralStatus = 'pending' | 'contacted' | 'scheduled' | 'admitted' | 'declined' | 'lost';
+type ReferralStatus = 'pending' | 'contacted' | 'scheduled' | 'admitted' | 'declined' | 'lost' | 'admitted_our_hospice' | 'admitted_other_hospice' | 'lost_death' | 'lost_move' | 'lost_other_hospice';
 
 const ReferralsList = () => {
   const { toast } = useToast();
@@ -59,9 +60,25 @@ const ReferralsList = () => {
       case 'contacted': return 'bg-blue-100 text-blue-800';
       case 'scheduled': return 'bg-purple-100 text-purple-800';
       case 'admitted': return 'bg-green-100 text-green-800';
+      case 'admitted_our_hospice': return 'bg-green-100 text-green-800';
+      case 'admitted_other_hospice': return 'bg-orange-100 text-orange-800';
       case 'declined': return 'bg-red-100 text-red-800';
       case 'lost': return 'bg-gray-100 text-gray-800';
+      case 'lost_death': return 'bg-gray-100 text-gray-800';
+      case 'lost_move': return 'bg-gray-100 text-gray-800';
+      case 'lost_other_hospice': return 'bg-gray-100 text-gray-800';
       default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'admitted_our_hospice': return 'Admitted Our Hospice';
+      case 'admitted_other_hospice': return 'Admitted Other Hospice';
+      case 'lost_death': return 'Lost - Death';
+      case 'lost_move': return 'Lost - Move';
+      case 'lost_other_hospice': return 'Lost - Other Hospice';
+      default: return status;
     }
   };
 
@@ -83,7 +100,7 @@ const ReferralsList = () => {
       <div className="flex justify-between items-center">
         <div className="flex space-x-2">
           <Select value={selectedStatus} onValueChange={(value: ReferralStatus | 'all') => setSelectedStatus(value)}>
-            <SelectTrigger className="w-40">
+            <SelectTrigger className="w-48">
               <SelectValue placeholder="Filter by status" />
             </SelectTrigger>
             <SelectContent>
@@ -92,8 +109,13 @@ const ReferralsList = () => {
               <SelectItem value="contacted">Contacted</SelectItem>
               <SelectItem value="scheduled">Scheduled</SelectItem>
               <SelectItem value="admitted">Admitted</SelectItem>
+              <SelectItem value="admitted_our_hospice">Admitted Our Hospice</SelectItem>
+              <SelectItem value="admitted_other_hospice">Admitted Other Hospice</SelectItem>
               <SelectItem value="declined">Declined</SelectItem>
               <SelectItem value="lost">Lost</SelectItem>
+              <SelectItem value="lost_death">Lost - Death</SelectItem>
+              <SelectItem value="lost_move">Lost - Move</SelectItem>
+              <SelectItem value="lost_other_hospice">Lost - Other Hospice</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -148,9 +170,9 @@ const ReferralsList = () => {
                     updateStatusMutation.mutate({ id: referral.id, status: value })
                   }
                 >
-                  <SelectTrigger className="w-32">
+                  <SelectTrigger className="w-40">
                     <Badge className={getStatusColor(referral.status || 'pending')}>
-                      {referral.status || 'pending'}
+                      {getStatusLabel(referral.status || 'pending')}
                     </Badge>
                   </SelectTrigger>
                   <SelectContent>
@@ -158,8 +180,13 @@ const ReferralsList = () => {
                     <SelectItem value="contacted">Contacted</SelectItem>
                     <SelectItem value="scheduled">Scheduled</SelectItem>
                     <SelectItem value="admitted">Admitted</SelectItem>
+                    <SelectItem value="admitted_our_hospice">Admitted Our Hospice</SelectItem>
+                    <SelectItem value="admitted_other_hospice">Admitted Other Hospice</SelectItem>
                     <SelectItem value="declined">Declined</SelectItem>
                     <SelectItem value="lost">Lost</SelectItem>
+                    <SelectItem value="lost_death">Lost - Death</SelectItem>
+                    <SelectItem value="lost_move">Lost - Move</SelectItem>
+                    <SelectItem value="lost_other_hospice">Lost - Other Hospice</SelectItem>
                   </SelectContent>
                 </Select>
               </TableCell>

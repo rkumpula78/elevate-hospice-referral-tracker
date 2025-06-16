@@ -1,12 +1,12 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Plus, Users, Calendar, FileText, TrendingUp } from "lucide-react";
+import { Plus, Calendar, FileText, TrendingUp } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import ReferralsList from "@/components/crm/ReferralsList";
-import PatientsList from "@/components/crm/PatientsList";
 import VisitsList from "@/components/crm/VisitsList";
 import OrganizationsList from "@/components/crm/OrganizationsList";
 import QuickAddDialog from "@/components/crm/QuickAddDialog";
@@ -18,16 +18,14 @@ const Dashboard = () => {
   const { data: stats } = useQuery({
     queryKey: ['dashboard-stats'],
     queryFn: async () => {
-      const [referralsCount, patientsCount, visitsCount, organizationsCount] = await Promise.all([
+      const [referralsCount, visitsCount, organizationsCount] = await Promise.all([
         supabase.from('referrals').select('*', { count: 'exact', head: true }),
-        supabase.from('patients').select('*', { count: 'exact', head: true }),
         supabase.from('visits').select('*', { count: 'exact', head: true }),
         supabase.from('organizations').select('*', { count: 'exact', head: true })
       ]);
 
       return {
         referrals: referralsCount.count || 0,
-        patients: patientsCount.count || 0,
         visits: visitsCount.count || 0,
         organizations: organizationsCount.count || 0
       };
@@ -39,7 +37,7 @@ const Dashboard = () => {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">CRM Dashboard</h1>
-          <p className="text-muted-foreground">Manage referrals, patients, and care coordination</p>
+          <p className="text-muted-foreground">Manage referrals, visits, and care coordination</p>
         </div>
         <Button onClick={() => setShowQuickAdd(true)}>
           <Plus className="w-4 h-4 mr-2" />
@@ -48,7 +46,7 @@ const Dashboard = () => {
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Referrals</CardTitle>
@@ -57,17 +55,6 @@ const Dashboard = () => {
           <CardContent>
             <div className="text-2xl font-bold">{stats?.referrals || 0}</div>
             <p className="text-xs text-muted-foreground">Active referrals in system</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Patients</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats?.patients || 0}</div>
-            <p className="text-xs text-muted-foreground">Patients under care</p>
           </CardContent>
         </Card>
 
@@ -84,12 +71,12 @@ const Dashboard = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Referral Sources</CardTitle>
+            <CardTitle className="text-sm font-medium">Organizations</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats?.organizations || 0}</div>
-            <p className="text-xs text-muted-foreground">Active organizations</p>
+            <p className="text-xs text-muted-foreground">Referral sources & marketers</p>
           </CardContent>
         </Card>
       </div>
@@ -98,7 +85,6 @@ const Dashboard = () => {
       <Tabs defaultValue="referrals" className="space-y-4">
         <TabsList>
           <TabsTrigger value="referrals">Referrals</TabsTrigger>
-          <TabsTrigger value="patients">Patients</TabsTrigger>
           <TabsTrigger value="visits">Visits</TabsTrigger>
           <TabsTrigger value="organizations">Organizations</TabsTrigger>
         </TabsList>
@@ -106,23 +92,11 @@ const Dashboard = () => {
         <TabsContent value="referrals">
           <Card>
             <CardHeader>
-              <CardTitle>Recent Referrals</CardTitle>
-              <CardDescription>Manage and track patient referrals</CardDescription>
+              <CardTitle>Referral Pipeline</CardTitle>
+              <CardDescription>Track patient referrals through the admission process</CardDescription>
             </CardHeader>
             <CardContent>
               <ReferralsList />
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="patients">
-          <Card>
-            <CardHeader>
-              <CardTitle>Patient Management</CardTitle>
-              <CardDescription>Active patients and their care plans</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <PatientsList />
             </CardContent>
           </Card>
         </TabsContent>
@@ -142,8 +116,8 @@ const Dashboard = () => {
         <TabsContent value="organizations">
           <Card>
             <CardHeader>
-              <CardTitle>Referral Sources</CardTitle>
-              <CardDescription>Hospitals, clinics, and referring organizations</CardDescription>
+              <CardTitle>Organizations</CardTitle>
+              <CardDescription>Referral sources, marketers, and partner organizations</CardDescription>
             </CardHeader>
             <CardContent>
               <OrganizationsList />
