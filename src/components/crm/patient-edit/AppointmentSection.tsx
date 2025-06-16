@@ -1,4 +1,4 @@
-
+// File: src/components/crm/patient-edit/AppointmentSection.tsx
 import React from 'react';
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -22,19 +22,21 @@ const AppointmentSection = ({ patient, isOpen, onToggle }: AppointmentSectionPro
       <CollapsibleContent className="p-4 border border-gray-200 rounded-b-lg">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <Label htmlFor="physician">Primary Care Physician (PCP)</Label>
+            <Label htmlFor="physician">Primary Care Physician (PCP) Name & Contact</Label>
             <Input
               id="physician"
               name="physician"
               defaultValue={patient.physician || ''}
+              placeholder="Dr. Jane Doe, (555) 111-2222"
             />
           </div>
           <div>
-            <Label htmlFor="attending_physician">Attending Physician</Label>
+            <Label htmlFor="attending_physician">Attending Physician Name & Contact</Label>
             <Input
               id="attending_physician"
               name="attending_physician"
               defaultValue={patient.attending_physician || ''}
+              placeholder="Dr. John Smith, (555) 333-4444"
             />
           </div>
           <div className="md:col-span-2">
