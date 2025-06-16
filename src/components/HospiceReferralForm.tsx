@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -131,7 +132,7 @@ const HospiceReferralForm = () => {
   };
 
   const createConfetti = () => {
-    const colors = ['#60A5FA', '#A78BFA', '#F472B6', '#34D399', '#FBBF24'];
+    const colors = ['#0B7EC8', '#1E88E5', '#42A5F5', '#64B5F6', '#90CAF9'];
     const confettiContainer = document.createElement('div');
     confettiContainer.style.position = 'fixed';
     confettiContainer.style.top = '0';
@@ -238,10 +239,10 @@ const HospiceReferralForm = () => {
 
   if (showSuccess) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-purple-50 to-blue-100 font-poppins px-4">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-blue-100 font-poppins px-4">
         <div className="text-center animate-fade-in">
-          <div className="w-24 h-24 mx-auto mb-6 bg-green-100 rounded-full flex items-center justify-center">
-            <svg className="w-12 h-12 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="w-24 h-24 mx-auto mb-6 bg-blue-100 rounded-full flex items-center justify-center">
+            <svg className="w-12 h-12 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
@@ -253,26 +254,30 @@ const HospiceReferralForm = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-blue-100 font-poppins px-4 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100 font-poppins px-4 py-8">
       <div className="max-w-4xl mx-auto">
-        {/* Header */}
+        {/* Header with Logo */}
         <div className="text-center mb-8 animate-fade-in">
-          <div className="flex items-center justify-center mb-4">
-            <div className="w-6 h-6 bg-gradient-to-r from-blue-600 to-purple-600 rounded mr-3"></div>
-            <h1 className="text-2xl md:text-3xl font-semibold text-gray-800">
-              Request Hospice Care Support
-            </h1>
+          <div className="flex items-center justify-center mb-6">
+            <img 
+              src="/lovable-uploads/0581d561-551f-491a-8b13-0be84633073f.png" 
+              alt="Elevate Hospice & Palliative Care" 
+              className="h-16 w-auto"
+            />
           </div>
-          <p className="text-gray-600 text-sm md:text-base">Supporting Families Through Every Step</p>
+          <h1 className="text-3xl md:text-4xl font-semibold text-gray-800 mb-2">
+            Request Hospice Care Support
+          </h1>
+          <p className="text-gray-600 text-lg">Supporting Families Through Every Step</p>
         </div>
 
         {/* Form */}
-        <Card className="backdrop-blur-sm bg-white/70 border-0 shadow-xl animate-slide-up">
+        <Card className="backdrop-blur-sm bg-white/90 border border-blue-100 shadow-2xl animate-slide-up">
           <CardContent className="p-6 md:p-8">
             <form onSubmit={handleSubmit} className="space-y-8">
               {/* Referring Information Section */}
               <div className="space-y-6">
-                <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2">
+                <h3 className="text-xl font-semibold text-blue-800 border-b-2 border-blue-200 pb-3">
                   Referring Information
                 </h3>
                 
@@ -287,7 +292,7 @@ const HospiceReferralForm = () => {
                       placeholder="Dr. John Smith"
                       value={formData.physicianName}
                       onChange={(e) => handleInputChange('physicianName', e.target.value)}
-                      className={`transition-all duration-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent border-gray-200 ${
+                      className={`transition-all duration-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-gray-300 rounded-lg ${
                         errors.physicianName ? 'border-red-500' : ''
                       }`}
                     />
@@ -304,7 +309,7 @@ const HospiceReferralForm = () => {
                       placeholder="ABC Hospital"
                       value={formData.referringFacility}
                       onChange={(e) => handleInputChange('referringFacility', e.target.value)}
-                      className={`transition-all duration-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent border-gray-200 ${
+                      className={`transition-all duration-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-gray-300 rounded-lg ${
                         errors.referringFacility ? 'border-red-500' : ''
                       }`}
                     />
@@ -315,7 +320,7 @@ const HospiceReferralForm = () => {
 
               {/* Patient Information Section */}
               <div className="space-y-6">
-                <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2">
+                <h3 className="text-xl font-semibold text-blue-800 border-b-2 border-blue-200 pb-3">
                   Patient Information
                 </h3>
                 
@@ -330,7 +335,7 @@ const HospiceReferralForm = () => {
                       placeholder="Jane Doe"
                       value={formData.patientName}
                       onChange={(e) => handleInputChange('patientName', e.target.value)}
-                      className={`transition-all duration-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent border-gray-200 ${
+                      className={`transition-all duration-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-gray-300 rounded-lg ${
                         errors.patientName ? 'border-red-500' : ''
                       }`}
                     />
@@ -346,7 +351,7 @@ const HospiceReferralForm = () => {
                         <Button
                           variant="outline"
                           className={cn(
-                            "w-full justify-start text-left font-normal transition-all duration-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent border-gray-200",
+                            "w-full justify-start text-left font-normal transition-all duration-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-gray-300 rounded-lg",
                             !formData.dateOfBirth && "text-muted-foreground",
                             errors.dateOfBirth && "border-red-500"
                           )}
@@ -370,7 +375,6 @@ const HospiceReferralForm = () => {
                   </div>
                 </div>
 
-                
                 <div className="space-y-2">
                   <Label htmlFor="primaryDiagnosis" className="text-sm font-medium text-gray-700">
                     Patient's Primary Diagnosis *
@@ -381,7 +385,7 @@ const HospiceReferralForm = () => {
                     placeholder="Stage IV Lung Cancer"
                     value={formData.primaryDiagnosis}
                     onChange={(e) => handleInputChange('primaryDiagnosis', e.target.value)}
-                    className={`transition-all duration-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent border-gray-200 ${
+                    className={`transition-all duration-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-gray-300 rounded-lg ${
                       errors.primaryDiagnosis ? 'border-red-500' : ''
                     }`}
                   />
@@ -399,7 +403,7 @@ const HospiceReferralForm = () => {
                       placeholder="1EG4-TE5-MK73"
                       value={formData.medicareNumber}
                       onChange={(e) => handleInputChange('medicareNumber', e.target.value)}
-                      className={`transition-all duration-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent border-gray-200 ${
+                      className={`transition-all duration-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-gray-300 rounded-lg ${
                         errors.medicareNumber ? 'border-red-500' : ''
                       }`}
                     />
@@ -411,7 +415,7 @@ const HospiceReferralForm = () => {
                       Insurance Provider (Optional)
                     </Label>
                     <Select onValueChange={(value) => handleInputChange('insuranceProvider', value)}>
-                      <SelectTrigger className="transition-all duration-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent border-gray-200">
+                      <SelectTrigger className="transition-all duration-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-gray-300 rounded-lg">
                         <SelectValue placeholder="Select insurance provider" />
                       </SelectTrigger>
                       <SelectContent className="bg-white border border-gray-200 shadow-lg z-50">
@@ -436,14 +440,14 @@ const HospiceReferralForm = () => {
                     placeholder="123 Main St, City, State, ZIP"
                     value={formData.patientAddress}
                     onChange={(e) => handleInputChange('patientAddress', e.target.value)}
-                    className="transition-all duration-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent border-gray-200"
+                    className="transition-all duration-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-gray-300 rounded-lg"
                   />
                 </div>
               </div>
 
               {/* Medical Information Section */}
               <div className="space-y-6">
-                <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2">
+                <h3 className="text-xl font-semibold text-blue-800 border-b-2 border-blue-200 pb-3">
                   Medical Information
                 </h3>
                 
@@ -452,7 +456,7 @@ const HospiceReferralForm = () => {
                     Advance Directives or DNR Status (Optional)
                   </Label>
                   <Select onValueChange={(value) => handleInputChange('advanceDirectives', value)}>
-                    <SelectTrigger className="transition-all duration-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent border-gray-200">
+                    <SelectTrigger className="transition-all duration-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-gray-300 rounded-lg">
                       <SelectValue placeholder="Does the patient have an Advance Directive or DNR order?" />
                     </SelectTrigger>
                     <SelectContent className="bg-white border border-gray-200 shadow-lg z-50">
@@ -475,14 +479,14 @@ const HospiceReferralForm = () => {
                     placeholder="Dr. Smith, (555) 123-4567, email@example.com"
                     value={formData.primaryCarePhysician}
                     onChange={(e) => handleInputChange('primaryCarePhysician', e.target.value)}
-                    className="transition-all duration-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent border-gray-200"
+                    className="transition-all duration-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-gray-300 rounded-lg"
                   />
                 </div>
               </div>
 
               {/* Contact Information Section */}
               <div className="space-y-6">
-                <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2">
+                <h3 className="text-xl font-semibold text-blue-800 border-b-2 border-blue-200 pb-3">
                   Contact Information
                 </h3>
                 
@@ -499,7 +503,7 @@ const HospiceReferralForm = () => {
                         placeholder="email@example.com"
                         value={formData.email}
                         onChange={(e) => handleInputChange('email', e.target.value)}
-                        className={`transition-all duration-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent border-gray-200 ${
+                        className={`transition-all duration-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-gray-300 rounded-lg ${
                           errors.email ? 'border-red-500' : ''
                         }`}
                       />
@@ -513,7 +517,7 @@ const HospiceReferralForm = () => {
                         placeholder="(555) 123-4567"
                         value={formData.phone}
                         onChange={(e) => handleInputChange('phone', e.target.value)}
-                        className={`transition-all duration-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent border-gray-200 ${
+                        className={`transition-all duration-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-gray-300 rounded-lg ${
                           errors.phone ? 'border-red-500' : ''
                         }`}
                       />
@@ -532,14 +536,14 @@ const HospiceReferralForm = () => {
                     placeholder="Name, Relationship, Phone Number"
                     value={formData.primaryCaregiver}
                     onChange={(e) => handleInputChange('primaryCaregiver', e.target.value)}
-                    className="transition-all duration-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent border-gray-200"
+                    className="transition-all duration-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-gray-300 rounded-lg"
                   />
                 </div>
               </div>
 
               {/* Additional Information Section */}
               <div className="space-y-6">
-                <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2">
+                <h3 className="text-xl font-semibold text-blue-800 border-b-2 border-blue-200 pb-3">
                   Additional Information
                 </h3>
                 
@@ -552,7 +556,7 @@ const HospiceReferralForm = () => {
                     placeholder="Please provide any additional details or concerns"
                     value={formData.additionalComments}
                     onChange={(e) => handleInputChange('additionalComments', e.target.value)}
-                    className="transition-all duration-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent border-gray-200 min-h-[100px]"
+                    className="transition-all duration-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-gray-300 rounded-lg min-h-[100px]"
                   />
                 </div>
               </div>
@@ -561,7 +565,7 @@ const HospiceReferralForm = () => {
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium py-3 transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900 text-white font-medium py-4 rounded-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
               >
                 {isSubmitting ? (
                   <div className="flex items-center justify-center">
