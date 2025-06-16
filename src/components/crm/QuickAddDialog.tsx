@@ -8,8 +8,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Users, FileText, Calendar, Building } from "lucide-react";
+import { FileText, Calendar, Building } from "lucide-react";
 import AddReferralDialog from './AddReferralDialog';
+import ScheduleVisitDialog from './ScheduleVisitDialog';
 
 interface QuickAddDialogProps {
   open: boolean;
@@ -18,6 +19,7 @@ interface QuickAddDialogProps {
 
 const QuickAddDialog = ({ open, onOpenChange }: QuickAddDialogProps) => {
   const [showAddReferral, setShowAddReferral] = useState(false);
+  const [showScheduleVisit, setShowScheduleVisit] = useState(false);
 
   const quickAddOptions = [
     {
@@ -30,21 +32,12 @@ const QuickAddDialog = ({ open, onOpenChange }: QuickAddDialogProps) => {
       }
     },
     {
-      title: "New Patient",
-      description: "Add a new patient record",
-      icon: Users,
-      action: () => {
-        // TODO: Implement add patient functionality
-        console.log("Add patient");
-      }
-    },
-    {
       title: "Schedule Visit",
-      description: "Schedule a new patient visit",
+      description: "Schedule visit to patient, facility, or event",
       icon: Calendar,
       action: () => {
-        // TODO: Implement schedule visit functionality
-        console.log("Schedule visit");
+        onOpenChange(false);
+        setShowScheduleVisit(true);
       }
     },
     {
@@ -94,6 +87,11 @@ const QuickAddDialog = ({ open, onOpenChange }: QuickAddDialogProps) => {
       <AddReferralDialog 
         open={showAddReferral} 
         onOpenChange={setShowAddReferral} 
+      />
+
+      <ScheduleVisitDialog 
+        open={showScheduleVisit} 
+        onOpenChange={setShowScheduleVisit} 
       />
     </>
   );
