@@ -12,7 +12,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { Upload, X, FileText, Download } from 'lucide-react';
-import { format } from 'date-fns';
 
 interface EditPatientDialogProps {
   open: boolean;
@@ -29,13 +28,18 @@ const EditPatientDialog = ({ open, onOpenChange, patientId }: EditPatientDialogP
   const { data: patient, isLoading } = useQuery({
     queryKey: ['patient', patientId],
     queryFn: async () => {
+      console.log('Fetching patient data for ID:', patientId);
       const { data, error } = await supabase
         .from('patients')
         .select('*')
         .eq('id', patientId)
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching patient:', error);
+        throw error;
+      }
+      console.log('Patient data fetched:', data);
       return data;
     },
     enabled: open && !!patientId
@@ -45,13 +49,18 @@ const EditPatientDialog = ({ open, onOpenChange, patientId }: EditPatientDialogP
   const { data: documents } = useQuery({
     queryKey: ['patient-documents', patientId],
     queryFn: async () => {
+      console.log('Fetching documents for patient ID:', patientId);
       const { data, error } = await supabase
         .from('patient_documents')
         .select('*')
         .eq('patient_id', patientId)
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching documents:', error);
+        throw error;
+      }
+      console.log('Documents fetched:', data);
       return data;
     },
     enabled: open && !!patientId
@@ -60,12 +69,16 @@ const EditPatientDialog = ({ open, onOpenChange, patientId }: EditPatientDialogP
   // Update patient mutation
   const updatePatientMutation = useMutation({
     mutationFn: async (data: any) => {
+      console.log('Updating patient with data:', data);
       const { error } = await supabase
         .from('patients')
         .update(data)
         .eq('id', patientId);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating patient:', error);
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['patients'] });
@@ -73,6 +86,7 @@ const EditPatientDialog = ({ open, onOpenChange, patientId }: EditPatientDialogP
       toast({ title: 'Patient updated successfully' });
     },
     onError: (error) => {
+      console.error('Update patient mutation error:', error);
       toast({ title: 'Error updating patient', description: error.message, variant: 'destructive' });
     }
   });
@@ -81,19 +95,27 @@ const EditPatientDialog = ({ open, onOpenChange, patientId }: EditPatientDialogP
   const uploadDocumentMutation = useMutation({
     mutationFn: async ({ file, documentType }: { file: File; documentType: string }) => {
       setUploading(true);
+      console.log('Starting file upload:', file.name, 'Type:', documentType);
       
       const fileExt = file.name.split('.').pop();
-      const fileName = `${patientId}/${Date.now()}.${fileExt}`;
+      const fileName = `${patientId}/${Date.now()}-${file.name}`;
+      
+      console.log('Uploading to path:', fileName);
       
       // Upload file to storage
-      const { error: uploadError } = await supabase.storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
         .from('patient-documents')
         .upload(fileName, file);
       
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error('Storage upload error:', uploadError);
+        throw uploadError;
+      }
+
+      console.log('File uploaded successfully:', uploadData);
 
       // Create document record
-      const { error: dbError } = await supabase
+      const { data: docData, error: dbError } = await supabase
         .from('patient_documents')
         .insert({
           patient_id: patientId,
@@ -102,9 +124,17 @@ const EditPatientDialog = ({ open, onOpenChange, patientId }: EditPatientDialogP
           file_size: file.size,
           content_type: file.type,
           document_type: documentType
-        });
+        })
+        .select()
+        .single();
       
-      if (dbError) throw dbError;
+      if (dbError) {
+        console.error('Database insert error:', dbError);
+        throw dbError;
+      }
+
+      console.log('Document record created:', docData);
+      return docData;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['patient-documents', patientId] });
@@ -112,6 +142,7 @@ const EditPatientDialog = ({ open, onOpenChange, patientId }: EditPatientDialogP
       setUploading(false);
     },
     onError: (error) => {
+      console.error('Upload document mutation error:', error);
       toast({ title: 'Error uploading document', description: error.message, variant: 'destructive' });
       setUploading(false);
     }
@@ -120,12 +151,17 @@ const EditPatientDialog = ({ open, onOpenChange, patientId }: EditPatientDialogP
   // Delete document mutation
   const deleteDocumentMutation = useMutation({
     mutationFn: async (document: any) => {
+      console.log('Deleting document:', document);
+      
       // Delete from storage
       const { error: storageError } = await supabase.storage
         .from('patient-documents')
         .remove([document.file_path]);
       
-      if (storageError) throw storageError;
+      if (storageError) {
+        console.error('Storage delete error:', storageError);
+        throw storageError;
+      }
 
       // Delete from database
       const { error: dbError } = await supabase
@@ -133,13 +169,17 @@ const EditPatientDialog = ({ open, onOpenChange, patientId }: EditPatientDialogP
         .delete()
         .eq('id', document.id);
       
-      if (dbError) throw dbError;
+      if (dbError) {
+        console.error('Database delete error:', dbError);
+        throw dbError;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['patient-documents', patientId] });
       toast({ title: 'Document deleted successfully' });
     },
     onError: (error) => {
+      console.error('Delete document mutation error:', error);
       toast({ title: 'Error deleting document', description: error.message, variant: 'destructive' });
     }
   });
@@ -186,31 +226,42 @@ const EditPatientDialog = ({ open, onOpenChange, patientId }: EditPatientDialogP
       upcoming_appointments: formData.get('upcoming_appointments')
     };
 
+    console.log('Submitting patient update:', updateData);
     updatePatientMutation.mutate(updateData);
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, documentType: string) => {
     const file = e.target.files?.[0];
     if (file) {
+      console.log('File selected for upload:', file.name, 'Type:', documentType);
       uploadDocumentMutation.mutate({ file, documentType });
     }
   };
 
   const downloadFile = async (document: any) => {
     try {
+      console.log('Downloading file:', document.file_path);
       const { data, error } = await supabase.storage
         .from('patient-documents')
         .download(document.file_path);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Download error:', error);
+        throw error;
+      }
       
       const url = URL.createObjectURL(data);
       const a = document.createElement('a');
       a.href = url;
       a.download = document.file_name;
+      document.body.appendChild(a);
       a.click();
+      document.body.removeChild(a);
       URL.revokeObjectURL(url);
+      
+      console.log('File downloaded successfully');
     } catch (error) {
+      console.error('Download file error:', error);
       toast({ title: 'Error downloading file', variant: 'destructive' });
     }
   };
@@ -586,14 +637,14 @@ const EditPatientDialog = ({ open, onOpenChange, patientId }: EditPatientDialogP
                         disabled={uploading}
                       >
                         <Upload className="w-4 h-4 mr-2" />
-                        Upload {docType.replace('_', ' ')}
+                        {uploading ? 'Uploading...' : `Upload ${docType.replace('_', ' ')}`}
                       </Button>
                       
                       {/* Show documents of this type */}
                       {documents?.filter(doc => doc.document_type === docType).map((doc) => (
                         <div key={doc.id} className="flex items-center justify-between p-2 bg-gray-50 rounded mt-2">
                           <div className="flex items-center gap-2">
-                            <FileText className="w-3 h-3" />
+                            <FileText className="w-4 h-4" />
                             <span className="text-sm">{doc.file_name}</span>
                           </div>
                           <div className="flex items-center gap-1">
@@ -603,7 +654,7 @@ const EditPatientDialog = ({ open, onOpenChange, patientId }: EditPatientDialogP
                               size="sm"
                               onClick={() => downloadFile(doc)}
                             >
-                              <Download className="w-3 h-3" />
+                              <Download className="w-4 h-4" />
                             </Button>
                             <Button
                               type="button"
@@ -611,7 +662,7 @@ const EditPatientDialog = ({ open, onOpenChange, patientId }: EditPatientDialogP
                               size="sm"
                               onClick={() => deleteDocumentMutation.mutate(doc)}
                             >
-                              <X className="w-3 h-3" />
+                              <X className="w-4 h-4" />
                             </Button>
                           </div>
                         </div>
