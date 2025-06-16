@@ -87,7 +87,7 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
       assigned_marketer: formData.get('assigned_marketer'),
       priority: formData.get('priority'),
       status: formData.get('status') as ReferralStatus,
-      organization_id: formData.get('organization_id') || null,
+      organization_id: formData.get('organization_id') === 'none' ? null : formData.get('organization_id'),
       notes: formData.get('notes')
     };
 
@@ -166,12 +166,12 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
             </div>
             <div>
               <Label htmlFor="organization_id">Organization</Label>
-              <Select name="organization_id" defaultValue={referral.organization_id || ''}>
+              <Select name="organization_id" defaultValue={referral.organization_id || 'none'}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select organization" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">No organization</SelectItem>
+                  <SelectItem value="none">No organization</SelectItem>
                   {organizations?.map((org) => (
                     <SelectItem key={org.id} value={org.id}>
                       {org.name}
