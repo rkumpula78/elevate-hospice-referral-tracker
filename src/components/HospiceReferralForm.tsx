@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,6 +29,23 @@ interface FormData {
   additionalComments: string;
 }
 
+interface FormErrors {
+  physicianName?: string;
+  primaryDiagnosis?: string;
+  referringFacility?: string;
+  patientName?: string;
+  email?: string;
+  phone?: string;
+  medicareNumber?: string;
+  dateOfBirth?: string;
+  patientAddress?: string;
+  primaryCarePhysician?: string;
+  insuranceProvider?: string;
+  advanceDirectives?: string;
+  primaryCaregiver?: string;
+  additionalComments?: string;
+}
+
 const HospiceReferralForm = () => {
   const [formData, setFormData] = useState<FormData>({
     physicianName: '',
@@ -50,7 +66,7 @@ const HospiceReferralForm = () => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-  const [errors, setErrors] = useState<Partial<FormData>>({});
+  const [errors, setErrors] = useState<FormErrors>({});
 
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -69,7 +85,7 @@ const HospiceReferralForm = () => {
   };
 
   const validateForm = () => {
-    const newErrors: Partial<FormData> = {};
+    const newErrors: FormErrors = {};
 
     if (!formData.physicianName.trim()) {
       newErrors.physicianName = 'Referring physician name is required';
@@ -354,6 +370,7 @@ const HospiceReferralForm = () => {
                   </div>
                 </div>
 
+                
                 <div className="space-y-2">
                   <Label htmlFor="primaryDiagnosis" className="text-sm font-medium text-gray-700">
                     Patient's Primary Diagnosis *
