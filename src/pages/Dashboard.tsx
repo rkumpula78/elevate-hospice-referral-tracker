@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -52,19 +51,8 @@ const Dashboard = () => {
       {/* Total Admits Chart */}
       <TotalAdmitsChart />
 
-      {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Referrals</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats?.referrals || 0}</div>
-            <p className="text-xs text-muted-foreground">Active referrals in system</p>
-          </CardContent>
-        </Card>
-
+      {/* Statistics Cards - Reordered: Scheduled Visits, Total Referrals, Total Patients */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Scheduled Visits</CardTitle>
@@ -78,12 +66,12 @@ const Dashboard = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Organizations</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Total Referrals</CardTitle>
+            <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.organizations || 0}</div>
-            <p className="text-xs text-muted-foreground">Referral sources & marketers</p>
+            <div className="text-2xl font-bold">{stats?.referrals || 0}</div>
+            <p className="text-xs text-muted-foreground">Active referrals in system</p>
           </CardContent>
         </Card>
 
