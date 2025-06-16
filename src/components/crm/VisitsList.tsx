@@ -6,24 +6,32 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Clock, CheckCircle, Calendar } from "lucide-react";
+import { Plus, Clock, CheckCircle, Calendar, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { format } from "date-fns";
 
 type VisitType = 'admission' | 'routine' | 'urgent' | 'discharge';
+type SortField = 'patients.first_name' | 'staff_name' | 'visit_type' | 'scheduled_date' | 'duration_minutes' | 'is_completed';
+type SortDirection = 'asc' | 'desc';
 
 const VisitsList = () => {
   const [selectedType, setSelectedType] = useState<VisitType | 'all'>('all');
+  const [selectedStaff, setSelectedStaff] = useState<string>('all');
+  const [sortField, setSortField] = useState<SortField>('scheduled_date');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
 
   const { data: visits, isLoading } = useQuery({
-    queryKey: ['visits', selectedType],
+    queryKey: ['visits', selectedType, selectedStaff, sortField, sortDirection],
     queryFn: async () => {
       let query = supabase
         .from('visits')
         .select('*, patients(first_name, last_name)')
-        .order('scheduled_date', { ascending: true });
+        .order(sortField === 'patients.first_name' ? 'patients(first_name)' : sortField, { ascending: sortDirection === 'asc' });
 
       if (selectedType !== 'all') {
         query = query.eq('visit_type', selectedType);
+      }
+      if (selectedStaff !== 'all') {
+        query = query.eq('staff_name', selectedStaff);
       }
 
       const { data, error } = await query;
@@ -31,6 +39,35 @@ const VisitsList = () => {
       return data;
     }
   });
+
+  // Get unique staff for filter
+  const { data: staff } = useQuery({
+    queryKey: ['visit-staff'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('visits')
+        .select('staff_name')
+        .not('staff_name', 'is', null);
+      
+      if (error) throw error;
+      const uniqueStaff = [...new Set(data.map(v => v.staff_name).filter(Boolean))];
+      return uniqueStaff;
+    }
+  });
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  const getSortIcon = (field: SortField) => {
+    if (sortField !== field) return <ArrowUpDown className="w-3 h-3 ml-1" />;
+    return sortDirection === 'asc' ? <ArrowUp className="w-3 h-3 ml-1" /> : <ArrowDown className="w-3 h-3 ml-1" />;
+  };
 
   const getTypeColor = (type: string) => {
     switch (type) {
@@ -62,6 +99,18 @@ const VisitsList = () => {
               <SelectItem value="discharge">Discharge</SelectItem>
             </SelectContent>
           </Select>
+
+          <Select value={selectedStaff} onValueChange={setSelectedStaff}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="Filter by staff" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Staff</SelectItem>
+              {staff?.map((staffMember) => (
+                <SelectItem key={staffMember} value={staffMember}>{staffMember}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <Button>
           <Plus className="w-4 h-4 mr-2" />
@@ -72,12 +121,36 @@ const VisitsList = () => {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Patient</TableHead>
-            <TableHead>Staff</TableHead>
-            <TableHead>Visit Type</TableHead>
-            <TableHead>Scheduled Date</TableHead>
-            <TableHead>Duration</TableHead>
-            <TableHead>Status</TableHead>
+            <TableHead>
+              <Button variant="ghost" onClick={() => handleSort('patients.first_name')} className="h-auto p-0 font-medium">
+                Patient{getSortIcon('patients.first_name')}
+              </Button>
+            </TableHead>
+            <TableHead>
+              <Button variant="ghost" onClick={() => handleSort('staff_name')} className="h-auto p-0 font-medium">
+                Staff{getSortIcon('staff_name')}
+              </Button>
+            </TableHead>
+            <TableHead>
+              <Button variant="ghost" onClick={() => handleSort('visit_type')} className="h-auto p-0 font-medium">
+                Visit Type{getSortIcon('visit_type')}
+              </Button>
+            </TableHead>
+            <TableHead>
+              <Button variant="ghost" onClick={() => handleSort('scheduled_date')} className="h-auto p-0 font-medium">
+                Scheduled Date{getSortIcon('scheduled_date')}
+              </Button>
+            </TableHead>
+            <TableHead>
+              <Button variant="ghost" onClick={() => handleSort('duration_minutes')} className="h-auto p-0 font-medium">
+                Duration{getSortIcon('duration_minutes')}
+              </Button>
+            </TableHead>
+            <TableHead>
+              <Button variant="ghost" onClick={() => handleSort('is_completed')} className="h-auto p-0 font-medium">
+                Status{getSortIcon('is_completed')}
+              </Button>
+            </TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
