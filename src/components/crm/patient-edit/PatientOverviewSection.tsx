@@ -1,4 +1,4 @@
-
+// File: src/components/crm/patient-edit/PatientOverviewSection.tsx
 import React from 'react';
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -66,20 +66,28 @@ const PatientOverviewSection = ({ patient, isOpen, onToggle }: PatientOverviewSe
             />
           </div>
           <div>
-            <Label htmlFor="medicare_number">Medicare/Policy Number</Label>
+            <Label htmlFor="medicare_number">Policy Number (Medicare/Private)</Label>
             <Input
               id="medicare_number"
-              name="medicare_number"
+              name="medicare_number" // Re-using for general policy number
               defaultValue={patient.medicare_number || ''}
             />
           </div>
           <div>
-            <Label htmlFor="insurance">Referral Source</Label>
+            <Label htmlFor="insurance">Source of Referral</Label>
             <Input
               id="insurance"
               name="insurance"
               defaultValue={patient.insurance || ''}
               placeholder="e.g., Physician, Hospital, SNF"
+            />
+          </div>
+          <div>
+            <Label htmlFor="referral_contact_person">Referral Contact Person</Label>
+            <Input
+              id="referral_contact_person"
+              name="referral_contact_person"
+              defaultValue={patient.referral_contact_person || ''}
             />
           </div>
           <div className="md:col-span-2">
