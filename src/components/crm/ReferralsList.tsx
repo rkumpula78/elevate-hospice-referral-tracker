@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Phone, Mail, Calendar, User, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import { Plus, Phone, Mail, Calendar, User, ArrowUpDown, ArrowUp, ArrowDown, Edit } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import AddReferralDialog from './AddReferralDialog';
@@ -296,6 +296,10 @@ const ReferralsList = () => {
               </TableCell>
               <TableCell>
                 <div className="flex space-x-2">
+                  <Button variant="outline" size="sm">
+                    <Edit className="w-3 h-3 mr-1" />
+                    Edit
+                  </Button>
                   <Button variant="outline" size="sm">
                     <Calendar className="w-3 h-3 mr-1" />
                     Schedule

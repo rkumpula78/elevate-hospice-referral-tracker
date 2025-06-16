@@ -9,7 +9,6 @@ import { supabase } from "@/integrations/supabase/client";
 import ReferralsList from "@/components/crm/ReferralsList";
 import VisitsList from "@/components/crm/VisitsList";
 import OrganizationsList from "@/components/crm/OrganizationsList";
-import PatientsList from "@/components/crm/PatientsList";
 import QuickAddDialog from "@/components/crm/QuickAddDialog";
 import TotalAdmitsChart from "@/components/charts/TotalAdmitsChart";
 
@@ -107,7 +106,6 @@ const Dashboard = () => {
           <TabsTrigger value="referrals">Referrals</TabsTrigger>
           <TabsTrigger value="visits">Visits</TabsTrigger>
           <TabsTrigger value="organizations">Organizations</TabsTrigger>
-          <TabsTrigger value="patients">Patients</TabsTrigger>
         </TabsList>
 
         <TabsContent value="referrals">
@@ -142,18 +140,6 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent>
               <OrganizationsList />
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="patients">
-          <Card>
-            <CardHeader>
-              <CardTitle>Patient Management</CardTitle>
-              <CardDescription>Manage patient information and care coordination</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <PatientsList />
             </CardContent>
           </Card>
         </TabsContent>
