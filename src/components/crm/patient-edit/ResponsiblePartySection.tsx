@@ -1,4 +1,4 @@
-
+// File: src/components/crm/patient-edit/ResponsiblePartySection.tsx
 import React from 'react';
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -38,6 +38,7 @@ const ResponsiblePartySection = ({ patient, isOpen, onToggle }: ResponsibleParty
               placeholder="XXX-XXX-XXXX"
             />
           </div>
+          {/* Responsible Party Email Address field omitted as it's not in the current database schema */}
           <div>
             <Label htmlFor="responsible_party_relationship">Relationship to Patient</Label>
             <Select name="responsible_party_relationship" defaultValue={patient.responsible_party_relationship || ''}>
