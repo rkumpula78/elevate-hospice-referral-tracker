@@ -200,6 +200,47 @@ export type Database = {
         }
         Relationships: []
       }
+      patient_attachments: {
+        Row: {
+          content_type: string | null
+          created_at: string
+          file_name: string
+          file_path: string
+          file_size: number | null
+          id: string
+          patient_id: string | null
+          uploaded_by: string | null
+        }
+        Insert: {
+          content_type?: string | null
+          created_at?: string
+          file_name: string
+          file_path: string
+          file_size?: number | null
+          id?: string
+          patient_id?: string | null
+          uploaded_by?: string | null
+        }
+        Update: {
+          content_type?: string | null
+          created_at?: string
+          file_name?: string
+          file_path?: string
+          file_size?: number | null
+          id?: string
+          patient_id?: string | null
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_attachments_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       patients: {
         Row: {
           address: string | null
@@ -214,6 +255,8 @@ export type Database = {
           id: string
           insurance: string | null
           last_name: string
+          next_steps: string | null
+          notes: string | null
           phone: string | null
           physician: string | null
           referral_id: string | null
@@ -233,6 +276,8 @@ export type Database = {
           id?: string
           insurance?: string | null
           last_name: string
+          next_steps?: string | null
+          notes?: string | null
           phone?: string | null
           physician?: string | null
           referral_id?: string | null
@@ -252,6 +297,8 @@ export type Database = {
           id?: string
           insurance?: string | null
           last_name?: string
+          next_steps?: string | null
+          notes?: string | null
           phone?: string | null
           physician?: string | null
           referral_id?: string | null

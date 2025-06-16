@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,8 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Phone, Calendar, FileText, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import { Plus, Phone, Calendar, FileText, ArrowUpDown, ArrowUp, ArrowDown, Edit } from "lucide-react";
 import { format } from "date-fns";
+import EditPatientDialog from './EditPatientDialog';
 
 type PatientStatus = 'active' | 'discharged' | 'deceased' | 'transferred';
 type SortField = 'first_name' | 'last_name' | 'date_of_birth' | 'diagnosis' | 'physician' | 'status' | 'admission_date';
@@ -18,6 +18,7 @@ const PatientsList = () => {
   const [selectedPhysician, setSelectedPhysician] = useState<string>('all');
   const [sortField, setSortField] = useState<SortField>('admission_date');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  const [editingPatientId, setEditingPatientId] = useState<string | null>(null);
 
   const { data: patients, isLoading } = useQuery({
     queryKey: ['patients', selectedStatus, selectedPhysician, sortField, sortDirection],
@@ -183,6 +184,14 @@ const PatientsList = () => {
               </TableCell>
               <TableCell>
                 <div className="flex space-x-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setEditingPatientId(patient.id)}
+                  >
+                    <Edit className="w-3 h-3 mr-1" />
+                    Edit
+                  </Button>
                   <Button variant="outline" size="sm">
                     <Calendar className="w-3 h-3 mr-1" />
                     Schedule Visit
@@ -197,6 +206,14 @@ const PatientsList = () => {
           ))}
         </TableBody>
       </Table>
+
+      {editingPatientId && (
+        <EditPatientDialog
+          open={!!editingPatientId}
+          onOpenChange={(open) => !open && setEditingPatientId(null)}
+          patientId={editingPatientId}
+        />
+      )}
     </div>
   );
 };
