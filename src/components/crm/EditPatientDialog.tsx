@@ -1,4 +1,4 @@
-
+// File: src/components/crm/EditPatientDialog.tsx
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -93,6 +93,7 @@ const EditPatientDialog = ({ open, onOpenChange, patientId }: EditPatientDialogP
       queryClient.invalidateQueries({ queryKey: ['patients'] });
       queryClient.invalidateQueries({ queryKey: ['patient', patientId] });
       toast({ title: 'Patient updated successfully' });
+      onOpenChange(false); // Close dialog on successful update
     },
     onError: (error) => {
       console.error('Update patient mutation error:', error);
@@ -197,43 +198,21 @@ const EditPatientDialog = ({ open, onOpenChange, patientId }: EditPatientDialogP
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     
-    const updateData = {
-      first_name: formData.get('first_name'),
-      last_name: formData.get('last_name'),
-      date_of_birth: formData.get('date_of_birth') || null,
-      ssn: formData.get('ssn'),
-      primary_insurance: formData.get('primary_insurance'),
-      secondary_insurance: formData.get('secondary_insurance'),
-      medicare_number: formData.get('medicare_number'),
-      medicaid_number: formData.get('medicaid_number'),
-      phone: formData.get('phone'),
-      address: formData.get('address'),
-      responsible_party_name: formData.get('responsible_party_name'),
-      responsible_party_contact: formData.get('responsible_party_contact'),
-      responsible_party_relationship: formData.get('responsible_party_relationship'),
-      emergency_contact: formData.get('emergency_contact'),
-      emergency_phone: formData.get('emergency_phone'),
-      advanced_directive: formData.get('advanced_directive') === 'on',
-      dnr_status: formData.get('dnr_status') === 'on',
-      funeral_arrangements: formData.get('funeral_arrangements'),
-      msw_notes: formData.get('msw_notes'),
-      diagnosis: formData.get('diagnosis'),
-      caregiver_name: formData.get('caregiver_name'),
-      caregiver_contact: formData.get('caregiver_contact'),
-      spiritual_preferences: formData.get('spiritual_preferences'),
-      height: formData.get('height') ? parseInt(formData.get('height') as string) : null,
-      weight: formData.get('weight') ? parseInt(formData.get('weight') as string) : null,
-      dme_needs: formData.get('dme_needs'),
-      transport_needs: formData.get('transport_needs'),
-      special_medical_needs: formData.get('special_medical_needs'),
-      physician: formData.get('physician'),
-      attending_physician: formData.get('attending_physician'),
-      upcoming_appointments: formData.get('upcoming_appointments'),
-      prior_hospice_info: formData.get('prior_hospice_info'),
-      next_steps: formData.get('next_steps'),
-      notes: formData.get('notes'),
-      insurance: formData.get('insurance')
-    };
+    // Collect all form data dynamically
+    const updateData: { [key: string]: any } = {};
+    for (const [key, value] of formData.entries()) {
+      // Handle checkboxes specifically as they return 'on'/'off'
+      if (key === 'advanced_directive' || key === 'dnr_status') {
+        updateData[key] = value === 'on';
+      } else if (key === 'height' || key === 'weight') {
+        updateData[key] = value ? parseInt(value as string) : null;
+      } else if (key === 'date_of_birth' && value === '') {
+        updateData[key] = null; // Ensure empty date is stored as null
+      }
+      else {
+        updateData[key] = value;
+      }
+    }
 
     console.log('Submitting patient update:', updateData);
     updatePatientMutation.mutate(updateData);
