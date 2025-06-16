@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,6 +11,7 @@ import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface FormData {
   physicianName: string;
@@ -178,23 +178,35 @@ const HospiceReferralForm = () => {
     setIsSubmitting(true);
 
     try {
-      // Simulate webhook call - replace with actual endpoint
-      const webhookUrl = 'https://your-hospital-webhook-endpoint.com/hospice-referrals';
-      
-      const response = await fetch(webhookUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...formData,
-          dateOfBirth: formData.dateOfBirth?.toISOString(),
-          timestamp: new Date().toISOString(),
-        }),
-      });
+      // Save to Supabase database
+      const { data, error } = await supabase
+        .from('hospice_referrals')
+        .insert([
+          {
+            physician_name: formData.physicianName,
+            referring_facility: formData.referringFacility,
+            patient_name: formData.patientName,
+            date_of_birth: formData.dateOfBirth?.toISOString().split('T')[0], // Convert to YYYY-MM-DD format
+            primary_diagnosis: formData.primaryDiagnosis,
+            medicare_number: formData.medicareNumber || null,
+            insurance_provider: formData.insuranceProvider || null,
+            patient_address: formData.patientAddress || null,
+            advance_directives: formData.advanceDirectives || null,
+            primary_care_physician: formData.primaryCarePhysician || null,
+            contact_email: formData.email || null,
+            contact_phone: formData.phone || null,
+            primary_caregiver: formData.primaryCaregiver || null,
+            additional_comments: formData.additionalComments || null,
+          }
+        ])
+        .select();
 
-      // For demo purposes, we'll simulate a successful response
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+
+      console.log('Referral saved successfully:', data);
 
       createConfetti();
       setShowSuccess(true);
