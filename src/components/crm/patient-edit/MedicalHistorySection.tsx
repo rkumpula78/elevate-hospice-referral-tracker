@@ -1,4 +1,4 @@
-
+// File: src/components/crm/patient-edit/MedicalHistorySection.tsx
 import React from 'react';
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -85,7 +85,7 @@ const MedicalHistorySection = ({ patient, isOpen, onToggle }: MedicalHistorySect
             />
           </div>
           <div className="md:col-span-2">
-            <Label htmlFor="transport_needs">Transport Requirements</Label>
+            <Label htmlFor="transport_needs">Transport Requirements (Time or Description)</Label>
             <Textarea
               id="transport_needs"
               name="transport_needs"
