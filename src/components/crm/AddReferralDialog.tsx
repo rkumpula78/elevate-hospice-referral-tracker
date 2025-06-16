@@ -1,21 +1,14 @@
 
 import React, { useState } from 'react';
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 interface AddReferralDialogProps {
   open: boolean;
@@ -29,31 +22,51 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
     patient_name: '',
     patient_phone: '',
     diagnosis: '',
-    referring_physician: '',
     insurance: '',
     priority: 'routine',
+    organization_id: '',
+    referring_physician: '',
+    assigned_marketer: '',
     notes: ''
+  });
+
+  // Fetch organizations for the dropdown
+  const { data: organizations } = useQuery({
+    queryKey: ['organizations'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('organizations')
+        .select('id, name, type')
+        .eq('is_active', true)
+        .order('name');
+      if (error) throw error;
+      return data;
+    }
   });
 
   const addReferralMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
       const { error } = await supabase
         .from('referrals')
-        .insert([data]);
+        .insert([{
+          ...data,
+          organization_id: data.organization_id || null
+        }]);
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['referrals'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
       toast({ title: "Referral added successfully" });
       onOpenChange(false);
       setFormData({
         patient_name: '',
         patient_phone: '',
         diagnosis: '',
-        referring_physician: '',
         insurance: '',
         priority: 'routine',
+        organization_id: '',
+        referring_physician: '',
+        assigned_marketer: '',
         notes: ''
       });
     },
@@ -64,10 +77,6 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.patient_name.trim()) {
-      toast({ title: "Patient name is required", variant: "destructive" });
-      return;
-    }
     addReferralMutation.mutate(formData);
   };
 
@@ -77,102 +86,119 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Add New Referral</DialogTitle>
-          <DialogDescription>
-            Create a new patient referral. Fill in the required information below.
-          </DialogDescription>
         </DialogHeader>
-        
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
               <Label htmlFor="patient_name">Patient Name *</Label>
               <Input
                 id="patient_name"
                 value={formData.patient_name}
                 onChange={(e) => handleInputChange('patient_name', e.target.value)}
-                placeholder="Enter patient name"
                 required
               />
             </div>
-            
-            <div className="grid gap-2">
+            <div>
               <Label htmlFor="patient_phone">Patient Phone</Label>
               <Input
                 id="patient_phone"
-                type="tel"
                 value={formData.patient_phone}
                 onChange={(e) => handleInputChange('patient_phone', e.target.value)}
-                placeholder="Enter phone number"
               />
             </div>
-            
-            <div className="grid gap-2">
-              <Label htmlFor="diagnosis">Diagnosis</Label>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="organization_id">Referral Source</Label>
+              <Select value={formData.organization_id} onValueChange={(value) => handleInputChange('organization_id', value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select organization" />
+                </SelectTrigger>
+                <SelectContent>
+                  {organizations?.map((org) => (
+                    <SelectItem key={org.id} value={org.id}>
+                      {org.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="assigned_marketer">Assigned Marketer</Label>
               <Input
-                id="diagnosis"
-                value={formData.diagnosis}
-                onChange={(e) => handleInputChange('diagnosis', e.target.value)}
-                placeholder="Enter diagnosis"
+                id="assigned_marketer"
+                value={formData.assigned_marketer}
+                onChange={(e) => handleInputChange('assigned_marketer', e.target.value)}
+                placeholder="Elevate staff member"
               />
             </div>
-            
-            <div className="grid gap-2">
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
               <Label htmlFor="referring_physician">Referring Physician</Label>
               <Input
                 id="referring_physician"
                 value={formData.referring_physician}
                 onChange={(e) => handleInputChange('referring_physician', e.target.value)}
-                placeholder="Enter physician name"
               />
             </div>
-            
-            <div className="grid gap-2">
+            <div>
+              <Label htmlFor="priority">Priority</Label>
+              <Select value={formData.priority} onValueChange={(value) => handleInputChange('priority', value)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="low">Low</SelectItem>
+                  <SelectItem value="routine">Routine</SelectItem>
+                  <SelectItem value="urgent">Urgent</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="diagnosis">Diagnosis</Label>
+              <Input
+                id="diagnosis"
+                value={formData.diagnosis}
+                onChange={(e) => handleInputChange('diagnosis', e.target.value)}
+              />
+            </div>
+            <div>
               <Label htmlFor="insurance">Insurance</Label>
               <Input
                 id="insurance"
                 value={formData.insurance}
                 onChange={(e) => handleInputChange('insurance', e.target.value)}
-                placeholder="Enter insurance provider"
-              />
-            </div>
-            
-            <div className="grid gap-2">
-              <Label htmlFor="priority">Priority</Label>
-              <Select value={formData.priority} onValueChange={(value) => handleInputChange('priority', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select priority" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="routine">Routine</SelectItem>
-                  <SelectItem value="urgent">Urgent</SelectItem>
-                  <SelectItem value="low">Low</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="grid gap-2">
-              <Label htmlFor="notes">Notes</Label>
-              <Textarea
-                id="notes"
-                value={formData.notes}
-                onChange={(e) => handleInputChange('notes', e.target.value)}
-                placeholder="Additional notes..."
-                rows={3}
               />
             </div>
           </div>
-          
-          <DialogFooter>
+
+          <div>
+            <Label htmlFor="notes">Notes</Label>
+            <Textarea
+              id="notes"
+              value={formData.notes}
+              onChange={(e) => handleInputChange('notes', e.target.value)}
+              rows={3}
+            />
+          </div>
+
+          <div className="flex justify-end space-x-2 pt-4">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
             <Button type="submit" disabled={addReferralMutation.isPending}>
-              {addReferralMutation.isPending ? "Adding..." : "Add Referral"}
+              {addReferralMutation.isPending ? 'Adding...' : 'Add Referral'}
             </Button>
-          </DialogFooter>
+          </div>
         </form>
       </DialogContent>
     </Dialog>

@@ -161,6 +161,7 @@ export type Database = {
       organizations: {
         Row: {
           address: string | null
+          assigned_marketer: string | null
           contact_email: string | null
           contact_person: string | null
           created_at: string | null
@@ -173,6 +174,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          assigned_marketer?: string | null
           contact_email?: string | null
           contact_person?: string | null
           created_at?: string | null
@@ -185,6 +187,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          assigned_marketer?: string | null
           contact_email?: string | null
           contact_person?: string | null
           created_at?: string | null
@@ -268,6 +271,7 @@ export type Database = {
       referrals: {
         Row: {
           admission_date: string | null
+          assigned_marketer: string | null
           contact_date: string | null
           created_at: string | null
           diagnosis: string | null
@@ -285,6 +289,7 @@ export type Database = {
         }
         Insert: {
           admission_date?: string | null
+          assigned_marketer?: string | null
           contact_date?: string | null
           created_at?: string | null
           diagnosis?: string | null
@@ -302,6 +307,7 @@ export type Database = {
         }
         Update: {
           admission_date?: string | null
+          assigned_marketer?: string | null
           contact_date?: string | null
           created_at?: string | null
           diagnosis?: string | null

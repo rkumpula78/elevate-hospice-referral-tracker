@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Phone, Mail, Calendar } from "lucide-react";
+import { Plus, Phone, Mail, Calendar, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import AddReferralDialog from './AddReferralDialog';
@@ -130,6 +130,7 @@ const ReferralsList = () => {
           <TableRow>
             <TableHead>Patient</TableHead>
             <TableHead>Organization</TableHead>
+            <TableHead>Assigned Marketer</TableHead>
             <TableHead>Diagnosis</TableHead>
             <TableHead>Priority</TableHead>
             <TableHead>Status</TableHead>
@@ -156,6 +157,14 @@ const ReferralsList = () => {
                   <div>{referral.organizations?.name || 'Unknown'}</div>
                   <div className="text-sm text-muted-foreground">{referral.organizations?.type}</div>
                 </div>
+              </TableCell>
+              <TableCell>
+                {referral.assigned_marketer ? (
+                  <div className="flex items-center">
+                    <User className="w-3 h-3 mr-1" />
+                    {referral.assigned_marketer}
+                  </div>
+                ) : '-'}
               </TableCell>
               <TableCell>{referral.diagnosis}</TableCell>
               <TableCell>
