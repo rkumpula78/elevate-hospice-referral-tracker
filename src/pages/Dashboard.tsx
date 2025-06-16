@@ -9,7 +9,9 @@ import { supabase } from "@/integrations/supabase/client";
 import ReferralsList from "@/components/crm/ReferralsList";
 import VisitsList from "@/components/crm/VisitsList";
 import OrganizationsList from "@/components/crm/OrganizationsList";
+import PatientsList from "@/components/crm/PatientsList";
 import QuickAddDialog from "@/components/crm/QuickAddDialog";
+import TotalAdmitsChart from "@/components/charts/TotalAdmitsChart";
 
 const Dashboard = () => {
   const [showQuickAdd, setShowQuickAdd] = useState(false);
@@ -18,16 +20,18 @@ const Dashboard = () => {
   const { data: stats } = useQuery({
     queryKey: ['dashboard-stats'],
     queryFn: async () => {
-      const [referralsCount, visitsCount, organizationsCount] = await Promise.all([
+      const [referralsCount, visitsCount, organizationsCount, patientsCount] = await Promise.all([
         supabase.from('referrals').select('*', { count: 'exact', head: true }),
         supabase.from('visits').select('*', { count: 'exact', head: true }),
-        supabase.from('organizations').select('*', { count: 'exact', head: true })
+        supabase.from('organizations').select('*', { count: 'exact', head: true }),
+        supabase.from('patients').select('*', { count: 'exact', head: true })
       ]);
 
       return {
         referrals: referralsCount.count || 0,
         visits: visitsCount.count || 0,
-        organizations: organizationsCount.count || 0
+        organizations: organizationsCount.count || 0,
+        patients: patientsCount.count || 0
       };
     }
   });
@@ -45,8 +49,11 @@ const Dashboard = () => {
         </Button>
       </div>
 
+      {/* Total Admits Chart */}
+      <TotalAdmitsChart />
+
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Referrals</CardTitle>
@@ -79,6 +86,17 @@ const Dashboard = () => {
             <p className="text-xs text-muted-foreground">Referral sources & marketers</p>
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Patients</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats?.patients || 0}</div>
+            <p className="text-xs text-muted-foreground">Active and discharged patients</p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Main Content Tabs */}
@@ -87,6 +105,7 @@ const Dashboard = () => {
           <TabsTrigger value="referrals">Referrals</TabsTrigger>
           <TabsTrigger value="visits">Visits</TabsTrigger>
           <TabsTrigger value="organizations">Organizations</TabsTrigger>
+          <TabsTrigger value="patients">Patients</TabsTrigger>
         </TabsList>
 
         <TabsContent value="referrals">
@@ -121,6 +140,18 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent>
               <OrganizationsList />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="patients">
+          <Card>
+            <CardHeader>
+              <CardTitle>Patient Management</CardTitle>
+              <CardDescription>Manage patient information and care coordination</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <PatientsList />
             </CardContent>
           </Card>
         </TabsContent>
