@@ -158,6 +158,53 @@ export type Database = {
         }
         Relationships: []
       }
+      organization_documents: {
+        Row: {
+          content_type: string | null
+          created_at: string
+          document_type: string | null
+          file_name: string
+          file_path: string
+          file_size: number | null
+          id: string
+          organization_id: string | null
+          updated_at: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          content_type?: string | null
+          created_at?: string
+          document_type?: string | null
+          file_name: string
+          file_path: string
+          file_size?: number | null
+          id?: string
+          organization_id?: string | null
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          content_type?: string | null
+          created_at?: string
+          document_type?: string | null
+          file_name?: string
+          file_path?: string
+          file_size?: number | null
+          id?: string
+          organization_id?: string | null
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_documents_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organizations: {
         Row: {
           address: string | null
@@ -241,69 +288,185 @@ export type Database = {
           },
         ]
       }
+      patient_documents: {
+        Row: {
+          content_type: string | null
+          created_at: string
+          document_type: string | null
+          file_name: string
+          file_path: string
+          file_size: number | null
+          id: string
+          patient_id: string | null
+          updated_at: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          content_type?: string | null
+          created_at?: string
+          document_type?: string | null
+          file_name: string
+          file_path: string
+          file_size?: number | null
+          id?: string
+          patient_id?: string | null
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          content_type?: string | null
+          created_at?: string
+          document_type?: string | null
+          file_name?: string
+          file_path?: string
+          file_size?: number | null
+          id?: string
+          patient_id?: string | null
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_documents_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       patients: {
         Row: {
           address: string | null
           admission_date: string | null
+          advanced_directive: boolean | null
+          attending_physician: string | null
+          caregiver_contact: string | null
+          caregiver_name: string | null
           created_at: string | null
           date_of_birth: string | null
           diagnosis: string | null
           discharge_date: string | null
+          dme_needs: string | null
+          dnr_status: boolean | null
           emergency_contact: string | null
           emergency_phone: string | null
           first_name: string
+          funeral_arrangements: string | null
+          height: number | null
           id: string
           insurance: string | null
           last_name: string
+          medicaid_number: string | null
+          medicare_number: string | null
+          msw_notes: string | null
           next_steps: string | null
           notes: string | null
           phone: string | null
           physician: string | null
+          primary_insurance: string | null
+          prior_hospice_info: string | null
           referral_id: string | null
+          responsible_party_contact: string | null
+          responsible_party_name: string | null
+          responsible_party_relationship: string | null
+          secondary_insurance: string | null
+          special_medical_needs: string | null
+          spiritual_preferences: string | null
+          ssn: string | null
           status: Database["public"]["Enums"]["patient_status"] | null
+          transport_needs: string | null
+          upcoming_appointments: string | null
           updated_at: string | null
+          weight: number | null
         }
         Insert: {
           address?: string | null
           admission_date?: string | null
+          advanced_directive?: boolean | null
+          attending_physician?: string | null
+          caregiver_contact?: string | null
+          caregiver_name?: string | null
           created_at?: string | null
           date_of_birth?: string | null
           diagnosis?: string | null
           discharge_date?: string | null
+          dme_needs?: string | null
+          dnr_status?: boolean | null
           emergency_contact?: string | null
           emergency_phone?: string | null
           first_name: string
+          funeral_arrangements?: string | null
+          height?: number | null
           id?: string
           insurance?: string | null
           last_name: string
+          medicaid_number?: string | null
+          medicare_number?: string | null
+          msw_notes?: string | null
           next_steps?: string | null
           notes?: string | null
           phone?: string | null
           physician?: string | null
+          primary_insurance?: string | null
+          prior_hospice_info?: string | null
           referral_id?: string | null
+          responsible_party_contact?: string | null
+          responsible_party_name?: string | null
+          responsible_party_relationship?: string | null
+          secondary_insurance?: string | null
+          special_medical_needs?: string | null
+          spiritual_preferences?: string | null
+          ssn?: string | null
           status?: Database["public"]["Enums"]["patient_status"] | null
+          transport_needs?: string | null
+          upcoming_appointments?: string | null
           updated_at?: string | null
+          weight?: number | null
         }
         Update: {
           address?: string | null
           admission_date?: string | null
+          advanced_directive?: boolean | null
+          attending_physician?: string | null
+          caregiver_contact?: string | null
+          caregiver_name?: string | null
           created_at?: string | null
           date_of_birth?: string | null
           diagnosis?: string | null
           discharge_date?: string | null
+          dme_needs?: string | null
+          dnr_status?: boolean | null
           emergency_contact?: string | null
           emergency_phone?: string | null
           first_name?: string
+          funeral_arrangements?: string | null
+          height?: number | null
           id?: string
           insurance?: string | null
           last_name?: string
+          medicaid_number?: string | null
+          medicare_number?: string | null
+          msw_notes?: string | null
           next_steps?: string | null
           notes?: string | null
           phone?: string | null
           physician?: string | null
+          primary_insurance?: string | null
+          prior_hospice_info?: string | null
           referral_id?: string | null
+          responsible_party_contact?: string | null
+          responsible_party_name?: string | null
+          responsible_party_relationship?: string | null
+          secondary_insurance?: string | null
+          special_medical_needs?: string | null
+          spiritual_preferences?: string | null
+          ssn?: string | null
           status?: Database["public"]["Enums"]["patient_status"] | null
+          transport_needs?: string | null
+          upcoming_appointments?: string | null
           updated_at?: string | null
+          weight?: number | null
         }
         Relationships: [
           {
@@ -324,11 +487,16 @@ export type Database = {
           diagnosis: string | null
           id: string
           insurance: string | null
+          insurance_verification: boolean | null
+          medical_records_received: boolean | null
           notes: string | null
           organization_id: string | null
           patient_name: string
           patient_phone: string | null
           priority: string | null
+          referral_contact_email: string | null
+          referral_contact_person: string | null
+          referral_contact_phone: string | null
           referral_date: string | null
           referring_physician: string | null
           status: Database["public"]["Enums"]["referral_status"] | null
@@ -342,11 +510,16 @@ export type Database = {
           diagnosis?: string | null
           id?: string
           insurance?: string | null
+          insurance_verification?: boolean | null
+          medical_records_received?: boolean | null
           notes?: string | null
           organization_id?: string | null
           patient_name: string
           patient_phone?: string | null
           priority?: string | null
+          referral_contact_email?: string | null
+          referral_contact_person?: string | null
+          referral_contact_phone?: string | null
           referral_date?: string | null
           referring_physician?: string | null
           status?: Database["public"]["Enums"]["referral_status"] | null
@@ -360,11 +533,16 @@ export type Database = {
           diagnosis?: string | null
           id?: string
           insurance?: string | null
+          insurance_verification?: boolean | null
+          medical_records_received?: boolean | null
           notes?: string | null
           organization_id?: string | null
           patient_name?: string
           patient_phone?: string | null
           priority?: string | null
+          referral_contact_email?: string | null
+          referral_contact_person?: string | null
+          referral_contact_phone?: string | null
           referral_date?: string | null
           referring_physician?: string | null
           status?: Database["public"]["Enums"]["referral_status"] | null
