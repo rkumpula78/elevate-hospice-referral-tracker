@@ -11,7 +11,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { format } from 'date-fns'; // Added for formatting date of birth if needed
+import { format } from 'date-fns';
 
 interface EditReferralDialogProps {
   open: boolean;
@@ -85,7 +85,10 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
       patient_name: formData.get('patient_name'),
       patient_phone: formData.get('patient_phone'),
       // Add patient_dob for referral if it's available and relevant
-      date_of_birth: formData.get('date_of_birth') || null, // Assuming you might add DOB for referrals
+      // The referrals table does not have 'date_of_birth' directly, it's in the patients table.
+      // If you want to store DOB for the referral, you'd need to add it to the 'referrals' table.
+      // For now, I'm commenting this out to prevent issues if not in DB:
+      // date_of_birth: formData.get('date_of_birth') || null, 
       diagnosis: formData.get('diagnosis'),
       insurance: formData.get('insurance'), // This field is used for patient's insurance in current schema
       referring_physician: formData.get('referring_physician'),
@@ -148,24 +151,30 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
                     id="patient_phone"
                     name="patient_phone"
                     defaultValue={referral.patient_phone || ''}
+                    placeholder="XXX-XXX-XXXX"
                   />
                 </div>
-                <div>
-                  <Label htmlFor="date_of_birth">Patient Date of Birth</Label>
-                  <Input
-                    id="date_of_birth"
-                    name="date_of_birth"
-                    type="date"
-                    // Assuming referral might have DOB, if not, adjust here or in schema
-                    defaultValue={referral.date_of_birth ? format(new Date(referral.date_of_birth), 'yyyy-MM-dd') : ''}
-                  />
-                </div>
+                {/* The 'referrals' table in your Supabase schema does not currently
+                  have a 'date_of_birth' field directly associated with the referral.
+                  It exists in the 'patients' table. If you wish to store DOB specific
+                  to the referral, you would need to add it to your 'referrals' table.
+                  <div className="md:col-span-1">
+                    <Label htmlFor="date_of_birth">Patient Date of Birth</Label>
+                    <Input
+                      id="date_of_birth"
+                      name="date_of_birth"
+                      type="date"
+                      defaultValue={referral.date_of_birth ? format(new Date(referral.date_of_birth), 'yyyy-MM-dd') : ''}
+                    />
+                  </div>
+                */}
                 <div>
                   <Label htmlFor="diagnosis">Diagnosis</Label>
                   <Input
                     id="diagnosis"
                     name="diagnosis"
                     defaultValue={referral.diagnosis || ''}
+                    placeholder="e.g., Cancer, Heart Failure"
                   />
                 </div>
                 <div>
@@ -174,6 +183,7 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
                     id="insurance"
                     name="insurance"
                     defaultValue={referral.insurance || ''}
+                    placeholder="e.g., Medicare, Private Insurance"
                   />
                 </div>
                 <div>
@@ -182,6 +192,7 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
                     id="referring_physician"
                     name="referring_physician"
                     defaultValue={referral.referring_physician || ''}
+                    placeholder="Dr. John Smith"
                   />
                 </div>
                 <div>
@@ -190,6 +201,7 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
                     id="assigned_marketer"
                     name="assigned_marketer"
                     defaultValue={referral.assigned_marketer || ''}
+                    placeholder="Elevate staff member"
                   />
                 </div>
               </div>
@@ -198,7 +210,7 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
             <TabsContent value="referral-source" className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="organization_id">Organization</Label>
+                  <Label htmlFor="organization_id">Referring Organization</Label>
                   <Select name="organization_id" defaultValue={referral.organization_id || 'none'}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select organization" />
@@ -219,6 +231,7 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
                     id="referral_contact_person"
                     name="referral_contact_person"
                     defaultValue={referral.referral_contact_person || ''}
+                    placeholder="Contact name at facility"
                   />
                 </div>
                 <div>
@@ -227,6 +240,7 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
                     id="referral_contact_phone"
                     name="referral_contact_phone"
                     defaultValue={referral.referral_contact_phone || ''}
+                    placeholder="XXX-XXX-XXXX"
                   />
                 </div>
                 <div>
@@ -236,9 +250,10 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
                     name="referral_contact_email"
                     type="email"
                     defaultValue={referral.referral_contact_email || ''}
+                    placeholder="email@example.com"
                   />
                 </div>
-                <div className="flex items-center space-x-4 md:col-span-2">
+                <div className="flex flex-col space-y-4 md:col-span-2">
                   <div className="flex items-center space-x-2">
                     <Checkbox
                       id="insurance_verification"
