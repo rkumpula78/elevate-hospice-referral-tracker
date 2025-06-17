@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Input } from '@/components/ui/input';
-import { parsePhoneNumber, formatPhoneNumber, isValidPhoneNumber } from 'libphonenumber-js/min';
+import { parsePhoneNumber, isValidPhoneNumber } from 'libphonenumber-js/min';
 
 interface PhoneInputProps extends Omit<React.ComponentProps<typeof Input>, 'onChange'> {
   value: string;
