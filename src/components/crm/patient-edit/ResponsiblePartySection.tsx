@@ -1,3 +1,4 @@
+
 // File: src/components/crm/patient-edit/ResponsiblePartySection.tsx
 import React from 'react';
 import { Label } from "@/components/ui/label";
@@ -27,6 +28,7 @@ const ResponsiblePartySection = ({ patient, isOpen, onToggle }: ResponsibleParty
               id="responsible_party_name"
               name="responsible_party_name"
               defaultValue={patient.responsible_party_name || ''}
+              placeholder="First and Last Name"
             />
           </div>
           <div>
@@ -38,7 +40,16 @@ const ResponsiblePartySection = ({ patient, isOpen, onToggle }: ResponsibleParty
               placeholder="XXX-XXX-XXXX"
             />
           </div>
-          {/* Responsible Party Email Address field omitted as it's not in the current database schema */}
+          <div>
+            <Label htmlFor="responsible_party_email">Email Address</Label>
+            <Input
+              id="responsible_party_email"
+              name="responsible_party_email"
+              type="email"
+              defaultValue={patient.responsible_party_email || ''}
+              placeholder="email@example.com"
+            />
+          </div>
           <div>
             <Label htmlFor="responsible_party_relationship">Relationship to Patient</Label>
             <Select name="responsible_party_relationship" defaultValue={patient.responsible_party_relationship || ''}>
@@ -52,6 +63,8 @@ const ResponsiblePartySection = ({ patient, isOpen, onToggle }: ResponsibleParty
                 <SelectItem value="parent">Parent</SelectItem>
                 <SelectItem value="sibling">Sibling</SelectItem>
                 <SelectItem value="power_of_attorney">Power of Attorney</SelectItem>
+                <SelectItem value="guardian">Legal Guardian</SelectItem>
+                <SelectItem value="friend">Friend</SelectItem>
                 <SelectItem value="other">Other</SelectItem>
               </SelectContent>
             </Select>
@@ -62,6 +75,7 @@ const ResponsiblePartySection = ({ patient, isOpen, onToggle }: ResponsibleParty
               id="emergency_contact"
               name="emergency_contact"
               defaultValue={patient.emergency_contact || ''}
+              placeholder="Emergency contact person"
             />
           </div>
           <div>
@@ -70,6 +84,7 @@ const ResponsiblePartySection = ({ patient, isOpen, onToggle }: ResponsibleParty
               id="emergency_phone"
               name="emergency_phone"
               defaultValue={patient.emergency_phone || ''}
+              placeholder="XXX-XXX-XXXX"
             />
           </div>
         </div>

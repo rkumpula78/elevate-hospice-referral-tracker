@@ -1,3 +1,4 @@
+
 // File: src/components/crm/patient-edit/AppointmentSection.tsx
 import React from 'react';
 import { Label } from "@/components/ui/label";
@@ -22,21 +23,39 @@ const AppointmentSection = ({ patient, isOpen, onToggle }: AppointmentSectionPro
       <CollapsibleContent className="p-4 border border-gray-200 rounded-b-lg">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <Label htmlFor="physician">Primary Care Physician (PCP) Name & Contact</Label>
+            <Label htmlFor="physician">Primary Care Physician (PCP) Name</Label>
             <Input
               id="physician"
               name="physician"
               defaultValue={patient.physician || ''}
-              placeholder="Dr. Jane Doe, (555) 111-2222"
+              placeholder="Dr. Jane Doe"
             />
           </div>
           <div>
-            <Label htmlFor="attending_physician">Attending Physician Name & Contact</Label>
+            <Label htmlFor="pcp_contact">PCP Contact Information</Label>
+            <Input
+              id="pcp_contact"
+              name="pcp_contact"
+              defaultValue={patient.pcp_contact || ''}
+              placeholder="Phone: (555) 111-2222, Email: contact@clinic.com"
+            />
+          </div>
+          <div>
+            <Label htmlFor="attending_physician">Attending Physician Name</Label>
             <Input
               id="attending_physician"
               name="attending_physician"
               defaultValue={patient.attending_physician || ''}
-              placeholder="Dr. John Smith, (555) 333-4444"
+              placeholder="Dr. John Smith"
+            />
+          </div>
+          <div>
+            <Label htmlFor="attending_physician_contact">Attending Physician Contact</Label>
+            <Input
+              id="attending_physician_contact"
+              name="attending_physician_contact"
+              defaultValue={patient.attending_physician_contact || ''}
+              placeholder="Phone: (555) 333-4444"
             />
           </div>
           <div className="md:col-span-2">
@@ -46,7 +65,7 @@ const AppointmentSection = ({ patient, isOpen, onToggle }: AppointmentSectionPro
               name="upcoming_appointments"
               defaultValue={patient.upcoming_appointments || ''}
               rows={3}
-              placeholder="e.g., Cardiology - 06/10/2025 at 2:00 PM"
+              placeholder="e.g., Cardiology - 06/10/2025 at 2:00 PM, Oncology - 06/15/2025 at 10:00 AM"
             />
           </div>
           <div className="md:col-span-2">
@@ -56,7 +75,7 @@ const AppointmentSection = ({ patient, isOpen, onToggle }: AppointmentSectionPro
               name="prior_hospice_info"
               defaultValue={patient.prior_hospice_info || ''}
               rows={3}
-              placeholder="Previous hospice or home health details (if applicable)"
+              placeholder="Previous hospice or home health agency details, dates of service, reason for discharge"
             />
           </div>
         </div>
