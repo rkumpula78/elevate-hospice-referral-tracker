@@ -120,9 +120,6 @@ const Dashboard = () => {
           </Card>
         </div>
 
-        {/* Total Admits Chart - Now separate detailed chart */}
-        <TotalAdmitsChart />
-
         {/* Main Content Tabs */}
         <Tabs defaultValue="referrals" className="space-y-4">
           <TabsList>
