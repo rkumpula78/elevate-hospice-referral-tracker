@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -110,6 +111,41 @@ const ReferralsList = () => {
     },
     onError: () => {
       toast({ title: "Error updating status", variant: "destructive" });
+    }
+  });
+
+  const updatePriorityMutation = useMutation({
+    mutationFn: async ({ id, priority }: { id: string, priority: string }) => {
+      const { error } = await supabase
+        .from('referrals')
+        .update({ priority })
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['referrals'] });
+      toast({ title: "Priority updated successfully" });
+    },
+    onError: () => {
+      toast({ title: "Error updating priority", variant: "destructive" });
+    }
+  });
+
+  const updateMarketerMutation = useMutation({
+    mutationFn: async ({ id, marketer }: { id: string, marketer: string }) => {
+      const { error } = await supabase
+        .from('referrals')
+        .update({ assigned_marketer: marketer === 'none' ? null : marketer })
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['referrals'] });
+      queryClient.invalidateQueries({ queryKey: ['marketers'] });
+      toast({ title: "Marketer updated successfully" });
+    },
+    onError: () => {
+      toast({ title: "Error updating marketer", variant: "destructive" });
     }
   });
 
@@ -331,19 +367,59 @@ const ReferralsList = () => {
                     </div>
                   </TableCell>
                   <TableCell>
-                    {referral.assigned_marketer ? (
-                      <div className="flex items-center">
-                        <User className="w-3 h-3 mr-1" />
-                        {referral.assigned_marketer}
-                      </div>
-                    ) : '-'}
+                    <Select
+                      value={referral.assigned_marketer || 'none'}
+                      onValueChange={(value: string) => 
+                        updateMarketerMutation.mutate({ id: referral.id, marketer: value })
+                      }
+                      disabled={updateMarketerMutation.isPending}
+                    >
+                      <SelectTrigger className="w-40">
+                        <SelectValue>
+                          {referral.assigned_marketer ? (
+                            <div className="flex items-center">
+                              <User className="w-3 h-3 mr-1" />
+                              {referral.assigned_marketer}
+                            </div>
+                          ) : (
+                            <span className="text-muted-foreground">Unassigned</span>
+                          )}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Unassigned</SelectItem>
+                        <SelectItem value="John Smith">John Smith</SelectItem>
+                        <SelectItem value="Sarah Johnson">Sarah Johnson</SelectItem>
+                        <SelectItem value="Mike Davis">Mike Davis</SelectItem>
+                        <SelectItem value="Lisa Wilson">Lisa Wilson</SelectItem>
+                        <SelectItem value="David Brown">David Brown</SelectItem>
+                        {marketers?.filter(m => !['John Smith', 'Sarah Johnson', 'Mike Davis', 'Lisa Wilson', 'David Brown'].includes(m)).map((marketer) => (
+                          <SelectItem key={marketer} value={marketer}>{marketer}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </TableCell>
                   <TableCell className="max-w-[200px] truncate">{referral.diagnosis}</TableCell>
                   <TableCell>
-                    <Badge className={getPriorityColor(referral.priority || 'routine')}>
-                      {getPriorityIcon(referral.priority || 'routine')}
-                      {referral.priority || 'routine'}
-                    </Badge>
+                    <Select
+                      value={referral.priority || 'routine'}
+                      onValueChange={(value: string) => 
+                        updatePriorityMutation.mutate({ id: referral.id, priority: value })
+                      }
+                      disabled={updatePriorityMutation.isPending}
+                    >
+                      <SelectTrigger className="w-32">
+                        <Badge className={getPriorityColor(referral.priority || 'routine')}>
+                          {getPriorityIcon(referral.priority || 'routine')}
+                          {referral.priority || 'routine'}
+                        </Badge>
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="urgent">Urgent</SelectItem>
+                        <SelectItem value="routine">Routine</SelectItem>
+                        <SelectItem value="low">Low</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </TableCell>
                   <TableCell>
                     <Select
