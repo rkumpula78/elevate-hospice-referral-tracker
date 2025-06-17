@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -145,8 +144,8 @@ const EditVisitDialog = ({ open, onOpenChange, visitId }: EditVisitDialogProps) 
         duration_minutes: visit.duration_minutes || 60,
         notes: remainingNotes,
         is_completed: visit.is_completed || false,
-        event_title,
-        event_location
+        event_title: eventTitle,
+        event_location: eventLocation
       });
     }
   }, [visit]);
