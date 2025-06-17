@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -14,6 +15,7 @@ import ConversionFunnelChart from "@/components/charts/ConversionFunnelChart";
 import SourcePerformanceChart from "@/components/charts/SourcePerformanceChart";
 import MarketerPerformance from "@/components/charts/MarketerPerformance";
 import TotalAdmitsChart from "@/components/charts/TotalAdmitsChart";
+import GlobalSearchBar from "@/components/search/GlobalSearchBar";
 
 const Dashboard = () => {
   const [showQuickAdd, setShowQuickAdd] = useState(false);
@@ -47,9 +49,9 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header with Logo */}
+      {/* Header with Logo and Search */}
       <header className="bg-white shadow-sm border-b">
-        <div className="container mx-auto px-6 py-4 flex justify-between items-center">
+        <div className="container mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center">
             <img 
               src="/lovable-uploads/0581d561-551f-491a-8b13-0be84633073f.png" 
@@ -61,6 +63,12 @@ const Dashboard = () => {
               <p className="text-sm text-gray-600">Elevate Hospice & Palliative Care</p>
             </div>
           </div>
+          
+          {/* Global Search Bar */}
+          <div className="flex-1 max-w-2xl mx-8">
+            <GlobalSearchBar />
+          </div>
+          
           <div className="flex items-center space-x-4">
             <Button onClick={() => setShowQuickAdd(true)}>
               <Plus className="w-4 h-4 mr-2" />
