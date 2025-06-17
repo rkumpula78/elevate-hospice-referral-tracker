@@ -15,6 +15,7 @@ import ReferralsPage from "./pages/ReferralsPage";
 import SchedulePage from "./pages/SchedulePage";
 import CompliancePage from "./pages/CompliancePage";
 import SettingsPage from "./pages/SettingsPage";
+import OrganizationsPage from "./pages/OrganizationsPage";
 import PatientDetail from "./pages/PatientDetail";
 import ReferralDetail from "./pages/ReferralDetail";
 import OrganizationDetail from "./pages/OrganizationDetail";
@@ -41,6 +42,7 @@ const App = () => (
                         <Route index element={<Navigate to="/dashboard" replace />} />
                         <Route path="dashboard" element={<Dashboard />} />
                         <Route path="referrals" element={<ReferralsPage />} />
+                        <Route path="organizations" element={<OrganizationsPage />} />
                         <Route path="schedule" element={<SchedulePage />} />
                         <Route path="compliance" element={<CompliancePage />} />
                         <Route path="settings" element={<SettingsPage />} />
@@ -72,6 +74,18 @@ const App = () => (
                     <AppSidebar />
                     <div className="flex-1">
                       <ReferralsPage />
+                    </div>
+                  </div>
+                </SidebarProvider>
+              </ProtectedRoute>
+            } />
+            <Route path="/organizations" element={
+              <ProtectedRoute>
+                <SidebarProvider>
+                  <div className="min-h-screen flex w-full">
+                    <AppSidebar />
+                    <div className="flex-1">
+                      <OrganizationsPage />
                     </div>
                   </div>
                 </SidebarProvider>

@@ -19,7 +19,8 @@ import {
   Shield, 
   Settings,
   LogOut,
-  Calendar 
+  Calendar,
+  Building2
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -34,6 +35,11 @@ const menuItems = [
     title: "Referrals",
     url: "/referrals",
     icon: FileText,
+  },
+  {
+    title: "Organizations",
+    url: "/organizations",
+    icon: Building2,
   },
   {
     title: "Schedule",
