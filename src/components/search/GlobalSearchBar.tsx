@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 
 interface SearchResult {
   type: string;
@@ -21,6 +22,7 @@ const GlobalSearchBar = () => {
   const [showResults, setShowResults] = useState(false);
   const [isAiQuery, setIsAiQuery] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
   // Detect if this looks like an AI query
   const detectAiQuery = (query: string) => {
@@ -71,8 +73,19 @@ const GlobalSearchBar = () => {
 
   const handleResultClick = (type: string, id: string) => {
     // Navigate to the specific item
-    // This would be implemented based on your routing structure
-    console.log(`Navigate to ${type}:`, id);
+    switch (type) {
+      case 'referral':
+        navigate(`/referral/${id}`);
+        break;
+      case 'patient':
+        navigate(`/patient/${id}`);
+        break;
+      case 'organization':
+        navigate(`/organization/${id}`);
+        break;
+      default:
+        console.log(`Unknown type: ${type}`);
+    }
     setShowResults(false);
     setSearchQuery('');
   };

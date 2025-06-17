@@ -10,6 +10,9 @@ import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
+import ReferralDetail from "./pages/ReferralDetail";
+import PatientDetail from "./pages/PatientDetail";
+import OrganizationDetail from "./pages/OrganizationDetail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -37,6 +40,30 @@ const App: React.FC = () => {
                 element={
                   <ProtectedRoute>
                     <Dashboard />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/referral/:id" 
+                element={
+                  <ProtectedRoute>
+                    <ReferralDetail />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/patient/:id" 
+                element={
+                  <ProtectedRoute>
+                    <PatientDetail />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/organization/:id" 
+                element={
+                  <ProtectedRoute>
+                    <OrganizationDetail />
                   </ProtectedRoute>
                 } 
               />
