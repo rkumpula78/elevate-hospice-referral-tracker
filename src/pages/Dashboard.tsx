@@ -10,6 +10,9 @@ import ReferralsList from "@/components/crm/ReferralsList";
 import VisitsList from "@/components/crm/VisitsList";
 import OrganizationsList from "@/components/crm/OrganizationsList";
 import QuickAddDialog from "@/components/crm/QuickAddDialog";
+import ConversionFunnelChart from "@/components/charts/ConversionFunnelChart";
+import SourcePerformanceChart from "@/components/charts/SourcePerformanceChart";
+import MarketerPerformance from "@/components/charts/MarketerPerformance";
 import TotalAdmitsChart from "@/components/charts/TotalAdmitsChart";
 
 const Dashboard = () => {
@@ -119,6 +122,15 @@ const Dashboard = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Analytics Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <ConversionFunnelChart />
+          <SourcePerformanceChart />
+        </div>
+
+        {/* Marketer Performance */}
+        <MarketerPerformance />
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="referrals" className="space-y-4">
