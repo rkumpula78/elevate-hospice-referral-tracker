@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,11 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Phone, Mail, Calendar, User, ArrowUpDown, ArrowUp, ArrowDown, Edit, AlertCircle, Clock, CheckCircle } from "lucide-react";
+import { Plus, Phone, Mail, Calendar, User, ArrowUpDown, ArrowUp, ArrowDown, Edit, AlertCircle, Clock, CheckCircle, Settings } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import AddReferralDialog from './AddReferralDialog';
 import EditReferralDialog from './EditReferralDialog';
+import MarketerSettingsDialog from './MarketerSettingsDialog';
 import { sendAdmissionNotification, formatEmailData } from '@/utils/emailNotifications';
 import { TableSkeleton } from '@/components/ui/table-skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -27,6 +27,7 @@ const ReferralsList = () => {
   const [selectedMarketer, setSelectedMarketer] = useState<string>('all');
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showMarketerSettings, setShowMarketerSettings] = useState(false);
   const [editingReferralId, setEditingReferralId] = useState<string>('');
   const [sortField, setSortField] = useState<SortField>('referral_date');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
@@ -55,8 +56,32 @@ const ReferralsList = () => {
     }
   });
 
+  // Get marketers from localStorage
+  const { data: marketers, refetch: refetchMarketers } = useQuery({
+    queryKey: ['marketers-local'],
+    queryFn: () => {
+      const stored = localStorage.getItem('hospice-marketers');
+      if (stored) {
+        return JSON.parse(stored);
+      }
+      return ['John Smith', 'Sarah Johnson', 'Mike Davis', 'Lisa Wilson', 'David Brown'];
+    }
+  });
+
+  // Listen for marketer updates
+  React.useEffect(() => {
+    const handleMarketerUpdate = () => {
+      refetchMarketers();
+    };
+
+    window.addEventListener('marketers-updated', handleMarketerUpdate);
+    return () => {
+      window.removeEventListener('marketers-updated', handleMarketerUpdate);
+    };
+  }, [refetchMarketers]);
+
   // Get unique marketers for filter
-  const { data: marketers } = useQuery({
+  const { data: uniqueMarketers } = useQuery({
     queryKey: ['marketers'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -282,16 +307,22 @@ const ReferralsList = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Marketers</SelectItem>
-              {marketers?.map((marketer) => (
+              {marketers?.map((marketer: string) => (
                 <SelectItem key={marketer} value={marketer}>{marketer}</SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
-        <Button onClick={() => setShowAddDialog(true)}>
-          <Plus className="w-4 h-4 mr-2" />
-          Add Referral
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setShowMarketerSettings(true)}>
+            <Settings className="w-4 h-4 mr-2" />
+            Manage Marketers
+          </Button>
+          <Button onClick={() => setShowAddDialog(true)}>
+            <Plus className="w-4 h-4 mr-2" />
+            Add Referral
+          </Button>
+        </div>
       </div>
 
       {!hasResults ? (
@@ -375,8 +406,7 @@ const ReferralsList = () => {
                       disabled={updateMarketerMutation.isPending}
                     >
                       <SelectTrigger className="w-40">
-                        <SelectValue>
-                          {referral.assigned_marketer ? (
+                        {referral.assigned_marketer ? (
                             <div className="flex items-center">
                               <User className="w-3 h-3 mr-1" />
                               {referral.assigned_marketer}
@@ -384,16 +414,10 @@ const ReferralsList = () => {
                           ) : (
                             <span className="text-muted-foreground">Unassigned</span>
                           )}
-                        </SelectValue>
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="none">Unassigned</SelectItem>
-                        <SelectItem value="John Smith">John Smith</SelectItem>
-                        <SelectItem value="Sarah Johnson">Sarah Johnson</SelectItem>
-                        <SelectItem value="Mike Davis">Mike Davis</SelectItem>
-                        <SelectItem value="Lisa Wilson">Lisa Wilson</SelectItem>
-                        <SelectItem value="David Brown">David Brown</SelectItem>
-                        {marketers?.filter(m => !['John Smith', 'Sarah Johnson', 'Mike Davis', 'Lisa Wilson', 'David Brown'].includes(m)).map((marketer) => (
+                        {marketers?.map((marketer) => (
                           <SelectItem key={marketer} value={marketer}>{marketer}</SelectItem>
                         ))}
                       </SelectContent>
@@ -480,6 +504,11 @@ const ReferralsList = () => {
         open={showEditDialog} 
         onOpenChange={setShowEditDialog} 
         referralId={editingReferralId}
+      />
+
+      <MarketerSettingsDialog
+        open={showMarketerSettings}
+        onOpenChange={setShowMarketerSettings}
       />
     </div>
   );

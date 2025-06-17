@@ -100,6 +100,20 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
     enabled: open
   });
 
+  // Fetch marketers from localStorage/settings
+  const { data: marketers } = useQuery({
+    queryKey: ['marketers-settings'],
+    queryFn: () => {
+      const stored = localStorage.getItem('hospice-marketers');
+      if (stored) {
+        return JSON.parse(stored);
+      }
+      // Default marketers if none stored
+      return ['John Smith', 'Sarah Johnson', 'Mike Davis', 'Lisa Wilson', 'David Brown'];
+    },
+    enabled: open
+  });
+
   // Fetch patient documents (relevant if patient data is available)
   const { data: documents } = useQuery({
     queryKey: ['patient-documents', patientData?.id],
@@ -114,7 +128,7 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
       if (error) throw error;
       return data;
     },
-    enabled: open && !!patientData?.id // Only fetch if patient exists and dialog is open
+    enabled: open && !!patientData?.id
   });
 
   // Mutation for updating referral data
@@ -434,6 +448,66 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <TabsContent value="patient-info" className="space-y-4">
+              {/* Patient information fields - ensure defaults are properly set */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="patient_name">Patient Name *</Label>
+                  <Input
+                    id="patient_name"
+                    name="patient_name"
+                    defaultValue={referralData?.patient_name || ''}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="patient_phone">Patient Phone</Label>
+                  <Input
+                    id="patient_phone"
+                    name="patient_phone"
+                    defaultValue={referralData?.patient_phone || ''}
+                    placeholder="XXX-XXX-XXXX"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="diagnosis">Diagnosis</Label>
+                  <Input
+                    id="diagnosis"
+                    name="diagnosis"
+                    defaultValue={referralData?.diagnosis || ''}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="insurance">Insurance</Label>
+                  <Input
+                    id="insurance"
+                    name="insurance"
+                    defaultValue={referralData?.insurance || ''}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="referring_physician">Referring Physician</Label>
+                  <Input
+                    id="referring_physician"
+                    name="referring_physician"
+                    defaultValue={referralData?.referring_physician || ''}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="assigned_marketer">Assigned Marketer</Label>
+                  <Select name="assigned_marketer" defaultValue={referralData?.assigned_marketer || ''}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select marketer" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Unassigned</SelectItem>
+                      {marketers?.map((marketer: string) => (
+                        <SelectItem key={marketer} value={marketer}>{marketer}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
               {/* Always render patient sections, passing empty object if no patient linked */}
               <PatientOverviewSection 
                 patient={currentPatientData}

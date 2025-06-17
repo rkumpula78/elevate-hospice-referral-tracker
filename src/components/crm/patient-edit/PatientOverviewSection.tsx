@@ -1,5 +1,4 @@
 
-// File: src/components/crm/patient-edit/PatientOverviewSection.tsx
 import React from 'react';
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -23,21 +22,19 @@ const PatientOverviewSection = ({ patient, isOpen, onToggle }: PatientOverviewSe
       <CollapsibleContent className="p-4 border border-gray-200 rounded-b-lg">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <div>
-            <Label htmlFor="first_name">First Name *</Label>
+            <Label htmlFor="first_name">First Name</Label>
             <Input
               id="first_name"
               name="first_name"
-              defaultValue={patient.first_name || ''}
-              required
+              defaultValue={patient?.first_name || ''}
             />
           </div>
           <div>
-            <Label htmlFor="last_name">Last Name *</Label>
+            <Label htmlFor="last_name">Last Name</Label>
             <Input
               id="last_name"
               name="last_name"
-              defaultValue={patient.last_name || ''}
-              required
+              defaultValue={patient?.last_name || ''}
             />
           </div>
           <div>
@@ -46,7 +43,7 @@ const PatientOverviewSection = ({ patient, isOpen, onToggle }: PatientOverviewSe
               id="date_of_birth"
               name="date_of_birth"
               type="date"
-              defaultValue={patient.date_of_birth || ''}
+              defaultValue={patient?.date_of_birth || ''}
             />
           </div>
           <div>
@@ -54,17 +51,18 @@ const PatientOverviewSection = ({ patient, isOpen, onToggle }: PatientOverviewSe
             <Input
               id="ssn"
               name="ssn"
-              defaultValue={patient.ssn || ''}
+              defaultValue={patient?.ssn || ''}
               placeholder="XXX-XX-XXXX"
             />
           </div>
           <div>
             <Label htmlFor="primary_insurance">Primary Insurance Provider</Label>
-            <Select name="primary_insurance" defaultValue={patient.primary_insurance || ''}>
+            <Select name="primary_insurance" defaultValue={patient?.primary_insurance || ''}>
               <SelectTrigger>
                 <SelectValue placeholder="Select insurance provider" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="">Select insurance provider</SelectItem>
                 <SelectItem value="medicare">Medicare</SelectItem>
                 <SelectItem value="medicaid">Medicaid</SelectItem>
                 <SelectItem value="private">Private Insurance</SelectItem>
@@ -79,17 +77,18 @@ const PatientOverviewSection = ({ patient, isOpen, onToggle }: PatientOverviewSe
             <Input
               id="medicare_number"
               name="medicare_number"
-              defaultValue={patient.medicare_number || ''}
+              defaultValue={patient?.medicare_number || ''}
               placeholder="Policy/Medicare number"
             />
           </div>
           <div>
             <Label htmlFor="insurance">Referral Source</Label>
-            <Select name="insurance" defaultValue={patient.insurance || ''}>
+            <Select name="insurance" defaultValue={patient?.insurance || ''}>
               <SelectTrigger>
                 <SelectValue placeholder="Select referral source" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="">Select referral source</SelectItem>
                 <SelectItem value="physician">Physician</SelectItem>
                 <SelectItem value="hospital">Hospital</SelectItem>
                 <SelectItem value="snf">Skilled Nursing Facility (SNF)</SelectItem>
@@ -105,7 +104,7 @@ const PatientOverviewSection = ({ patient, isOpen, onToggle }: PatientOverviewSe
             <Input
               id="referral_contact_person"
               name="referral_contact_person"
-              defaultValue={patient.referral_contact_person || ''}
+              defaultValue={patient?.referral_contact_person || ''}
               placeholder="Contact person at referral source"
             />
           </div>
@@ -114,7 +113,7 @@ const PatientOverviewSection = ({ patient, isOpen, onToggle }: PatientOverviewSe
             <Input
               id="address"
               name="address"
-              defaultValue={patient.address || ''}
+              defaultValue={patient?.address || ''}
               placeholder="Full address including city, state, zip"
             />
           </div>
@@ -123,7 +122,7 @@ const PatientOverviewSection = ({ patient, isOpen, onToggle }: PatientOverviewSe
             <Input
               id="phone"
               name="phone"
-              defaultValue={patient.phone || ''}
+              defaultValue={patient?.phone || ''}
               placeholder="XXX-XXX-XXXX"
             />
           </div>
