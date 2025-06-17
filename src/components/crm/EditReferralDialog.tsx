@@ -50,9 +50,25 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
     queryFn: async () => {
       const { data, error } = await supabase
         .from('referrals')
-        .select('*, organizations(name), patients(*)') // Select patient data if linked
+        .select('*, organizations(name)')
         .eq('id', referralId)
         .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: open && !!referralId
+  });
+
+  // Fetch patient data separately based on referral_id
+  const { data: patientData } = useQuery({
+    queryKey: ['patient-by-referral', referralId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('patients')
+        .select('*')
+        .eq('referral_id', referralId)
+        .maybeSingle();
       
       if (error) throw error;
       return data;
@@ -77,19 +93,19 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
 
   // Fetch patient documents (relevant if patient data is available)
   const { data: documents } = useQuery({
-    queryKey: ['patient-documents', referralData?.patients?.id],
+    queryKey: ['patient-documents', patientData?.id],
     queryFn: async () => {
-      if (!referralData?.patients?.id) return [];
+      if (!patientData?.id) return [];
       const { data, error } = await supabase
         .from('patient_documents')
         .select('*')
-        .eq('patient_id', referralData.patients.id)
+        .eq('patient_id', patientData.id)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
       return data;
     },
-    enabled: open && !!referralData?.patients?.id // Only fetch if patient exists and dialog is open
+    enabled: open && !!patientData?.id // Only fetch if patient exists and dialog is open
   });
 
   // Mutation for updating referral data
@@ -115,28 +131,22 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
   // Mutation for updating patient data
   const updatePatientMutation = useMutation({
     mutationFn: async (data: any) => {
-      if (!referralData?.patients?.id) {
+      if (!patientData?.id) {
         // If no patient is linked, CREATE a new patient
         const { data: newPatient, error: insertError } = await supabase
           .from('patients')
-          .insert([data])
+          .insert([{ ...data, referral_id: referralId }])
           .select()
           .single();
         if (insertError) throw insertError;
         
-        // Link the new patient to the referral
-        await supabase
-          .from('referrals')
-          .update({ patient_id: newPatient.id })
-          .eq('id', referralId);
-
         return newPatient; // Return the new patient data
       } else {
         // If patient is linked, UPDATE existing patient
         const { data: updatedPatient, error: updateError } = await supabase
           .from('patients')
           .update(data)
-          .eq('id', referralData.patients.id)
+          .eq('id', patientData.id)
           .select()
           .single();
         if (updateError) throw updateError;
@@ -145,7 +155,7 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['patients'] });
-      queryClient.invalidateQueries({ queryKey: ['referral', referralId] }); // Invalidate referral to get updated patient data
+      queryClient.invalidateQueries({ queryKey: ['patient-by-referral', referralId] });
       toast({ title: 'Patient details saved successfully' });
     },
     onError: (error) => {
@@ -157,12 +167,12 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
   const uploadDocumentMutation = useMutation({
     mutationFn: async ({ file, documentType }: { file: File; documentType: string }) => {
       // Must have a patient ID to upload documents
-      if (!referralData?.patients?.id) {
+      if (!patientData?.id) {
         throw new Error("Cannot upload document: Patient record must be created first.");
       }
       
       setUploading(true);
-      const patientIdForDoc = referralData.patients.id;
+      const patientIdForDoc = patientData.id;
       const fileExt = file.name.split('.').pop();
       const fileName = `${patientIdForDoc}/${Date.now()}-${file.name}`;
       
@@ -191,7 +201,7 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
       return docData;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['patient-documents', referralData?.patients?.id] });
+      queryClient.invalidateQueries({ queryKey: ['patient-documents', patientData?.id] });
       toast({ title: 'Document uploaded successfully' });
       setUploading(false);
     },
@@ -220,7 +230,7 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
       if (dbError) throw dbError;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['patient-documents', referralData?.patients?.id] });
+      queryClient.invalidateQueries({ queryKey: ['patient-documents', patientData?.id] });
       toast({ title: 'Document deleted successfully' });
     },
     onError: (error) => {
@@ -343,8 +353,12 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
     );
   }
 
+  if (!referralData) {
+    return null;
+  }
+
   // Provide an empty object if no patient data is linked, so sub-components don't crash
-  const currentPatientData = referralData?.patients || {};
+  const currentPatientData = patientData || {};
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -409,8 +423,8 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
                 uploading={uploading}
                 onFileUpload={handleFileUpload}
                 // Only allow download/delete if patient ID exists
-                onDownloadFile={currentPatientData.id ? downloadFile : () => toast({ title: 'Patient record not saved yet', description: 'Save patient info before managing documents.', variant: 'destructive' })}
-                onDeleteDocument={currentPatientData.id ? (doc) => deleteDocumentMutation.mutate(doc) : () => toast({ title: 'Patient record not saved yet', description: 'Save patient info before managing documents.', variant: 'destructive' })}
+                onDownloadFile={currentPatientData?.id ? downloadFile : () => toast({ title: 'Patient record not saved yet', description: 'Save patient info before managing documents.', variant: 'destructive' })}
+                onDeleteDocument={currentPatientData?.id ? (doc) => deleteDocumentMutation.mutate(doc) : () => toast({ title: 'Patient record not saved yet', description: 'Save patient info before managing documents.', variant: 'destructive' })}
               />
             </TabsContent>
 
