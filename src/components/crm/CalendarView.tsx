@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Calendar, momentLocalizer, View } from 'react-big-calendar';
 import moment from 'moment';
@@ -28,7 +29,11 @@ const CalendarView = () => {
     queryFn: async () => {
       let query = supabase
         .from('visits')
-        .select('*, patients(first_name, last_name)');
+        .select(`
+          *, 
+          patients(first_name, last_name),
+          referrals!visits_patient_id_fkey(referring_facility)
+        `);
 
       if (selectedType !== 'all') {
         query = query.eq('visit_type', selectedType);
@@ -77,9 +82,25 @@ const CalendarView = () => {
     }
   };
 
+  const createEventTitle = (visit: any) => {
+    // Try to get patient name first
+    if (visit.patients?.first_name || visit.patients?.last_name) {
+      const patientName = `${visit.patients.first_name || ''} ${visit.patients.last_name || ''}`.trim();
+      return `${patientName} - ${visit.visit_type}`;
+    }
+    
+    // Try to get facility name from referrals
+    if (visit.referrals?.referring_facility) {
+      return `${visit.referrals.referring_facility} - ${visit.visit_type}`;
+    }
+    
+    // Fallback to staff name and visit type
+    return `${visit.staff_name} - ${visit.visit_type}`;
+  };
+
   const calendarEvents = visits?.map(visit => ({
     id: visit.id,
-    title: `${visit.patients?.first_name} ${visit.patients?.last_name} - ${visit.visit_type}`,
+    title: createEventTitle(visit),
     start: new Date(visit.scheduled_date),
     end: visit.duration_minutes 
       ? new Date(new Date(visit.scheduled_date).getTime() + visit.duration_minutes * 60000)
