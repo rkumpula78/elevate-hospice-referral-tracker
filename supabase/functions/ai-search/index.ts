@@ -35,9 +35,43 @@ serve(async (req) => {
         });
       }
 
-      // Gather relevant data based on the query
-      let contextData = '';
+      // Check for creation/action requests
+      const creationPatterns = [
+        { pattern: /add.*referral|create.*referral|new.*referral/i, action: { type: 'create', item: 'referral', label: 'Add New Referral' } },
+        { pattern: /schedule.*visit|create.*visit|new.*visit|add.*visit/i, action: { type: 'create', item: 'visit', label: 'Schedule Visit' } },
+        { pattern: /add.*organization|create.*organization|new.*organization|add.*facility/i, action: { type: 'create', item: 'organization', label: 'Add Organization' } },
+        { pattern: /quick.*add|add.*new/i, action: { type: 'create', item: 'quick', label: 'Quick Add' } }
+      ];
+
       let suggestedAction = null;
+      for (const pattern of creationPatterns) {
+        if (pattern.pattern.test(query)) {
+          suggestedAction = pattern.action;
+          break;
+        }
+      }
+
+      // If it's a creation request, provide immediate action
+      if (suggestedAction) {
+        const actionMessages = {
+          referral: "I can help you add a new referral! Click the button below to open the referral form.",
+          visit: "I can help you schedule a new visit! Click the button below to open the visit scheduling form.",
+          organization: "I can help you add a new organization! Click the button below to open the organization form.",
+          quick: "I can help you quickly add new items! Click the button below to see your options."
+        };
+
+        return new Response(JSON.stringify({ 
+          type: 'ai_response',
+          response: actionMessages[suggestedAction.item],
+          suggestedAction: suggestedAction
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      // Gather relevant data based on the query for informational requests
+      let contextData = '';
+      let navigationAction = null;
 
       // Check if query is about referrals
       if (query.toLowerCase().includes('referral')) {
@@ -53,7 +87,7 @@ serve(async (req) => {
           }, {});
           
           contextData = `Current referral data: Total referrals: ${totalReferrals}. Status breakdown: ${JSON.stringify(statusCounts)}. Recent referrals include: ${referrals.slice(0, 5).map(r => `${r.patient_name} (${r.status})`).join(', ')}.`;
-          suggestedAction = { type: 'navigate', path: '/referrals', label: 'View All Referrals' };
+          navigationAction = { type: 'navigate', path: '/referrals', label: 'View All Referrals' };
         }
       }
 
@@ -71,8 +105,8 @@ serve(async (req) => {
           }, {});
           
           contextData += ` Current patient data: Total patients: ${totalPatients}. Status breakdown: ${JSON.stringify(statusCounts)}.`;
-          if (!suggestedAction) {
-            suggestedAction = { type: 'navigate', path: '/patients', label: 'View All Patients' };
+          if (!navigationAction) {
+            navigationAction = { type: 'navigate', path: '/patients', label: 'View All Patients' };
           }
         }
       }
@@ -92,8 +126,8 @@ serve(async (req) => {
           }, {});
           
           contextData += ` Current organization data: Total active organizations: ${totalOrgs}. Type breakdown: ${JSON.stringify(typeBreakdown)}.`;
-          if (!suggestedAction) {
-            suggestedAction = { type: 'navigate', path: '/organizations', label: 'View All Organizations' };
+          if (!navigationAction) {
+            navigationAction = { type: 'navigate', path: '/organizations', label: 'View All Organizations' };
           }
         }
       }
@@ -165,7 +199,7 @@ Available navigation paths:
       return new Response(JSON.stringify({ 
         type: 'ai_response',
         response: aiResponse,
-        suggestedAction: suggestedAction
+        suggestedAction: navigationAction
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
