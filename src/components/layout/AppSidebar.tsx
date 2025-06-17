@@ -67,10 +67,14 @@ const menuItems = [
 
 const AppSidebar = () => {
   const location = useLocation();
-  const { signOut } = useAuth();
+  const { signOut, displayName, user } = useAuth();
 
   const handleSignOut = async () => {
     await signOut();
+  };
+
+  const getInitials = (name: string) => {
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
   return (
@@ -118,11 +122,11 @@ const AppSidebar = () => {
       <SidebarFooter className="p-4">
         <div className="flex items-center space-x-2 mb-3">
           <div className="w-6 h-6 bg-gray-300 rounded-full flex items-center justify-center text-xs font-medium">
-            SA
+            {getInitials(displayName)}
           </div>
           <div className="flex-1">
-            <p className="text-sm font-medium">Sarah Admin</p>
-            <p className="text-xs text-gray-600">Administrator</p>
+            <p className="text-sm font-medium">{displayName}</p>
+            <p className="text-xs text-gray-600">{user?.email}</p>
           </div>
         </div>
         <Button variant="outline" size="sm" onClick={handleSignOut} className="w-full">
