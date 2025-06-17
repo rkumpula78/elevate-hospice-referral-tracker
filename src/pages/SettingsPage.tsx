@@ -1,4 +1,5 @@
 
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -103,7 +104,7 @@ const SettingsPage = () => {
                 <MapPin className="h-5 w-5 text-blue-600" />
                 <div>
                   <Label className="text-sm font-medium">Address</Label>
-                  <p className="text-sm text-gray-600">Coming Soon</p>
+                  <p className="text-sm text-gray-600">7010 E Acoma Dr, Suite 101, Scottsdale, AZ 85308</p>
                 </div>
               </div>
               
@@ -139,52 +140,6 @@ const SettingsPage = () => {
                 </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Organization Settings</CardTitle>
-            <CardDescription>Configure your organization's information and preferences</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleProfileSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="org-name">Organization Name</Label>
-                  <Input 
-                    id="org-name" 
-                    value={profileForm.organization_name}
-                    onChange={(e) => setProfileForm({...profileForm, organization_name: e.target.value})}
-                    placeholder="Organization Name"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="org-phone">Phone Number</Label>
-                  <Input 
-                    id="org-phone" 
-                    value={profileForm.phone}
-                    onChange={(e) => setProfileForm({...profileForm, phone: e.target.value})}
-                    placeholder="(555) 123-4567" 
-                  />
-                </div>
-                <div className="md:col-span-2">
-                  <Label htmlFor="org-address">Address</Label>
-                  <Input 
-                    id="org-address" 
-                    value={profileForm.organization_address}
-                    onChange={(e) => setProfileForm({...profileForm, organization_address: e.target.value})}
-                    placeholder="123 Main St, City, State 12345" 
-                  />
-                </div>
-              </div>
-              <Separator />
-              <div className="flex justify-end">
-                <Button type="submit" disabled={loading}>
-                  {loading ? 'Saving...' : 'Save Changes'}
-                </Button>
-              </div>
-            </form>
           </CardContent>
         </Card>
 
@@ -319,3 +274,4 @@ const SettingsPage = () => {
 };
 
 export default SettingsPage;
+
