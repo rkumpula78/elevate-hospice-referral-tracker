@@ -1,172 +1,60 @@
 
-import React from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "@/hooks/useAuth";
-import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import AppSidebar from "@/components/layout/AppSidebar";
+import Auth from "./pages/Auth";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
-import Auth from "./pages/Auth";
-import ReferralDetail from "./pages/ReferralDetail";
-import PatientDetail from "./pages/PatientDetail";
-import OrganizationDetail from "./pages/OrganizationDetail";
-import PatientsPage from "./pages/PatientsPage";
 import ReferralsPage from "./pages/ReferralsPage";
-import CareTeamsPage from "./pages/CareTeamsPage";
 import CompliancePage from "./pages/CompliancePage";
 import SettingsPage from "./pages/SettingsPage";
+import PatientDetail from "./pages/PatientDetail";
+import ReferralDetail from "./pages/ReferralDetail";
+import OrganizationDetail from "./pages/OrganizationDetail";
 import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
+const queryClient = new QueryClient();
 
-const App: React.FC = () => {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route 
-                path="/dashboard" 
-                element={
-                  <ProtectedRoute>
-                    <SidebarProvider>
-                      <div className="min-h-screen flex w-full">
-                        <AppSidebar />
-                        <Dashboard />
-                      </div>
-                    </SidebarProvider>
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/patients" 
-                element={
-                  <ProtectedRoute>
-                    <SidebarProvider>
-                      <div className="min-h-screen flex w-full">
-                        <AppSidebar />
-                        <PatientsPage />
-                      </div>
-                    </SidebarProvider>
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/referrals" 
-                element={
-                  <ProtectedRoute>
-                    <SidebarProvider>
-                      <div className="min-h-screen flex w-full">
-                        <AppSidebar />
-                        <ReferralsPage />
-                      </div>
-                    </SidebarProvider>
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/care-teams" 
-                element={
-                  <ProtectedRoute>
-                    <SidebarProvider>
-                      <div className="min-h-screen flex w-full">
-                        <AppSidebar />
-                        <CareTeamsPage />
-                      </div>
-                    </SidebarProvider>
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/compliance" 
-                element={
-                  <ProtectedRoute>
-                    <SidebarProvider>
-                      <div className="min-h-screen flex w-full">
-                        <AppSidebar />
-                        <CompliancePage />
-                      </div>
-                    </SidebarProvider>
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/settings" 
-                element={
-                  <ProtectedRoute>
-                    <SidebarProvider>
-                      <div className="min-h-screen flex w-full">
-                        <AppSidebar />
-                        <SettingsPage />
-                      </div>
-                    </SidebarProvider>
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/referral/:id" 
-                element={
-                  <ProtectedRoute>
-                    <SidebarProvider>
-                      <div className="min-h-screen flex w-full">
-                        <AppSidebar />
-                        <ReferralDetail />
-                      </div>
-                    </SidebarProvider>
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/patient/:id" 
-                element={
-                  <ProtectedRoute>
-                    <SidebarProvider>
-                      <div className="min-h-screen flex w-full">
-                        <AppSidebar />
-                        <PatientDetail />
-                      </div>
-                    </SidebarProvider>
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/organization/:id" 
-                element={
-                  <ProtectedRoute>
-                    <SidebarProvider>
-                      <div className="min-h-screen flex w-full">
-                        <AppSidebar />
-                        <OrganizationDetail />
-                      </div>
-                    </SidebarProvider>
-                  </ProtectedRoute>
-                } 
-              />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
-      </AuthProvider>
-    </QueryClientProvider>
-  );
-};
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <BrowserRouter>
+        <Routes>
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/" element={
+            <ProtectedRoute>
+              <SidebarProvider>
+                <div className="min-h-screen flex w-full">
+                  <AppSidebar />
+                  <div className="flex-1">
+                    <Routes>
+                      <Route index element={<Navigate to="/dashboard" replace />} />
+                      <Route path="dashboard" element={<Dashboard />} />
+                      <Route path="referrals" element={<ReferralsPage />} />
+                      <Route path="compliance" element={<CompliancePage />} />
+                      <Route path="settings" element={<SettingsPage />} />
+                      <Route path="patient/:id" element={<PatientDetail />} />
+                      <Route path="referral/:id" element={<ReferralDetail />} />
+                      <Route path="organization/:id" element={<OrganizationDetail />} />
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                  </div>
+                </div>
+              </SidebarProvider>
+            </ProtectedRoute>
+          } />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </BrowserRouter>
+    </TooltipProvider>
+  </QueryClientProvider>
+);
 
 export default App;

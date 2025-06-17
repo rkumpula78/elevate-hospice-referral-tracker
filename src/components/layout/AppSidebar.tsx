@@ -15,9 +15,7 @@ import {
 } from "@/components/ui/sidebar";
 import { 
   LayoutDashboard, 
-  Users, 
   FileText, 
-  UserCheck, 
   Shield, 
   Settings,
   LogOut 
@@ -32,19 +30,9 @@ const menuItems = [
     icon: LayoutDashboard,
   },
   {
-    title: "Patients",
-    url: "/patients",
-    icon: Users,
-  },
-  {
     title: "Referrals",
     url: "/referrals",
     icon: FileText,
-  },
-  {
-    title: "Care Teams",
-    url: "/care-teams",
-    icon: UserCheck,
   },
   {
     title: "Compliance",
