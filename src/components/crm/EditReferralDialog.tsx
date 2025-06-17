@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -44,7 +43,7 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
     documents: false
   });
 
-  // Fetch referral data and associated patient data
+  // Fetch referral data
   const { data: referralData, isLoading } = useQuery({
     queryKey: ['referral', referralId],
     queryFn: async () => {
@@ -423,8 +422,8 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
                 uploading={uploading}
                 onFileUpload={handleFileUpload}
                 // Only allow download/delete if patient ID exists
-                onDownloadFile={currentPatientData?.id ? downloadFile : () => toast({ title: 'Patient record not saved yet', description: 'Save patient info before managing documents.', variant: 'destructive' })}
-                onDeleteDocument={currentPatientData?.id ? (doc) => deleteDocumentMutation.mutate(doc) : () => toast({ title: 'Patient record not saved yet', description: 'Save patient info before managing documents.', variant: 'destructive' })}
+                onDownloadFile={patientData?.id ? downloadFile : () => toast({ title: 'Patient record not saved yet', description: 'Save patient info before managing documents.', variant: 'destructive' })}
+                onDeleteDocument={patientData?.id ? (doc) => deleteDocumentMutation.mutate(doc) : () => toast({ title: 'Patient record not saved yet', description: 'Save patient info before managing documents.', variant: 'destructive' })}
               />
             </TabsContent>
 
