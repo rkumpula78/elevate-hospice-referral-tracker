@@ -1,16 +1,17 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Calendar, Phone, Mail, User, Building2 } from 'lucide-react';
+import { ArrowLeft, Calendar, Phone, Mail, User, Building2, Edit } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import EditReferralDialog from '@/components/crm/EditReferralDialog';
 
 const ReferralDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [showEditDialog, setShowEditDialog] = useState(false);
 
   const { data: referral, isLoading } = useQuery({
     queryKey: ['referral', id],
@@ -63,12 +64,18 @@ const ReferralDetail = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto p-6 space-y-6">
-        <div className="flex items-center space-x-4">
-          <Button variant="outline" onClick={() => navigate('/dashboard')}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Dashboard
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <Button variant="outline" onClick={() => navigate('/dashboard')}>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Dashboard
+            </Button>
+            <h1 className="text-2xl font-bold">Referral Details</h1>
+          </div>
+          <Button onClick={() => setShowEditDialog(true)}>
+            <Edit className="w-4 h-4 mr-2" />
+            Edit Referral
           </Button>
-          <h1 className="text-2xl font-bold">Referral Details</h1>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -180,6 +187,12 @@ const ReferralDetail = () => {
             </Card>
           )}
         </div>
+
+        <EditReferralDialog
+          open={showEditDialog}
+          onOpenChange={setShowEditDialog}
+          referralId={id!}
+        />
       </div>
     </div>
   );
