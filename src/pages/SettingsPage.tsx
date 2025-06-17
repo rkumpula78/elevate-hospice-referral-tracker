@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,7 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import PageLayout from "@/components/layout/PageLayout";
 import { useToast } from "@/hooks/use-toast";
-import { Eye, EyeOff, MapPin, Phone, Fax, Mail, Globe } from "lucide-react";
+import { Eye, EyeOff, MapPin, Phone, Printer, Mail, Globe } from "lucide-react";
 
 const SettingsPage = () => {
   const { user } = useAuth();
@@ -115,7 +116,7 @@ const SettingsPage = () => {
               </div>
               
               <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                <Fax className="h-5 w-5 text-blue-600" />
+                <Printer className="h-5 w-5 text-blue-600" />
                 <div>
                   <Label className="text-sm font-medium">Fax</Label>
                   <p className="text-sm text-gray-600">480-800-4817</p>
