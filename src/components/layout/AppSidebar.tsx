@@ -64,15 +64,13 @@ const AppSidebar = () => {
     <Sidebar>
       <SidebarHeader className="p-4">
         <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 bg-teal-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">
-            EH
-          </div>
-          <div>
-            <h2 className="font-semibold text-gray-900">Elevate Hospice</h2>
-            <p className="text-xs text-gray-600">Palliative Care</p>
-          </div>
+          <img 
+            src="/lovable-uploads/69cccced-0ccf-4626-b1ab-7712c36cfd7f.png" 
+            alt="Elevate Hospice & Palliative Care" 
+            className="h-12 w-auto"
+          />
         </div>
-        <p className="text-xs text-teal-600 mt-2">Innovative and Quality Care with Compassion</p>
+        <p className="text-xs text-blue-600 mt-2 font-medium">Raising The Standard</p>
       </SidebarHeader>
       
       <SidebarContent>
