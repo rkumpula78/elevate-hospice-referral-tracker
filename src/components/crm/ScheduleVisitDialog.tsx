@@ -29,6 +29,7 @@ const ScheduleVisitDialog = ({ open, onOpenChange }: ScheduleVisitDialogProps) =
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [formData, setFormData] = useState({
+    subject: '',
     visit_target: '' as VisitTarget,
     patient_id: '',
     organization_id: '',
@@ -83,7 +84,7 @@ const ScheduleVisitDialog = ({ open, onOpenChange }: ScheduleVisitDialogProps) =
             scheduled_date: scheduledDateTime,
             staff_name: data.staff_name,
             duration_minutes: data.duration_minutes,
-            notes: data.notes
+            notes: data.subject ? `${data.subject}\n\n${data.notes}` : data.notes
           }]);
         if (error) throw error;
       } else {
@@ -93,6 +94,12 @@ const ScheduleVisitDialog = ({ open, onOpenChange }: ScheduleVisitDialogProps) =
           ? `Event: ${data.event_title} at ${data.event_location}`
           : `Visit to ${data.visit_target}`;
         
+        const notesContent = [
+          data.subject,
+          eventDescription,
+          data.notes
+        ].filter(Boolean).join('\n\n');
+        
         const { error } = await supabase
           .from('visits')
           .insert([{
@@ -101,7 +108,7 @@ const ScheduleVisitDialog = ({ open, onOpenChange }: ScheduleVisitDialogProps) =
             scheduled_date: scheduledDateTime,
             staff_name: data.staff_name,
             duration_minutes: data.duration_minutes,
-            notes: `${eventDescription}\n${data.notes}`
+            notes: notesContent
           }]);
         if (error) throw error;
       }
@@ -111,6 +118,7 @@ const ScheduleVisitDialog = ({ open, onOpenChange }: ScheduleVisitDialogProps) =
       toast({ title: "Visit scheduled successfully" });
       onOpenChange(false);
       setFormData({
+        subject: '',
         visit_target: '' as VisitTarget,
         patient_id: '',
         organization_id: '',
@@ -158,6 +166,16 @@ const ScheduleVisitDialog = ({ open, onOpenChange }: ScheduleVisitDialogProps) =
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="subject">Subject</Label>
+              <Input
+                id="subject"
+                value={formData.subject}
+                onChange={(e) => handleInputChange('subject', e.target.value)}
+                placeholder="Enter visit subject or title"
+              />
+            </div>
+
             <div className="grid gap-2">
               <Label htmlFor="visit_target">Visit Type *</Label>
               <Select value={formData.visit_target} onValueChange={(value) => handleInputChange('visit_target', value)}>
