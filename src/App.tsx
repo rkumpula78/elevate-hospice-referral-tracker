@@ -12,6 +12,7 @@ import Auth from "./pages/Auth";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import ReferralsPage from "./pages/ReferralsPage";
+import SchedulePage from "./pages/SchedulePage";
 import CompliancePage from "./pages/CompliancePage";
 import SettingsPage from "./pages/SettingsPage";
 import PatientDetail from "./pages/PatientDetail";
@@ -40,6 +41,7 @@ const App = () => (
                         <Route index element={<Navigate to="/dashboard" replace />} />
                         <Route path="dashboard" element={<Dashboard />} />
                         <Route path="referrals" element={<ReferralsPage />} />
+                        <Route path="schedule" element={<SchedulePage />} />
                         <Route path="compliance" element={<CompliancePage />} />
                         <Route path="settings" element={<SettingsPage />} />
                         <Route path="patient/:id" element={<PatientDetail />} />
@@ -70,6 +72,18 @@ const App = () => (
                     <AppSidebar />
                     <div className="flex-1">
                       <ReferralsPage />
+                    </div>
+                  </div>
+                </SidebarProvider>
+              </ProtectedRoute>
+            } />
+            <Route path="/schedule" element={
+              <ProtectedRoute>
+                <SidebarProvider>
+                  <div className="min-h-screen flex w-full">
+                    <AppSidebar />
+                    <div className="flex-1">
+                      <SchedulePage />
                     </div>
                   </div>
                 </SidebarProvider>

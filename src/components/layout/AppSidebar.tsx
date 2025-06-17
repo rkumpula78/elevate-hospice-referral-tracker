@@ -18,7 +18,8 @@ import {
   FileText, 
   Shield, 
   Settings,
-  LogOut 
+  LogOut,
+  Calendar 
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -33,6 +34,11 @@ const menuItems = [
     title: "Referrals",
     url: "/referrals",
     icon: FileText,
+  },
+  {
+    title: "Schedule",
+    url: "/schedule",
+    icon: Calendar,
   },
   {
     title: "Compliance",
