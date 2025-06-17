@@ -16,6 +16,7 @@ import SchedulePage from "./pages/SchedulePage";
 import CompliancePage from "./pages/CompliancePage";
 import SettingsPage from "./pages/SettingsPage";
 import OrganizationsPage from "./pages/OrganizationsPage";
+import MapPage from "./pages/MapPage";
 import PatientDetail from "./pages/PatientDetail";
 import ReferralDetail from "./pages/ReferralDetail";
 import OrganizationDetail from "./pages/OrganizationDetail";
@@ -44,6 +45,7 @@ const App = () => (
                         <Route path="referrals" element={<ReferralsPage />} />
                         <Route path="organizations" element={<OrganizationsPage />} />
                         <Route path="schedule" element={<SchedulePage />} />
+                        <Route path="map" element={<MapPage />} />
                         <Route path="compliance" element={<CompliancePage />} />
                         <Route path="settings" element={<SettingsPage />} />
                         <Route path="patient/:id" element={<PatientDetail />} />

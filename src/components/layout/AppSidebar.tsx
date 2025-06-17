@@ -20,10 +20,12 @@ import {
   Settings,
   LogOut,
   Calendar,
-  Building2
+  Building2,
+  Map
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
+import GlobalSearchBar from "@/components/search/GlobalSearchBar";
 
 const menuItems = [
   {
@@ -45,6 +47,11 @@ const menuItems = [
     title: "Schedule",
     url: "/schedule",
     icon: Calendar,
+  },
+  {
+    title: "Map",
+    url: "/map",
+    icon: Map,
   },
   {
     title: "Compliance",
@@ -80,6 +87,15 @@ const AppSidebar = () => {
       </SidebarHeader>
       
       <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupLabel>AI Search</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <div className="px-2 py-2">
+              <GlobalSearchBar />
+            </div>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
         <SidebarGroup>
           <SidebarGroupLabel>Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
