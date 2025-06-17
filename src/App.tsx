@@ -7,12 +7,19 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import { SidebarProvider } from "@/components/ui/sidebar";
+import AppSidebar from "@/components/layout/AppSidebar";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
 import ReferralDetail from "./pages/ReferralDetail";
 import PatientDetail from "./pages/PatientDetail";
 import OrganizationDetail from "./pages/OrganizationDetail";
+import PatientsPage from "./pages/PatientsPage";
+import ReferralsPage from "./pages/ReferralsPage";
+import CareTeamsPage from "./pages/CareTeamsPage";
+import CompliancePage from "./pages/CompliancePage";
+import SettingsPage from "./pages/SettingsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -39,7 +46,77 @@ const App: React.FC = () => {
                 path="/dashboard" 
                 element={
                   <ProtectedRoute>
-                    <Dashboard />
+                    <SidebarProvider>
+                      <div className="min-h-screen flex w-full">
+                        <AppSidebar />
+                        <Dashboard />
+                      </div>
+                    </SidebarProvider>
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/patients" 
+                element={
+                  <ProtectedRoute>
+                    <SidebarProvider>
+                      <div className="min-h-screen flex w-full">
+                        <AppSidebar />
+                        <PatientsPage />
+                      </div>
+                    </SidebarProvider>
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/referrals" 
+                element={
+                  <ProtectedRoute>
+                    <SidebarProvider>
+                      <div className="min-h-screen flex w-full">
+                        <AppSidebar />
+                        <ReferralsPage />
+                      </div>
+                    </SidebarProvider>
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/care-teams" 
+                element={
+                  <ProtectedRoute>
+                    <SidebarProvider>
+                      <div className="min-h-screen flex w-full">
+                        <AppSidebar />
+                        <CareTeamsPage />
+                      </div>
+                    </SidebarProvider>
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/compliance" 
+                element={
+                  <ProtectedRoute>
+                    <SidebarProvider>
+                      <div className="min-h-screen flex w-full">
+                        <AppSidebar />
+                        <CompliancePage />
+                      </div>
+                    </SidebarProvider>
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/settings" 
+                element={
+                  <ProtectedRoute>
+                    <SidebarProvider>
+                      <div className="min-h-screen flex w-full">
+                        <AppSidebar />
+                        <SettingsPage />
+                      </div>
+                    </SidebarProvider>
                   </ProtectedRoute>
                 } 
               />
@@ -47,7 +124,12 @@ const App: React.FC = () => {
                 path="/referral/:id" 
                 element={
                   <ProtectedRoute>
-                    <ReferralDetail />
+                    <SidebarProvider>
+                      <div className="min-h-screen flex w-full">
+                        <AppSidebar />
+                        <ReferralDetail />
+                      </div>
+                    </SidebarProvider>
                   </ProtectedRoute>
                 } 
               />
@@ -55,7 +137,12 @@ const App: React.FC = () => {
                 path="/patient/:id" 
                 element={
                   <ProtectedRoute>
-                    <PatientDetail />
+                    <SidebarProvider>
+                      <div className="min-h-screen flex w-full">
+                        <AppSidebar />
+                        <PatientDetail />
+                      </div>
+                    </SidebarProvider>
                   </ProtectedRoute>
                 } 
               />
@@ -63,7 +150,12 @@ const App: React.FC = () => {
                 path="/organization/:id" 
                 element={
                   <ProtectedRoute>
-                    <OrganizationDetail />
+                    <SidebarProvider>
+                      <div className="min-h-screen flex w-full">
+                        <AppSidebar />
+                        <OrganizationDetail />
+                      </div>
+                    </SidebarProvider>
                   </ProtectedRoute>
                 } 
               />
