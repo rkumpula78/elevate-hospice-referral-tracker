@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
+import { Plus } from 'lucide-react';
 
 // Import patient edit sections
 import PatientOverviewSection from './patient-edit/PatientOverviewSection';
@@ -27,12 +28,21 @@ interface EditReferralDialogProps {
   referralId: string;
 }
 
+interface Comment {
+  id: string;
+  text: string;
+  timestamp: string;
+  author: string;
+}
+
 type ReferralStatus = 'pending' | 'contacted' | 'scheduled' | 'admitted' | 'declined' | 'lost' | 'admitted_our_hospice' | 'admitted_other_hospice' | 'lost_death' | 'lost_move' | 'lost_other_hospice';
 
 const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDialogProps) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [uploading, setUploading] = useState(false);
+  const [newComment, setNewComment] = useState('');
+  const [comments, setComments] = useState<Comment[]>([]);
   const [openSections, setOpenSections] = useState({
     overview: true,
     responsibleParty: false,
@@ -237,6 +247,50 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
     }
   });
 
+  // Parse existing notes into comments when data loads
+  React.useEffect(() => {
+    if (referralData?.notes) {
+      try {
+        const parsedComments = JSON.parse(referralData.notes);
+        if (Array.isArray(parsedComments)) {
+          setComments(parsedComments);
+        } else {
+          // Legacy note format - convert to comment
+          setComments([{
+            id: '1',
+            text: referralData.notes,
+            timestamp: referralData.created_at || new Date().toISOString(),
+            author: 'System'
+          }]);
+        }
+      } catch {
+        // If not JSON, treat as legacy note
+        if (referralData.notes.trim()) {
+          setComments([{
+            id: '1',
+            text: referralData.notes,
+            timestamp: referralData.created_at || new Date().toISOString(),
+            author: 'System'
+          }]);
+        }
+      }
+    }
+  }, [referralData]);
+
+  const addComment = () => {
+    if (!newComment.trim()) return;
+    
+    const comment: Comment = {
+      id: Date.now().toString(),
+      text: newComment.trim(),
+      timestamp: new Date().toISOString(),
+      author: 'Current User' // In a real app, get from auth context
+    };
+    
+    setComments(prev => [...prev, comment]);
+    setNewComment('');
+  };
+
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, documentType: string) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -282,12 +336,12 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
     // Define fields for the 'referrals' table
     const referralFields = [
       'patient_name', 'patient_phone', 'diagnosis', 'insurance', 'referring_physician',
-      'assigned_marketer', 'priority', 'status', 'organization_id', 'notes',
+      'assigned_marketer', 'priority', 'status', 'organization_id',
       'referral_contact_person', 'referral_contact_phone', 'referral_contact_email',
       'insurance_verification', 'medical_records_received'
     ];
 
-    // Define fields for the 'patients' table (subset, as comprehensive fields are in patient sections)
+    // Define fields for the 'patients' table
     const patientFields = [
       'first_name', 'last_name', 'date_of_birth', 'ssn', 'primary_insurance',
       'secondary_insurance', 'medicare_number', 'medicaid_number', 'phone', 'address',
@@ -323,6 +377,9 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
         }
       }
     }
+
+    // Add comments to referral notes
+    referralUpdateData.notes = JSON.stringify(comments);
 
     try {
       // Execute referral update first
@@ -371,8 +428,8 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
         <Tabs defaultValue="patient-info" className="w-full">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="patient-info">Patient Info</TabsTrigger>
-            <TabsTrigger value="referral-source">Referral Source</TabsTrigger>
             <TabsTrigger value="status-notes">Status & Notes</TabsTrigger>
+            <TabsTrigger value="referral-source">Referral Source</TabsTrigger>
           </TabsList>
 
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -421,10 +478,90 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
                 onToggle={() => toggleSection('documents')}
                 uploading={uploading}
                 onFileUpload={handleFileUpload}
-                // Only allow download/delete if patient ID exists
                 onDownloadFile={patientData?.id ? downloadFile : () => toast({ title: 'Patient record not saved yet', description: 'Save patient info before managing documents.', variant: 'destructive' })}
                 onDeleteDocument={patientData?.id ? (doc) => deleteDocumentMutation.mutate(doc) : () => toast({ title: 'Patient record not saved yet', description: 'Save patient info before managing documents.', variant: 'destructive' })}
               />
+            </TabsContent>
+
+            <TabsContent value="status-notes" className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="priority">Priority</Label>
+                  <Select name="priority" defaultValue={referralData.priority || 'routine'}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="urgent">Urgent</SelectItem>
+                      <SelectItem value="routine">Routine</SelectItem>
+                      <SelectItem value="low">Low</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="status">Status</Label>
+                  <Select name="status" defaultValue={referralData.status || 'pending'}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="contacted">Contacted</SelectItem>
+                      <SelectItem value="scheduled">Scheduled</SelectItem>
+                      <SelectItem value="admitted">Admitted</SelectItem>
+                      <SelectItem value="admitted_our_hospice">Admitted Our Hospice</SelectItem>
+                      <SelectItem value="admitted_other_hospice">Admitted Other Hospice</SelectItem>
+                      <SelectItem value="declined">Declined</SelectItem>
+                      <SelectItem value="lost">Lost</SelectItem>
+                      <SelectItem value="lost_death">Lost - Death</SelectItem>
+                      <SelectItem value="lost_move">Lost - Move</SelectItem>
+                      <SelectItem value="lost_other_hospice">Lost - Other Hospice</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Running Comments Section */}
+              <div className="space-y-4">
+                <Label>Running Comments</Label>
+                
+                {/* Existing Comments */}
+                <div className="space-y-3 max-h-60 overflow-y-auto border rounded-lg p-3 bg-gray-50">
+                  {comments.length === 0 ? (
+                    <p className="text-sm text-gray-500 italic">No comments yet</p>
+                  ) : (
+                    comments.map((comment) => (
+                      <div key={comment.id} className="border-b pb-2 last:border-b-0">
+                        <div className="flex justify-between items-start text-xs text-gray-500 mb-1">
+                          <span className="font-medium">{comment.author}</span>
+                          <span>{format(new Date(comment.timestamp), 'MMM dd, yyyy HH:mm')}</span>
+                        </div>
+                        <p className="text-sm">{comment.text}</p>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                {/* Add New Comment */}
+                <div className="flex space-x-2">
+                  <Textarea
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    placeholder="Add a new comment..."
+                    rows={2}
+                    className="flex-1"
+                  />
+                  <Button
+                    type="button"
+                    onClick={addComment}
+                    disabled={!newComment.trim()}
+                    size="sm"
+                    className="self-end"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
             </TabsContent>
 
             <TabsContent value="referral-source" className="space-y-4">
@@ -490,54 +627,6 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
                     />
                     <Label htmlFor="medical_records_received">Medical Records Received</Label>
                   </div>
-                </div>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="status-notes" className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="priority">Priority</Label>
-                  <Select name="priority" defaultValue={referralData.priority || 'routine'}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="urgent">Urgent</SelectItem>
-                      <SelectItem value="routine">Routine</SelectItem>
-                      <SelectItem value="low">Low</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="status">Status</Label>
-                  <Select name="status" defaultValue={referralData.status || 'pending'}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="pending">Pending</SelectItem>
-                      <SelectItem value="contacted">Contacted</SelectItem>
-                      <SelectItem value="scheduled">Scheduled</SelectItem>
-                      <SelectItem value="admitted">Admitted</SelectItem>
-                      <SelectItem value="admitted_our_hospice">Admitted Our Hospice</SelectItem>
-                      <SelectItem value="admitted_other_hospice">Admitted Other Hospice</SelectItem>
-                      <SelectItem value="declined">Declined</SelectItem>
-                      <SelectItem value="lost">Lost</SelectItem>
-                      <SelectItem value="lost_death">Lost - Death</SelectItem>
-                      <SelectItem value="lost_move">Lost - Move</SelectItem>
-                      <SelectItem value="lost_other_hospice">Lost - Other Hospice</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="md:col-span-2">
-                  <Label htmlFor="notes">Notes</Label>
-                  <Textarea
-                    id="notes"
-                    name="notes"
-                    defaultValue={referralData.notes || ''}
-                    rows={4}
-                  />
                 </div>
               </div>
             </TabsContent>
