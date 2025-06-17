@@ -19,10 +19,24 @@ serve(async (req) => {
 
   try {
     const { query, searchType } = await req.json();
+    console.log('Search request:', { query, searchType });
+    
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
     if (searchType === 'ai') {
+      // Check if OpenAI API key is available
+      if (!openAIApiKey) {
+        console.error('OpenAI API key not found');
+        return new Response(JSON.stringify({ 
+          type: 'ai_response',
+          response: 'AI search is currently unavailable. Please contact your administrator to configure the OpenAI API key.' 
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
       // Handle AI queries
+      console.log('Making OpenAI API request...');
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -41,14 +55,40 @@ Available data includes:
 - Patients (with various medical and contact information)
 - Organizations (referral sources, with contact info and assigned marketers)
 
-Respond conversationally and suggest actionable next steps.`
+When users ask about counts or statistics, explain that you can provide general guidance but they should use the search function or reports for exact numbers. Respond conversationally and suggest actionable next steps.`
             },
             { role: 'user', content: query }
           ],
         }),
       });
 
+      console.log('OpenAI API response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('OpenAI API error:', response.status, errorText);
+        return new Response(JSON.stringify({ 
+          type: 'ai_response',
+          response: 'I apologize, but I\'m experiencing technical difficulties. Please try your search again or contact support if the issue persists.' 
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
       const data = await response.json();
+      console.log('OpenAI API response:', data);
+      
+      // Check if the response has the expected structure
+      if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+        console.error('Unexpected OpenAI API response structure:', data);
+        return new Response(JSON.stringify({ 
+          type: 'ai_response',
+          response: 'I encountered an issue processing your request. Please try rephrasing your question.' 
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
       const aiResponse = data.choices[0].message.content;
 
       return new Response(JSON.stringify({ 
@@ -103,7 +143,10 @@ Respond conversationally and suggest actionable next steps.`
     }
   } catch (error) {
     console.error('Error in ai-search function:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ 
+      type: 'ai_response',
+      response: 'I encountered an unexpected error. Please try your search again.' 
+    }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
