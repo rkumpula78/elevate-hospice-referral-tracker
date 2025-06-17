@@ -111,8 +111,8 @@ serve(async (req) => {
         }
       }
 
-      // Check if query is about organizations
-      if (query.toLowerCase().includes('organization') || query.toLowerCase().includes('facility')) {
+      // Check if query is about organizations/referral sources
+      if (query.toLowerCase().includes('organization') || query.toLowerCase().includes('facility') || query.toLowerCase().includes('referral source')) {
         const { data: organizations, error } = await supabase
           .from('organizations')
           .select('id, name, type, assigned_marketer')
@@ -125,7 +125,7 @@ serve(async (req) => {
             return acc;
           }, {});
           
-          contextData += ` Current organization data: Total active organizations: ${totalOrgs}. Type breakdown: ${JSON.stringify(typeBreakdown)}.`;
+          contextData += ` Current referral source data: Total active referral sources (organizations): ${totalOrgs}. Type breakdown: ${JSON.stringify(typeBreakdown)}. Examples include: ${organizations.slice(0, 5).map(o => `${o.name} (${o.type})`).join(', ')}.`;
           if (!navigationAction) {
             navigationAction = { type: 'navigate', path: '/organizations', label: 'View All Organizations' };
           }
@@ -147,6 +147,8 @@ serve(async (req) => {
               role: 'system', 
               content: `You are a helpful assistant for a hospice CRM system. You have access to real-time data from the system. Use the provided context data to answer questions with specific numbers and facts.
 
+IMPORTANT: Organizations in this system are the referral sources. When users ask about "referral sources" they are referring to organizations. Make sure to use organization data when answering questions about referral sources.
+
 ${contextData}
 
 When answering questions:
@@ -154,11 +156,12 @@ When answering questions:
 2. Be direct and factual
 3. Provide actionable insights when relevant
 4. If suggesting navigation, mention that the user can click the suggested action
+5. Remember that organizations ARE referral sources - use this terminology appropriately
 
 Available navigation paths:
 - /referrals - for referral-related queries
 - /patients - for patient-related queries  
-- /organizations - for organization/facility queries
+- /organizations - for organization/facility/referral source queries
 - /dashboard - for general overview
 - /schedule - for scheduling and visits`
             },
