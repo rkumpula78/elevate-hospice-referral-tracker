@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import AddReferralDialog from './AddReferralDialog';
 import EditReferralDialog from './EditReferralDialog';
+import { sendAdmissionNotification, formatEmailData } from '@/utils/emailNotifications';
 
 type ReferralStatus = 'pending' | 'contacted' | 'scheduled' | 'admitted' | 'declined' | 'lost' | 'admitted_our_hospice' | 'admitted_other_hospice' | 'lost_death' | 'lost_move' | 'lost_other_hospice';
 type SortField = 'patient_name' | 'organizations.name' | 'assigned_marketer' | 'diagnosis' | 'priority' | 'status' | 'referral_date';
@@ -73,6 +75,33 @@ const ReferralsList = () => {
         .update({ status })
         .eq('id', id);
       if (error) throw error;
+
+      // If status is admitted or admitted_our_hospice, send email notification
+      if (status === 'admitted' || status === 'admitted_our_hospice') {
+        // Fetch referral and patient data for email
+        const { data: referralData } = await supabase
+          .from('referrals')
+          .select('*, organizations(name)')
+          .eq('id', id)
+          .single();
+
+        const { data: patientData } = await supabase
+          .from('patients')
+          .select('*')
+          .eq('referral_id', id)
+          .maybeSingle();
+
+        if (referralData) {
+          const emailData = formatEmailData(referralData, patientData);
+          const emailResult = await sendAdmissionNotification(emailData);
+          
+          if (emailResult.success) {
+            console.log('Admission notification email sent successfully');
+          } else {
+            console.error('Failed to send admission notification email:', emailResult.error);
+          }
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['referrals'] });

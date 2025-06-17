@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -12,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
+import { sendAdmissionNotification, formatEmailData } from '@/utils/emailNotifications';
 
 // Import patient edit sections
 import PatientOverviewSection from './patient-edit/PatientOverviewSection';
@@ -111,12 +111,38 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
   // Mutation for updating referral data
   const updateReferralMutation = useMutation({
     mutationFn: async (data: any) => {
+      const originalStatus = referralData?.status;
+      const newStatus = data.status;
+      
       const { error } = await supabase
         .from('referrals')
         .update(data)
         .eq('id', referralId);
       
       if (error) throw error;
+
+      // Check if status changed to admitted and send email notification
+      if ((newStatus === 'admitted' || newStatus === 'admitted_our_hospice') && 
+          originalStatus !== newStatus) {
+        
+        // Fetch updated referral data with organization info
+        const { data: updatedReferralData } = await supabase
+          .from('referrals')
+          .select('*, organizations(name)')
+          .eq('id', referralId)
+          .single();
+
+        if (updatedReferralData) {
+          const emailData = formatEmailData(updatedReferralData, patientData);
+          const emailResult = await sendAdmissionNotification(emailData);
+          
+          if (emailResult.success) {
+            toast({ title: 'Admission notification sent', description: 'Email notification sent to intake specialist' });
+          } else {
+            toast({ title: 'Email notification failed', description: 'Status updated but email notification failed', variant: 'destructive' });
+          }
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['referrals'] });
