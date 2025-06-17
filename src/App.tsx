@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import { AuthProvider } from "@/hooks/useAuth";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import AppSidebar from "@/components/layout/AppSidebar";
 import Auth from "./pages/Auth";
@@ -22,38 +23,40 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/" element={
-            <ProtectedRoute>
-              <SidebarProvider>
-                <div className="min-h-screen flex w-full">
-                  <AppSidebar />
-                  <div className="flex-1">
-                    <Routes>
-                      <Route index element={<Navigate to="/dashboard" replace />} />
-                      <Route path="dashboard" element={<Dashboard />} />
-                      <Route path="referrals" element={<ReferralsPage />} />
-                      <Route path="compliance" element={<CompliancePage />} />
-                      <Route path="settings" element={<SettingsPage />} />
-                      <Route path="patient/:id" element={<PatientDetail />} />
-                      <Route path="referral/:id" element={<ReferralDetail />} />
-                      <Route path="organization/:id" element={<OrganizationDetail />} />
-                      <Route path="*" element={<NotFound />} />
-                    </Routes>
+    <AuthProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/" element={
+              <ProtectedRoute>
+                <SidebarProvider>
+                  <div className="min-h-screen flex w-full">
+                    <AppSidebar />
+                    <div className="flex-1">
+                      <Routes>
+                        <Route index element={<Navigate to="/dashboard" replace />} />
+                        <Route path="dashboard" element={<Dashboard />} />
+                        <Route path="referrals" element={<ReferralsPage />} />
+                        <Route path="compliance" element={<CompliancePage />} />
+                        <Route path="settings" element={<SettingsPage />} />
+                        <Route path="patient/:id" element={<PatientDetail />} />
+                        <Route path="referral/:id" element={<ReferralDetail />} />
+                        <Route path="organization/:id" element={<OrganizationDetail />} />
+                        <Route path="*" element={<NotFound />} />
+                      </Routes>
+                    </div>
                   </div>
-                </div>
-              </SidebarProvider>
-            </ProtectedRoute>
-          } />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+                </SidebarProvider>
+              </ProtectedRoute>
+            } />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 
