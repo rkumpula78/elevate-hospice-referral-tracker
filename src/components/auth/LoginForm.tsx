@@ -19,12 +19,27 @@ const LoginForm = ({ onToggleMode, isSignUp }: LoginFormProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const { signIn, signUp } = useAuth();
 
+  const validateEmail = (email: string) => {
+    const allowedDomain = '@elevatehospiceaz.com';
+    return email.toLowerCase().endsWith(allowedDomain);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!email || !password) {
       toast({
         title: "Please fill in all fields",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Validate email domain before submission
+    if (!validateEmail(email)) {
+      toast({
+        title: "Invalid Email Domain",
+        description: "Only @elevatehospiceaz.com email addresses are allowed.",
         variant: "destructive"
       });
       return;
@@ -47,8 +62,10 @@ const LoginForm = ({ onToggleMode, isSignUp }: LoginFormProps) => {
       } else if (isSignUp) {
         toast({
           title: "Account Created",
-          description: "Please check your email to verify your account.",
+          description: "Please check your @elevatehospiceaz.com email to verify your account before signing in.",
         });
+        setEmail('');
+        setPassword('');
       }
     } catch (error) {
       console.error('Unexpected error:', error);
@@ -70,8 +87,8 @@ const LoginForm = ({ onToggleMode, isSignUp }: LoginFormProps) => {
         </CardTitle>
         <CardDescription className="text-center">
           {isSignUp 
-            ? 'Create a new account to access the CRM Dashboard'
-            : 'Enter your credentials to access the CRM Dashboard'
+            ? 'Create a new account with your @elevatehospiceaz.com email'
+            : 'Enter your @elevatehospiceaz.com credentials to access the CRM Dashboard'
           }
         </CardDescription>
       </CardHeader>
@@ -82,11 +99,16 @@ const LoginForm = ({ onToggleMode, isSignUp }: LoginFormProps) => {
             <Input
               id="email"
               type="email"
-              placeholder="Enter your email"
+              placeholder="yourname@elevatehospiceaz.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
             />
+            {email && !validateEmail(email) && (
+              <p className="text-sm text-red-600">
+                Email must end with @elevatehospiceaz.com
+              </p>
+            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
@@ -102,7 +124,7 @@ const LoginForm = ({ onToggleMode, isSignUp }: LoginFormProps) => {
           <Button 
             type="submit" 
             className="w-full" 
-            disabled={isLoading}
+            disabled={isLoading || !validateEmail(email)}
           >
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {isSignUp ? 'Create Account' : 'Sign In'}
@@ -120,6 +142,15 @@ const LoginForm = ({ onToggleMode, isSignUp }: LoginFormProps) => {
             }
           </Button>
         </div>
+        
+        {isSignUp && (
+          <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+            <p className="text-sm text-blue-800">
+              <strong>Note:</strong> You must use an @elevatehospiceaz.com email address. 
+              After registration, check your email for a verification link before signing in.
+            </p>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

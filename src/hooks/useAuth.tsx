@@ -50,6 +50,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   const signIn = async (email: string, password: string) => {
+    // Validate email domain before attempting login
+    const allowedDomain = '@elevatehospiceaz.com';
+    if (!email.toLowerCase().endsWith(allowedDomain)) {
+      return { 
+        error: { 
+          message: 'Only @elevatehospiceaz.com email addresses are allowed to sign in.' 
+        } 
+      };
+    }
+
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -58,16 +68,26 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const signUp = async (email: string, password: string) => {
-    const redirectUrl = `${window.location.origin}/dashboard`;
-    
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: redirectUrl
+    try {
+      // Use the edge function for validated signup
+      const { data, error } = await supabase.functions.invoke('validate-signup', {
+        body: { email, password }
+      });
+
+      if (error) {
+        console.error('Edge function error:', error);
+        return { error };
       }
-    });
-    return { error };
+
+      if (data.error) {
+        return { error: data.error };
+      }
+
+      return { error: null };
+    } catch (error: any) {
+      console.error('Signup error:', error);
+      return { error: { message: error.message } };
+    }
   };
 
   const signOut = async () => {
