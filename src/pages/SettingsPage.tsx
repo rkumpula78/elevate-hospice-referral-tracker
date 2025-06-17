@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,7 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import PageLayout from "@/components/layout/PageLayout";
 import { useToast } from "@/hooks/use-toast";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, MapPin, Phone, Fax, Mail, Globe } from "lucide-react";
 
 const SettingsPage = () => {
   const { user } = useAuth();
@@ -92,6 +91,56 @@ const SettingsPage = () => {
   return (
     <PageLayout title="Settings" subtitle="Configure application settings and preferences">
       <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Company Information</CardTitle>
+            <CardDescription>Elevate Hospice & Palliative Care contact details</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                <MapPin className="h-5 w-5 text-blue-600" />
+                <div>
+                  <Label className="text-sm font-medium">Address</Label>
+                  <p className="text-sm text-gray-600">Coming Soon</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                <Phone className="h-5 w-5 text-blue-600" />
+                <div>
+                  <Label className="text-sm font-medium">Main Phone</Label>
+                  <p className="text-sm text-gray-600">480-800-4816</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                <Fax className="h-5 w-5 text-blue-600" />
+                <div>
+                  <Label className="text-sm font-medium">Fax</Label>
+                  <p className="text-sm text-gray-600">480-800-4817</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                <Mail className="h-5 w-5 text-blue-600" />
+                <div>
+                  <Label className="text-sm font-medium">General Info</Label>
+                  <p className="text-sm text-gray-600">info@elevatehospiceaz.com</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg md:col-span-2">
+                <Globe className="h-5 w-5 text-blue-600" />
+                <div>
+                  <Label className="text-sm font-medium">Website</Label>
+                  <p className="text-sm text-gray-600">www.elevatehospiceaz.com</p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader>
             <CardTitle>Organization Settings</CardTitle>
