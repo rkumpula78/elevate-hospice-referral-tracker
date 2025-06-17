@@ -1,8 +1,8 @@
-
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, MessageCircle, User, Building2, FileText } from 'lucide-react';
+import { Search, MessageCircle, User, Building2, FileText, ExternalLink } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
@@ -15,6 +15,11 @@ interface SearchResult {
     organizations: any[];
   };
   response?: string;
+  suggestedAction?: {
+    type: 'navigate';
+    path: string;
+    label: string;
+  };
 }
 
 const GlobalSearchBar = () => {
@@ -90,6 +95,14 @@ const GlobalSearchBar = () => {
     setSearchQuery('');
   };
 
+  const handleSuggestedAction = (action: { type: string; path: string; label: string }) => {
+    if (action.type === 'navigate') {
+      navigate(action.path);
+      setShowResults(false);
+      setSearchQuery('');
+    }
+  };
+
   return (
     <div ref={searchRef} className="relative w-full max-w-2xl mx-auto">
       <div className="relative">
@@ -119,9 +132,20 @@ const GlobalSearchBar = () => {
               <div className="p-4 border-l-4 border-blue-500 bg-blue-50">
                 <div className="flex items-start space-x-2">
                   <MessageCircle className="h-5 w-5 text-blue-600 mt-0.5" />
-                  <div>
+                  <div className="flex-1">
                     <p className="text-sm font-medium text-blue-900">AI Assistant</p>
                     <p className="text-sm text-blue-800 mt-1">{searchResults.response}</p>
+                    {searchResults.suggestedAction && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="mt-3 text-blue-600 border-blue-300 hover:bg-blue-100"
+                        onClick={() => handleSuggestedAction(searchResults.suggestedAction!)}
+                      >
+                        <ExternalLink className="h-3 w-3 mr-1" />
+                        {searchResults.suggestedAction.label}
+                      </Button>
+                    )}
                   </div>
                 </div>
               </div>

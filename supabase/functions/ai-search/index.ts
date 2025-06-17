@@ -35,7 +35,70 @@ serve(async (req) => {
         });
       }
 
-      // Handle AI queries
+      // Gather relevant data based on the query
+      let contextData = '';
+      let suggestedAction = null;
+
+      // Check if query is about referrals
+      if (query.toLowerCase().includes('referral')) {
+        const { data: referrals, error } = await supabase
+          .from('referrals')
+          .select('id, patient_name, status, referral_date, organizations(name)');
+        
+        if (!error && referrals) {
+          const totalReferrals = referrals.length;
+          const statusCounts = referrals.reduce((acc, ref) => {
+            acc[ref.status] = (acc[ref.status] || 0) + 1;
+            return acc;
+          }, {});
+          
+          contextData = `Current referral data: Total referrals: ${totalReferrals}. Status breakdown: ${JSON.stringify(statusCounts)}. Recent referrals include: ${referrals.slice(0, 5).map(r => `${r.patient_name} (${r.status})`).join(', ')}.`;
+          suggestedAction = { type: 'navigate', path: '/referrals', label: 'View All Referrals' };
+        }
+      }
+
+      // Check if query is about patients
+      if (query.toLowerCase().includes('patient')) {
+        const { data: patients, error } = await supabase
+          .from('patients')
+          .select('id, first_name, last_name, status, diagnosis');
+        
+        if (!error && patients) {
+          const totalPatients = patients.length;
+          const statusCounts = patients.reduce((acc, patient) => {
+            acc[patient.status] = (acc[patient.status] || 0) + 1;
+            return acc;
+          }, {});
+          
+          contextData += ` Current patient data: Total patients: ${totalPatients}. Status breakdown: ${JSON.stringify(statusCounts)}.`;
+          if (!suggestedAction) {
+            suggestedAction = { type: 'navigate', path: '/patients', label: 'View All Patients' };
+          }
+        }
+      }
+
+      // Check if query is about organizations
+      if (query.toLowerCase().includes('organization') || query.toLowerCase().includes('facility')) {
+        const { data: organizations, error } = await supabase
+          .from('organizations')
+          .select('id, name, type, assigned_marketer')
+          .eq('is_active', true);
+        
+        if (!error && organizations) {
+          const totalOrgs = organizations.length;
+          const typeBreakdown = organizations.reduce((acc, org) => {
+            acc[org.type] = (acc[org.type] || 0) + 1;
+            return acc;
+          }, {});
+          
+          contextData += ` Current organization data: Total active organizations: ${totalOrgs}. Type breakdown: ${JSON.stringify(typeBreakdown)}.`;
+          if (!suggestedAction) {
+            suggestedAction = { type: 'navigate', path: '/organizations', label: 'View All Organizations' };
+          }
+        }
+      }
+
+      // Handle AI queries with real data
       console.log('Making OpenAI API request...');
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
@@ -48,14 +111,22 @@ serve(async (req) => {
           messages: [
             { 
               role: 'system', 
-              content: `You are a helpful assistant for a hospice CRM system. Help users find information about referrals, patients, and organizations. When users ask natural language questions, provide helpful responses and suggest specific searches they can perform.
+              content: `You are a helpful assistant for a hospice CRM system. You have access to real-time data from the system. Use the provided context data to answer questions with specific numbers and facts.
 
-Available data includes:
-- Referrals (with statuses: pending, contacted, scheduled, admitted, admitted_our_hospice)
-- Patients (with various medical and contact information)
-- Organizations (referral sources, with contact info and assigned marketers)
+${contextData}
 
-When users ask about counts or statistics, explain that you can provide general guidance but they should use the search function or reports for exact numbers. Respond conversationally and suggest actionable next steps.`
+When answering questions:
+1. Use the specific numbers and data provided in the context
+2. Be direct and factual
+3. Provide actionable insights when relevant
+4. If suggesting navigation, mention that the user can click the suggested action
+
+Available navigation paths:
+- /referrals - for referral-related queries
+- /patients - for patient-related queries  
+- /organizations - for organization/facility queries
+- /dashboard - for general overview
+- /schedule - for scheduling and visits`
             },
             { role: 'user', content: query }
           ],
@@ -93,7 +164,8 @@ When users ask about counts or statistics, explain that you can provide general 
 
       return new Response(JSON.stringify({ 
         type: 'ai_response',
-        response: aiResponse 
+        response: aiResponse,
+        suggestedAction: suggestedAction
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
