@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,12 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Phone, Mail, Calendar, User, ArrowUpDown, ArrowUp, ArrowDown, Edit } from "lucide-react";
+import { Plus, Phone, Mail, Calendar, User, ArrowUpDown, ArrowUp, ArrowDown, Edit, AlertCircle, Clock, CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import AddReferralDialog from './AddReferralDialog';
 import EditReferralDialog from './EditReferralDialog';
 import { sendAdmissionNotification, formatEmailData } from '@/utils/emailNotifications';
+import { TableSkeleton } from '@/components/ui/table-skeleton';
+import { EmptyState } from '@/components/ui/empty-state';
 
 type ReferralStatus = 'pending' | 'contacted' | 'scheduled' | 'admitted' | 'declined' | 'lost' | 'admitted_our_hospice' | 'admitted_other_hospice' | 'lost_death' | 'lost_move' | 'lost_other_hospice';
 type SortField = 'patient_name' | 'organizations.name' | 'assigned_marketer' | 'diagnosis' | 'priority' | 'status' | 'referral_date';
@@ -168,8 +169,39 @@ const ReferralsList = () => {
     setShowEditDialog(true);
   };
 
+  const getPriorityIcon = (priority: string) => {
+    switch (priority) {
+      case 'urgent': return <AlertCircle className="w-3 h-3 mr-1 text-red-600" />;
+      case 'routine': return <Clock className="w-3 h-3 mr-1 text-blue-600" />;
+      case 'low': return <CheckCircle className="w-3 h-3 mr-1 text-gray-600" />;
+      default: return <Clock className="w-3 h-3 mr-1 text-gray-600" />;
+    }
+  };
+
+  const resetFilters = () => {
+    setSelectedStatus('all');
+    setSelectedPriority('all');
+    setSelectedMarketer('all');
+  };
+
+  const hasActiveFilters = selectedStatus !== 'all' || selectedPriority !== 'all' || selectedMarketer !== 'all';
+  const hasResults = referrals && referrals.length > 0;
+
   if (isLoading) {
-    return <div>Loading referrals...</div>;
+    return (
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <div className="flex space-x-2">
+            {/* Filter skeleton */}
+            <div className="w-48 h-10 bg-gray-200 rounded animate-pulse" />
+            <div className="w-40 h-10 bg-gray-200 rounded animate-pulse" />
+            <div className="w-48 h-10 bg-gray-200 rounded animate-pulse" />
+          </div>
+          <div className="w-32 h-10 bg-gray-200 rounded animate-pulse" />
+        </div>
+        <TableSkeleton rows={8} columns={8} />
+      </div>
+    );
   }
 
   return (
@@ -226,127 +258,142 @@ const ReferralsList = () => {
         </Button>
       </div>
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>
-              <Button variant="ghost" onClick={() => handleSort('patient_name')} className="h-auto p-0 font-medium">
-                Patient{getSortIcon('patient_name')}
-              </Button>
-            </TableHead>
-            <TableHead>
-              <Button variant="ghost" onClick={() => handleSort('organizations.name')} className="h-auto p-0 font-medium">
-                Organization{getSortIcon('organizations.name')}
-              </Button>
-            </TableHead>
-            <TableHead>
-              <Button variant="ghost" onClick={() => handleSort('assigned_marketer')} className="h-auto p-0 font-medium">
-                Assigned Marketer{getSortIcon('assigned_marketer')}
-              </Button>
-            </TableHead>
-            <TableHead>
-              <Button variant="ghost" onClick={() => handleSort('diagnosis')} className="h-auto p-0 font-medium">
-                Diagnosis{getSortIcon('diagnosis')}
-              </Button>
-            </TableHead>
-            <TableHead>
-              <Button variant="ghost" onClick={() => handleSort('priority')} className="h-auto p-0 font-medium">
-                Priority{getSortIcon('priority')}
-              </Button>
-            </TableHead>
-            <TableHead>
-              <Button variant="ghost" onClick={() => handleSort('status')} className="h-auto p-0 font-medium">
-                Status{getSortIcon('status')}
-              </Button>
-            </TableHead>
-            <TableHead>
-              <Button variant="ghost" onClick={() => handleSort('referral_date')} className="h-auto p-0 font-medium">
-                Referral Date{getSortIcon('referral_date')}
-              </Button>
-            </TableHead>
-            <TableHead>Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {referrals?.map((referral) => (
-            <TableRow key={referral.id}>
-              <TableCell className="font-medium">
-                <div>
-                  <div>{referral.patient_name}</div>
-                  {referral.patient_phone && (
-                    <div className="text-sm text-muted-foreground flex items-center">
-                      <Phone className="w-3 h-3 mr-1" />
-                      {referral.patient_phone}
+      {!hasResults ? (
+        <EmptyState
+          title={hasActiveFilters ? "No referrals match your filters" : "No referrals yet"}
+          description={hasActiveFilters ? "Try adjusting your filters to see more results." : "Get started by adding your first referral to the system."}
+          actionLabel={hasActiveFilters ? undefined : "Add First Referral"}
+          onAction={hasActiveFilters ? undefined : () => setShowAddDialog(true)}
+          showResetFilters={hasActiveFilters}
+          onResetFilters={resetFilters}
+        />
+      ) : (
+        <div className="rounded-md border overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>
+                  <Button variant="ghost" onClick={() => handleSort('patient_name')} className="h-auto p-0 font-medium">
+                    Patient{getSortIcon('patient_name')}
+                  </Button>
+                </TableHead>
+                <TableHead>
+                  <Button variant="ghost" onClick={() => handleSort('organizations.name')} className="h-auto p-0 font-medium">
+                    Organization{getSortIcon('organizations.name')}
+                  </Button>
+                </TableHead>
+                <TableHead>
+                  <Button variant="ghost" onClick={() => handleSort('assigned_marketer')} className="h-auto p-0 font-medium">
+                    Assigned Marketer{getSortIcon('assigned_marketer')}
+                  </Button>
+                </TableHead>
+                <TableHead>
+                  <Button variant="ghost" onClick={() => handleSort('diagnosis')} className="h-auto p-0 font-medium">
+                    Diagnosis{getSortIcon('diagnosis')}
+                  </Button>
+                </TableHead>
+                <TableHead>
+                  <Button variant="ghost" onClick={() => handleSort('priority')} className="h-auto p-0 font-medium">
+                    Priority{getSortIcon('priority')}
+                  </Button>
+                </TableHead>
+                <TableHead>
+                  <Button variant="ghost" onClick={() => handleSort('status')} className="h-auto p-0 font-medium">
+                    Status{getSortIcon('status')}
+                  </Button>
+                </TableHead>
+                <TableHead>
+                  <Button variant="ghost" onClick={() => handleSort('referral_date')} className="h-auto p-0 font-medium">
+                    Referral Date{getSortIcon('referral_date')}
+                  </Button>
+                </TableHead>
+                <TableHead className="w-[200px]">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {referrals?.map((referral) => (
+                <TableRow key={referral.id}>
+                  <TableCell className="font-medium">
+                    <div>
+                      <div>{referral.patient_name}</div>
+                      {referral.patient_phone && (
+                        <div className="text-sm text-muted-foreground flex items-center">
+                          <Phone className="w-3 h-3 mr-1" />
+                          {referral.patient_phone}
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-              </TableCell>
-              <TableCell>
-                <div>
-                  <div>{referral.organizations?.name || 'Unknown'}</div>
-                  <div className="text-sm text-muted-foreground">{referral.organizations?.type}</div>
-                </div>
-              </TableCell>
-              <TableCell>
-                {referral.assigned_marketer ? (
-                  <div className="flex items-center">
-                    <User className="w-3 h-3 mr-1" />
-                    {referral.assigned_marketer}
-                  </div>
-                ) : '-'}
-              </TableCell>
-              <TableCell>{referral.diagnosis}</TableCell>
-              <TableCell>
-                <Badge className={getPriorityColor(referral.priority || 'routine')}>
-                  {referral.priority || 'routine'}
-                </Badge>
-              </TableCell>
-              <TableCell>
-                <Select
-                  value={referral.status || 'pending'}
-                  onValueChange={(value: ReferralStatus) => 
-                    updateStatusMutation.mutate({ id: referral.id, status: value })
-                  }
-                >
-                  <SelectTrigger className="w-40">
-                    <Badge className={getStatusColor(referral.status || 'pending')}>
-                      {getStatusLabel(referral.status || 'pending')}
+                  </TableCell>
+                  <TableCell>
+                    <div>
+                      <div>{referral.organizations?.name || 'Unknown'}</div>
+                      <div className="text-sm text-muted-foreground">{referral.organizations?.type}</div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    {referral.assigned_marketer ? (
+                      <div className="flex items-center">
+                        <User className="w-3 h-3 mr-1" />
+                        {referral.assigned_marketer}
+                      </div>
+                    ) : '-'}
+                  </TableCell>
+                  <TableCell className="max-w-[200px] truncate">{referral.diagnosis}</TableCell>
+                  <TableCell>
+                    <Badge className={getPriorityColor(referral.priority || 'routine')}>
+                      {getPriorityIcon(referral.priority || 'routine')}
+                      {referral.priority || 'routine'}
                     </Badge>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="contacted">Contacted</SelectItem>
-                    <SelectItem value="scheduled">Scheduled</SelectItem>
-                    <SelectItem value="admitted">Admitted</SelectItem>
-                    <SelectItem value="admitted_our_hospice">Admitted Our Hospice</SelectItem>
-                    <SelectItem value="admitted_other_hospice">Admitted Other Hospice</SelectItem>
-                    <SelectItem value="declined">Declined</SelectItem>
-                    <SelectItem value="lost">Lost</SelectItem>
-                    <SelectItem value="lost_death">Lost - Death</SelectItem>
-                    <SelectItem value="lost_move">Lost - Move</SelectItem>
-                    <SelectItem value="lost_other_hospice">Lost - Other Hospice</SelectItem>
-                  </SelectContent>
-                </Select>
-              </TableCell>
-              <TableCell>
-                {referral.referral_date && format(new Date(referral.referral_date), 'MMM dd, yyyy')}
-              </TableCell>
-              <TableCell>
-                <div className="flex space-x-2">
-                  <Button variant="outline" size="sm" onClick={() => handleEditReferral(referral.id)}>
-                    <Edit className="w-3 h-3 mr-1" />
-                    Edit
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    <Calendar className="w-3 h-3 mr-1" />
-                    Schedule
-                  </Button>
-                </div>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+                  </TableCell>
+                  <TableCell>
+                    <Select
+                      value={referral.status || 'pending'}
+                      onValueChange={(value: ReferralStatus) => 
+                        updateStatusMutation.mutate({ id: referral.id, status: value })
+                      }
+                      disabled={updateStatusMutation.isPending}
+                    >
+                      <SelectTrigger className="w-40">
+                        <Badge className={getStatusColor(referral.status || 'pending')}>
+                          {getStatusLabel(referral.status || 'pending')}
+                        </Badge>
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="contacted">Contacted</SelectItem>
+                        <SelectItem value="scheduled">Scheduled</SelectItem>
+                        <SelectItem value="admitted">Admitted</SelectItem>
+                        <SelectItem value="admitted_our_hospice">Admitted Our Hospice</SelectItem>
+                        <SelectItem value="admitted_other_hospice">Admitted Other Hospice</SelectItem>
+                        <SelectItem value="declined">Declined</SelectItem>
+                        <SelectItem value="lost">Lost</SelectItem>
+                        <SelectItem value="lost_death">Lost - Death</SelectItem>
+                        <SelectItem value="lost_move">Lost - Move</SelectItem>
+                        <SelectItem value="lost_other_hospice">Lost - Other Hospice</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </TableCell>
+                  <TableCell>
+                    {referral.referral_date && format(new Date(referral.referral_date), 'MMM dd, yyyy')}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex space-x-1">
+                      <Button variant="outline" size="sm" onClick={() => handleEditReferral(referral.id)}>
+                        <Edit className="w-3 h-3 mr-1" />
+                        Edit
+                      </Button>
+                      <Button variant="outline" size="sm">
+                        <Calendar className="w-3 h-3 mr-1" />
+                        Schedule
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
 
       <AddReferralDialog 
         open={showAddDialog} 

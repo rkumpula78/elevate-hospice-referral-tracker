@@ -9,6 +9,9 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from 'react';
+import { PhoneInput } from "@/components/ui/phone-input";
+import { EmailInput } from "@/components/ui/email-input";
+import { Loader2 } from "lucide-react";
 
 interface AddOrganizationDialogProps {
   open: boolean;
@@ -27,6 +30,7 @@ const AddOrganizationDialog = ({ open, onOpenChange }: AddOrganizationDialogProp
     contact_email: '',
     assigned_marketer: ''
   });
+  const [emailValid, setEmailValid] = useState(true);
 
   const addOrganizationMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
@@ -56,6 +60,17 @@ const AddOrganizationDialog = ({ open, onOpenChange }: AddOrganizationDialogProp
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!formData.name.trim()) {
+      toast({ title: "Organization name is required", variant: "destructive" });
+      return;
+    }
+    
+    if (formData.contact_email && !emailValid) {
+      toast({ title: "Please enter a valid email address", variant: "destructive" });
+      return;
+    }
+    
     addOrganizationMutation.mutate(formData);
   };
 
@@ -63,14 +78,16 @@ const AddOrganizationDialog = ({ open, onOpenChange }: AddOrganizationDialogProp
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  const isSubmitting = addOrganizationMutation.isPending;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add Referral Source</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="name">Organization Name *</Label>
               <Input
@@ -78,6 +95,7 @@ const AddOrganizationDialog = ({ open, onOpenChange }: AddOrganizationDialogProp
                 value={formData.name}
                 onChange={(e) => handleInputChange('name', e.target.value)}
                 required
+                disabled={isSubmitting}
               />
             </div>
             <div>
@@ -87,36 +105,40 @@ const AddOrganizationDialog = ({ open, onOpenChange }: AddOrganizationDialogProp
                 value={formData.assigned_marketer}
                 onChange={(e) => handleInputChange('assigned_marketer', e.target.value)}
                 placeholder="Elevate staff member"
+                disabled={isSubmitting}
               />
             </div>
           </div>
           
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="contact_person">Contact Person</Label>
               <Input
                 id="contact_person"
                 value={formData.contact_person}
                 onChange={(e) => handleInputChange('contact_person', e.target.value)}
+                disabled={isSubmitting}
               />
             </div>
             <div>
               <Label htmlFor="phone">Phone</Label>
-              <Input
+              <PhoneInput
                 id="phone"
                 value={formData.phone}
-                onChange={(e) => handleInputChange('phone', e.target.value)}
+                onChange={(value) => handleInputChange('phone', value)}
+                disabled={isSubmitting}
               />
             </div>
           </div>
 
           <div>
             <Label htmlFor="contact_email">Email</Label>
-            <Input
+            <EmailInput
               id="contact_email"
-              type="email"
               value={formData.contact_email}
               onChange={(e) => handleInputChange('contact_email', e.target.value)}
+              onValidationChange={setEmailValid}
+              disabled={isSubmitting}
             />
           </div>
 
@@ -127,15 +149,23 @@ const AddOrganizationDialog = ({ open, onOpenChange }: AddOrganizationDialogProp
               value={formData.address}
               onChange={(e) => handleInputChange('address', e.target.value)}
               rows={3}
+              disabled={isSubmitting}
             />
           </div>
 
           <div className="flex justify-end space-x-2 pt-4">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
               Cancel
             </Button>
-            <Button type="submit" disabled={addOrganizationMutation.isPending}>
-              {addOrganizationMutation.isPending ? 'Adding...' : 'Add Organization'}
+            <Button type="submit" disabled={isSubmitting || !emailValid}>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Adding...
+                </>
+              ) : (
+                'Add Organization'
+              )}
             </Button>
           </div>
         </form>
