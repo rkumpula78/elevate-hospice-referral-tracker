@@ -1,31 +1,29 @@
-
 import React, { useState } from 'react';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Clock, CheckCircle, Calendar, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import { Plus, Calendar, Clock, User } from "lucide-react";
 import { format } from "date-fns";
+import ScheduleVisitDialog from "./ScheduleVisitDialog";
+import EditVisitDialog from "./EditVisitDialog";
 
 type VisitType = 'admission' | 'routine' | 'urgent' | 'discharge';
-type SortField = 'patients.first_name' | 'staff_name' | 'visit_type' | 'scheduled_date' | 'duration_minutes' | 'is_completed';
-type SortDirection = 'asc' | 'desc';
 
 const VisitsList = () => {
   const [selectedType, setSelectedType] = useState<VisitType | 'all'>('all');
   const [selectedStaff, setSelectedStaff] = useState<string>('all');
-  const [sortField, setSortField] = useState<SortField>('scheduled_date');
-  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+  const [showScheduleDialog, setShowScheduleDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [selectedVisitId, setSelectedVisitId] = useState<string | null>(null);
 
   const { data: visits, isLoading } = useQuery({
-    queryKey: ['visits', selectedType, selectedStaff, sortField, sortDirection],
+    queryKey: ['visits', selectedType, selectedStaff],
     queryFn: async () => {
       let query = supabase
         .from('visits')
-        .select('*, patients(first_name, last_name)')
-        .order(sortField === 'patients.first_name' ? 'patients(first_name)' : sortField, { ascending: sortDirection === 'asc' });
+        .select('*, patients(first_name, last_name)');
 
       if (selectedType !== 'all') {
         query = query.eq('visit_type', selectedType);
@@ -55,20 +53,6 @@ const VisitsList = () => {
     }
   });
 
-  const handleSort = (field: SortField) => {
-    if (sortField === field) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortField(field);
-      setSortDirection('asc');
-    }
-  };
-
-  const getSortIcon = (field: SortField) => {
-    if (sortField !== field) return <ArrowUpDown className="w-3 h-3 ml-1" />;
-    return sortDirection === 'asc' ? <ArrowUp className="w-3 h-3 ml-1" /> : <ArrowDown className="w-3 h-3 ml-1" />;
-  };
-
   const getTypeColor = (type: string) => {
     switch (type) {
       case 'admission': return 'bg-blue-100 text-blue-800';
@@ -77,6 +61,11 @@ const VisitsList = () => {
       case 'discharge': return 'bg-yellow-100 text-yellow-800';
       default: return 'bg-gray-100 text-gray-800';
     }
+  };
+
+  const handleVisitClick = (visitId: string) => {
+    setSelectedVisitId(visitId);
+    setShowEditDialog(true);
   };
 
   if (isLoading) {
@@ -112,100 +101,76 @@ const VisitsList = () => {
             </SelectContent>
           </Select>
         </div>
-        <Button>
+        <Button onClick={() => setShowScheduleDialog(true)}>
           <Plus className="w-4 h-4 mr-2" />
           Schedule Visit
         </Button>
       </div>
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>
-              <Button variant="ghost" onClick={() => handleSort('patients.first_name')} className="h-auto p-0 font-medium">
-                Patient{getSortIcon('patients.first_name')}
-              </Button>
-            </TableHead>
-            <TableHead>
-              <Button variant="ghost" onClick={() => handleSort('staff_name')} className="h-auto p-0 font-medium">
-                Staff{getSortIcon('staff_name')}
-              </Button>
-            </TableHead>
-            <TableHead>
-              <Button variant="ghost" onClick={() => handleSort('visit_type')} className="h-auto p-0 font-medium">
-                Visit Type{getSortIcon('visit_type')}
-              </Button>
-            </TableHead>
-            <TableHead>
-              <Button variant="ghost" onClick={() => handleSort('scheduled_date')} className="h-auto p-0 font-medium">
-                Scheduled Date{getSortIcon('scheduled_date')}
-              </Button>
-            </TableHead>
-            <TableHead>
-              <Button variant="ghost" onClick={() => handleSort('duration_minutes')} className="h-auto p-0 font-medium">
-                Duration{getSortIcon('duration_minutes')}
-              </Button>
-            </TableHead>
-            <TableHead>
-              <Button variant="ghost" onClick={() => handleSort('is_completed')} className="h-auto p-0 font-medium">
-                Status{getSortIcon('is_completed')}
-              </Button>
-            </TableHead>
-            <TableHead>Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {visits?.map((visit) => (
-            <TableRow key={visit.id}>
-              <TableCell className="font-medium">
-                {visit.patients?.first_name} {visit.patients?.last_name}
-              </TableCell>
-              <TableCell>{visit.staff_name}</TableCell>
-              <TableCell>
+      <div className="space-y-3">
+        {visits?.map((visit) => (
+          <div 
+            key={visit.id} 
+            className="bg-white border rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
+            onClick={() => handleVisitClick(visit.id)}
+          >
+            <div className="flex justify-between items-start mb-2">
+              <div className="flex items-center space-x-2">
+                <h3 className="font-medium">
+                  {visit.patients ? `${visit.patients.first_name} ${visit.patients.last_name}` : 'General Visit'}
+                </h3>
                 <Badge className={getTypeColor(visit.visit_type)}>
                   {visit.visit_type}
                 </Badge>
-              </TableCell>
-              <TableCell>
-                <div className="flex items-center">
-                  <Calendar className="w-3 h-3 mr-1" />
-                  {format(new Date(visit.scheduled_date), 'MMM dd, yyyy HH:mm')}
-                </div>
-              </TableCell>
-              <TableCell>
-                {visit.duration_minutes ? `${visit.duration_minutes} mins` : '-'}
-              </TableCell>
-              <TableCell>
-                <div className="flex items-center">
-                  {visit.is_completed ? (
-                    <>
-                      <CheckCircle className="w-3 h-3 mr-1 text-green-500" />
-                      <span className="text-green-600">Completed</span>
-                    </>
-                  ) : (
-                    <>
-                      <Clock className="w-3 h-3 mr-1 text-yellow-500" />
-                      <span className="text-yellow-600">Scheduled</span>
-                    </>
-                  )}
-                </div>
-              </TableCell>
-              <TableCell>
-                <div className="flex space-x-2">
-                  {!visit.is_completed && (
-                    <Button variant="outline" size="sm">
-                      Complete
-                    </Button>
-                  )}
-                  <Button variant="outline" size="sm">
-                    Edit
-                  </Button>
-                </div>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+                {visit.is_completed && (
+                  <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                    Completed
+                  </Badge>
+                )}
+              </div>
+            </div>
+            
+            <div className="space-y-1 text-sm text-gray-600">
+              <div className="flex items-center space-x-2">
+                <Calendar className="w-4 h-4" />
+                <span>{format(new Date(visit.scheduled_date), 'PPP')}</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Clock className="w-4 h-4" />
+                <span>{format(new Date(visit.scheduled_date), 'p')}</span>
+                {visit.duration_minutes && (
+                  <span className="text-gray-400">({visit.duration_minutes} min)</span>
+                )}
+              </div>
+              <div className="flex items-center space-x-2">
+                <User className="w-4 h-4" />
+                <span>{visit.staff_name}</span>
+              </div>
+            </div>
+            
+            {visit.notes && (
+              <p className="text-sm text-gray-600 mt-2 line-clamp-2">{visit.notes}</p>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {visits?.length === 0 && (
+        <div className="text-center py-8 text-gray-500">
+          No visits found matching your criteria.
+        </div>
+      )}
+
+      <ScheduleVisitDialog 
+        open={showScheduleDialog} 
+        onOpenChange={setShowScheduleDialog} 
+      />
+
+      <EditVisitDialog
+        open={showEditDialog}
+        onOpenChange={setShowEditDialog}
+        visitId={selectedVisitId}
+      />
     </div>
   );
 };

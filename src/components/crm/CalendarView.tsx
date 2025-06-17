@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Calendar, momentLocalizer, View } from 'react-big-calendar';
 import moment from 'moment';
@@ -8,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus } from "lucide-react";
+import ScheduleVisitDialog from "./ScheduleVisitDialog";
+import EditVisitDialog from "./EditVisitDialog";
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 
 const localizer = momentLocalizer(moment);
@@ -18,6 +19,9 @@ const CalendarView = () => {
   const [selectedType, setSelectedType] = useState<VisitType | 'all'>('all');
   const [selectedStaff, setSelectedStaff] = useState<string>('all');
   const [view, setView] = useState<View>('month');
+  const [showScheduleDialog, setShowScheduleDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [selectedVisitId, setSelectedVisitId] = useState<string | null>(null);
 
   const { data: visits, isLoading } = useQuery({
     queryKey: ['visits', selectedType, selectedStaff],
@@ -53,6 +57,15 @@ const CalendarView = () => {
       return uniqueStaff;
     }
   });
+
+  const handleEventClick = (event: any) => {
+    setSelectedVisitId(event.id);
+    setShowEditDialog(true);
+  };
+
+  const handleSelectEvent = (event: any) => {
+    handleEventClick(event);
+  };
 
   const getTypeColor = (type: string) => {
     switch (type) {
@@ -123,7 +136,7 @@ const CalendarView = () => {
             </SelectContent>
           </Select>
         </div>
-        <Button>
+        <Button onClick={() => setShowScheduleDialog(true)}>
           <Plus className="w-4 h-4 mr-2" />
           Schedule Visit
         </Button>
@@ -142,8 +155,20 @@ const CalendarView = () => {
           views={['month', 'week', 'day', 'agenda']}
           popup={true}
           showMultiDayTimes={true}
+          onSelectEvent={handleSelectEvent}
         />
       </div>
+
+      <ScheduleVisitDialog 
+        open={showScheduleDialog} 
+        onOpenChange={setShowScheduleDialog} 
+      />
+
+      <EditVisitDialog
+        open={showEditDialog}
+        onOpenChange={setShowEditDialog}
+        visitId={selectedVisitId}
+      />
     </div>
   );
 };
