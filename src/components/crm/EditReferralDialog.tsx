@@ -355,7 +355,7 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
       'insurance_verification', 'medical_records_received'
     ];
 
-    // Define fields for the 'patients' table
+    // Define fields for the 'patients' table (removed referral_contact_person)
     const patientFields = [
       'first_name', 'last_name', 'date_of_birth', 'ssn', 'primary_insurance',
       'secondary_insurance', 'medicare_number', 'medicaid_number', 'phone', 'address',
@@ -364,7 +364,7 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
       'funeral_arrangements', 'msw_notes', 'diagnosis', 'caregiver_name',
       'caregiver_contact', 'spiritual_preferences', 'height', 'weight', 'dme_needs',
       'transport_needs', 'special_medical_needs', 'physician', 'attending_physician',
-      'attending_physician_contact', 'pcp_contact', 'upcoming_appointments', 'prior_hospice_info', 'next_steps', 'notes', 'insurance', 'referral_contact_person'
+      'attending_physician_contact', 'pcp_contact', 'upcoming_appointments', 'prior_hospice_info', 'next_steps', 'notes', 'insurance'
     ];
 
     for (const [key, value] of formData.entries()) {
