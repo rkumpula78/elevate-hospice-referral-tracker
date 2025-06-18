@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Phone, Mail, Calendar, User, ArrowUpDown, ArrowUp, ArrowDown, Edit, AlertCircle, Clock, CheckCircle, Settings } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Plus, Phone, Mail, Calendar, User, ArrowUpDown, ArrowUp, ArrowDown, Edit, AlertCircle, Clock, CheckCircle, Settings, Check, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import AddReferralDialog from './AddReferralDialog';
@@ -31,6 +32,8 @@ const ReferralsList = () => {
   const [editingReferralId, setEditingReferralId] = useState<string>('');
   const [sortField, setSortField] = useState<SortField>('referral_date');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  const [editingMarketer, setEditingMarketer] = useState<string | null>(null);
+  const [tempMarketerValue, setTempMarketerValue] = useState<string>('');
 
   const { data: referrals, isLoading } = useQuery({
     queryKey: ['referrals', selectedStatus, selectedPriority, selectedMarketer, sortField, sortDirection],
@@ -168,9 +171,13 @@ const ReferralsList = () => {
       queryClient.invalidateQueries({ queryKey: ['referrals'] });
       queryClient.invalidateQueries({ queryKey: ['marketers'] });
       toast({ title: "Marketer updated successfully" });
+      setEditingMarketer(null);
+      setTempMarketerValue('');
     },
     onError: () => {
       toast({ title: "Error updating marketer", variant: "destructive" });
+      setEditingMarketer(null);
+      setTempMarketerValue('');
     }
   });
 
@@ -243,6 +250,20 @@ const ReferralsList = () => {
 
   const hasActiveFilters = selectedStatus !== 'all' || selectedPriority !== 'all' || selectedMarketer !== 'all';
   const hasResults = referrals && referrals.length > 0;
+
+  const handleMarketerEdit = (referralId: string, currentMarketer: string | null) => {
+    setEditingMarketer(referralId);
+    setTempMarketerValue(currentMarketer || '');
+  };
+
+  const handleMarketerSave = (referralId: string) => {
+    updateMarketerMutation.mutate({ id: referralId, marketer: tempMarketerValue || 'none' });
+  };
+
+  const handleMarketerCancel = () => {
+    setEditingMarketer(null);
+    setTempMarketerValue('');
+  };
 
   if (isLoading) {
     return (
@@ -392,30 +413,53 @@ const ReferralsList = () => {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Select
-                      value={referral.assigned_marketer || 'none'}
-                      onValueChange={(value: string) => 
-                        updateMarketerMutation.mutate({ id: referral.id, marketer: value })
-                      }
-                      disabled={updateMarketerMutation.isPending}
-                    >
-                      <SelectTrigger className="w-40">
+                    {editingMarketer === referral.id ? (
+                      <div className="flex items-center gap-2">
+                        <Input
+                          value={tempMarketerValue}
+                          onChange={(e) => setTempMarketerValue(e.target.value)}
+                          placeholder="Enter marketer name"
+                          className="w-40"
+                          onKeyPress={(e) => {
+                            if (e.key === 'Enter') {
+                              handleMarketerSave(referral.id);
+                            } else if (e.key === 'Escape') {
+                              handleMarketerCancel();
+                            }
+                          }}
+                          autoFocus
+                        />
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleMarketerSave(referral.id)}
+                          disabled={updateMarketerMutation.isPending}
+                        >
+                          <Check className="w-3 h-3" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={handleMarketerCancel}
+                        >
+                          <X className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <div
+                        className="flex items-center cursor-pointer hover:bg-gray-50 p-1 rounded"
+                        onClick={() => handleMarketerEdit(referral.id, referral.assigned_marketer)}
+                      >
                         {referral.assigned_marketer ? (
-                            <div className="flex items-center">
-                              <User className="w-3 h-3 mr-1" />
-                              {referral.assigned_marketer}
-                            </div>
-                          ) : (
-                            <span className="text-muted-foreground">Unassigned</span>
-                          )}
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">Unassigned</SelectItem>
-                        {marketers?.map((marketer) => (
-                          <SelectItem key={marketer} value={marketer}>{marketer}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                          <div className="flex items-center">
+                            <User className="w-3 h-3 mr-1" />
+                            {referral.assigned_marketer}
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground">Click to assign</span>
+                        )}
+                      </div>
+                    )}
                   </TableCell>
                   <TableCell className="max-w-[200px] truncate">{referral.diagnosis}</TableCell>
                   <TableCell>

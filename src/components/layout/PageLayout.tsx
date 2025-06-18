@@ -2,6 +2,7 @@
 import React from 'react';
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import GlobalSearchBar from "@/components/search/GlobalSearchBar";
+import { useAuth } from "@/hooks/useAuth";
 
 interface PageLayoutProps {
   title: string;
@@ -10,6 +11,8 @@ interface PageLayoutProps {
 }
 
 const PageLayout = ({ title, subtitle, children }: PageLayoutProps) => {
+  const { displayName } = useAuth();
+
   return (
     <SidebarInset className="flex-1">
       {/* Header */}
@@ -20,6 +23,9 @@ const PageLayout = ({ title, subtitle, children }: PageLayoutProps) => {
           <div className="flex-1">
             <h1 className="text-xl font-semibold text-gray-900">{title}</h1>
             {subtitle && <p className="text-sm text-gray-600">{subtitle}</p>}
+            {!subtitle && title.toLowerCase().includes('dashboard') && (
+              <p className="text-sm text-gray-600">Welcome back, {displayName}</p>
+            )}
           </div>
           
           <div className="flex-1 max-w-2xl">
