@@ -35,7 +35,7 @@ interface Comment {
   author: string;
 }
 
-type ReferralStatus = 'pending' | 'contacted' | 'scheduled' | 'admitted' | 'declined' | 'lost' | 'admitted_our_hospice' | 'admitted_other_hospice' | 'lost_death' | 'lost_move' | 'lost_other_hospice';
+type ReferralStatus = 'pending' | 'contacted' | 'scheduled' | 'admitted' | 'declined' | 'lost' | 'lost_death' | 'lost_move' | 'lost_other_hospice';
 
 const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDialogProps) => {
   const { toast } = useToast();
@@ -583,8 +583,6 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
                       <SelectItem value="contacted">Contacted</SelectItem>
                       <SelectItem value="scheduled">Scheduled</SelectItem>
                       <SelectItem value="admitted">Admitted</SelectItem>
-                      <SelectItem value="admitted_our_hospice">Admitted Our Hospice</SelectItem>
-                      <SelectItem value="admitted_other_hospice">Admitted Other Hospice</SelectItem>
                       <SelectItem value="declined">Declined</SelectItem>
                       <SelectItem value="lost">Lost</SelectItem>
                       <SelectItem value="lost_death">Lost - Death</SelectItem>

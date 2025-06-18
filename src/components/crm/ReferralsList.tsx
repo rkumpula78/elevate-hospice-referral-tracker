@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,7 +15,7 @@ import { sendAdmissionNotification, formatEmailData } from '@/utils/emailNotific
 import { TableSkeleton } from '@/components/ui/table-skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
 
-type ReferralStatus = 'pending' | 'contacted' | 'scheduled' | 'admitted' | 'declined' | 'lost' | 'admitted_our_hospice' | 'admitted_other_hospice' | 'lost_death' | 'lost_move' | 'lost_other_hospice';
+type ReferralStatus = 'pending' | 'contacted' | 'scheduled' | 'admitted' | 'declined' | 'lost' | 'lost_death' | 'lost_move' | 'lost_other_hospice';
 type SortField = 'patient_name' | 'organizations.name' | 'assigned_marketer' | 'diagnosis' | 'priority' | 'status' | 'referral_date';
 type SortDirection = 'asc' | 'desc';
 
@@ -104,8 +103,8 @@ const ReferralsList = () => {
         .eq('id', id);
       if (error) throw error;
 
-      // If status is admitted or admitted_our_hospice, send email notification
-      if (status === 'admitted' || status === 'admitted_our_hospice') {
+      // If status is admitted, send email notification
+      if (status === 'admitted') {
         // Fetch referral and patient data for email
         const { data: referralData } = await supabase
           .from('referrals')
@@ -195,8 +194,6 @@ const ReferralsList = () => {
       case 'contacted': return 'bg-blue-100 text-blue-800';
       case 'scheduled': return 'bg-purple-100 text-purple-800';
       case 'admitted': return 'bg-green-100 text-green-800';
-      case 'admitted_our_hospice': return 'bg-green-100 text-green-800';
-      case 'admitted_other_hospice': return 'bg-orange-100 text-orange-800';
       case 'declined': return 'bg-red-100 text-red-800';
       case 'lost': return 'bg-gray-100 text-gray-800';
       case 'lost_death': return 'bg-gray-100 text-gray-800';
@@ -208,8 +205,6 @@ const ReferralsList = () => {
 
   const getStatusLabel = (status: string) => {
     switch (status) {
-      case 'admitted_our_hospice': return 'Admitted Our Hospice';
-      case 'admitted_other_hospice': return 'Admitted Other Hospice';
       case 'lost_death': return 'Lost - Death';
       case 'lost_move': return 'Lost - Move';
       case 'lost_other_hospice': return 'Lost - Other Hospice';
@@ -280,8 +275,6 @@ const ReferralsList = () => {
               <SelectItem value="contacted">Contacted</SelectItem>
               <SelectItem value="scheduled">Scheduled</SelectItem>
               <SelectItem value="admitted">Admitted</SelectItem>
-              <SelectItem value="admitted_our_hospice">Admitted Our Hospice</SelectItem>
-              <SelectItem value="admitted_other_hospice">Admitted Other Hospice</SelectItem>
               <SelectItem value="declined">Declined</SelectItem>
               <SelectItem value="lost">Lost</SelectItem>
               <SelectItem value="lost_death">Lost - Death</SelectItem>
@@ -464,8 +457,6 @@ const ReferralsList = () => {
                         <SelectItem value="contacted">Contacted</SelectItem>
                         <SelectItem value="scheduled">Scheduled</SelectItem>
                         <SelectItem value="admitted">Admitted</SelectItem>
-                        <SelectItem value="admitted_our_hospice">Admitted Our Hospice</SelectItem>
-                        <SelectItem value="admitted_other_hospice">Admitted Other Hospice</SelectItem>
                         <SelectItem value="declined">Declined</SelectItem>
                         <SelectItem value="lost">Lost</SelectItem>
                         <SelectItem value="lost_death">Lost - Death</SelectItem>
