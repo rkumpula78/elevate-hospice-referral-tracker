@@ -355,19 +355,46 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
       'insurance_verification', 'medical_records_received'
     ];
 
-    // Define fields for the 'patients' table (removed referral_contact_person)
+    // Define fields for the 'patients' table - comprehensive list based on schema
     const patientFields = [
-      'first_name', 'last_name', 'date_of_birth', 'ssn', 'primary_insurance',
-      'secondary_insurance', 'medicare_number', 'medicaid_number', 'phone', 'address',
+      // Basic info
+      'first_name', 'last_name', 'date_of_birth', 'ssn', 'phone', 'address',
+      
+      // Insurance info
+      'primary_insurance', 'secondary_insurance', 'medicare_number', 'medicaid_number',
+      
+      // Responsible party info
       'responsible_party_name', 'responsible_party_contact', 'responsible_party_relationship',
-      'responsible_party_email', 'emergency_contact', 'emergency_phone', 'advanced_directive', 'dnr_status',
-      'funeral_arrangements', 'msw_notes', 'diagnosis', 'caregiver_name',
-      'caregiver_contact', 'spiritual_preferences', 'height', 'weight', 'dme_needs',
-      'transport_needs', 'special_medical_needs', 'physician', 'attending_physician',
-      'attending_physician_contact', 'pcp_contact', 'upcoming_appointments', 'prior_hospice_info', 'next_steps', 'notes', 'insurance'
+      'responsible_party_email', 'emergency_contact', 'emergency_phone',
+      
+      // Legal/Medical directives
+      'advanced_directive', 'dnr_status', 'funeral_arrangements',
+      
+      // Medical history and care
+      'diagnosis', 'height', 'weight', 'physician', 'attending_physician',
+      'attending_physician_contact', 'pcp_contact', 'msw_notes',
+      
+      // Care team and preferences
+      'caregiver_name', 'caregiver_contact', 'spiritual_preferences',
+      
+      // Equipment and transport
+      'dme_needs', 'transport_needs', 'special_medical_needs',
+      
+      // Appointments and next steps
+      'upcoming_appointments', 'next_steps', 'notes',
+      
+      // Prior hospice info
+      'prior_hospice_info',
+      
+      // Insurance (this might be duplicate but keeping for safety)
+      'insurance'
     ];
 
+    console.log('Processing form data...');
+    
     for (const [key, value] of formData.entries()) {
+      console.log(`Processing field: ${key} = ${value}`);
+      
       if (referralFields.includes(key)) {
         if (key === 'organization_id' && value === 'none') {
           referralUpdateData[key] = null;
@@ -387,8 +414,7 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
           patientUpdateData[key] = value ? parseInt(value as string) : null;
         } else if (key === 'advanced_directive' || key === 'dnr_status') {
           patientUpdateData[key] = value === 'on';
-        }
-        else {
+        } else {
           patientUpdateData[key] = value;
         }
       }
@@ -396,6 +422,9 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
 
     // Add comments to referral notes
     referralUpdateData.notes = JSON.stringify(comments);
+
+    console.log('Referral update data:', referralUpdateData);
+    console.log('Patient update data:', patientUpdateData);
 
     try {
       // Execute referral update first
