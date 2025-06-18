@@ -334,12 +334,17 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
     return null;
   }
 
+  // Use safe property access with fallbacks for the title
+  const displayName = (referralData as any).first_name && (referralData as any).last_name 
+    ? `${(referralData as any).first_name} ${(referralData as any).last_name}` 
+    : referralData?.patient_name || 'N/A';
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold">
-            Edit Patient/Referral: {referralData?.patient_name || referralData?.first_name + ' ' + referralData?.last_name || 'N/A'}
+            Edit Patient/Referral: {displayName}
           </DialogTitle>
         </DialogHeader>
 

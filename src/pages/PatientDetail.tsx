@@ -59,8 +59,9 @@ const PatientDetail = () => {
     }
   };
 
-  const displayName = patient.first_name && patient.last_name 
-    ? `${patient.first_name} ${patient.last_name}` 
+  // Use proper fallbacks for the name display
+  const displayName = (patient as any).first_name && (patient as any).last_name 
+    ? `${(patient as any).first_name} ${(patient as any).last_name}` 
     : patient.patient_name || 'Unknown Patient';
 
   return (
@@ -85,8 +86,8 @@ const PatientDetail = () => {
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
                 Patient Information
-                <Badge className={getStatusColor(patient.status || patient.patient_status)}>
-                  {patient.status || patient.patient_status || 'pending'}
+                <Badge className={getStatusColor(patient.status || (patient as any).patient_status)}>
+                  {patient.status || (patient as any).patient_status || 'pending'}
                 </Badge>
               </CardTitle>
             </CardHeader>
@@ -95,22 +96,22 @@ const PatientDetail = () => {
                 <User className="w-4 h-4 text-gray-500" />
                 <span className="font-medium">{displayName}</span>
               </div>
-              {patient.date_of_birth && (
+              {(patient as any).date_of_birth && (
                 <div className="flex items-center space-x-2">
                   <Calendar className="w-4 h-4 text-gray-500" />
-                  <span>DOB: {new Date(patient.date_of_birth).toLocaleDateString()}</span>
+                  <span>DOB: {new Date((patient as any).date_of_birth).toLocaleDateString()}</span>
                 </div>
               )}
-              {(patient.phone || patient.patient_phone) && (
+              {((patient as any).phone || patient.patient_phone) && (
                 <div className="flex items-center space-x-2">
                   <Phone className="w-4 h-4 text-gray-500" />
-                  <span>{patient.phone || patient.patient_phone}</span>
+                  <span>{(patient as any).phone || patient.patient_phone}</span>
                 </div>
               )}
-              {patient.address && (
+              {(patient as any).address && (
                 <div>
                   <p className="text-sm text-gray-600">Address</p>
-                  <p className="font-medium">{patient.address}</p>
+                  <p className="font-medium">{(patient as any).address}</p>
                 </div>
               )}
             </CardContent>
@@ -130,16 +131,16 @@ const PatientDetail = () => {
                   <p className="font-medium">{patient.diagnosis}</p>
                 </div>
               )}
-              {(patient.physician || patient.referring_physician) && (
+              {((patient as any).physician || patient.referring_physician) && (
                 <div>
                   <p className="text-sm text-gray-600">Physician</p>
-                  <p className="font-medium">{patient.physician || patient.referring_physician}</p>
+                  <p className="font-medium">{(patient as any).physician || patient.referring_physician}</p>
                 </div>
               )}
-              {(patient.insurance || patient.primary_insurance) && (
+              {(patient.insurance || (patient as any).primary_insurance) && (
                 <div>
                   <p className="text-sm text-gray-600">Insurance</p>
-                  <p className="font-medium">{patient.insurance || patient.primary_insurance}</p>
+                  <p className="font-medium">{patient.insurance || (patient as any).primary_insurance}</p>
                 </div>
               )}
               {patient.admission_date && (
@@ -153,24 +154,24 @@ const PatientDetail = () => {
             </CardContent>
           </Card>
 
-          {patient.emergency_contact && (
+          {(patient as any).emergency_contact && (
             <Card>
               <CardHeader>
                 <CardTitle>Emergency Contact</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                <p className="font-medium">{patient.emergency_contact}</p>
-                {patient.emergency_phone && (
+                <p className="font-medium">{(patient as any).emergency_contact}</p>
+                {(patient as any).emergency_phone && (
                   <div className="flex items-center space-x-2">
                     <Phone className="w-4 h-4 text-gray-500" />
-                    <span>{patient.emergency_phone}</span>
+                    <span>{(patient as any).emergency_phone}</span>
                   </div>
                 )}
               </CardContent>
             </Card>
           )}
 
-          {(patient.notes || patient.next_steps) && (
+          {(patient.notes || (patient as any).next_steps) && (
             <Card>
               <CardHeader>
                 <CardTitle>Notes & Next Steps</CardTitle>
@@ -182,10 +183,10 @@ const PatientDetail = () => {
                     <p>{patient.notes}</p>
                   </div>
                 )}
-                {patient.next_steps && (
+                {(patient as any).next_steps && (
                   <div>
                     <p className="text-sm text-gray-600">Next Steps</p>
-                    <p>{patient.next_steps}</p>
+                    <p>{(patient as any).next_steps}</p>
                   </div>
                 )}
               </CardContent>
