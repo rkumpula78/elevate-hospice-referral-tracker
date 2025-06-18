@@ -373,6 +373,8 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
           referralUpdateData[key] = null;
         } else if (key === 'insurance_verification' || key === 'medical_records_received') {
           referralUpdateData[key] = value === 'on';
+        } else if (key === 'assigned_marketer' && value === 'none') {
+          referralUpdateData[key] = null;
         } else {
           referralUpdateData[key] = value;
         }
@@ -494,12 +496,12 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
                 </div>
                 <div>
                   <Label htmlFor="assigned_marketer">Assigned Marketer</Label>
-                  <Select name="assigned_marketer" defaultValue={referralData?.assigned_marketer || ''}>
+                  <Select name="assigned_marketer" defaultValue={referralData?.assigned_marketer || 'none'}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select marketer" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Unassigned</SelectItem>
+                      <SelectItem value="none">Unassigned</SelectItem>
                       {marketers?.map((marketer: string) => (
                         <SelectItem key={marketer} value={marketer}>{marketer}</SelectItem>
                       ))}
