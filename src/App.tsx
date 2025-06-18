@@ -12,6 +12,7 @@ import Auth from "./pages/Auth";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import ReferralsPage from "./pages/ReferralsPage";
+import PatientsPage from "./pages/PatientsPage";
 import SchedulePage from "./pages/SchedulePage";
 import CompliancePage from "./pages/CompliancePage";
 import SettingsPage from "./pages/SettingsPage";
@@ -43,6 +44,7 @@ const App = () => (
                         <Route index element={<Navigate to="/dashboard" replace />} />
                         <Route path="dashboard" element={<Dashboard />} />
                         <Route path="referrals" element={<ReferralsPage />} />
+                        <Route path="patients" element={<PatientsPage />} />
                         <Route path="organizations" element={<OrganizationsPage />} />
                         <Route path="schedule" element={<SchedulePage />} />
                         <Route path="map" element={<MapPage />} />
