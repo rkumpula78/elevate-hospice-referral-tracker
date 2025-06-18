@@ -122,7 +122,7 @@ const PatientOverviewSection = ({ patient, isOpen, onToggle }: PatientOverviewSe
             <Input
               id="phone"
               name="phone"
-              defaultValue={patient?.phone || ''}
+              defaultValue={patient?.phone || patient?.patient_phone || ''}
               placeholder="XXX-XXX-XXXX"
             />
           </div>

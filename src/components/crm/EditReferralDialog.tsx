@@ -53,7 +53,7 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
     documents: false
   });
 
-  // Fetch referral data
+  // Fetch referral data (now contains all patient info)
   const { data: referralData, isLoading } = useQuery({
     queryKey: ['referral', referralId],
     queryFn: async () => {
@@ -62,22 +62,6 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
         .select('*, organizations(name)')
         .eq('id', referralId)
         .single();
-      
-      if (error) throw error;
-      return data;
-    },
-    enabled: open && !!referralId
-  });
-
-  // Fetch patient data separately based on referral_id
-  const { data: patientData } = useQuery({
-    queryKey: ['patient-by-referral', referralId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('patients')
-        .select('*')
-        .eq('referral_id', referralId)
-        .maybeSingle();
       
       if (error) throw error;
       return data;
@@ -108,30 +92,28 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
       if (stored) {
         return JSON.parse(stored);
       }
-      // Default marketers if none stored
       return ['John Smith', 'Sarah Johnson', 'Mike Davis', 'Lisa Wilson', 'David Brown'];
     },
     enabled: open
   });
 
-  // Fetch patient documents (relevant if patient data is available)
+  // Fetch documents linked to this referral
   const { data: documents } = useQuery({
-    queryKey: ['patient-documents', patientData?.id],
+    queryKey: ['referral-documents', referralId],
     queryFn: async () => {
-      if (!patientData?.id) return [];
       const { data, error } = await supabase
         .from('patient_documents')
         .select('*')
-        .eq('patient_id', patientData.id)
+        .eq('patient_id', referralId) // Use referral ID as patient ID
         .order('created_at', { ascending: false });
       
       if (error) throw error;
       return data;
     },
-    enabled: open && !!patientData?.id
+    enabled: open && !!referralId
   });
 
-  // Mutation for updating referral data
+  // Mutation for updating referral data (now includes all patient fields)
   const updateReferralMutation = useMutation({
     mutationFn: async (data: any) => {
       const { error } = await supabase
@@ -144,60 +126,19 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['referrals'] });
       queryClient.invalidateQueries({ queryKey: ['referral', referralId] });
-      toast({ title: 'Referral updated successfully' });
+      toast({ title: 'Information updated successfully' });
     },
     onError: (error) => {
-      toast({ title: 'Error updating referral', description: error.message, variant: 'destructive' });
+      toast({ title: 'Error updating information', description: error.message, variant: 'destructive' });
     }
   });
 
-  // Mutation for updating patient data
-  const updatePatientMutation = useMutation({
-    mutationFn: async (data: any) => {
-      if (!patientData?.id) {
-        // If no patient is linked, CREATE a new patient
-        const { data: newPatient, error: insertError } = await supabase
-          .from('patients')
-          .insert([{ ...data, referral_id: referralId }])
-          .select()
-          .single();
-        if (insertError) throw insertError;
-        
-        return newPatient; // Return the new patient data
-      } else {
-        // If patient is linked, UPDATE existing patient
-        const { data: updatedPatient, error: updateError } = await supabase
-          .from('patients')
-          .update(data)
-          .eq('id', patientData.id)
-          .select()
-          .single();
-        if (updateError) throw updateError;
-        return updatedPatient; // Return the updated patient data
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['patients'] });
-      queryClient.invalidateQueries({ queryKey: ['patient-by-referral', referralId] });
-      toast({ title: 'Patient details saved successfully' });
-    },
-    onError: (error) => {
-      toast({ title: 'Error saving patient details', description: error.message, variant: 'destructive' });
-    }
-  });
-
-  // Upload document mutation (for patient documents)
+  // Upload document mutation
   const uploadDocumentMutation = useMutation({
     mutationFn: async ({ file, documentType }: { file: File; documentType: string }) => {
-      // Must have a patient ID to upload documents
-      if (!patientData?.id) {
-        throw new Error("Cannot upload document: Patient record must be created first.");
-      }
-      
       setUploading(true);
-      const patientIdForDoc = patientData.id;
       const fileExt = file.name.split('.').pop();
-      const fileName = `${patientIdForDoc}/${Date.now()}-${file.name}`;
+      const fileName = `${referralId}/${Date.now()}-${file.name}`;
       
       // Upload file to storage
       const { data: uploadData, error: uploadError } = await supabase.storage
@@ -210,7 +151,7 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
       const { data: docData, error: dbError } = await supabase
         .from('patient_documents')
         .insert({
-          patient_id: patientIdForDoc,
+          patient_id: referralId, // Use referral ID as patient ID
           file_name: file.name,
           file_path: fileName,
           file_size: file.size,
@@ -224,7 +165,7 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
       return docData;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['patient-documents', patientData?.id] });
+      queryClient.invalidateQueries({ queryKey: ['referral-documents', referralId] });
       toast({ title: 'Document uploaded successfully' });
       setUploading(false);
     },
@@ -234,7 +175,7 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
     }
   });
 
-  // Delete document mutation (for patient documents)
+  // Delete document mutation
   const deleteDocumentMutation = useMutation({
     mutationFn: async (document: any) => {
       // Delete from storage
@@ -253,7 +194,7 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
       if (dbError) throw dbError;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['patient-documents', patientData?.id] });
+      queryClient.invalidateQueries({ queryKey: ['referral-documents', referralId] });
       toast({ title: 'Document deleted successfully' });
     },
     onError: (error) => {
@@ -269,7 +210,6 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
         if (Array.isArray(parsedComments)) {
           setComments(parsedComments);
         } else {
-          // Legacy note format - convert to comment
           setComments([{
             id: '1',
             text: referralData.notes,
@@ -278,7 +218,6 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
           }]);
         }
       } catch {
-        // If not JSON, treat as legacy note
         if (referralData.notes.trim()) {
           setComments([{
             id: '1',
@@ -298,7 +237,7 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
       id: Date.now().toString(),
       text: newComment.trim(),
       timestamp: new Date().toISOString(),
-      author: 'Current User' // In a real app, get from auth context
+      author: 'Current User'
     };
     
     setComments(prev => [...prev, comment]);
@@ -344,98 +283,35 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     
-    const referralUpdateData: { [key: string]: any } = {};
-    const patientUpdateData: { [key: string]: any } = {};
+    const updateData: { [key: string]: any } = {};
 
-    // Define fields for the 'referrals' table
-    const referralFields = [
-      'patient_name', 'patient_phone', 'diagnosis', 'insurance', 'referring_physician',
-      'assigned_marketer', 'priority', 'status', 'organization_id',
-      'referral_contact_person', 'referral_contact_phone', 'referral_contact_email',
-      'insurance_verification', 'medical_records_received'
-    ];
-
-    // Define fields for the 'patients' table - comprehensive list based on schema
-    const patientFields = [
-      // Basic info
-      'first_name', 'last_name', 'date_of_birth', 'ssn', 'phone', 'address',
-      
-      // Insurance info
-      'primary_insurance', 'secondary_insurance', 'medicare_number', 'medicaid_number',
-      
-      // Responsible party info
-      'responsible_party_name', 'responsible_party_contact', 'responsible_party_relationship',
-      'responsible_party_email', 'emergency_contact', 'emergency_phone',
-      
-      // Legal/Medical directives
-      'advanced_directive', 'dnr_status', 'funeral_arrangements',
-      
-      // Medical history and care
-      'diagnosis', 'height', 'weight', 'physician', 'attending_physician',
-      'attending_physician_contact', 'pcp_contact', 'msw_notes',
-      
-      // Care team and preferences
-      'caregiver_name', 'caregiver_contact', 'spiritual_preferences',
-      
-      // Equipment and transport
-      'dme_needs', 'transport_needs', 'special_medical_needs',
-      
-      // Appointments and next steps
-      'upcoming_appointments', 'next_steps', 'notes',
-      
-      // Prior hospice info
-      'prior_hospice_info',
-      
-      // Insurance (this might be duplicate but keeping for safety)
-      'insurance'
-    ];
-
-    console.log('Processing form data...');
-    
+    // Process all form fields and put them in the referrals table
     for (const [key, value] of formData.entries()) {
-      console.log(`Processing field: ${key} = ${value}`);
-      
-      if (referralFields.includes(key)) {
-        if (key === 'organization_id' && value === 'none') {
-          referralUpdateData[key] = null;
-        } else if (key === 'insurance_verification' || key === 'medical_records_received') {
-          referralUpdateData[key] = value === 'on';
-        } else if (key === 'assigned_marketer' && value === 'none') {
-          referralUpdateData[key] = null;
-        } else {
-          referralUpdateData[key] = value;
-        }
-      }
-
-      if (patientFields.includes(key)) {
-        if (key === 'date_of_birth' && value === '') {
-          patientUpdateData[key] = null;
-        } else if (key === 'height' || key === 'weight') {
-          patientUpdateData[key] = value ? parseInt(value as string) : null;
-        } else if (key === 'advanced_directive' || key === 'dnr_status') {
-          patientUpdateData[key] = value === 'on';
-        } else {
-          patientUpdateData[key] = value;
-        }
+      if (key === 'organization_id' && value === 'none') {
+        updateData[key] = null;
+      } else if (key === 'insurance_verification' || key === 'medical_records_received') {
+        updateData[key] = value === 'on';
+      } else if (key === 'assigned_marketer' && value === 'none') {
+        updateData[key] = null;
+      } else if (key === 'date_of_birth' && value === '') {
+        updateData[key] = null;
+      } else if (key === 'height' || key === 'weight') {
+        updateData[key] = value ? parseInt(value as string) : null;
+      } else if (key === 'advanced_directive' || key === 'dnr_status') {
+        updateData[key] = value === 'on';
+      } else {
+        updateData[key] = value;
       }
     }
 
-    // Add comments to referral notes
-    referralUpdateData.notes = JSON.stringify(comments);
+    // Add comments to notes
+    updateData.notes = JSON.stringify(comments);
 
-    console.log('Referral update data:', referralUpdateData);
-    console.log('Patient update data:', patientUpdateData);
+    console.log('Updating referral with all patient data:', updateData);
 
     try {
-      // Execute referral update first
-      await updateReferralMutation.mutateAsync(referralUpdateData);
-      
-      // Execute patient update/creation
-      await updatePatientMutation.mutateAsync(patientUpdateData);
-      
-      // Close dialog on success
+      await updateReferralMutation.mutateAsync(updateData);
       onOpenChange(false);
-
     } catch (error: any) {
       console.error('Submission error:', error);
       toast({ title: 'Error saving changes', description: error.message, variant: 'destructive' });
@@ -447,7 +323,7 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
           <div className="flex items-center justify-center p-8">
-            <div className="text-lg">Loading referral information...</div>
+            <div className="text-lg">Loading information...</div>
           </div>
         </DialogContent>
       </Dialog>
@@ -458,15 +334,12 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
     return null;
   }
 
-  // Provide an empty object if no patient data is linked, so sub-components don't crash
-  const currentPatientData = patientData || {};
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold">
-            Edit Referral: {referralData?.patient_name || 'N/A'}
+            Edit Patient/Referral: {referralData?.patient_name || referralData?.first_name + ' ' + referralData?.last_name || 'N/A'}
           </DialogTitle>
         </DialogHeader>
 
@@ -479,7 +352,7 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <TabsContent value="patient-info" className="space-y-4">
-              {/* Patient information fields - ensure defaults are properly set */}
+              {/* Basic patient information fields */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="patient_name">Patient Name *</Label>
@@ -539,52 +412,52 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
                 </div>
               </div>
 
-              {/* Always render patient sections, passing empty object if no patient linked */}
+              {/* Patient sections - now working with referral data directly */}
               <PatientOverviewSection 
-                patient={currentPatientData}
+                patient={referralData}
                 isOpen={openSections.overview}
                 onToggle={() => toggleSection('overview')}
               />
 
               <ResponsiblePartySection 
-                patient={currentPatientData}
+                patient={referralData}
                 isOpen={openSections.responsibleParty}
                 onToggle={() => toggleSection('responsibleParty')}
               />
 
               <LegalMedicalSection 
-                patient={currentPatientData}
+                patient={referralData}
                 isOpen={openSections.legalMedical}
                 onToggle={() => toggleSection('legalMedical')}
               />
 
               <MedicalHistorySection 
-                patient={currentPatientData}
+                patient={referralData}
                 isOpen={openSections.medicalHistory}
                 onToggle={() => toggleSection('medicalHistory')}
               />
 
               <AppointmentSection 
-                patient={currentPatientData}
+                patient={referralData}
                 isOpen={openSections.appointments}
                 onToggle={() => toggleSection('appointments')}
               />
 
               <NextStepsSection 
-                patient={currentPatientData}
+                patient={referralData}
                 isOpen={openSections.nextSteps}
                 onToggle={() => toggleSection('nextSteps')}
               />
 
               <DocumentsSection 
-                patient={currentPatientData}
+                patient={referralData}
                 documents={documents || []}
                 isOpen={openSections.documents}
                 onToggle={() => toggleSection('documents')}
                 uploading={uploading}
                 onFileUpload={handleFileUpload}
-                onDownloadFile={patientData?.id ? downloadFile : () => toast({ title: 'Patient record not saved yet', description: 'Save patient info before managing documents.', variant: 'destructive' })}
-                onDeleteDocument={patientData?.id ? (doc) => deleteDocumentMutation.mutate(doc) : () => toast({ title: 'Patient record not saved yet', description: 'Save patient info before managing documents.', variant: 'destructive' })}
+                onDownloadFile={downloadFile}
+                onDeleteDocument={(doc) => deleteDocumentMutation.mutate(doc)}
               />
             </TabsContent>
 
@@ -628,7 +501,6 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
               <div className="space-y-4">
                 <Label>Running Comments</Label>
                 
-                {/* Existing Comments */}
                 <div className="space-y-3 max-h-60 overflow-y-auto border rounded-lg p-3 bg-gray-50">
                   {comments.length === 0 ? (
                     <p className="text-sm text-gray-500 italic">No comments yet</p>
@@ -645,7 +517,6 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
                   )}
                 </div>
 
-                {/* Add New Comment */}
                 <div className="flex space-x-2">
                   <Textarea
                     value={newComment}
@@ -738,8 +609,8 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={updateReferralMutation.isPending || updatePatientMutation.isPending}>
-                {(updateReferralMutation.isPending || updatePatientMutation.isPending) ? 'Saving...' : 'Save Changes'}
+              <Button type="submit" disabled={updateReferralMutation.isPending}>
+                {updateReferralMutation.isPending ? 'Saving...' : 'Save Changes'}
               </Button>
             </div>
           </form>

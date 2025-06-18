@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import PatientsList from "@/components/crm/PatientsList";
+import ReferralsList from "@/components/crm/ReferralsList";
 import PageLayout from "@/components/layout/PageLayout";
 
 const PatientsPage = () => {
@@ -10,10 +10,10 @@ const PatientsPage = () => {
       <Card>
         <CardHeader>
           <CardTitle>All Patients</CardTitle>
-          <CardDescription>View and manage patient information</CardDescription>
+          <CardDescription>View and manage patient information (sourced from referrals)</CardDescription>
         </CardHeader>
         <CardContent>
-          <PatientsList />
+          <ReferralsList />
         </CardContent>
       </Card>
     </PageLayout>

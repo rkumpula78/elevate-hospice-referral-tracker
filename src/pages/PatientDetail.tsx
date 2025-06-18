@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -6,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, User, Phone, Calendar, Heart, Edit } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import EditPatientDialog from '@/components/crm/EditPatientDialog';
+import EditReferralDialog from '@/components/crm/EditReferralDialog';
 
 const PatientDetail = () => {
   const { id } = useParams();
@@ -14,10 +15,10 @@ const PatientDetail = () => {
   const [showEditDialog, setShowEditDialog] = useState(false);
 
   const { data: patient, isLoading } = useQuery({
-    queryKey: ['patient', id],
+    queryKey: ['referral', id],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('patients')
+        .from('referrals')
         .select('*')
         .eq('id', id)
         .single();
@@ -50,21 +51,26 @@ const PatientDetail = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active': return 'bg-green-100 text-green-800';
-      case 'discharged': return 'bg-gray-100 text-gray-800';
-      case 'deceased': return 'bg-red-100 text-red-800';
+      case 'admitted': return 'bg-green-100 text-green-800';
+      case 'pending': return 'bg-yellow-100 text-yellow-800';
+      case 'contacted': return 'bg-blue-100 text-blue-800';
+      case 'declined': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
+
+  const displayName = patient.first_name && patient.last_name 
+    ? `${patient.first_name} ${patient.last_name}` 
+    : patient.patient_name || 'Unknown Patient';
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto p-6 space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <Button variant="outline" onClick={() => navigate('/dashboard')}>
+            <Button variant="outline" onClick={() => navigate('/patients')}>
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Dashboard
+              Back to Patients
             </Button>
             <h1 className="text-2xl font-bold">Patient Details</h1>
           </div>
@@ -79,15 +85,15 @@ const PatientDetail = () => {
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
                 Patient Information
-                <Badge className={getStatusColor(patient.status)}>
-                  {patient.status}
+                <Badge className={getStatusColor(patient.status || patient.patient_status)}>
+                  {patient.status || patient.patient_status || 'pending'}
                 </Badge>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center space-x-2">
                 <User className="w-4 h-4 text-gray-500" />
-                <span className="font-medium">{patient.first_name} {patient.last_name}</span>
+                <span className="font-medium">{displayName}</span>
               </div>
               {patient.date_of_birth && (
                 <div className="flex items-center space-x-2">
@@ -95,10 +101,10 @@ const PatientDetail = () => {
                   <span>DOB: {new Date(patient.date_of_birth).toLocaleDateString()}</span>
                 </div>
               )}
-              {patient.phone && (
+              {(patient.phone || patient.patient_phone) && (
                 <div className="flex items-center space-x-2">
                   <Phone className="w-4 h-4 text-gray-500" />
-                  <span>{patient.phone}</span>
+                  <span>{patient.phone || patient.patient_phone}</span>
                 </div>
               )}
               {patient.address && (
@@ -124,16 +130,16 @@ const PatientDetail = () => {
                   <p className="font-medium">{patient.diagnosis}</p>
                 </div>
               )}
-              {patient.physician && (
+              {(patient.physician || patient.referring_physician) && (
                 <div>
                   <p className="text-sm text-gray-600">Physician</p>
-                  <p className="font-medium">{patient.physician}</p>
+                  <p className="font-medium">{patient.physician || patient.referring_physician}</p>
                 </div>
               )}
-              {patient.insurance && (
+              {(patient.insurance || patient.primary_insurance) && (
                 <div>
                   <p className="text-sm text-gray-600">Insurance</p>
-                  <p className="font-medium">{patient.insurance}</p>
+                  <p className="font-medium">{patient.insurance || patient.primary_insurance}</p>
                 </div>
               )}
               {patient.admission_date && (
@@ -164,22 +170,33 @@ const PatientDetail = () => {
             </Card>
           )}
 
-          {patient.notes && (
+          {(patient.notes || patient.next_steps) && (
             <Card>
               <CardHeader>
-                <CardTitle>Notes</CardTitle>
+                <CardTitle>Notes & Next Steps</CardTitle>
               </CardHeader>
-              <CardContent>
-                <p>{patient.notes}</p>
+              <CardContent className="space-y-4">
+                {patient.notes && (
+                  <div>
+                    <p className="text-sm text-gray-600">Notes</p>
+                    <p>{patient.notes}</p>
+                  </div>
+                )}
+                {patient.next_steps && (
+                  <div>
+                    <p className="text-sm text-gray-600">Next Steps</p>
+                    <p>{patient.next_steps}</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           )}
         </div>
 
-        <EditPatientDialog
+        <EditReferralDialog
           open={showEditDialog}
           onOpenChange={setShowEditDialog}
-          patientId={id!}
+          referralId={id!}
         />
       </div>
     </div>
