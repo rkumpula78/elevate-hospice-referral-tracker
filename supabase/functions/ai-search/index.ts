@@ -69,42 +69,111 @@ serve(async (req) => {
         });
       }
 
-      // Gather relevant data based on the query for informational requests
+      // Gather comprehensive data based on the query for informational requests
       let contextData = '';
       let navigationAction = null;
 
-      // Check if query is about referrals
-      if (query.toLowerCase().includes('referral')) {
+      // Enhanced search for referrals - search ALL text fields
+      if (query.toLowerCase().includes('referral') || query.toLowerCase().includes('dnr') || query.toLowerCase().includes('patient')) {
         const { data: referrals, error } = await supabase
           .from('referrals')
-          .select('id, patient_name, status, referral_date, organizations(name)');
+          .select(`
+            id, patient_name, status, referral_date, diagnosis, notes, insurance,
+            patient_phone, assigned_marketer, priority, first_name, last_name,
+            date_of_birth, address, phone, emergency_contact, emergency_phone,
+            physician, primary_insurance, next_steps, patient_status,
+            organizations(name)
+          `);
         
         if (!error && referrals) {
+          // Filter referrals that match the search term in ANY field
+          const matchingReferrals = referrals.filter(ref => {
+            const searchableText = [
+              ref.patient_name, ref.diagnosis, ref.notes, ref.insurance,
+              ref.first_name, ref.last_name, ref.address, ref.physician,
+              ref.primary_insurance, ref.next_steps, ref.emergency_contact
+            ].join(' ').toLowerCase();
+            
+            return searchableText.includes(query.toLowerCase());
+          });
+
           const totalReferrals = referrals.length;
+          const matchingCount = matchingReferrals.length;
           const statusCounts = referrals.reduce((acc, ref) => {
             acc[ref.status] = (acc[ref.status] || 0) + 1;
             return acc;
           }, {});
           
-          contextData = `Current referral data: Total referrals: ${totalReferrals}. Status breakdown: ${JSON.stringify(statusCounts)}. Recent referrals include: ${referrals.slice(0, 5).map(r => `${r.patient_name} (${r.status})`).join(', ')}.`;
+          if (matchingCount > 0) {
+            contextData = `Found ${matchingCount} referral(s) matching "${query}": ${matchingReferrals.map(r => `${r.patient_name || `${r.first_name} ${r.last_name}`} (${r.status})`).join(', ')}. Total referrals in system: ${totalReferrals}. Status breakdown: ${JSON.stringify(statusCounts)}.`;
+          } else {
+            contextData = `No referrals found matching "${query}". Total referrals: ${totalReferrals}. Status breakdown: ${JSON.stringify(statusCounts)}.`;
+          }
           navigationAction = { type: 'navigate', path: '/referrals', label: 'View All Referrals' };
         }
       }
 
-      // Check if query is about patients
-      if (query.toLowerCase().includes('patient')) {
+      // Enhanced search for patients - search ALL text fields
+      if (query.toLowerCase().includes('patient') || query.toLowerCase().includes('dnr')) {
         const { data: patients, error } = await supabase
           .from('patients')
-          .select('id, first_name, last_name, status, diagnosis');
+          .select(`
+            id, first_name, last_name, status, diagnosis, notes, address, phone,
+            emergency_contact, emergency_phone, physician, primary_insurance,
+            next_steps, msw_notes, upcoming_appointments, advanced_directive,
+            dnr_status, prior_hospice_info, caregiver_name, spiritual_preferences,
+            dme_needs, special_medical_needs, attending_physician, funeral_arrangements
+          `);
         
         if (!error && patients) {
+          // Filter patients that match the search term in ANY field
+          const matchingPatients = patients.filter(patient => {
+            const searchableText = [
+              patient.first_name, patient.last_name, patient.diagnosis, patient.notes,
+              patient.address, patient.physician, patient.primary_insurance,
+              patient.next_steps, patient.msw_notes, patient.upcoming_appointments,
+              patient.prior_hospice_info, patient.caregiver_name, patient.spiritual_preferences,
+              patient.dme_needs, patient.special_medical_needs, patient.attending_physician,
+              patient.funeral_arrangements, patient.emergency_contact
+            ].join(' ').toLowerCase();
+            
+            // Special handling for DNR - check both text fields and boolean status
+            const isDnrQuery = query.toLowerCase().includes('dnr');
+            const hasDnrInText = searchableText.includes('dnr');
+            const hasDnrStatus = patient.dnr_status === true;
+            
+            if (isDnrQuery) {
+              return hasDnrInText || hasDnrStatus;
+            }
+            
+            return searchableText.includes(query.toLowerCase());
+          });
+
           const totalPatients = patients.length;
+          const matchingCount = matchingPatients.length;
           const statusCounts = patients.reduce((acc, patient) => {
             acc[patient.status] = (acc[patient.status] || 0) + 1;
             return acc;
           }, {});
           
-          contextData += ` Current patient data: Total patients: ${totalPatients}. Status breakdown: ${JSON.stringify(statusCounts)}.`;
+          if (matchingCount > 0) {
+            contextData += ` Found ${matchingCount} patient(s) matching "${query}": ${matchingPatients.map(p => `${p.first_name} ${p.last_name} (${p.status})`).join(', ')}. Total patients: ${totalPatients}. Status breakdown: ${JSON.stringify(statusCounts)}.`;
+            
+            // Special DNR information
+            if (query.toLowerCase().includes('dnr')) {
+              const dnrPatients = matchingPatients.filter(p => p.dnr_status || 
+                [p.notes, p.msw_notes, p.next_steps, p.special_medical_needs].some(field => 
+                  field && field.toLowerCase().includes('dnr')
+                )
+              );
+              if (dnrPatients.length > 0) {
+                contextData += ` DNR-related patients: ${dnrPatients.map(p => `${p.first_name} ${p.last_name}`).join(', ')}.`;
+              }
+            }
+          } else {
+            contextData += ` No patients found matching "${query}". Total patients: ${totalPatients}.`;
+          }
+          
           if (!navigationAction) {
             navigationAction = { type: 'navigate', path: '/patients', label: 'View All Patients' };
           }
@@ -115,7 +184,7 @@ serve(async (req) => {
       if (query.toLowerCase().includes('organization') || query.toLowerCase().includes('facility') || query.toLowerCase().includes('referral source')) {
         const { data: organizations, error } = await supabase
           .from('organizations')
-          .select('id, name, type, assigned_marketer')
+          .select('id, name, type, assigned_marketer, contact_person, contact_email, address, phone')
           .eq('is_active', true);
         
         if (!error && organizations) {
@@ -149,14 +218,24 @@ serve(async (req) => {
 
 IMPORTANT: Organizations in this system are the referral sources. When users ask about "referral sources" they are referring to organizations. Make sure to use organization data when answering questions about referral sources.
 
+MEDICAL TERMINOLOGY UNDERSTANDING:
+- DNR = Do Not Resuscitate - a medical order indicating no CPR should be performed
+- DNR information can be found in patient notes, medical records, or as a specific DNR status flag
+- When users ask about DNR, they want to know which patients have DNR orders or DNR-related information
+- Other common medical abbreviations: POA (Power of Attorney), AD (Advance Directives), etc.
+
+SEARCH CONTEXT DATA:
 ${contextData}
 
 When answering questions:
 1. Use the specific numbers and data provided in the context
-2. Be direct and factual
-3. Provide actionable insights when relevant
-4. If suggesting navigation, mention that the user can click the suggested action
-5. Remember that organizations ARE referral sources - use this terminology appropriately
+2. Be direct and factual - don't make up information not in the context
+3. If no matches are found, clearly state this and suggest alternative searches
+4. For medical queries like DNR, be specific about what was found and where
+5. Provide actionable insights when relevant
+6. If suggesting navigation, mention that the user can click the suggested action
+7. Remember that organizations ARE referral sources - use this terminology appropriately
+8. If the search didn't find what the user was looking for, suggest they try different search terms or check specific patient records manually
 
 Available navigation paths:
 - /referrals - for referral-related queries
@@ -207,34 +286,37 @@ Available navigation paths:
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     } else {
-      // Handle regular search
+      // Handle regular search with enhanced field coverage
       const searchResults = await Promise.all([
-        // Search referrals
+        // Enhanced search referrals - search ALL text fields
         supabase
           .from('referrals')
           .select(`
-            id,
-            patient_name,
-            status,
-            referral_date,
+            id, patient_name, status, referral_date, diagnosis, notes, insurance,
+            first_name, last_name, date_of_birth, address, phone, emergency_contact,
+            physician, primary_insurance, next_steps, assigned_marketer,
             organizations(name)
           `)
-          .or(`patient_name.ilike.%${query}%,notes.ilike.%${query}%`)
-          .limit(5),
+          .or(`patient_name.ilike.%${query}%,notes.ilike.%${query}%,diagnosis.ilike.%${query}%,first_name.ilike.%${query}%,last_name.ilike.%${query}%,address.ilike.%${query}%,physician.ilike.%${query}%,primary_insurance.ilike.%${query}%,next_steps.ilike.%${query}%,emergency_contact.ilike.%${query}%`)
+          .limit(10),
         
-        // Search patients
+        // Enhanced search patients - search ALL text fields
         supabase
           .from('patients')
-          .select('id, first_name, last_name, status, diagnosis')
-          .or(`first_name.ilike.%${query}%,last_name.ilike.%${query}%,diagnosis.ilike.%${query}%`)
-          .limit(5),
+          .select(`
+            id, first_name, last_name, status, diagnosis, notes, address, phone,
+            physician, primary_insurance, next_steps, msw_notes, dnr_status,
+            emergency_contact, special_medical_needs, dme_needs
+          `)
+          .or(`first_name.ilike.%${query}%,last_name.ilike.%${query}%,diagnosis.ilike.%${query}%,notes.ilike.%${query}%,address.ilike.%${query}%,physician.ilike.%${query}%,primary_insurance.ilike.%${query}%,next_steps.ilike.%${query}%,msw_notes.ilike.%${query}%,emergency_contact.ilike.%${query}%,special_medical_needs.ilike.%${query}%,dme_needs.ilike.%${query}%`)
+          .limit(10),
         
         // Search organizations
         supabase
           .from('organizations')
-          .select('id, name, type, contact_person, assigned_marketer')
-          .or(`name.ilike.%${query}%,contact_person.ilike.%${query}%,assigned_marketer.ilike.%${query}%`)
-          .limit(5)
+          .select('id, name, type, contact_person, assigned_marketer, contact_email, address, phone')
+          .or(`name.ilike.%${query}%,contact_person.ilike.%${query}%,assigned_marketer.ilike.%${query}%,address.ilike.%${query}%`)
+          .limit(10)
       ]);
 
       const [referrals, patients, organizations] = searchResults;
