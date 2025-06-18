@@ -57,12 +57,12 @@ const PatientOverviewSection = ({ patient, isOpen, onToggle }: PatientOverviewSe
           </div>
           <div>
             <Label htmlFor="primary_insurance">Primary Insurance Provider</Label>
-            <Select name="primary_insurance" defaultValue={patient?.primary_insurance || ''}>
+            <Select name="primary_insurance" defaultValue={patient?.primary_insurance || 'none'}>
               <SelectTrigger>
                 <SelectValue placeholder="Select insurance provider" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Select insurance provider</SelectItem>
+                <SelectItem value="none">Select insurance provider</SelectItem>
                 <SelectItem value="medicare">Medicare</SelectItem>
                 <SelectItem value="medicaid">Medicaid</SelectItem>
                 <SelectItem value="private">Private Insurance</SelectItem>
@@ -83,12 +83,12 @@ const PatientOverviewSection = ({ patient, isOpen, onToggle }: PatientOverviewSe
           </div>
           <div>
             <Label htmlFor="insurance">Referral Source</Label>
-            <Select name="insurance" defaultValue={patient?.insurance || ''}>
+            <Select name="insurance" defaultValue={patient?.insurance || 'none'}>
               <SelectTrigger>
                 <SelectValue placeholder="Select referral source" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Select referral source</SelectItem>
+                <SelectItem value="none">Select referral source</SelectItem>
                 <SelectItem value="physician">Physician</SelectItem>
                 <SelectItem value="hospital">Hospital</SelectItem>
                 <SelectItem value="snf">Skilled Nursing Facility (SNF)</SelectItem>
