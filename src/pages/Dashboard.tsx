@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,9 +9,11 @@ import ConversionFunnelChart from "@/components/charts/ConversionFunnelChart";
 import SourcePerformanceChart from "@/components/charts/SourcePerformanceChart";
 import MarketerPerformance from "@/components/charts/MarketerPerformance";
 import PageLayout from "@/components/layout/PageLayout";
+import { useAuth } from "@/hooks/useAuth";
 
 const Dashboard = () => {
   const [showQuickAdd, setShowQuickAdd] = useState(false);
+  const { displayName } = useAuth();
 
   // Fetch dashboard statistics
   const { data: stats } = useQuery({
@@ -39,7 +40,7 @@ const Dashboard = () => {
   return (
     <PageLayout 
       title="Dashboard" 
-      subtitle="Welcome back, Sarah. Here's what's happening with your patients today."
+      subtitle={`Welcome back, ${displayName}. Here's what's happening with your patients today.`}
     >
       <div className="space-y-6">
         {/* Quick Add Button */}
