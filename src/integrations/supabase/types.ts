@@ -9,6 +9,54 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      admission_data: {
+        Row: {
+          admissions: number
+          average_los: number
+          cap_year: number
+          census_end_of_month: number
+          created_at: string | null
+          discharges: number
+          id: string
+          month: number
+          notes: string | null
+          provider_number: string
+          total_days: number
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          admissions: number
+          average_los: number
+          cap_year: number
+          census_end_of_month: number
+          created_at?: string | null
+          discharges: number
+          id?: string
+          month: number
+          notes?: string | null
+          provider_number: string
+          total_days: number
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          admissions?: number
+          average_los?: number
+          cap_year?: number
+          census_end_of_month?: number
+          created_at?: string | null
+          discharges?: number
+          id?: string
+          month?: number
+          notes?: string | null
+          provider_number?: string
+          total_days?: number
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       care_team_assignments: {
         Row: {
           assigned_date: string | null
@@ -92,6 +140,66 @@ export type Database = {
         Update: {
           created_at?: string
           id?: number
+        }
+        Relationships: []
+      }
+      hospice_profiles: {
+        Row: {
+          address: string | null
+          administrator_name: string | null
+          created_at: string | null
+          email: string | null
+          fax: string | null
+          id: string
+          is_default: boolean | null
+          license_number: string | null
+          medical_director: string | null
+          npi_number: string | null
+          phone: string | null
+          provider_name: string
+          provider_number: string
+          ptan_number: string | null
+          service_area: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          address?: string | null
+          administrator_name?: string | null
+          created_at?: string | null
+          email?: string | null
+          fax?: string | null
+          id?: string
+          is_default?: boolean | null
+          license_number?: string | null
+          medical_director?: string | null
+          npi_number?: string | null
+          phone?: string | null
+          provider_name: string
+          provider_number: string
+          ptan_number?: string | null
+          service_area?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          address?: string | null
+          administrator_name?: string | null
+          created_at?: string | null
+          email?: string | null
+          fax?: string | null
+          id?: string
+          is_default?: boolean | null
+          license_number?: string | null
+          medical_director?: string | null
+          npi_number?: string | null
+          phone?: string | null
+          provider_name?: string
+          provider_number?: string
+          ptan_number?: string | null
+          service_area?: string | null
+          updated_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -335,6 +443,78 @@ export type Database = {
           },
         ]
       }
+      patient_evaluations: {
+        Row: {
+          additional_cap_liability: number | null
+          approval_date: string | null
+          approved_by: string | null
+          created_at: string | null
+          diagnosis: string | null
+          estimated_los: number | null
+          evaluation_date: string | null
+          id: string
+          insurance_type: string | null
+          notes: string | null
+          patient_age: number | null
+          patient_id: string
+          primary_caregiver: string | null
+          prognosis_months: number | null
+          proposed_admission_date: string | null
+          provider_number: string
+          recommendation: string | null
+          risk_factors: Json | null
+          status: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          additional_cap_liability?: number | null
+          approval_date?: string | null
+          approved_by?: string | null
+          created_at?: string | null
+          diagnosis?: string | null
+          estimated_los?: number | null
+          evaluation_date?: string | null
+          id?: string
+          insurance_type?: string | null
+          notes?: string | null
+          patient_age?: number | null
+          patient_id: string
+          primary_caregiver?: string | null
+          prognosis_months?: number | null
+          proposed_admission_date?: string | null
+          provider_number: string
+          recommendation?: string | null
+          risk_factors?: Json | null
+          status?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          additional_cap_liability?: number | null
+          approval_date?: string | null
+          approved_by?: string | null
+          created_at?: string | null
+          diagnosis?: string | null
+          estimated_los?: number | null
+          evaluation_date?: string | null
+          id?: string
+          insurance_type?: string | null
+          notes?: string | null
+          patient_age?: number | null
+          patient_id?: string
+          primary_caregiver?: string | null
+          prognosis_months?: number | null
+          proposed_admission_date?: string | null
+          provider_number?: string
+          recommendation?: string | null
+          risk_factors?: Json | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       patients: {
         Row: {
           address: string | null
@@ -478,75 +658,258 @@ export type Database = {
           },
         ]
       }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string | null
+          first_name: string | null
+          id: string
+          last_name: string | null
+          role: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          first_name?: string | null
+          id: string
+          last_name?: string | null
+          role?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          role?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      psr_data: {
+        Row: {
+          cap_year: number
+          claims: number
+          created_at: string | null
+          gross_reimbursement: number
+          id: string
+          medicare_days: number
+          month: number
+          net_reimbursement: number
+          post_sequestration_reduction: number | null
+          provider_number: string
+          sequestration: number | null
+          service_period_end: string | null
+          service_period_start: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          cap_year: number
+          claims: number
+          created_at?: string | null
+          gross_reimbursement: number
+          id?: string
+          medicare_days: number
+          month: number
+          net_reimbursement: number
+          post_sequestration_reduction?: number | null
+          provider_number: string
+          sequestration?: number | null
+          service_period_end?: string | null
+          service_period_start?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          cap_year?: number
+          claims?: number
+          created_at?: string | null
+          gross_reimbursement?: number
+          id?: string
+          medicare_days?: number
+          month?: number
+          net_reimbursement?: number
+          post_sequestration_reduction?: number | null
+          provider_number?: string
+          sequestration?: number | null
+          service_period_end?: string | null
+          service_period_start?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       referrals: {
         Row: {
+          address: string | null
           admission_date: string | null
+          advanced_directive: boolean | null
           assigned_marketer: string | null
+          attending_physician: string | null
+          caregiver_contact: string | null
+          caregiver_name: string | null
           contact_date: string | null
           created_at: string | null
+          date_of_birth: string | null
           diagnosis: string | null
+          dme_needs: string | null
+          dnr_status: boolean | null
+          emergency_contact: string | null
+          emergency_phone: string | null
+          first_name: string | null
+          funeral_arrangements: string | null
+          height: number | null
           id: string
           insurance: string | null
           insurance_verification: boolean | null
+          last_name: string | null
+          medicaid_number: string | null
           medical_records_received: boolean | null
+          medicare_number: string | null
+          msw_notes: string | null
+          next_steps: string | null
           notes: string | null
           organization_id: string | null
           patient_name: string
           patient_phone: string | null
+          phone: string | null
+          physician: string | null
+          primary_insurance: string | null
+          prior_hospice_info: string | null
           priority: string | null
           referral_contact_email: string | null
           referral_contact_person: string | null
           referral_contact_phone: string | null
           referral_date: string | null
+          referral_source: string | null
           referring_physician: string | null
+          responsible_party_contact: string | null
+          responsible_party_name: string | null
+          responsible_party_relationship: string | null
+          secondary_insurance: string | null
+          special_medical_needs: string | null
+          spiritual_preferences: string | null
+          ssn: string | null
           status: Database["public"]["Enums"]["referral_status"] | null
+          transport_needs: string | null
+          upcoming_appointments: string | null
           updated_at: string | null
+          weight: number | null
         }
         Insert: {
+          address?: string | null
           admission_date?: string | null
+          advanced_directive?: boolean | null
           assigned_marketer?: string | null
+          attending_physician?: string | null
+          caregiver_contact?: string | null
+          caregiver_name?: string | null
           contact_date?: string | null
           created_at?: string | null
+          date_of_birth?: string | null
           diagnosis?: string | null
+          dme_needs?: string | null
+          dnr_status?: boolean | null
+          emergency_contact?: string | null
+          emergency_phone?: string | null
+          first_name?: string | null
+          funeral_arrangements?: string | null
+          height?: number | null
           id?: string
           insurance?: string | null
           insurance_verification?: boolean | null
+          last_name?: string | null
+          medicaid_number?: string | null
           medical_records_received?: boolean | null
+          medicare_number?: string | null
+          msw_notes?: string | null
+          next_steps?: string | null
           notes?: string | null
           organization_id?: string | null
           patient_name: string
           patient_phone?: string | null
+          phone?: string | null
+          physician?: string | null
+          primary_insurance?: string | null
+          prior_hospice_info?: string | null
           priority?: string | null
           referral_contact_email?: string | null
           referral_contact_person?: string | null
           referral_contact_phone?: string | null
           referral_date?: string | null
+          referral_source?: string | null
           referring_physician?: string | null
+          responsible_party_contact?: string | null
+          responsible_party_name?: string | null
+          responsible_party_relationship?: string | null
+          secondary_insurance?: string | null
+          special_medical_needs?: string | null
+          spiritual_preferences?: string | null
+          ssn?: string | null
           status?: Database["public"]["Enums"]["referral_status"] | null
+          transport_needs?: string | null
+          upcoming_appointments?: string | null
           updated_at?: string | null
+          weight?: number | null
         }
         Update: {
+          address?: string | null
           admission_date?: string | null
+          advanced_directive?: boolean | null
           assigned_marketer?: string | null
+          attending_physician?: string | null
+          caregiver_contact?: string | null
+          caregiver_name?: string | null
           contact_date?: string | null
           created_at?: string | null
+          date_of_birth?: string | null
           diagnosis?: string | null
+          dme_needs?: string | null
+          dnr_status?: boolean | null
+          emergency_contact?: string | null
+          emergency_phone?: string | null
+          first_name?: string | null
+          funeral_arrangements?: string | null
+          height?: number | null
           id?: string
           insurance?: string | null
           insurance_verification?: boolean | null
+          last_name?: string | null
+          medicaid_number?: string | null
           medical_records_received?: boolean | null
+          medicare_number?: string | null
+          msw_notes?: string | null
+          next_steps?: string | null
           notes?: string | null
           organization_id?: string | null
           patient_name?: string
           patient_phone?: string | null
+          phone?: string | null
+          physician?: string | null
+          primary_insurance?: string | null
+          prior_hospice_info?: string | null
           priority?: string | null
           referral_contact_email?: string | null
           referral_contact_person?: string | null
           referral_contact_phone?: string | null
           referral_date?: string | null
+          referral_source?: string | null
           referring_physician?: string | null
+          responsible_party_contact?: string | null
+          responsible_party_name?: string | null
+          responsible_party_relationship?: string | null
+          secondary_insurance?: string | null
+          special_medical_needs?: string | null
+          spiritual_preferences?: string | null
+          ssn?: string | null
           status?: Database["public"]["Enums"]["referral_status"] | null
+          transport_needs?: string | null
+          upcoming_appointments?: string | null
           updated_at?: string | null
+          weight?: number | null
         }
         Relationships: [
           {
