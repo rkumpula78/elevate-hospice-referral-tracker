@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -24,6 +25,15 @@ interface OrganizationTrainingProps {
   organizationId: string;
   organizationType: string;
 }
+
+// Type guards for JSONB data
+const isStringArray = (value: any): value is string[] => {
+  return Array.isArray(value) && value.every(item => typeof item === 'string');
+};
+
+const isObjectArray = (value: any): value is any[] => {
+  return Array.isArray(value);
+};
 
 const OrganizationTraining: React.FC<OrganizationTrainingProps> = ({ 
   organizationId, 
@@ -87,7 +97,11 @@ const OrganizationTraining: React.FC<OrganizationTrainingProps> = ({
       completed: boolean 
     }) => {
       const completion = checklistCompletions?.find(c => c.checklist_id === checklistId);
-      let completedItems = completion?.completed_items || [];
+      let completedItems: string[] = [];
+      
+      if (completion?.completed_items && isStringArray(completion.completed_items)) {
+        completedItems = completion.completed_items;
+      }
 
       if (completed) {
         completedItems = [...completedItems, itemId];
@@ -136,13 +150,19 @@ const OrganizationTraining: React.FC<OrganizationTrainingProps> = ({
 
   const getChecklistProgress = (checklistId: string, items: any[]) => {
     const completion = checklistCompletions?.find(c => c.checklist_id === checklistId);
-    const completedCount = completion?.completed_items?.length || 0;
+    if (!completion?.completed_items || !isStringArray(completion.completed_items)) {
+      return 0;
+    }
+    const completedCount = completion.completed_items.length;
     return (completedCount / items.length) * 100;
   };
 
   const isItemCompleted = (checklistId: string, itemId: string) => {
     const completion = checklistCompletions?.find(c => c.checklist_id === checklistId);
-    return completion?.completed_items?.includes(itemId) || false;
+    if (!completion?.completed_items || !isStringArray(completion.completed_items)) {
+      return false;
+    }
+    return completion.completed_items.includes(itemId);
   };
 
   const renderValueProposition = (module: any) => {
@@ -171,15 +191,15 @@ const OrganizationTraining: React.FC<OrganizationTrainingProps> = ({
               <div>
                 <h4 className="font-semibold mb-2">Key Value Points:</h4>
                 <ul className="space-y-2">
-                  {content.points?.map((point: string, index: number) => (
+                  {content.points && isStringArray(content.points) ? content.points.map((point: string, index: number) => (
                     <li key={index} className="flex items-start">
                       <CheckCircle2 className="w-4 h-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
                       <span className="text-sm">{point}</span>
                     </li>
-                  ))}
+                  )) : null}
                 </ul>
               </div>
-              {content.talking_points && (
+              {content.talking_points && isStringArray(content.talking_points) && (
                 <div>
                   <h4 className="font-semibold mb-2">Talking Points:</h4>
                   <ul className="space-y-2">
@@ -210,24 +230,24 @@ const OrganizationTraining: React.FC<OrganizationTrainingProps> = ({
         </CardHeader>
         <CardContent>
           <div className="space-y-6">
-            {content.phases?.map((phase: any, index: number) => (
+            {content.phases && isObjectArray(content.phases) ? content.phases.map((phase: any, index: number) => (
               <div key={index}>
                 <div className="flex items-center justify-between mb-3">
                   <h4 className="font-semibold">{phase.name}</h4>
                   <Badge variant="outline">{phase.days}</Badge>
                 </div>
                 <ul className="space-y-2">
-                  {phase.actions?.map((action: string, actionIndex: number) => (
+                  {phase.actions && isStringArray(phase.actions) ? phase.actions.map((action: string, actionIndex: number) => (
                     <li key={actionIndex} className="flex items-start">
                       <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center mr-2 mt-0.5 flex-shrink-0">
                         <span className="text-xs font-semibold">{actionIndex + 1}</span>
                       </div>
                       <span className="text-sm">{action}</span>
                     </li>
-                  ))}
+                  )) : null}
                 </ul>
               </div>
-            ))}
+            )) : null}
           </div>
         </CardContent>
       </Card>
@@ -246,7 +266,7 @@ const OrganizationTraining: React.FC<OrganizationTrainingProps> = ({
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-2">
-            {content.metrics?.map((metric: any, index: number) => (
+            {content.metrics && isObjectArray(content.metrics) ? content.metrics.map((metric: any, index: number) => (
               <div key={index} className="border rounded-lg p-4">
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="font-semibold">{metric.name}</h4>
@@ -255,7 +275,7 @@ const OrganizationTraining: React.FC<OrganizationTrainingProps> = ({
                 <p className="text-sm text-muted-foreground mb-2">{metric.description}</p>
                 <Badge variant="secondary">{metric.target}</Badge>
               </div>
-            ))}
+            )) : null}
           </div>
         </CardContent>
       </Card>
@@ -263,7 +283,7 @@ const OrganizationTraining: React.FC<OrganizationTrainingProps> = ({
   };
 
   const renderChecklist = (checklist: any) => {
-    const items = checklist.items || [];
+    const items = checklist.items && isObjectArray(checklist.items) ? checklist.items : [];
     const progress = getChecklistProgress(checklist.id, items);
     
     return (
@@ -373,4 +393,4 @@ const OrganizationTraining: React.FC<OrganizationTrainingProps> = ({
   );
 };
 
-export default OrganizationTraining; 
+export default OrganizationTraining;
