@@ -20,11 +20,13 @@ const TrainingDashboard = () => {
   // Get current user info (would normally come from auth context)
   const marketerName = "Current Marketer"; // Replace with actual auth user
 
+  console.log('TrainingDashboard: Component mounted');
+
   // Fetch all training modules from database
-  const { data: allModules, isLoading: modulesLoading } = useQuery({
+  const { data: allModules, isLoading: modulesLoading, error: modulesError } = useQuery({
     queryKey: ['all-training-modules'],
     queryFn: async () => {
-      console.log('Fetching training modules from database...');
+      console.log('TrainingDashboard: Fetching training modules from database...');
       const { data, error } = await supabase
         .from('organization_training_modules')
         .select('*')
@@ -32,41 +34,70 @@ const TrainingDashboard = () => {
         .order('organization_type, order_index');
       
       if (error) {
-        console.error('Error fetching training modules:', error);
+        console.error('TrainingDashboard: Error fetching training modules:', error);
         throw error;
       }
-      console.log('Training modules fetched:', data);
+      console.log('TrainingDashboard: Training modules fetched successfully:', data);
       return data;
     }
   });
 
   // Fetch marketer's training progress from database
-  const { data: trainingProgress, isLoading: progressLoading } = useQuery({
+  const { data: trainingProgress, isLoading: progressLoading, error: progressError } = useQuery({
     queryKey: ['marketer-training-progress', marketerName],
     queryFn: async () => {
-      console.log('Fetching training progress from database...');
+      console.log('TrainingDashboard: Fetching training progress from database...');
       const { data, error } = await supabase
         .from('marketer_training_progress')
         .select('*')
         .eq('marketer_name', marketerName);
       
       if (error) {
-        console.error('Error fetching training progress:', error);
+        console.error('TrainingDashboard: Error fetching training progress:', error);
         throw error;
       }
-      console.log('Training progress fetched:', data);
+      console.log('TrainingDashboard: Training progress fetched successfully:', data);
       return data;
     }
   });
 
+  console.log('TrainingDashboard: Current state:', {
+    modulesLoading,
+    progressLoading,
+    modulesError,
+    progressError,
+    allModulesCount: allModules?.length,
+    progressCount: trainingProgress?.length
+  });
+
   // Show loading state
   if (modulesLoading || progressLoading) {
+    console.log('TrainingDashboard: Showing loading state');
     return (
       <div className="space-y-6">
         <Card>
           <CardContent className="pt-6">
             <div className="text-center">
               <p className="text-lg">Loading training data...</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (modulesError || progressError) {
+    console.error('TrainingDashboard: Showing error state', { modulesError, progressError });
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <p className="text-lg text-red-600">Error loading training data</p>
+              <p className="text-sm text-muted-foreground mt-2">
+                {modulesError?.message || progressError?.message || 'Unknown error occurred'}
+              </p>
             </div>
           </CardContent>
         </Card>
@@ -82,6 +113,8 @@ const TrainingDashboard = () => {
     acc[module.organization_type].push(module);
     return acc;
   }, {}) || {};
+
+  console.log('TrainingDashboard: Modules grouped by type:', modulesByType);
 
   // Calculate progress for each organization type
   const getTypeProgress = (type: string) => {
@@ -121,12 +154,11 @@ const TrainingDashboard = () => {
   const completedModules = trainingProgress?.length || 0;
   const overallProgress = totalModules > 0 ? (completedModules / totalModules) * 100 : 0;
 
-  console.log('Dashboard data:', { 
+  console.log('TrainingDashboard: Final calculated values:', { 
     totalModules, 
     completedModules, 
     overallProgress, 
-    modulesByType: Object.keys(modulesByType),
-    allModules: allModules?.length 
+    modulesByTypeKeys: Object.keys(modulesByType)
   });
 
   return (
@@ -164,8 +196,11 @@ const TrainingDashboard = () => {
             {totalModules === 0 && (
               <div className="text-center py-4">
                 <p className="text-muted-foreground">
-                  Training modules are being loaded from the database. 
-                  If this persists, check that the database migration was successful.
+                  No training modules found in database. 
+                  Please check that the database migration was successful and data was inserted properly.
+                </p>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Debug info: Modules loading: {String(modulesLoading)}, Error: {modulesError?.message || 'none'}
                 </p>
               </div>
             )}
