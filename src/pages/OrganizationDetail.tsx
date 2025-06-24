@@ -8,7 +8,7 @@ import { ArrowLeft, Building2, Phone, Mail, MapPin, User, Edit } from 'lucide-re
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import EditOrganizationDialog from '@/components/crm/EditOrganizationDialog';
-import OrganizationTraining from '@/components/crm/OrganizationTraining';
+import SimpleOrganizationTraining from '@/components/training/SimpleOrganizationTraining';
 
 const OrganizationDetail = () => {
   const { id } = useParams();
@@ -172,7 +172,7 @@ const OrganizationDetail = () => {
           </TabsContent>
 
           <TabsContent value="training">
-            <OrganizationTraining 
+            <SimpleOrganizationTraining 
               organizationId={id!} 
               organizationType={organization.type}
             />

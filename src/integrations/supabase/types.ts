@@ -95,6 +95,60 @@ export type Database = {
           },
         ]
       }
+      checklist_completions: {
+        Row: {
+          checklist_id: string | null
+          completed_at: string | null
+          completed_by: string | null
+          completed_items: Json | null
+          created_at: string
+          id: string
+          notes: string | null
+          organization_id: string | null
+          started_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          checklist_id?: string | null
+          completed_at?: string | null
+          completed_by?: string | null
+          completed_items?: Json | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          organization_id?: string | null
+          started_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          checklist_id?: string | null
+          completed_at?: string | null
+          completed_by?: string | null
+          completed_items?: Json | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          organization_id?: string | null
+          started_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checklist_completions_checklist_id_fkey"
+            columns: ["checklist_id"]
+            isOneToOne: false
+            referencedRelation: "organization_checklists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "checklist_completions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       compliance_metrics: {
         Row: {
           created_at: string | null
@@ -266,6 +320,83 @@ export type Database = {
         }
         Relationships: []
       }
+      marketer_training_progress: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          id: string
+          marketer_name: string
+          module_id: string | null
+          notes: string | null
+          quiz_score: number | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          marketer_name: string
+          module_id?: string | null
+          notes?: string | null
+          quiz_score?: number | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          marketer_name?: string
+          module_id?: string | null
+          notes?: string | null
+          quiz_score?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketer_training_progress_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "organization_training_modules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organization_checklists: {
+        Row: {
+          checklist_name: string
+          created_at: string
+          days_range: string | null
+          id: string
+          is_active: boolean | null
+          items: Json
+          order_index: number | null
+          organization_type: string
+          phase: string
+          updated_at: string
+        }
+        Insert: {
+          checklist_name: string
+          created_at?: string
+          days_range?: string | null
+          id?: string
+          is_active?: boolean | null
+          items: Json
+          order_index?: number | null
+          organization_type: string
+          phase: string
+          updated_at?: string
+        }
+        Update: {
+          checklist_name?: string
+          created_at?: string
+          days_range?: string | null
+          id?: string
+          is_active?: boolean | null
+          items?: Json
+          order_index?: number | null
+          organization_type?: string
+          phase?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       organization_documents: {
         Row: {
           content_type: string | null
@@ -313,6 +444,89 @@ export type Database = {
           },
         ]
       }
+      organization_kpis: {
+        Row: {
+          actual_value: number | null
+          created_at: string
+          id: string
+          kpi_type: string
+          notes: string | null
+          organization_id: string | null
+          period_end: string
+          period_start: string
+          target_value: number | null
+          updated_at: string
+        }
+        Insert: {
+          actual_value?: number | null
+          created_at?: string
+          id?: string
+          kpi_type: string
+          notes?: string | null
+          organization_id?: string | null
+          period_end: string
+          period_start: string
+          target_value?: number | null
+          updated_at?: string
+        }
+        Update: {
+          actual_value?: number | null
+          created_at?: string
+          id?: string
+          kpi_type?: string
+          notes?: string | null
+          organization_id?: string | null
+          period_end?: string
+          period_start?: string
+          target_value?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_kpis_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organization_training_modules: {
+        Row: {
+          content: Json
+          created_at: string
+          id: string
+          is_active: boolean | null
+          module_category: string
+          module_name: string
+          order_index: number | null
+          organization_type: string
+          updated_at: string
+        }
+        Insert: {
+          content: Json
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          module_category: string
+          module_name: string
+          order_index?: number | null
+          organization_type: string
+          updated_at?: string
+        }
+        Update: {
+          content?: Json
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          module_category?: string
+          module_name?: string
+          order_index?: number | null
+          organization_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       organizations: {
         Row: {
           address: string | null
@@ -322,7 +536,10 @@ export type Database = {
           created_at: string | null
           id: string
           is_active: boolean | null
+          last_training_review: string | null
           name: string
+          partnership_notes: string | null
+          partnership_stage: string | null
           phone: string | null
           type: string
           updated_at: string | null
@@ -335,7 +552,10 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_active?: boolean | null
+          last_training_review?: string | null
           name: string
+          partnership_notes?: string | null
+          partnership_stage?: string | null
           phone?: string | null
           type: string
           updated_at?: string | null
@@ -348,7 +568,10 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_active?: boolean | null
+          last_training_review?: string | null
           name?: string
+          partnership_notes?: string | null
+          partnership_stage?: string | null
           phone?: string | null
           type?: string
           updated_at?: string | null

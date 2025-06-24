@@ -1,6 +1,7 @@
+
 import React from 'react';
 import PageHeader from '@/components/layout/PageHeader';
-import TrainingDashboard from '@/components/training/TrainingDashboard';
+import SimpleTrainingDashboard from '@/components/training/SimpleTrainingDashboard';
 
 const TrainingPage = () => {
   return (
@@ -10,10 +11,10 @@ const TrainingPage = () => {
         subtitle="Master your hospice partnership strategies"
       />
       <div className="container mx-auto p-6">
-        <TrainingDashboard />
+        <SimpleTrainingDashboard />
       </div>
     </div>
   );
 };
 
-export default TrainingPage; 
+export default TrainingPage;
