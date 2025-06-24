@@ -21,7 +21,8 @@ import {
   LogOut,
   Calendar,
   Building2,
-  Map
+  Map,
+  BookOpen
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -52,6 +53,11 @@ const menuItems = [
     title: "Map",
     url: "/map",
     icon: Map,
+  },
+  {
+    title: "Training",
+    url: "/training",
+    icon: BookOpen,
   },
   {
     title: "Compliance",

@@ -43,8 +43,9 @@ const OrganizationsList = () => {
 
   const getTypeColor = (type: string) => {
     switch (type) {
+      case 'assisted_living': return 'bg-green-100 text-green-800';
       case 'hospital': return 'bg-blue-100 text-blue-800';
-      case 'clinic': return 'bg-green-100 text-green-800';
+      case 'clinic': return 'bg-pink-100 text-pink-800';
       case 'physician_office': return 'bg-purple-100 text-purple-800';
       case 'nursing_home': return 'bg-orange-100 text-orange-800';
       case 'home_health': return 'bg-cyan-100 text-cyan-800';
@@ -66,10 +67,11 @@ const OrganizationsList = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Types</SelectItem>
+              <SelectItem value="assisted_living">Assisted Living</SelectItem>
               <SelectItem value="hospital">Hospital</SelectItem>
-              <SelectItem value="clinic">Clinic</SelectItem>
+              <SelectItem value="clinic">Cancer Center/Clinic</SelectItem>
               <SelectItem value="physician_office">Physician Office</SelectItem>
-              <SelectItem value="nursing_home">Nursing Home</SelectItem>
+              <SelectItem value="nursing_home">Skilled Nursing</SelectItem>
               <SelectItem value="home_health">Home Health</SelectItem>
               <SelectItem value="other">Other</SelectItem>
             </SelectContent>

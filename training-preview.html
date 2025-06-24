@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elevate Hospice Training Preview</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .sidebar { background: #1e293b; }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Preview 1: Organization Detail with Training Tab -->
+    <div class="p-8">
+        <h1 class="text-3xl font-bold mb-8 text-center">Training Functionality Preview</h1>
+        
+        <!-- Organization Detail Page -->
+        <div class="max-w-7xl mx-auto mb-12">
+            <h2 class="text-2xl font-semibold mb-4">1. Organization Detail Page - Training Tab</h2>
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <!-- Header -->
+                <div class="flex justify-between items-center mb-6">
+                    <div class="flex items-center space-x-4">
+                        <button class="px-4 py-2 border rounded-lg flex items-center">
+                            <i class="fas fa-arrow-left mr-2"></i> Back to Dashboard
+                        </button>
+                        <h1 class="text-2xl font-bold">Sunrise Senior Living</h1>
+                    </div>
+                    <button class="px-4 py-2 bg-blue-600 text-white rounded-lg flex items-center">
+                        <i class="fas fa-edit mr-2"></i> Edit Organization
+                    </button>
+                </div>
+
+                <!-- Tabs -->
+                <div class="border-b mb-6">
+                    <nav class="flex space-x-8">
+                        <button class="pb-3 px-1 border-b-2 border-transparent hover:border-gray-300">Overview</button>
+                        <button class="pb-3 px-1 border-b-2 border-blue-600 text-blue-600 font-medium">Training & Resources</button>
+                        <button class="pb-3 px-1 border-b-2 border-transparent hover:border-gray-300">Referrals</button>
+                    </nav>
+                </div>
+
+                <!-- Training Content Tabs -->
+                <div class="bg-gray-50 p-1 rounded-lg mb-6">
+                    <nav class="flex space-x-1">
+                        <button class="flex-1 px-4 py-2 bg-white rounded-lg shadow text-sm font-medium flex items-center justify-center">
+                            <i class="fas fa-book-open mr-2"></i> Value Props
+                        </button>
+                        <button class="flex-1 px-4 py-2 text-gray-600 hover:bg-white rounded-lg text-sm font-medium flex items-center justify-center">
+                            <i class="fas fa-calendar mr-2"></i> Action Plan
+                        </button>
+                        <button class="flex-1 px-4 py-2 text-gray-600 hover:bg-white rounded-lg text-sm font-medium flex items-center justify-center">
+                            <i class="fas fa-check-circle mr-2"></i> Checklists
+                        </button>
+                        <button class="flex-1 px-4 py-2 text-gray-600 hover:bg-white rounded-lg text-sm font-medium flex items-center justify-center">
+                            <i class="fas fa-chart-line mr-2"></i> KPIs
+                        </button>
+                    </nav>
+                </div>
+
+                <!-- Value Propositions Content -->
+                <div class="space-y-4">
+                    <!-- Executive Directors Card -->
+                    <div class="bg-white border rounded-lg">
+                        <div class="p-4 cursor-pointer hover:bg-gray-50 flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <i class="fas fa-users text-blue-600"></i>
+                                <h3 class="font-semibold">Core Value Propositions for Executive Directors</h3>
+                            </div>
+                            <i class="fas fa-chevron-down text-gray-400"></i>
+                        </div>
+                        <div class="px-4 pb-4 border-t">
+                            <div class="pt-4 space-y-4">
+                                <div>
+                                    <h4 class="font-semibold mb-2">Key Value Points:</h4>
+                                    <ul class="space-y-2">
+                                        <li class="flex items-start">
+                                            <i class="fas fa-check-circle text-green-500 mt-0.5 mr-2"></i>
+                                            <span class="text-sm">Enable residents to age in place, reducing family anxiety and facility turnover</span>
+                                        </li>
+                                        <li class="flex items-start">
+                                            <i class="fas fa-check-circle text-green-500 mt-0.5 mr-2"></i>
+                                            <span class="text-sm">Improve family satisfaction scores and reduce complaints</span>
+                                        </li>
+                                        <li class="flex items-start">
+                                            <i class="fas fa-check-circle text-green-500 mt-0.5 mr-2"></i>
+                                            <span class="text-sm">Enhance facility reputation as a caring, comprehensive care provider</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold mb-2">Talking Points:</h4>
+                                    <ul class="space-y-2 text-sm text-gray-600 pl-4">
+                                        <li>• Our hospice services allow your residents to remain in their familiar environment during end-of-life care</li>
+                                        <li>• We provide 24/7 support that reduces emergency transfers and hospital readmissions</li>
+                                        <li>• Partnership with us enhances your facility's reputation for comprehensive, compassionate care</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Wellness Directors Card (Collapsed) -->
+                    <div class="bg-white border rounded-lg">
+                        <div class="p-4 cursor-pointer hover:bg-gray-50 flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <i class="fas fa-users text-blue-600"></i>
+                                <h3 class="font-semibold">Core Value Propositions for Wellness Directors</h3>
+                            </div>
+                            <i class="fas fa-chevron-right text-gray-400"></i>
+                        </div>
+                    </div>
+
+                    <!-- Marketing Directors Card (Collapsed) -->
+                    <div class="bg-white border rounded-lg">
+                        <div class="p-4 cursor-pointer hover:bg-gray-50 flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <i class="fas fa-users text-blue-600"></i>
+                                <h3 class="font-semibold">Core Value Propositions for Marketing Directors</h3>
+                            </div>
+                            <i class="fas fa-chevron-right text-gray-400"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Checklist Preview -->
+        <div class="max-w-7xl mx-auto mb-12">
+            <h2 class="text-2xl font-semibold mb-4">2. Partnership Development Checklist</h2>
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <div class="mb-6">
+                    <div class="flex items-center justify-between mb-2">
+                        <div>
+                            <h3 class="text-lg font-semibold">Relationship Mapping Checklist</h3>
+                            <p class="text-sm text-gray-600">Days 1-15</p>
+                        </div>
+                        <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">foundation</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2 mb-4">
+                        <div class="bg-blue-600 h-2 rounded-full" style="width: 37.5%"></div>
+                    </div>
+                </div>
+
+                <div class="space-y-3 max-h-64 overflow-y-auto">
+                    <label class="flex items-start space-x-2 cursor-pointer">
+                        <input type="checkbox" checked class="mt-1 rounded">
+                        <div class="flex-1">
+                            <span class="text-sm font-medium">Identify and document Executive Director name and contact info</span>
+                            <span class="ml-2 px-2 py-0.5 bg-red-100 text-red-800 rounded text-xs">high</span>
+                        </div>
+                    </label>
+                    <label class="flex items-start space-x-2 cursor-pointer">
+                        <input type="checkbox" checked class="mt-1 rounded">
+                        <div class="flex-1">
+                            <span class="text-sm font-medium">Identify and document Wellness/Clinical Director</span>
+                            <span class="ml-2 px-2 py-0.5 bg-red-100 text-red-800 rounded text-xs">high</span>
+                        </div>
+                    </label>
+                    <label class="flex items-start space-x-2 cursor-pointer">
+                        <input type="checkbox" checked class="mt-1 rounded">
+                        <div class="flex-1">
+                            <span class="text-sm font-medium">Identify and document Marketing Director</span>
+                            <span class="ml-2 px-2 py-0.5 bg-yellow-100 text-yellow-800 rounded text-xs">medium</span>
+                        </div>
+                    </label>
+                    <label class="flex items-start space-x-2 cursor-pointer">
+                        <input type="checkbox" class="mt-1 rounded">
+                        <div class="flex-1">
+                            <span class="text-sm font-medium">Identify and document Director of Nursing</span>
+                            <span class="ml-2 px-2 py-0.5 bg-red-100 text-red-800 rounded text-xs">high</span>
+                        </div>
+                    </label>
+                    <label class="flex items-start space-x-2 cursor-pointer">
+                        <input type="checkbox" class="mt-1 rounded">
+                        <div class="flex-1">
+                            <span class="text-sm font-medium">Identify and document Social Worker</span>
+                            <span class="ml-2 px-2 py-0.5 bg-yellow-100 text-yellow-800 rounded text-xs">medium</span>
+                        </div>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Training Dashboard -->
+        <div class="max-w-7xl mx-auto mb-12">
+            <h2 class="text-2xl font-semibold mb-4">3. Training Dashboard Overview</h2>
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <!-- Overall Progress -->
+                <div class="mb-8">
+                    <div class="flex items-center space-x-2 mb-2">
+                        <i class="fas fa-book-open text-blue-600"></i>
+                        <h3 class="text-xl font-semibold">Training Overview</h3>
+                    </div>
+                    <p class="text-gray-600 mb-4">Your comprehensive training progress across all partnership types</p>
+                    
+                    <div>
+                        <div class="flex justify-between mb-2">
+                            <span class="text-sm font-medium">Overall Progress</span>
+                            <span class="text-sm text-gray-600">18 of 30 modules completed</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-3">
+                            <div class="bg-blue-600 h-3 rounded-full" style="width: 60%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Progress by Organization Type -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                    <div class="border rounded-lg p-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center space-x-2">
+                                <i class="fas fa-users text-gray-600"></i>
+                                <h4 class="font-medium">Assisted Living Facilities</h4>
+                            </div>
+                            <span class="px-2 py-0.5 bg-green-100 text-green-800 rounded text-xs font-medium flex items-center">
+                                <i class="fas fa-check-circle mr-1"></i> Complete
+                            </span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2 mb-1">
+                            <div class="bg-green-500 h-2 rounded-full" style="width: 100%"></div>
+                        </div>
+                        <p class="text-xs text-gray-600">5 of 5 modules completed</p>
+                    </div>
+
+                    <div class="border rounded-lg p-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center space-x-2">
+                                <i class="fas fa-hospital text-gray-600"></i>
+                                <h4 class="font-medium">Hospitals</h4>
+                            </div>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2 mb-1">
+                            <div class="bg-blue-500 h-2 rounded-full" style="width: 80%"></div>
+                        </div>
+                        <p class="text-xs text-gray-600">4 of 5 modules completed</p>
+                    </div>
+
+                    <div class="border rounded-lg p-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center space-x-2">
+                                <i class="fas fa-stethoscope text-gray-600"></i>
+                                <h4 class="font-medium">Physician Offices</h4>
+                            </div>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2 mb-1">
+                            <div class="bg-blue-500 h-2 rounded-full" style="width: 20%"></div>
+                        </div>
+                        <p class="text-xs text-gray-600">1 of 5 modules completed</p>
+                    </div>
+                </div>
+
+                <!-- Quick Stats -->
+                <div class="grid grid-cols-4 gap-4">
+                    <div class="bg-gray-50 rounded-lg p-4 text-center">
+                        <p class="text-2xl font-bold">30</p>
+                        <p class="text-xs text-gray-600">Total Modules</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-4 text-center">
+                        <p class="text-2xl font-bold text-green-600">18</p>
+                        <p class="text-xs text-gray-600">Completed</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-4 text-center">
+                        <p class="text-2xl font-bold text-orange-600">12</p>
+                        <p class="text-xs text-gray-600">Remaining</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-4 text-center">
+                        <p class="text-2xl font-bold text-blue-600">60%</p>
+                        <p class="text-xs text-gray-600">Progress</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Plan Preview -->
+        <div class="max-w-7xl mx-auto">
+            <h2 class="text-2xl font-semibold mb-4">4. 90-Day Action Plan View</h2>
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <div class="flex items-center space-x-2 mb-6">
+                    <i class="fas fa-calendar text-blue-600"></i>
+                    <h3 class="text-lg font-semibold">90-Day Action Plan for Assisted Living Facilities</h3>
+                </div>
+
+                <div class="space-y-6">
+                    <!-- Foundation Phase -->
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <h4 class="font-semibold text-green-700">Foundation Phase</h4>
+                            <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">Days 1-30</span>
+                        </div>
+                        <ul class="space-y-2">
+                            <li class="flex items-start">
+                                <div class="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center mr-2 mt-0.5 flex-shrink-0">
+                                    <span class="text-xs font-semibold">1</span>
+                                </div>
+                                <span class="text-sm">Map all key stakeholders: ED, Wellness Director, Marketing Director, DON, Social Worker, Activities Director</span>
+                            </li>
+                            <li class="flex items-start">
+                                <div class="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center mr-2 mt-0.5 flex-shrink-0">
+                                    <span class="text-xs font-semibold">2</span>
+                                </div>
+                                <span class="text-sm">Schedule initial meet-and-greets with each stakeholder</span>
+                            </li>
+                            <li class="flex items-start">
+                                <div class="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center mr-2 mt-0.5 flex-shrink-0">
+                                    <span class="text-xs font-semibold">3</span>
+                                </div>
+                                <span class="text-sm">Conduct facility tour to understand layout and resident needs</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Engagement Phase -->
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <h4 class="font-semibold text-blue-700">Engagement Phase</h4>
+                            <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">Days 31-60</span>
+                        </div>
+                        <ul class="space-y-2">
+                            <li class="flex items-start">
+                                <div class="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center mr-2 mt-0.5 flex-shrink-0">
+                                    <span class="text-xs font-semibold">1</span>
+                                </div>
+                                <span class="text-sm">Launch monthly staff education sessions on hospice benefits</span>
+                            </li>
+                            <li class="flex items-start">
+                                <div class="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center mr-2 mt-0.5 flex-shrink-0">
+                                    <span class="text-xs font-semibold">2</span>
+                                </div>
+                                <span class="text-sm">Implement first lunch & learn on comfort care</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

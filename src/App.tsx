@@ -21,6 +21,7 @@ import MapPage from "./pages/MapPage";
 import PatientDetail from "./pages/PatientDetail";
 import ReferralDetail from "./pages/ReferralDetail";
 import OrganizationDetail from "./pages/OrganizationDetail";
+import TrainingPage from "./pages/TrainingPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -49,6 +50,7 @@ const App = () => (
                         <Route path="schedule" element={<SchedulePage />} />
                         <Route path="map" element={<MapPage />} />
                         <Route path="compliance" element={<CompliancePage />} />
+                        <Route path="training" element={<TrainingPage />} />
                         <Route path="settings" element={<SettingsPage />} />
                         <Route path="patient/:id" element={<PatientDetail />} />
                         <Route path="referral/:id" element={<ReferralDetail />} />

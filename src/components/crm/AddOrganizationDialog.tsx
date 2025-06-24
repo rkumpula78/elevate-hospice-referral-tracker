@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -99,15 +100,37 @@ const AddOrganizationDialog = ({ open, onOpenChange }: AddOrganizationDialogProp
               />
             </div>
             <div>
-              <Label htmlFor="assigned_marketer">Assigned Marketer</Label>
-              <Input
-                id="assigned_marketer"
-                value={formData.assigned_marketer}
-                onChange={(e) => handleInputChange('assigned_marketer', e.target.value)}
-                placeholder="Elevate staff member"
+              <Label htmlFor="type">Type *</Label>
+              <Select
+                value={formData.type}
+                onValueChange={(value) => handleInputChange('type', value)}
                 disabled={isSubmitting}
-              />
+              >
+                <SelectTrigger id="type">
+                  <SelectValue placeholder="Select organization type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="assisted_living">Assisted Living</SelectItem>
+                  <SelectItem value="hospital">Hospital</SelectItem>
+                  <SelectItem value="clinic">Cancer Center/Clinic</SelectItem>
+                  <SelectItem value="physician_office">Physician Office</SelectItem>
+                  <SelectItem value="nursing_home">Skilled Nursing</SelectItem>
+                  <SelectItem value="home_health">Home Health</SelectItem>
+                  <SelectItem value="referral_source">Other Referral Source</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
+          </div>
+          
+          <div>
+            <Label htmlFor="assigned_marketer">Assigned Marketer</Label>
+            <Input
+              id="assigned_marketer"
+              value={formData.assigned_marketer}
+              onChange={(e) => handleInputChange('assigned_marketer', e.target.value)}
+              placeholder="Elevate staff member"
+              disabled={isSubmitting}
+            />
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
