@@ -43,10 +43,11 @@ const OrganizationTraining: React.FC<OrganizationTrainingProps> = ({
   const queryClient = useQueryClient();
   const [expandedModules, setExpandedModules] = useState<string[]>([]);
 
-  // Fetch training modules for this organization type
-  const { data: trainingModules } = useQuery({
+  // Fetch training modules for this organization type from database
+  const { data: trainingModules, isLoading: modulesLoading } = useQuery({
     queryKey: ['training-modules', organizationType],
     queryFn: async () => {
+      console.log('Fetching training modules for organization type:', organizationType);
       const { data, error } = await supabase
         .from('organization_training_modules')
         .select('*')
@@ -54,15 +55,20 @@ const OrganizationTraining: React.FC<OrganizationTrainingProps> = ({
         .eq('is_active', true)
         .order('order_index');
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching training modules:', error);
+        throw error;
+      }
+      console.log('Training modules fetched:', data);
       return data;
     }
   });
 
-  // Fetch checklists for this organization type
-  const { data: checklists } = useQuery({
+  // Fetch checklists for this organization type from database
+  const { data: checklists, isLoading: checklistsLoading } = useQuery({
     queryKey: ['organization-checklists', organizationType],
     queryFn: async () => {
+      console.log('Fetching checklists for organization type:', organizationType);
       const { data, error } = await supabase
         .from('organization_checklists')
         .select('*')
@@ -70,21 +76,30 @@ const OrganizationTraining: React.FC<OrganizationTrainingProps> = ({
         .eq('is_active', true)
         .order('order_index');
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching checklists:', error);
+        throw error;
+      }
+      console.log('Checklists fetched:', data);
       return data;
     }
   });
 
-  // Fetch checklist completions for this organization
+  // Fetch checklist completions for this organization from database
   const { data: checklistCompletions } = useQuery({
     queryKey: ['checklist-completions', organizationId],
     queryFn: async () => {
+      console.log('Fetching checklist completions for organization:', organizationId);
       const { data, error } = await supabase
         .from('checklist_completions')
         .select('*')
         .eq('organization_id', organizationId);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching checklist completions:', error);
+        throw error;
+      }
+      console.log('Checklist completions fetched:', data);
       return data;
     }
   });
@@ -165,6 +180,21 @@ const OrganizationTraining: React.FC<OrganizationTrainingProps> = ({
     return completion.completed_items.includes(itemId);
   };
 
+  // Show loading state
+  if (modulesLoading || checklistsLoading) {
+    return (
+      <div className="space-y-4">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <p className="text-lg">Loading training content...</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   const renderValueProposition = (module: any) => {
     const content = module.content;
     return (
@@ -188,17 +218,28 @@ const OrganizationTraining: React.FC<OrganizationTrainingProps> = ({
         {expandedModules.includes(module.id) && (
           <CardContent>
             <div className="space-y-4">
-              <div>
-                <h4 className="font-semibold mb-2">Key Value Points:</h4>
-                <ul className="space-y-2">
-                  {content.points && isStringArray(content.points) ? content.points.map((point: string, index: number) => (
-                    <li key={index} className="flex items-start">
-                      <CheckCircle2 className="w-4 h-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
-                      <span className="text-sm">{point}</span>
-                    </li>
-                  )) : null}
-                </ul>
-              </div>
+              {content.main_message && (
+                <div>
+                  <h4 className="font-semibold mb-2">Main Message:</h4>
+                  <p className="text-sm text-muted-foreground">{content.main_message}</p>
+                </div>
+              )}
+              {content.key_benefits && isObjectArray(content.key_benefits) && (
+                <div>
+                  <h4 className="font-semibold mb-2">Key Benefits:</h4>
+                  <ul className="space-y-2">
+                    {content.key_benefits.map((benefit: any, index: number) => (
+                      <li key={index} className="flex items-start">
+                        <CheckCircle2 className="w-4 h-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+                        <div>
+                          <span className="font-medium">{benefit.title}</span>
+                          <p className="text-sm text-muted-foreground">{benefit.description}</p>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
               {content.talking_points && isStringArray(content.talking_points) && (
                 <div>
                   <h4 className="font-semibold mb-2">Talking Points:</h4>
@@ -362,31 +403,65 @@ const OrganizationTraining: React.FC<OrganizationTrainingProps> = ({
 
       <TabsContent value="value-props" className="mt-6">
         <div className="space-y-4">
-          {trainingModules
-            ?.filter(m => m.module_category === 'value_proposition')
-            .map(module => renderValueProposition(module))}
+          {trainingModules && trainingModules.length > 0 ? (
+            trainingModules
+              .filter(m => m.module_category === 'value_proposition')
+              .map(module => renderValueProposition(module))
+          ) : (
+            <Card>
+              <CardContent className="pt-6">
+                <div className="text-center">
+                  <p className="text-muted-foreground">
+                    No training modules found for {organizationType}. 
+                    Check that the database migration completed successfully.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </TabsContent>
 
       <TabsContent value="action-plan" className="mt-6">
         <div className="space-y-4">
-          {trainingModules
-            ?.filter(m => m.module_category === 'action_plan')
-            .map(module => renderActionPlan(module))}
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <p className="text-muted-foreground">Action plan modules coming soon for {organizationType}.</p>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </TabsContent>
 
       <TabsContent value="checklists" className="mt-6">
         <div className="space-y-4">
-          {checklists?.map(checklist => renderChecklist(checklist))}
+          {checklists && checklists.length > 0 ? (
+            checklists.map(checklist => renderChecklist(checklist))
+          ) : (
+            <Card>
+              <CardContent className="pt-6">
+                <div className="text-center">
+                  <p className="text-muted-foreground">
+                    No checklists found for {organizationType}. 
+                    Check that the database migration completed successfully.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </TabsContent>
 
       <TabsContent value="kpis" className="mt-6">
         <div className="space-y-4">
-          {trainingModules
-            ?.filter(m => m.module_category === 'kpi')
-            .map(module => renderKPIs(module))}
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <p className="text-muted-foreground">KPI modules coming soon for {organizationType}.</p>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </TabsContent>
     </Tabs>
