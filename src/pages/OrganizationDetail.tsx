@@ -101,6 +101,20 @@ const OrganizationDetail = () => {
     }
   };
 
+  const getOrganizationTypeLabel = (type: string) => {
+    const typeLabels: { [key: string]: string } = {
+      'hospital': 'Hospital',
+      'skilled_nursing': 'Skilled Nursing Facility',
+      'assisted_living': 'Assisted Living',
+      'physician_office': 'Physician Office',
+      'home_health': 'Home Health',
+      'cancer_center': 'Cancer Center',
+      'hospice': 'Hospice',
+      'other': 'Other'
+    };
+    return typeLabels[type] || type.charAt(0).toUpperCase() + type.slice(1).replace('_', ' ');
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto p-6 space-y-6">
@@ -110,7 +124,10 @@ const OrganizationDetail = () => {
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Organizations
             </Button>
-            <h1 className="text-2xl font-bold">Organization Details</h1>
+            <div>
+              <h1 className="text-2xl font-bold">{organization.name}</h1>
+              <p className="text-lg text-gray-600">{getOrganizationTypeLabel(organization.type)}</p>
+            </div>
           </div>
           <Button onClick={() => setShowEditDialog(true)}>
             <Edit className="w-4 h-4 mr-2" />
@@ -119,16 +136,47 @@ const OrganizationDetail = () => {
         </div>
 
         <Tabs defaultValue="overview" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="contacts">Contacts</TabsTrigger>
-            <TabsTrigger value="partnership">Partnership</TabsTrigger>
-            <TabsTrigger value="training">Value Props & Resources</TabsTrigger>
-            <TabsTrigger value="kpis">KPIs & Metrics</TabsTrigger>
-            <TabsTrigger value="referrals">Referrals</TabsTrigger>
+          <TabsList className="grid grid-cols-6 gap-2 bg-transparent h-auto p-1">
+            <TabsTrigger 
+              value="overview" 
+              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 h-12 text-base font-medium rounded-lg shadow-sm transition-all"
+            >
+              Overview
+            </TabsTrigger>
+            <TabsTrigger 
+              value="contacts"
+              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 h-12 text-base font-medium rounded-lg shadow-sm transition-all"
+            >
+              Contacts
+            </TabsTrigger>
+            <TabsTrigger 
+              value="partnership"
+              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 h-12 text-base font-medium rounded-lg shadow-sm transition-all"
+            >
+              Partnership
+            </TabsTrigger>
+            <TabsTrigger 
+              value="training"
+              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 h-12 text-base font-medium rounded-lg shadow-sm transition-all"
+            >
+              Value Props & Resources
+            </TabsTrigger>
+            <TabsTrigger 
+              value="kpis"
+              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 h-12 text-base font-medium rounded-lg shadow-sm transition-all"
+            >
+              KPIs & Metrics
+            </TabsTrigger>
+            <TabsTrigger 
+              value="referrals"
+              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 h-12 text-base font-medium rounded-lg shadow-sm transition-all"
+            >
+              Referrals
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
+            
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Basic Organization Information */}
               <Card>
