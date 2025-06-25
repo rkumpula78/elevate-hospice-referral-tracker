@@ -5,13 +5,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { Upload, X, FileText, Download } from 'lucide-react';
-import { format } from 'date-fns';
 
 interface EditOrganizationDialogProps {
   open: boolean;
@@ -70,6 +68,7 @@ const EditOrganizationDialog = ({ open, onOpenChange, organizationId }: EditOrga
       queryClient.invalidateQueries({ queryKey: ['organizations'] });
       queryClient.invalidateQueries({ queryKey: ['organization', organizationId] });
       toast({ title: 'Organization updated successfully' });
+      onOpenChange(false);
     },
     onError: (error) => {
       toast({ title: 'Error updating organization', description: error.message, variant: 'destructive' });
@@ -190,8 +189,13 @@ const EditOrganizationDialog = ({ open, onOpenChange, organizationId }: EditOrga
   if (isLoading) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <div>Loading organization information...</div>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Loading...</DialogTitle>
+          </DialogHeader>
+          <div className="p-6">
+            <p>Loading organization information...</p>
+          </div>
         </DialogContent>
       </Dialog>
     );
@@ -201,171 +205,198 @@ const EditOrganizationDialog = ({ open, onOpenChange, organizationId }: EditOrga
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
+      <DialogContent className="max-w-4xl max-h-[85vh] overflow-hidden flex flex-col">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle>Edit Organization: {organization.name}</DialogTitle>
         </DialogHeader>
 
-        <Tabs defaultValue="basic-info" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="basic-info">Basic Info</TabsTrigger>
-            <TabsTrigger value="documents">Documents</TabsTrigger>
-          </TabsList>
+        <div className="flex-1 overflow-hidden">
+          <Tabs defaultValue="basic-info" className="h-full flex flex-col">
+            <TabsList className="flex-shrink-0 grid w-full grid-cols-2">
+              <TabsTrigger value="basic-info">Basic Info</TabsTrigger>
+              <TabsTrigger value="documents">Documents</TabsTrigger>
+            </TabsList>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <TabsContent value="basic-info" className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="name">Organization Name</Label>
-                  <Input
-                    id="name"
-                    name="name"
-                    defaultValue={organization.name}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="type">Type</Label>
-                  <Select name="type" defaultValue={organization.type}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="hospital">Hospital</SelectItem>
-                      <SelectItem value="clinic">Clinic</SelectItem>
-                      <SelectItem value="physician_office">Physician Office</SelectItem>
-                      <SelectItem value="nursing_home">Nursing Home</SelectItem>
-                      <SelectItem value="home_health">Home Health</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="md:col-span-2">
-                  <Label htmlFor="address">Address</Label>
-                  <Input
-                    id="address"
-                    name="address"
-                    defaultValue={organization.address || ''}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="phone">Phone</Label>
-                  <Input
-                    id="phone"
-                    name="phone"
-                    defaultValue={organization.phone || ''}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="contact_person">Contact Person</Label>
-                  <Input
-                    id="contact_person"
-                    name="contact_person"
-                    defaultValue={organization.contact_person || ''}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="contact_email">Contact Email</Label>
-                  <Input
-                    id="contact_email"
-                    name="contact_email"
-                    type="email"
-                    defaultValue={organization.contact_email || ''}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="assigned_marketer">Assigned Marketer</Label>
-                  <Input
-                    id="assigned_marketer"
-                    name="assigned_marketer"
-                    defaultValue={organization.assigned_marketer || ''}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="is_active">Status</Label>
-                  <Select name="is_active" defaultValue={organization.is_active ? 'true' : 'false'}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="true">Active</SelectItem>
-                      <SelectItem value="false">Inactive</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="documents" className="space-y-4">
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium">Organization Documents</h3>
-                
-                {/* Document Upload Sections */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {['contract', 'certification', 'contact_info', 'insurance', 'license', 'other'].map((docType) => (
-                    <div key={docType} className="border rounded-lg p-4">
-                      <h4 className="font-medium mb-2 capitalize">{docType.replace('_', ' ')}</h4>
-                      <input
-                        type="file"
-                        id={`file-upload-${docType}`}
-                        className="hidden"
-                        onChange={(e) => handleFileUpload(e, docType)}
-                        disabled={uploading}
+            <div className="flex-1 overflow-y-auto">
+              <form onSubmit={handleSubmit} className="h-full">
+                <TabsContent value="basic-info" className="mt-4 space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="name">Organization Name *</Label>
+                      <Input
+                        id="name"
+                        name="name"
+                        defaultValue={organization.name}
+                        required
+                        className="w-full"
                       />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => document.getElementById(`file-upload-${docType}`)?.click()}
-                        disabled={uploading}
-                      >
-                        <Upload className="w-4 h-4 mr-2" />
-                        Upload {docType.replace('_', ' ')}
-                      </Button>
-                      
-                      {/* Show documents of this type */}
-                      {documents?.filter(doc => doc.document_type === docType).map((doc) => (
-                        <div key={doc.id} className="flex items-center justify-between p-2 bg-gray-50 rounded mt-2">
-                          <div className="flex items-center gap-2">
-                            <FileText className="w-3 h-3" />
-                            <span className="text-sm">{doc.file_name}</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={() => downloadFile(doc)}
-                            >
-                              <Download className="w-3 h-3" />
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={() => deleteDocumentMutation.mutate(doc)}
-                            >
-                              <X className="w-3 h-3" />
-                            </Button>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="type">Type *</Label>
+                      <Select name="type" defaultValue={organization.type}>
+                        <SelectTrigger className="w-full">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="hospital">Hospital</SelectItem>
+                          <SelectItem value="clinic">Cancer Center/Clinic</SelectItem>
+                          <SelectItem value="physician_office">Physician Office</SelectItem>
+                          <SelectItem value="nursing_home">Skilled Nursing</SelectItem>
+                          <SelectItem value="home_health">Home Health</SelectItem>
+                          <SelectItem value="assisted_living">Assisted Living</SelectItem>
+                          <SelectItem value="other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="address">Address</Label>
+                    <Input
+                      id="address"
+                      name="address"
+                      defaultValue={organization.address || ''}
+                      className="w-full"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="phone">Phone</Label>
+                      <Input
+                        id="phone"
+                        name="phone"
+                        defaultValue={organization.phone || ''}
+                        className="w-full"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="contact_person">Contact Person</Label>
+                      <Input
+                        id="contact_person"
+                        name="contact_person"
+                        defaultValue={organization.contact_person || ''}
+                        className="w-full"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="contact_email">Contact Email</Label>
+                      <Input
+                        id="contact_email"
+                        name="contact_email"
+                        type="email"
+                        defaultValue={organization.contact_email || ''}
+                        className="w-full"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="assigned_marketer">Assigned Marketer</Label>
+                      <Input
+                        id="assigned_marketer"
+                        name="assigned_marketer"
+                        defaultValue={organization.assigned_marketer || ''}
+                        className="w-full"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="is_active">Status</Label>
+                    <Select name="is_active" defaultValue={organization.is_active ? 'true' : 'false'}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="true">Active</SelectItem>
+                        <SelectItem value="false">Inactive</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="documents" className="mt-4 space-y-6">
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-medium">Organization Documents</h3>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {['contract', 'certification', 'contact_info', 'insurance', 'license', 'other'].map((docType) => (
+                        <div key={docType} className="border rounded-lg p-4 space-y-3">
+                          <h4 className="font-medium capitalize text-sm">
+                            {docType.replace('_', ' ')}
+                          </h4>
+                          
+                          <input
+                            type="file"
+                            id={`file-upload-${docType}`}
+                            className="hidden"
+                            onChange={(e) => handleFileUpload(e, docType)}
+                            disabled={uploading}
+                          />
+                          
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => document.getElementById(`file-upload-${docType}`)?.click()}
+                            disabled={uploading}
+                            className="w-full"
+                          >
+                            <Upload className="w-4 h-4 mr-2" />
+                            Upload {docType.replace('_', ' ')}
+                          </Button>
+                          
+                          <div className="space-y-2">
+                            {documents?.filter(doc => doc.document_type === docType).map((doc) => (
+                              <div key={doc.id} className="flex items-center justify-between p-2 bg-gray-50 rounded text-sm">
+                                <div className="flex items-center gap-2 flex-1 min-w-0">
+                                  <FileText className="w-3 h-3 flex-shrink-0" />
+                                  <span className="truncate">{doc.file_name}</span>
+                                </div>
+                                <div className="flex items-center gap-1 flex-shrink-0">
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => downloadFile(doc)}
+                                  >
+                                    <Download className="w-3 h-3" />
+                                  </Button>
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => deleteDocumentMutation.mutate(doc)}
+                                  >
+                                    <X className="w-3 h-3" />
+                                  </Button>
+                                </div>
+                              </div>
+                            ))}
                           </div>
                         </div>
                       ))}
                     </div>
-                  ))}
-                </div>
-              </div>
-            </TabsContent>
+                  </div>
+                </TabsContent>
 
-            <div className="flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                Cancel
-              </Button>
-              <Button type="submit" disabled={updateOrganizationMutation.isPending}>
-                {updateOrganizationMutation.isPending ? 'Saving...' : 'Save Changes'}
-              </Button>
+                <div className="flex justify-end gap-2 pt-4 border-t bg-white sticky bottom-0">
+                  <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={updateOrganizationMutation.isPending}>
+                    {updateOrganizationMutation.isPending ? 'Saving...' : 'Save Changes'}
+                  </Button>
+                </div>
+              </form>
             </div>
-          </form>
-        </Tabs>
+          </Tabs>
+        </div>
       </DialogContent>
     </Dialog>
   );
