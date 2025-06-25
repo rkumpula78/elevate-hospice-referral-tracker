@@ -1,10 +1,11 @@
+
 import React, { useState } from 'react';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, MapPin, User, Edit, ExternalLink, Users, Building, Calendar } from "lucide-react";
+import { Plus, MapPin, User, Edit, ExternalLink, Users, Building, Calendar, Phone } from "lucide-react";
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import EnhancedAddOrganizationDialog from './EnhancedAddOrganizationDialog';
