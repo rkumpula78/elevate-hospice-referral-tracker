@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -48,9 +49,13 @@ const TrainingMetrics = () => {
         .select('checklist_id, completed_items');
       
       const totalChecklists = checklists?.length || 0;
-      const completedChecklists = completions?.filter(c => 
-        c.completed_items && c.completed_items.length > 0
-      ).length || 0;
+      const completedChecklists = completions?.filter(c => {
+        // Type guard to check if completed_items is an array
+        if (Array.isArray(c.completed_items)) {
+          return c.completed_items.length > 0;
+        }
+        return false;
+      }).length || 0;
       
       return {
         totalChecklists,
@@ -172,4 +177,4 @@ const TrainingMetrics = () => {
   );
 };
 
-export default TrainingMetrics; 
+export default TrainingMetrics;

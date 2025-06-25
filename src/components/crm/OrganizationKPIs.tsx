@@ -63,7 +63,14 @@ const OrganizationKPIs: React.FC<OrganizationKPIsProps> = ({ organizationId, org
         .single();
       
       if (error) throw error;
-      return data?.content?.metrics || [];
+      
+      // Type guard to safely access metrics property
+      if (data?.content && typeof data.content === 'object' && !Array.isArray(data.content)) {
+        const content = data.content as { [key: string]: any };
+        return Array.isArray(content.metrics) ? content.metrics : [];
+      }
+      
+      return [];
     }
   });
 
@@ -309,4 +316,4 @@ const OrganizationKPIs: React.FC<OrganizationKPIsProps> = ({ organizationId, org
   );
 };
 
-export default OrganizationKPIs; 
+export default OrganizationKPIs;
