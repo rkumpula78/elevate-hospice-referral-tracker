@@ -11,6 +11,8 @@ import EditOrganizationDialog from '@/components/crm/EditOrganizationDialog';
 import OrganizationTraining from '@/components/crm/OrganizationTraining';
 import OrganizationKPIs from '@/components/crm/OrganizationKPIs';
 import PartnershipStageManager from '@/components/crm/PartnershipStageManager';
+import SimpleOrganizationTraining from '@/components/training/SimpleOrganizationTraining';
+import OrganizationKPICard from '@/components/crm/OrganizationKPICard';
 
 const OrganizationDetail = () => {
   const { id } = useParams();
@@ -83,9 +85,9 @@ const OrganizationDetail = () => {
       <div className="container mx-auto p-6 space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <Button variant="outline" onClick={() => navigate('/dashboard')}>
+            <Button variant="outline" onClick={() => navigate('/organizations')}>
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Dashboard
+              Back to Organizations
             </Button>
             <h1 className="text-2xl font-bold">Organization Details</h1>
           </div>
@@ -100,7 +102,7 @@ const OrganizationDetail = () => {
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="partnership">Partnership</TabsTrigger>
             <TabsTrigger value="training">Training & Resources</TabsTrigger>
-            <TabsTrigger value="kpis">KPIs</TabsTrigger>
+            <TabsTrigger value="kpis">KPIs & Metrics</TabsTrigger>
             <TabsTrigger value="referrals">Referrals</TabsTrigger>
           </TabsList>
 

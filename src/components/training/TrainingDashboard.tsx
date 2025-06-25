@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -19,33 +20,90 @@ const TrainingDashboard = () => {
   // Get current user info (would normally come from auth context)
   const marketerName = "Current Marketer"; // Replace with actual auth user
 
-  // Fetch all training modules
-  const { data: allModules } = useQuery({
+  console.log('TrainingDashboard: Component mounted');
+
+  // Fetch all training modules from database
+  const { data: allModules, isLoading: modulesLoading, error: modulesError } = useQuery({
     queryKey: ['all-training-modules'],
     queryFn: async () => {
+      console.log('TrainingDashboard: Fetching training modules from database...');
       const { data, error } = await supabase
         .from('organization_training_modules')
         .select('*')
-        .eq('is_active', true);
+        .eq('is_active', true)
+        .order('organization_type, order_index');
       
-      if (error) throw error;
+      if (error) {
+        console.error('TrainingDashboard: Error fetching training modules:', error);
+        throw error;
+      }
+      console.log('TrainingDashboard: Training modules fetched successfully:', data);
       return data;
     }
   });
 
-  // Fetch marketer's training progress
-  const { data: trainingProgress } = useQuery({
+  // Fetch marketer's training progress from database
+  const { data: trainingProgress, isLoading: progressLoading, error: progressError } = useQuery({
     queryKey: ['marketer-training-progress', marketerName],
     queryFn: async () => {
+      console.log('TrainingDashboard: Fetching training progress from database...');
       const { data, error } = await supabase
         .from('marketer_training_progress')
         .select('*')
         .eq('marketer_name', marketerName);
       
-      if (error) throw error;
+      if (error) {
+        console.error('TrainingDashboard: Error fetching training progress:', error);
+        throw error;
+      }
+      console.log('TrainingDashboard: Training progress fetched successfully:', data);
       return data;
     }
   });
+
+  console.log('TrainingDashboard: Current state:', {
+    modulesLoading,
+    progressLoading,
+    modulesError,
+    progressError,
+    allModulesCount: allModules?.length,
+    progressCount: trainingProgress?.length
+  });
+
+  // Show loading state
+  if (modulesLoading || progressLoading) {
+    console.log('TrainingDashboard: Showing loading state');
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <p className="text-lg">Loading training data...</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (modulesError || progressError) {
+    console.error('TrainingDashboard: Showing error state', { modulesError, progressError });
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <p className="text-lg text-red-600">Error loading training data</p>
+              <p className="text-sm text-muted-foreground mt-2">
+                {modulesError?.message || progressError?.message || 'Unknown error occurred'}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   // Group modules by organization type
   const modulesByType = allModules?.reduce((acc: any, module: any) => {
@@ -54,11 +112,13 @@ const TrainingDashboard = () => {
     }
     acc[module.organization_type].push(module);
     return acc;
-  }, {});
+  }, {}) || {};
+
+  console.log('TrainingDashboard: Modules grouped by type:', modulesByType);
 
   // Calculate progress for each organization type
   const getTypeProgress = (type: string) => {
-    const typeModules = modulesByType?.[type] || [];
+    const typeModules = modulesByType[type] || [];
     const completedModules = trainingProgress?.filter(p => 
       typeModules.some((m: any) => m.id === p.module_id)
     ).length || 0;
@@ -75,7 +135,7 @@ const TrainingDashboard = () => {
       'home_health': 'Home Health Agencies',
       'clinic': 'Cancer Centers & Clinics'
     };
-    return labels[type] || type;
+    return labels[type] || type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
   };
 
   const getOrgTypeIcon = (type: string) => {
@@ -93,6 +153,13 @@ const TrainingDashboard = () => {
   const totalModules = allModules?.length || 0;
   const completedModules = trainingProgress?.length || 0;
   const overallProgress = totalModules > 0 ? (completedModules / totalModules) * 100 : 0;
+
+  console.log('TrainingDashboard: Final calculated values:', { 
+    totalModules, 
+    completedModules, 
+    overallProgress, 
+    modulesByTypeKeys: Object.keys(modulesByType)
+  });
 
   return (
     <div className="space-y-6">
@@ -119,10 +186,22 @@ const TrainingDashboard = () => {
               <Progress value={overallProgress} className="h-3" />
             </div>
             
-            {overallProgress === 100 && (
+            {overallProgress === 100 && totalModules > 0 && (
               <div className="flex items-center space-x-2 text-green-600">
                 <CheckCircle2 className="w-5 h-5" />
                 <span className="font-medium">Congratulations! You've completed all training modules!</span>
+              </div>
+            )}
+
+            {totalModules === 0 && (
+              <div className="text-center py-4">
+                <p className="text-muted-foreground">
+                  No training modules found in database. 
+                  Please check that the database migration was successful and data was inserted properly.
+                </p>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Debug info: Modules loading: {String(modulesLoading)}, Error: {modulesError?.message || 'none'}
+                </p>
               </div>
             )}
           </div>
@@ -130,44 +209,46 @@ const TrainingDashboard = () => {
       </Card>
 
       {/* Progress by Organization Type */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {Object.keys(modulesByType || {}).map((type) => {
-          const progress = getTypeProgress(type);
-          const moduleCount = modulesByType?.[type]?.length || 0;
-          const completedCount = trainingProgress?.filter(p => 
-            modulesByType?.[type]?.some((m: any) => m.id === p.module_id)
-          ).length || 0;
+      {Object.keys(modulesByType).length > 0 && (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {Object.keys(modulesByType).map((type) => {
+            const progress = getTypeProgress(type);
+            const moduleCount = modulesByType[type]?.length || 0;
+            const completedCount = trainingProgress?.filter(p => 
+              modulesByType[type]?.some((m: any) => m.id === p.module_id)
+            ).length || 0;
 
-          return (
-            <Card key={type}>
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    {getOrgTypeIcon(type)}
-                    <CardTitle className="text-base">
-                      {getOrgTypeLabel(type)}
-                    </CardTitle>
+            return (
+              <Card key={type}>
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      {getOrgTypeIcon(type)}
+                      <CardTitle className="text-base">
+                        {getOrgTypeLabel(type)}
+                      </CardTitle>
+                    </div>
+                    {progress === 100 && moduleCount > 0 && (
+                      <Badge variant="default" className="bg-green-500">
+                        <CheckCircle2 className="w-3 h-3 mr-1" />
+                        Complete
+                      </Badge>
+                    )}
                   </div>
-                  {progress === 100 && (
-                    <Badge variant="default" className="bg-green-500">
-                      <CheckCircle2 className="w-3 h-3 mr-1" />
-                      Complete
-                    </Badge>
-                  )}
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <Progress value={progress} className="h-2" />
-                  <p className="text-xs text-muted-foreground">
-                    {completedCount} of {moduleCount} modules completed
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <Progress value={progress} className="h-2" />
+                    <p className="text-xs text-muted-foreground">
+                      {completedCount} of {moduleCount} modules completed
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      )}
 
       {/* Quick Stats */}
       <div className="grid gap-4 md:grid-cols-4">
@@ -208,4 +289,4 @@ const TrainingDashboard = () => {
   );
 };
 
-export default TrainingDashboard; 
+export default TrainingDashboard;

@@ -1,0 +1,35 @@
+
+-- Add missing patient fields to the referrals table
+ALTER TABLE public.referrals ADD COLUMN IF NOT EXISTS first_name TEXT;
+ALTER TABLE public.referrals ADD COLUMN IF NOT EXISTS last_name TEXT;
+ALTER TABLE public.referrals ADD COLUMN IF NOT EXISTS date_of_birth DATE;
+ALTER TABLE public.referrals ADD COLUMN IF NOT EXISTS ssn TEXT;
+ALTER TABLE public.referrals ADD COLUMN IF NOT EXISTS address TEXT;
+ALTER TABLE public.referrals ADD COLUMN IF NOT EXISTS phone TEXT;
+ALTER TABLE public.referrals ADD COLUMN IF NOT EXISTS primary_insurance TEXT;
+ALTER TABLE public.referrals ADD COLUMN IF NOT EXISTS medicare_number TEXT;
+ALTER TABLE public.referrals ADD COLUMN IF NOT EXISTS referral_source TEXT;
+ALTER TABLE public.referrals ADD COLUMN IF NOT EXISTS responsible_party_name TEXT;
+ALTER TABLE public.referrals ADD COLUMN IF NOT EXISTS responsible_party_contact TEXT;
+ALTER TABLE public.referrals ADD COLUMN IF NOT EXISTS responsible_party_relationship TEXT;
+ALTER TABLE public.referrals ADD COLUMN IF NOT EXISTS emergency_contact TEXT;
+ALTER TABLE public.referrals ADD COLUMN IF NOT EXISTS emergency_phone TEXT;
+ALTER TABLE public.referrals ADD COLUMN IF NOT EXISTS physician TEXT;
+ALTER TABLE public.referrals ADD COLUMN IF NOT EXISTS secondary_insurance TEXT;
+ALTER TABLE public.referrals ADD COLUMN IF NOT EXISTS medicaid_number TEXT;
+ALTER TABLE public.referrals ADD COLUMN IF NOT EXISTS height INTEGER;
+ALTER TABLE public.referrals ADD COLUMN IF NOT EXISTS weight INTEGER;
+ALTER TABLE public.referrals ADD COLUMN IF NOT EXISTS advanced_directive BOOLEAN DEFAULT false;
+ALTER TABLE public.referrals ADD COLUMN IF NOT EXISTS dnr_status BOOLEAN DEFAULT false;
+ALTER TABLE public.referrals ADD COLUMN IF NOT EXISTS prior_hospice_info TEXT;
+ALTER TABLE public.referrals ADD COLUMN IF NOT EXISTS caregiver_name TEXT;
+ALTER TABLE public.referrals ADD COLUMN IF NOT EXISTS caregiver_contact TEXT;
+ALTER TABLE public.referrals ADD COLUMN IF NOT EXISTS spiritual_preferences TEXT;
+ALTER TABLE public.referrals ADD COLUMN IF NOT EXISTS dme_needs TEXT;
+ALTER TABLE public.referrals ADD COLUMN IF NOT EXISTS transport_needs TEXT;
+ALTER TABLE public.referrals ADD COLUMN IF NOT EXISTS special_medical_needs TEXT;
+ALTER TABLE public.referrals ADD COLUMN IF NOT EXISTS attending_physician TEXT;
+ALTER TABLE public.referrals ADD COLUMN IF NOT EXISTS msw_notes TEXT;
+ALTER TABLE public.referrals ADD COLUMN IF NOT EXISTS upcoming_appointments TEXT;
+ALTER TABLE public.referrals ADD COLUMN IF NOT EXISTS funeral_arrangements TEXT;
+ALTER TABLE public.referrals ADD COLUMN IF NOT EXISTS next_steps TEXT;
