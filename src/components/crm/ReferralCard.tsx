@@ -113,90 +113,65 @@ const ReferralCard = ({
         {/* Gradient accent line */}
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-purple-500"></div>
         
-        {/* Patient Header Section */}
-        <div className="mb-6">
-          <div className="flex items-start justify-between mb-4">
-            <div className="flex-1 min-w-0">
-              <Link 
-                to={`/referral/${referral.id}`}
-                className="hover:text-primary transition-colors group-hover:underline"
-              >
-                <h3 className="text-xl font-bold text-gray-900 mb-2 truncate">
-                  {referral.patient_name}
-                </h3>
-              </Link>
-              
-              {/* Patient Contact Information */}
-              <div className="space-y-2 mb-3">
-                {referral.patient_phone && (
-                  <div className="flex items-center text-sm text-gray-600">
-                    <Phone className="w-4 h-4 mr-2 flex-shrink-0 text-blue-500" />
-                    <span className="font-medium">{referral.patient_phone}</span>
-                  </div>
-                )}
-                
-                {(referral.patient_address || referral.patient_city || referral.patient_state) && (
-                  <div className="flex items-start text-sm text-gray-600">
-                    <MapPin className="w-4 h-4 mr-2 flex-shrink-0 text-blue-500 mt-0.5" />
-                    <div className="min-w-0 flex-1">
-                      {referral.patient_address && (
-                        <div className="truncate">{referral.patient_address}</div>
-                      )}
-                      {(referral.patient_city || referral.patient_state) && (
-                        <div className="truncate">
-                          {[referral.patient_city, referral.patient_state].filter(Boolean).join(', ')}
-                          {referral.patient_zip && ` ${referral.patient_zip}`}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
+        {/* Patient Name - Most Prominent */}
+        <div className="mb-4">
+          <Link 
+            to={`/referral/${referral.id}`}
+            className="hover:text-primary transition-colors group-hover:underline"
+          >
+            <h2 className="text-2xl font-bold text-gray-900 mb-3 leading-tight">
+              {referral.patient_name}
+            </h2>
+          </Link>
+          
+          {/* Patient Contact Information */}
+          <div className="space-y-2">
+            {referral.patient_phone && (
+              <div className="flex items-center text-sm text-gray-600">
+                <Phone className="w-4 h-4 mr-2 flex-shrink-0 text-blue-500" />
+                <span className="font-medium">{referral.patient_phone}</span>
               </div>
-            </div>
+            )}
             
-            {/* Priority Badge */}
-            <div className="flex-shrink-0 ml-4">
-              <Select
-                value={referral.priority || 'routine'}
-                onValueChange={(value: string) => onPriorityChange(referral.id, value)}
-                disabled={isUpdatingPriority}
-              >
-                <SelectTrigger className="w-28 h-8 modern-filter">
-                  <Badge className={getPriorityColor(referral.priority || 'routine')}>
-                    {getPriorityIcon(referral.priority || 'routine')}
-                    <span className="ml-1 capitalize text-xs">{referral.priority || 'routine'}</span>
-                  </Badge>
-                </SelectTrigger>
-                <SelectContent className="modern-dropdown">
-                  <SelectItem value="urgent" className="modern-dropdown-item">Urgent</SelectItem>
-                  <SelectItem value="routine" className="modern-dropdown-item">Routine</SelectItem>
-                  <SelectItem value="low" className="modern-dropdown-item">Low</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            {(referral.patient_address || referral.patient_city || referral.patient_state) && (
+              <div className="flex items-start text-sm text-gray-600">
+                <MapPin className="w-4 h-4 mr-2 flex-shrink-0 text-blue-500 mt-0.5" />
+                <div className="min-w-0 flex-1">
+                  {referral.patient_address && (
+                    <div className="truncate">{referral.patient_address}</div>
+                  )}
+                  {(referral.patient_city || referral.patient_state) && (
+                    <div className="truncate">
+                      {[referral.patient_city, referral.patient_state].filter(Boolean).join(', ')}
+                      {referral.patient_zip && ` ${referral.patient_zip}`}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
+        </div>
 
-          {/* Action Buttons */}
-          <div className="flex gap-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => onEdit(referral.id)} 
-              className="modern-btn-secondary h-8 px-3 text-xs flex-1"
-            >
-              <Edit className="w-3 h-3 mr-1" />
-              Edit
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={handleSchedule} 
-              className="modern-btn-primary h-8 px-3 text-xs flex-1"
-            >
-              <Calendar className="w-3 h-3 mr-1" />
-              Schedule
-            </Button>
-          </div>
+        {/* Action Buttons - Smaller Size */}
+        <div className="flex gap-2 mb-4">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => onEdit(referral.id)} 
+            className="modern-btn-secondary h-7 px-2 text-xs flex-1"
+          >
+            <Edit className="w-3 h-3 mr-1" />
+            Edit
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleSchedule} 
+            className="modern-btn-primary h-7 px-2 text-xs flex-1"
+          >
+            <Calendar className="w-3 h-3 mr-1" />
+            Schedule
+          </Button>
         </div>
 
         {/* Organization Section */}
@@ -217,7 +192,7 @@ const ReferralCard = ({
         </div>
 
         {/* Status with Progress Bar */}
-        <div className="mb-4">
+        <div className="mb-3">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-gray-600 font-medium">Status</span>
             <Select
@@ -254,6 +229,28 @@ const ReferralCard = ({
               />
             </div>
           )}
+        </div>
+
+        {/* Priority Status - Below Main Status */}
+        <div className="flex items-center justify-between mb-4">
+          <span className="text-sm text-gray-600 font-medium">Priority</span>
+          <Select
+            value={referral.priority || 'routine'}
+            onValueChange={(value: string) => onPriorityChange(referral.id, value)}
+            disabled={isUpdatingPriority}
+          >
+            <SelectTrigger className="w-28 h-8 modern-filter">
+              <Badge className={getPriorityColor(referral.priority || 'routine')}>
+                {getPriorityIcon(referral.priority || 'routine')}
+                <span className="ml-1 capitalize text-xs">{referral.priority || 'routine'}</span>
+              </Badge>
+            </SelectTrigger>
+            <SelectContent className="modern-dropdown">
+              <SelectItem value="urgent" className="modern-dropdown-item">Urgent</SelectItem>
+              <SelectItem value="routine" className="modern-dropdown-item">Routine</SelectItem>
+              <SelectItem value="low" className="modern-dropdown-item">Low</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Referral Date */}
