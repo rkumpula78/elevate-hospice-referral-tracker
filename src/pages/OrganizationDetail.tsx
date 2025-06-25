@@ -8,11 +8,8 @@ import { ArrowLeft, Building2, Phone, Mail, MapPin, User, Edit, Globe, FileText,
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import EditOrganizationDialog from '@/components/crm/EditOrganizationDialog';
-import OrganizationTraining from '@/components/crm/OrganizationTraining';
 import OrganizationKPIs from '@/components/crm/OrganizationKPIs';
 import PartnershipStageManager from '@/components/crm/PartnershipStageManager';
-import SimpleOrganizationTraining from '@/components/training/SimpleOrganizationTraining';
-import OrganizationKPICard from '@/components/crm/OrganizationKPICard';
 import OrganizationContactsTab from '@/components/crm/OrganizationContactsTab';
 import OrganizationValueProps from '@/components/value-props/OrganizationValueProps';
 
@@ -395,15 +392,10 @@ const OrganizationDetail = () => {
           </TabsContent>
 
           <TabsContent value="training">
-            <div className="space-y-6">
-              <OrganizationValueProps 
-                organizationType={organization.type}
-              />
-              <OrganizationTraining
-                organizationId={id!}
-                organizationType={organization.type}
-              />
-            </div>
+            <OrganizationValueProps 
+              organizationType={organization.type}
+              organizationId={id!}
+            />
           </TabsContent>
 
           <TabsContent value="kpis">

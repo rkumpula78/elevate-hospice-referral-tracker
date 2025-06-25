@@ -1,7 +1,7 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { ChevronRight, Users, FileText, Target, TrendingUp } from 'lucide-react';
+import OrganizationTraining from '@/components/crm/OrganizationTraining';
 
 interface ValuePropModule {
   id: string;
@@ -12,9 +12,10 @@ interface ValuePropModule {
 
 interface OrganizationValuePropsProps {
   organizationType: string;
+  organizationId: string;
 }
 
-const OrganizationValueProps = ({ organizationType }: OrganizationValuePropsProps) => {
+const OrganizationValueProps = ({ organizationType, organizationId }: OrganizationValuePropsProps) => {
   const [activeSection, setActiveSection] = useState<string>('value-props');
   const [expandedModule, setExpandedModule] = useState<string | null>(null);
 
@@ -306,52 +307,20 @@ const OrganizationValueProps = ({ organizationType }: OrganizationValuePropsProp
     </div>
   );
 
-  const renderActionPlanContent = () => (
-    <Card>
-      <CardContent className="p-6">
-        <div className="text-center py-8">
-          <FileText className="w-12 h-12 text-green-500 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold mb-2">Action Plan</h3>
-          <p className="text-gray-600">Implementation strategies and step-by-step guidance coming soon.</p>
-        </div>
-      </CardContent>
-    </Card>
-  );
-
-  const renderChecklistsContent = () => (
-    <Card>
-      <CardContent className="p-6">
-        <div className="text-center py-8">
-          <Target className="w-12 h-12 text-purple-500 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold mb-2">Quality Checklists</h3>
-          <p className="text-gray-600">Quality assurance checklists and verification tools coming soon.</p>
-        </div>
-      </CardContent>
-    </Card>
-  );
-
-  const renderKPIsContent = () => (
-    <Card>
-      <CardContent className="p-6">
-        <div className="text-center py-8">
-          <TrendingUp className="w-12 h-12 text-orange-500 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold mb-2">KPIs & Metrics</h3>
-          <p className="text-gray-600">Key performance indicators and success metrics coming soon.</p>
-        </div>
-      </CardContent>
-    </Card>
-  );
-
   const renderActiveContent = () => {
     switch (activeSection) {
       case 'value-props':
         return renderValuePropsContent();
       case 'action-plan':
-        return renderActionPlanContent();
       case 'checklists':
-        return renderChecklistsContent();
       case 'kpis':
-        return renderKPIsContent();
+        return (
+          <OrganizationTraining
+            organizationId={organizationId}
+            organizationType={organizationType}
+            defaultActiveSection={activeSection}
+          />
+        );
       default:
         return renderValuePropsContent();
     }
