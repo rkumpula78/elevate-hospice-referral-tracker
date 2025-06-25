@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -265,7 +264,7 @@ const ReferralDetail = () => {
           onOpenChange={(open) => {
             setShowEditDialog(open);
             if (!open) {
-              refetch(); // Refetch data when dialog closes
+              refetch();
             }
           }}
           referralId={id!}
@@ -274,6 +273,7 @@ const ReferralDetail = () => {
         <ScheduleVisitDialog
           open={showScheduleDialog}
           onOpenChange={setShowScheduleDialog}
+          referralId={id}
         />
       </div>
     </PageLayout>

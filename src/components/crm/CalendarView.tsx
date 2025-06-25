@@ -31,8 +31,7 @@ const CalendarView = () => {
         .from('visits')
         .select(`
           *, 
-          patients(first_name, last_name),
-          referrals!visits_patient_id_fkey(referring_facility)
+          referrals!visits_patient_id_fkey(patient_name, referring_facility)
         `);
 
       if (selectedType !== 'all') {
@@ -83,10 +82,9 @@ const CalendarView = () => {
   };
 
   const createEventTitle = (visit: any) => {
-    // Try to get patient name first
-    if (visit.patients?.first_name || visit.patients?.last_name) {
-      const patientName = `${visit.patients.first_name || ''} ${visit.patients.last_name || ''}`.trim();
-      return `${patientName} - ${visit.visit_type}`;
+    // Try to get patient name from referrals table
+    if (visit.referrals?.patient_name) {
+      return `${visit.referrals.patient_name} - ${visit.visit_type}`;
     }
     
     // Try to get facility name from referrals

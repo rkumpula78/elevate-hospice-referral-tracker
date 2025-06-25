@@ -20,20 +20,21 @@ import { useToast } from "@/hooks/use-toast";
 interface ScheduleVisitDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  referralId?: string;
 }
 
 type VisitTarget = 'patient' | 'facility' | 'referral_source' | 'event';
 type VisitType = 'admission' | 'routine' | 'urgent' | 'discharge';
 
-const ScheduleVisitDialog = ({ open, onOpenChange }: ScheduleVisitDialogProps) => {
+const ScheduleVisitDialog = ({ open, onOpenChange, referralId }: ScheduleVisitDialogProps) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [formData, setFormData] = useState({
     subject: '',
-    visit_target: '' as VisitTarget,
-    patient_id: '',
+    visit_target: 'patient' as VisitTarget,
+    patient_id: referralId || '',
     organization_id: '',
-    visit_type: '' as VisitType,
+    visit_type: 'routine' as VisitType,
     scheduled_date: '',
     scheduled_time: '',
     staff_name: '',
@@ -43,15 +44,15 @@ const ScheduleVisitDialog = ({ open, onOpenChange }: ScheduleVisitDialogProps) =
     event_location: ''
   });
 
-  // Fetch patients for the dropdown
-  const { data: patients } = useQuery({
-    queryKey: ['patients'],
+  // Fetch referrals to use as "patients" in the dropdown
+  const { data: referrals } = useQuery({
+    queryKey: ['referrals-for-visits'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('patients')
-        .select('id, first_name, last_name')
-        .eq('status', 'active')
-        .order('first_name');
+        .from('referrals')
+        .select('id, patient_name, status')
+        .in('status', ['pending', 'contacted', 'scheduled'])
+        .order('patient_name');
       if (error) throw error;
       return data;
     }
@@ -89,7 +90,6 @@ const ScheduleVisitDialog = ({ open, onOpenChange }: ScheduleVisitDialogProps) =
         if (error) throw error;
       } else {
         // For facilities, referral sources, and events, we'll store in notes
-        // In a real system, you might want a separate events table
         const eventDescription = data.visit_target === 'event' 
           ? `Event: ${data.event_title} at ${data.event_location}`
           : `Visit to ${data.visit_target}`;
@@ -119,10 +119,10 @@ const ScheduleVisitDialog = ({ open, onOpenChange }: ScheduleVisitDialogProps) =
       onOpenChange(false);
       setFormData({
         subject: '',
-        visit_target: '' as VisitTarget,
+        visit_target: 'patient' as VisitTarget,
         patient_id: '',
         organization_id: '',
-        visit_type: '' as VisitType,
+        visit_type: 'routine' as VisitType,
         scheduled_date: '',
         scheduled_time: '',
         staff_name: '',
@@ -153,6 +153,12 @@ const ScheduleVisitDialog = ({ open, onOpenChange }: ScheduleVisitDialogProps) =
   const handleInputChange = (field: string, value: string | number) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
+
+  React.useEffect(() => {
+    if (referralId) {
+      setFormData(prev => ({ ...prev, patient_id: referralId }));
+    }
+  }, [referralId]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -200,9 +206,9 @@ const ScheduleVisitDialog = ({ open, onOpenChange }: ScheduleVisitDialogProps) =
                       <SelectValue placeholder="Select patient" />
                     </SelectTrigger>
                     <SelectContent>
-                      {patients?.map((patient) => (
-                        <SelectItem key={patient.id} value={patient.id}>
-                          {patient.first_name} {patient.last_name}
+                      {referrals?.map((referral) => (
+                        <SelectItem key={referral.id} value={referral.id}>
+                          {referral.patient_name}
                         </SelectItem>
                       ))}
                     </SelectContent>
