@@ -395,9 +395,15 @@ const OrganizationDetail = () => {
           </TabsContent>
 
           <TabsContent value="training">
-            <OrganizationValueProps 
-              organizationType={organization.type}
-            />
+            <div className="space-y-6">
+              <OrganizationValueProps 
+                organizationType={organization.type}
+              />
+              <OrganizationTraining
+                organizationId={id!}
+                organizationType={organization.type}
+              />
+            </div>
           </TabsContent>
 
           <TabsContent value="kpis">
