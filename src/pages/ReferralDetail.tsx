@@ -229,9 +229,13 @@ const ReferralDetail = () => {
 
         <EditReferralDialog
           open={showEditDialog}
-          onOpenChange={setShowEditDialog}
+          onOpenChange={(open) => {
+            setShowEditDialog(open);
+            if (!open) {
+              refetch(); // Refetch data when dialog closes
+            }
+          }}
           referralId={id!}
-          onSuccess={handleEditSuccess}
         />
       </div>
     </PageLayout>
