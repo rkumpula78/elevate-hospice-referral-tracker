@@ -71,14 +71,14 @@ const OrganizationsList = () => {
   }
 
   return (
-    <div className="space-y-4 w-full">
+    <div className="space-y-4 w-full max-w-full">
       <div className="flex justify-between items-center">
         <div className="flex space-x-2">
           <Select value={selectedType} onValueChange={setSelectedType}>
             <SelectTrigger className="w-48 bg-white">
               <SelectValue placeholder="Filter by type" />
             </SelectTrigger>
-            <SelectContent className="bg-white border border-gray-300 z-[100]">
+            <SelectContent>
               <SelectItem value="all">All Types</SelectItem>
               <SelectItem value="assisted_living">Assisted Living</SelectItem>
               <SelectItem value="hospital">Hospital</SelectItem>
@@ -94,7 +94,7 @@ const OrganizationsList = () => {
             <SelectTrigger className="w-40 bg-white">
               <SelectValue placeholder="Filter by status" />
             </SelectTrigger>
-            <SelectContent className="bg-white border border-gray-300 z-[100]">
+            <SelectContent>
               <SelectItem value="all">All Status</SelectItem>
               <SelectItem value="active">Active</SelectItem>
               <SelectItem value="inactive">Inactive</SelectItem>
@@ -107,20 +107,20 @@ const OrganizationsList = () => {
         </Button>
       </div>
 
-      <div className="w-full overflow-x-auto">
-        <div className="min-w-[1200px]">
+      <div className="w-full">
+        <div className="rounded-md border bg-white">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="min-w-[200px]">Organization</TableHead>
-                <TableHead className="min-w-[120px]">Type</TableHead>
-                <TableHead className="min-w-[140px]">Partnership Stage</TableHead>
-                <TableHead className="min-w-[180px]">Contact Info</TableHead>
-                <TableHead className="min-w-[200px]">KPIs</TableHead>
-                <TableHead className="min-w-[200px]">Training</TableHead>
-                <TableHead className="min-w-[140px]">Assigned Marketer</TableHead>
-                <TableHead className="min-w-[100px]">Status</TableHead>
-                <TableHead className="min-w-[100px]">Actions</TableHead>
+                <TableHead className="w-[200px]">Organization</TableHead>
+                <TableHead className="w-[120px]">Type</TableHead>
+                <TableHead className="w-[140px]">Partnership Stage</TableHead>
+                <TableHead className="w-[180px]">Contact Info</TableHead>
+                <TableHead className="w-[200px]">KPIs</TableHead>
+                <TableHead className="w-[200px]">Training</TableHead>
+                <TableHead className="w-[140px]">Assigned Marketer</TableHead>
+                <TableHead className="w-[100px]">Status</TableHead>
+                <TableHead className="w-[100px]">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
