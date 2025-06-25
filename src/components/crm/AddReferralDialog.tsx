@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -11,6 +10,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { Loader2 } from "lucide-react";
+import type { Database } from "@/integrations/supabase/types";
+
+type ReferralStatus = Database['public']['Enums']['referral_status'];
 
 interface AddReferralDialogProps {
   open: boolean;
@@ -25,12 +27,12 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
     patient_phone: '',
     diagnosis: '',
     insurance: '',
-    priority: 'routine',
+    priority: 'routine' as 'low' | 'routine' | 'urgent',
     organization_id: '',
     referring_physician: '',
     assigned_marketer: '',
     referral_intake_coordinator: '',
-    status: 'new_referral',
+    status: 'new_referral' as ReferralStatus,
     reason_for_non_admittance: '',
     notes: ''
   });
@@ -75,10 +77,18 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
       const { error } = await supabase
         .from('referrals')
         .insert({
-          ...data,
+          patient_name: data.patient_name,
+          patient_phone: data.patient_phone || null,
+          diagnosis: data.diagnosis || null,
+          insurance: data.insurance || null,
+          priority: data.priority,
           organization_id: data.organization_id || null,
+          referring_physician: data.referring_physician || null,
+          assigned_marketer: data.assigned_marketer || null,
           referral_intake_coordinator: data.referral_intake_coordinator || null,
-          reason_for_non_admittance: data.reason_for_non_admittance || null
+          status: data.status,
+          reason_for_non_admittance: data.reason_for_non_admittance || null,
+          notes: data.notes || null
         });
       if (error) throw error;
     },
@@ -115,7 +125,7 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
     }
 
     // Validate that reason for non-admittance is provided if status indicates not admitted
-    const notAdmittedStatuses = ['not_admitted_patient_choice', 'not_admitted_not_appropriate', 'not_admitted_lost_contact'];
+    const notAdmittedStatuses: ReferralStatus[] = ['not_admitted_patient_choice', 'not_admitted_not_appropriate', 'not_admitted_lost_contact'];
     if (notAdmittedStatuses.includes(formData.status) && !formData.reason_for_non_admittance.trim()) {
       toast({ title: "Reason for non-admittance is required for this status", variant: "destructive" });
       return;
@@ -124,12 +134,12 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
     addReferralMutation.mutate(formData);
   };
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (field: keyof typeof formData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   const isSubmitting = addReferralMutation.isPending;
-  const showReasonField = ['not_admitted_patient_choice', 'not_admitted_not_appropriate', 'not_admitted_lost_contact'].includes(formData.status);
+  const showReasonField: boolean = ['not_admitted_patient_choice', 'not_admitted_not_appropriate', 'not_admitted_lost_contact'].includes(formData.status);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -259,7 +269,7 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
                 <Label htmlFor="status">Referral Status</Label>
                 <Select 
                   value={formData.status} 
-                  onValueChange={(value) => handleInputChange('status', value)}
+                  onValueChange={(value: ReferralStatus) => handleInputChange('status', value)}
                   disabled={isSubmitting}
                 >
                   <SelectTrigger>
@@ -283,7 +293,7 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
                 <Label htmlFor="priority">Priority</Label>
                 <Select 
                   value={formData.priority} 
-                  onValueChange={(value) => handleInputChange('priority', value)}
+                  onValueChange={(value: 'low' | 'routine' | 'urgent') => handleInputChange('priority', value)}
                   disabled={isSubmitting}
                 >
                   <SelectTrigger>
