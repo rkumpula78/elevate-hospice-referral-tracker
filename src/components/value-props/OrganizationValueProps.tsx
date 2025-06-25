@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { ChevronRight, Users, FileText, Target, TrendingUp } from 'lucide-react';
@@ -318,6 +319,7 @@ const OrganizationValueProps = ({ organizationType, organizationId }: Organizati
           <OrganizationTraining
             organizationId={organizationId}
             organizationType={organizationType}
+            activeTab={activeSection}
           />
         );
       default:

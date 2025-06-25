@@ -24,6 +24,7 @@ import {
 interface OrganizationTrainingProps {
   organizationId: string;
   organizationType: string;
+  activeTab?: string;
 }
 
 // Type guards for JSONB data
@@ -37,7 +38,8 @@ const isObjectArray = (value: any): value is any[] => {
 
 const OrganizationTraining: React.FC<OrganizationTrainingProps> = ({ 
   organizationId, 
-  organizationType 
+  organizationType,
+  activeTab 
 }) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -179,21 +181,6 @@ const OrganizationTraining: React.FC<OrganizationTrainingProps> = ({
     }
     return completion.completed_items.includes(itemId);
   };
-
-  // Show loading state
-  if (modulesLoading || checklistsLoading) {
-    return (
-      <div className="space-y-4">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <p className="text-lg">Loading training content...</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
 
   const getOrganizationTypeLabel = (type: string) => {
     const labels: { [key: string]: string } = {
@@ -411,6 +398,89 @@ const OrganizationTraining: React.FC<OrganizationTrainingProps> = ({
     );
   };
 
+  // If activeTab is provided, render only that specific content
+  if (activeTab) {
+    if (modulesLoading || checklistsLoading) {
+      return (
+        <div className="space-y-4">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <p className="text-lg">Loading training content...</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      );
+    }
+
+    switch (activeTab) {
+      case 'value-props':
+        return (
+          <div className="space-y-4">
+            {trainingModules && trainingModules.length > 0 ? (
+              trainingModules
+                .filter(m => m.module_category === 'value_proposition')
+                .map(module => renderValueProposition(module))
+            ) : (
+              renderEmptyState("Value Proposition", "Training modules are being developed")
+            )}
+          </div>
+        );
+
+      case 'action-plan':
+        return (
+          <div className="space-y-4">
+            {trainingModules && trainingModules.some(m => m.module_category === 'action_plan') ? (
+              trainingModules
+                .filter(m => m.module_category === 'action_plan')
+                .map(module => renderActionPlan(module))
+            ) : (
+              renderEmptyState("Action Plan", "Strategic action plans are being developed")
+            )}
+          </div>
+        );
+
+      case 'checklists':
+        return (
+          <div className="space-y-4">
+            {checklists && checklists.length > 0 ? (
+              checklists.map(checklist => renderChecklist(checklist))
+            ) : (
+              renderEmptyState("Checklist", "Implementation checklists are being developed")
+            )}
+          </div>
+        );
+
+      case 'kpis':
+        return (
+          <div className="space-y-4">
+            {trainingModules && trainingModules.some(m => m.module_category === 'kpi') ? (
+              trainingModules
+                .filter(m => m.module_category === 'kpi')
+                .map(module => renderKPIs(module))
+            ) : (
+              renderEmptyState("KPI", "Key performance indicators are being developed")
+            )}
+          </div>
+        );
+
+      default:
+        return (
+          <div className="space-y-4">
+            {trainingModules && trainingModules.length > 0 ? (
+              trainingModules
+                .filter(m => m.module_category === 'value_proposition')
+                .map(module => renderValueProposition(module))
+            ) : (
+              renderEmptyState("Value Proposition", "Training modules are being developed")
+            )}
+          </div>
+        );
+    }
+  }
+
+  // Default behavior with tabs (when no activeTab is provided)
   return (
     <Tabs defaultValue="value-props" className="w-full">
       <TabsList className="grid w-full grid-cols-4">
