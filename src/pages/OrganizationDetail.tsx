@@ -14,6 +14,7 @@ import PartnershipStageManager from '@/components/crm/PartnershipStageManager';
 import SimpleOrganizationTraining from '@/components/training/SimpleOrganizationTraining';
 import OrganizationKPICard from '@/components/crm/OrganizationKPICard';
 import OrganizationContactsTab from '@/components/crm/OrganizationContactsTab';
+import OrganizationValueProps from '@/components/value-props/OrganizationValueProps';
 
 const OrganizationDetail = () => {
   const { id } = useParams();
@@ -125,7 +126,7 @@ const OrganizationDetail = () => {
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="contacts">Contacts</TabsTrigger>
             <TabsTrigger value="partnership">Partnership</TabsTrigger>
-            <TabsTrigger value="training">Training & Resources</TabsTrigger>
+            <TabsTrigger value="training">Value Props & Resources</TabsTrigger>
             <TabsTrigger value="kpis">KPIs & Metrics</TabsTrigger>
             <TabsTrigger value="referrals">Referrals</TabsTrigger>
           </TabsList>
@@ -394,8 +395,7 @@ const OrganizationDetail = () => {
           </TabsContent>
 
           <TabsContent value="training">
-            <OrganizationTraining 
-              organizationId={id!} 
+            <OrganizationValueProps 
               organizationType={organization.type}
             />
           </TabsContent>
