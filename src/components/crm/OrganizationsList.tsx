@@ -71,14 +71,14 @@ const OrganizationsList = () => {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 w-full">
       <div className="flex justify-between items-center">
         <div className="flex space-x-2">
           <Select value={selectedType} onValueChange={setSelectedType}>
-            <SelectTrigger className="w-48">
+            <SelectTrigger className="w-48 bg-white">
               <SelectValue placeholder="Filter by type" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-white border border-gray-300 z-[100]">
               <SelectItem value="all">All Types</SelectItem>
               <SelectItem value="assisted_living">Assisted Living</SelectItem>
               <SelectItem value="hospital">Hospital</SelectItem>
@@ -91,10 +91,10 @@ const OrganizationsList = () => {
           </Select>
 
           <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-            <SelectTrigger className="w-40">
+            <SelectTrigger className="w-40 bg-white">
               <SelectValue placeholder="Filter by status" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-white border border-gray-300 z-[100]">
               <SelectItem value="all">All Status</SelectItem>
               <SelectItem value="active">Active</SelectItem>
               <SelectItem value="inactive">Inactive</SelectItem>
@@ -107,115 +107,119 @@ const OrganizationsList = () => {
         </Button>
       </div>
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Organization</TableHead>
-            <TableHead>Type</TableHead>
-            <TableHead>Partnership Stage</TableHead>
-            <TableHead>Contact Info</TableHead>
-            <TableHead>KPIs</TableHead>
-            <TableHead>Training</TableHead>
-            <TableHead>Assigned Marketer</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {organizations?.map((org) => (
-            <TableRow key={org.id}>
-              <TableCell className="font-medium">
-                <div>
-                  <div className="flex items-center space-x-2">
-                    <Link 
-                      to={`/organizations/${org.id}`}
-                      className="hover:text-primary hover:underline"
+      <div className="w-full overflow-x-auto">
+        <div className="min-w-[1200px]">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="min-w-[200px]">Organization</TableHead>
+                <TableHead className="min-w-[120px]">Type</TableHead>
+                <TableHead className="min-w-[140px]">Partnership Stage</TableHead>
+                <TableHead className="min-w-[180px]">Contact Info</TableHead>
+                <TableHead className="min-w-[200px]">KPIs</TableHead>
+                <TableHead className="min-w-[200px]">Training</TableHead>
+                <TableHead className="min-w-[140px]">Assigned Marketer</TableHead>
+                <TableHead className="min-w-[100px]">Status</TableHead>
+                <TableHead className="min-w-[100px]">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {organizations?.map((org) => (
+                <TableRow key={org.id}>
+                  <TableCell className="font-medium">
+                    <div>
+                      <div className="flex items-center space-x-2">
+                        <Link 
+                          to={`/organizations/${org.id}`}
+                          className="hover:text-primary hover:underline"
+                        >
+                          {org.name}
+                        </Link>
+                        <ExternalLink className="w-3 h-3 text-muted-foreground" />
+                      </div>
+                      {org.address && (
+                        <div className="text-sm text-muted-foreground flex items-center mt-1">
+                          <MapPin className="w-3 h-3 mr-1" />
+                          {org.address}
+                        </div>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge className={getTypeColor(org.type)}>
+                      {org.type.replace('_', ' ')}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge className={getStageColor(org.partnership_stage || 'prospect')}>
+                      {(org.partnership_stage || 'prospect').charAt(0).toUpperCase() + 
+                       (org.partnership_stage || 'prospect').slice(1)}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <div className="space-y-1">
+                      {org.contact_person && (
+                        <div className="text-sm flex items-center">
+                          <User className="w-3 h-3 mr-1" />
+                          {org.contact_person}
+                        </div>
+                      )}
+                      {org.phone && (
+                        <div className="text-sm text-muted-foreground flex items-center">
+                          <Phone className="w-3 h-3 mr-1" />
+                          {org.phone}
+                        </div>
+                      )}
+                      {org.contact_email && (
+                        <div className="text-sm text-muted-foreground flex items-center">
+                          <Mail className="w-3 h-3 mr-1" />
+                          {org.contact_email}
+                        </div>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="w-48">
+                      <OrganizationKPICard 
+                        organizationId={org.id} 
+                        organizationType={org.type}
+                      />
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="w-48">
+                      <OrganizationTrainingCard organizationType={org.type} />
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    {org.assigned_marketer ? (
+                      <div className="flex items-center">
+                        <User className="w-3 h-3 mr-1" />
+                        {org.assigned_marketer}
+                      </div>
+                    ) : '-'}
+                  </TableCell>
+                  <TableCell>
+                    <Badge className={getStatusColor(org.is_active ?? true)}>
+                      {org.is_active ? 'Active' : 'Inactive'}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setEditingOrganizationId(org.id)}
                     >
-                      {org.name}
-                    </Link>
-                    <ExternalLink className="w-3 h-3 text-muted-foreground" />
-                  </div>
-                  {org.address && (
-                    <div className="text-sm text-muted-foreground flex items-center mt-1">
-                      <MapPin className="w-3 h-3 mr-1" />
-                      {org.address}
-                    </div>
-                  )}
-                </div>
-              </TableCell>
-              <TableCell>
-                <Badge className={getTypeColor(org.type)}>
-                  {org.type.replace('_', ' ')}
-                </Badge>
-              </TableCell>
-              <TableCell>
-                <Badge className={getStageColor(org.partnership_stage || 'prospect')}>
-                  {(org.partnership_stage || 'prospect').charAt(0).toUpperCase() + 
-                   (org.partnership_stage || 'prospect').slice(1)}
-                </Badge>
-              </TableCell>
-              <TableCell>
-                <div className="space-y-1">
-                  {org.contact_person && (
-                    <div className="text-sm flex items-center">
-                      <User className="w-3 h-3 mr-1" />
-                      {org.contact_person}
-                    </div>
-                  )}
-                  {org.phone && (
-                    <div className="text-sm text-muted-foreground flex items-center">
-                      <Phone className="w-3 h-3 mr-1" />
-                      {org.phone}
-                    </div>
-                  )}
-                  {org.contact_email && (
-                    <div className="text-sm text-muted-foreground flex items-center">
-                      <Mail className="w-3 h-3 mr-1" />
-                      {org.contact_email}
-                    </div>
-                  )}
-                </div>
-              </TableCell>
-              <TableCell>
-                <div className="w-48">
-                  <OrganizationKPICard 
-                    organizationId={org.id} 
-                    organizationType={org.type}
-                  />
-                </div>
-              </TableCell>
-              <TableCell>
-                <div className="w-48">
-                  <OrganizationTrainingCard organizationType={org.type} />
-                </div>
-              </TableCell>
-              <TableCell>
-                {org.assigned_marketer ? (
-                  <div className="flex items-center">
-                    <User className="w-3 h-3 mr-1" />
-                    {org.assigned_marketer}
-                  </div>
-                ) : '-'}
-              </TableCell>
-              <TableCell>
-                <Badge className={getStatusColor(org.is_active ?? true)}>
-                  {org.is_active ? 'Active' : 'Inactive'}
-                </Badge>
-              </TableCell>
-              <TableCell>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => setEditingOrganizationId(org.id)}
-                >
-                  <Edit className="w-3 h-3 mr-1" />
-                  Edit
-                </Button>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+                      <Edit className="w-3 h-3 mr-1" />
+                      Edit
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
 
       <AddOrganizationDialog 
         open={showAddDialog} 

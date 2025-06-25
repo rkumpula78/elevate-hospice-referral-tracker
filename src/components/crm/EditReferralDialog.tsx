@@ -321,9 +321,9 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
   if (isLoading) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto bg-white">
           <div className="flex items-center justify-center p-8">
-            <div className="text-lg">Loading information...</div>
+            <div className="text-lg text-gray-900">Loading information...</div>
           </div>
         </DialogContent>
       </Dialog>
@@ -341,73 +341,78 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-semibold">
+      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto bg-white text-gray-900">
+        <DialogHeader className="bg-white">
+          <DialogTitle className="text-xl font-semibold text-gray-900">
             Edit Patient/Referral: {displayName}
           </DialogTitle>
         </DialogHeader>
 
         <Tabs defaultValue="patient-info" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="patient-info">Patient Info</TabsTrigger>
-            <TabsTrigger value="status-notes">Status & Notes</TabsTrigger>
-            <TabsTrigger value="referral-source">Referral Source</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3 bg-gray-100">
+            <TabsTrigger value="patient-info" className="text-gray-700 data-[state=active]:bg-white data-[state=active]:text-gray-900">Patient Info</TabsTrigger>
+            <TabsTrigger value="status-notes" className="text-gray-700 data-[state=active]:bg-white data-[state=active]:text-gray-900">Status & Notes</TabsTrigger>
+            <TabsTrigger value="referral-source" className="text-gray-700 data-[state=active]:bg-white data-[state=active]:text-gray-900">Referral Source</TabsTrigger>
           </TabsList>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            <TabsContent value="patient-info" className="space-y-4">
+            <TabsContent value="patient-info" className="space-y-4 bg-white">
               {/* Basic patient information fields */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="patient_name">Patient Name *</Label>
+                  <Label htmlFor="patient_name" className="text-gray-700">Patient Name *</Label>
                   <Input
                     id="patient_name"
                     name="patient_name"
                     defaultValue={referralData?.patient_name || ''}
                     required
+                    className="bg-white border-gray-300 text-gray-900"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="patient_phone">Patient Phone</Label>
+                  <Label htmlFor="patient_phone" className="text-gray-700">Patient Phone</Label>
                   <Input
                     id="patient_phone"
                     name="patient_phone"
                     defaultValue={referralData?.patient_phone || ''}
                     placeholder="XXX-XXX-XXXX"
+                    className="bg-white border-gray-300 text-gray-900"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="diagnosis">Diagnosis</Label>
+                  <Label htmlFor="diagnosis" className="text-gray-700">Diagnosis</Label>
                   <Input
                     id="diagnosis"
                     name="diagnosis"
                     defaultValue={referralData?.diagnosis || ''}
+                    className="bg-white border-gray-300 text-gray-900"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="insurance">Insurance</Label>
+                  <Label htmlFor="insurance" className="text-gray-700">Insurance</Label>
                   <Input
                     id="insurance"
                     name="insurance"
                     defaultValue={referralData?.insurance || ''}
+                    className="bg-white border-gray-300 text-gray-900"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="referring_physician">Referring Physician</Label>
+                  <Label htmlFor="referring_physician" className="text-gray-700">Referring Physician</Label>
                   <Input
                     id="referring_physician"
                     name="referring_physician"
                     defaultValue={referralData?.referring_physician || ''}
+                    className="bg-white border-gray-300 text-gray-900"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="assigned_marketer">Assigned Marketer</Label>
+                  <Label htmlFor="assigned_marketer" className="text-gray-700">Assigned Marketer</Label>
                   <Select name="assigned_marketer" defaultValue={referralData?.assigned_marketer || 'none'}>
-                    <SelectTrigger>
+                    <SelectTrigger className="bg-white border-gray-300 text-gray-900">
                       <SelectValue placeholder="Select marketer" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-white border border-gray-300 z-[100]">
                       <SelectItem value="none">Unassigned</SelectItem>
                       {marketers?.map((marketer: string) => (
                         <SelectItem key={marketer} value={marketer}>{marketer}</SelectItem>
@@ -466,15 +471,15 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
               />
             </TabsContent>
 
-            <TabsContent value="status-notes" className="space-y-4">
+            <TabsContent value="status-notes" className="space-y-4 bg-white">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="priority">Priority</Label>
+                  <Label htmlFor="priority" className="text-gray-700">Priority</Label>
                   <Select name="priority" defaultValue={referralData.priority || 'routine'}>
-                    <SelectTrigger>
+                    <SelectTrigger className="bg-white border-gray-300 text-gray-900">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-white border border-gray-300 z-[100]">
                       <SelectItem value="urgent">Urgent</SelectItem>
                       <SelectItem value="routine">Routine</SelectItem>
                       <SelectItem value="low">Low</SelectItem>
@@ -482,12 +487,12 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
                   </Select>
                 </div>
                 <div>
-                  <Label htmlFor="status">Status</Label>
+                  <Label htmlFor="status" className="text-gray-700">Status</Label>
                   <Select name="status" defaultValue={referralData.status || 'pending'}>
-                    <SelectTrigger>
+                    <SelectTrigger className="bg-white border-gray-300 text-gray-900">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-white border border-gray-300 z-[100]">
                       <SelectItem value="pending">Pending</SelectItem>
                       <SelectItem value="contacted">Contacted</SelectItem>
                       <SelectItem value="scheduled">Scheduled</SelectItem>
@@ -504,7 +509,7 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
 
               {/* Running Comments Section */}
               <div className="space-y-4">
-                <Label>Running Comments</Label>
+                <Label className="text-gray-700">Running Comments</Label>
                 
                 <div className="space-y-3 max-h-60 overflow-y-auto border rounded-lg p-3 bg-gray-50">
                   {comments.length === 0 ? (
@@ -516,7 +521,7 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
                           <span className="font-medium">{comment.author}</span>
                           <span>{format(new Date(comment.timestamp), 'MMM dd, yyyy HH:mm')}</span>
                         </div>
-                        <p className="text-sm">{comment.text}</p>
+                        <p className="text-sm text-gray-900">{comment.text}</p>
                       </div>
                     ))
                   )}
@@ -528,7 +533,7 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
                     onChange={(e) => setNewComment(e.target.value)}
                     placeholder="Add a new comment..."
                     rows={2}
-                    className="flex-1"
+                    className="flex-1 bg-white border-gray-300 text-gray-900"
                   />
                   <Button
                     type="button"
@@ -543,15 +548,15 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
               </div>
             </TabsContent>
 
-            <TabsContent value="referral-source" className="space-y-4">
+            <TabsContent value="referral-source" className="space-y-4 bg-white">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="organization_id">Referring Organization</Label>
+                  <Label htmlFor="organization_id" className="text-gray-700">Referring Organization</Label>
                   <Select name="organization_id" defaultValue={referralData.organization_id || 'none'}>
-                    <SelectTrigger>
+                    <SelectTrigger className="bg-white border-gray-300 text-gray-900">
                       <SelectValue placeholder="Select organization" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-white border border-gray-300 z-[100]">
                       <SelectItem value="none">No organization</SelectItem>
                       {organizations?.map((org) => (
                         <SelectItem key={org.id} value={org.id}>
@@ -562,31 +567,34 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
                   </Select>
                 </div>
                 <div>
-                  <Label htmlFor="referral_contact_person">Referral Contact Person</Label>
+                  <Label htmlFor="referral_contact_person" className="text-gray-700">Referral Contact Person</Label>
                   <Input
                     id="referral_contact_person"
                     name="referral_contact_person"
                     defaultValue={referralData.referral_contact_person || ''}
                     placeholder="Contact name at facility"
+                    className="bg-white border-gray-300 text-gray-900"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="referral_contact_phone">Referral Contact Phone</Label>
+                  <Label htmlFor="referral_contact_phone" className="text-gray-700">Referral Contact Phone</Label>
                   <Input
                     id="referral_contact_phone"
                     name="referral_contact_phone"
                     defaultValue={referralData.referral_contact_phone || ''}
                     placeholder="XXX-XXX-XXXX"
+                    className="bg-white border-gray-300 text-gray-900"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="referral_contact_email">Referral Contact Email</Label>
+                  <Label htmlFor="referral_contact_email" className="text-gray-700">Referral Contact Email</Label>
                   <Input
                     id="referral_contact_email"
                     name="referral_contact_email"
                     type="email"
                     defaultValue={referralData.referral_contact_email || ''}
                     placeholder="email@example.com"
+                    className="bg-white border-gray-300 text-gray-900"
                   />
                 </div>
                 <div className="flex flex-col space-y-4 md:col-span-2">
@@ -596,7 +604,7 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
                       name="insurance_verification"
                       defaultChecked={referralData.insurance_verification}
                     />
-                    <Label htmlFor="insurance_verification">Insurance Verified</Label>
+                    <Label htmlFor="insurance_verification" className="text-gray-700">Insurance Verified</Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Checkbox
@@ -604,13 +612,13 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
                       name="medical_records_received"
                       defaultChecked={referralData.medical_records_received}
                     />
-                    <Label htmlFor="medical_records_received">Medical Records Received</Label>
+                    <Label htmlFor="medical_records_received" className="text-gray-700">Medical Records Received</Label>
                   </div>
                 </div>
               </div>
             </TabsContent>
 
-            <div className="flex justify-end gap-2">
+            <div className="flex justify-end gap-2 bg-white pt-4">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Cancel
               </Button>

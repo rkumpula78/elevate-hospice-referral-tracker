@@ -34,10 +34,12 @@ const PageLayout = ({ title, subtitle, children }: PageLayoutProps) => {
         </div>
       </header>
 
-      {/* Main Content with proper spacing */}
-      <main className="flex-1 overflow-auto bg-gray-50">
-        <div className="max-w-7xl mx-auto">
-          {children}
+      {/* Main Content with proper spacing and overflow handling */}
+      <main className="flex-1 bg-gray-50 overflow-x-hidden">
+        <div className="w-full min-w-0 px-6 py-6">
+          <div className="w-full overflow-x-auto">
+            {children}
+          </div>
         </div>
       </main>
     </SidebarInset>
