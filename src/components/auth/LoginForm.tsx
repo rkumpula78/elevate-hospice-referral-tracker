@@ -80,79 +80,81 @@ const LoginForm = ({ onToggleMode, isSignUp }: LoginFormProps) => {
   };
 
   return (
-    <Card className="w-full max-w-md">
-      <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl text-center">
+    <div className="space-y-6">
+      <div className="text-center">
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">
           {isSignUp ? 'Create Account' : 'Sign In'}
-        </CardTitle>
-        <CardDescription className="text-center">
+        </h2>
+        <p className="text-gray-600">
           {isSignUp 
             ? 'Create a new account with your @elevatehospiceaz.com email'
             : 'Enter your @elevatehospiceaz.com credentials to access the CRM Dashboard'
           }
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="yourname@elevatehospiceaz.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-            {email && !validateEmail(email) && (
-              <p className="text-sm text-red-600">
-                Email must end with @elevatehospiceaz.com
-              </p>
-            )}
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="Enter your password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
-          <Button 
-            type="submit" 
-            className="w-full" 
-            disabled={isLoading || !validateEmail(email)}
-          >
-            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {isSignUp ? 'Create Account' : 'Sign In'}
-          </Button>
-        </form>
-        <div className="mt-4 text-center">
-          <Button
-            variant="link"
-            onClick={onToggleMode}
-            className="text-sm"
-          >
-            {isSignUp 
-              ? 'Already have an account? Sign in'
-              : "Don't have an account? Sign up"
-            }
-          </Button>
-        </div>
-        
-        {isSignUp && (
-          <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
-            <p className="text-sm text-blue-800">
-              <strong>Note:</strong> You must use an @elevatehospiceaz.com email address. 
-              After registration, check your email for a verification link before signing in.
+        </p>
+      </div>
+      
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="email" className="text-gray-700 font-medium">Email</Label>
+          <Input
+            id="email"
+            type="email"
+            placeholder="yourname@elevatehospiceaz.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            className="h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+          />
+          {email && !validateEmail(email) && (
+            <p className="text-sm text-red-600">
+              Email must end with @elevatehospiceaz.com
             </p>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+          )}
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="password" className="text-gray-700 font-medium">Password</Label>
+          <Input
+            id="password"
+            type="password"
+            placeholder="Enter your password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            className="h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+          />
+        </div>
+        <Button 
+          type="submit" 
+          className="w-full h-12 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-lg shadow-lg transition-all duration-200 transform hover:scale-[1.01]" 
+          disabled={isLoading || !validateEmail(email)}
+        >
+          {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {isSignUp ? 'Create Account' : 'Sign In'}
+        </Button>
+      </form>
+      
+      <div className="text-center">
+        <Button
+          variant="link"
+          onClick={onToggleMode}
+          className="text-gray-600 hover:text-gray-900 font-medium"
+        >
+          {isSignUp 
+            ? 'Already have an account? Sign in'
+            : "Don't have an account? Sign up"
+          }
+        </Button>
+      </div>
+      
+      {isSignUp && (
+        <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <p className="text-sm text-blue-800">
+            <strong>Note:</strong> You must use an @elevatehospiceaz.com email address. 
+            After registration, check your email for a verification link before signing in.
+          </p>
+        </div>
+      )}
+    </div>
   );
 };
 
