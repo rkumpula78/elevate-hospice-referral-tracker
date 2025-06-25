@@ -21,32 +21,39 @@ const Auth = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center" 
+           style={{background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'}}>
         <div className="text-center">
-          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
+          <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-white text-lg font-medium">Loading...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-blue-100 px-4">
+    <div className="min-h-screen flex items-center justify-center px-4" 
+         style={{background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'}}>
       <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <img 
-            src="/lovable-uploads/0581d561-551f-491a-8b13-0be84633073f.png" 
-            alt="Elevate Hospice & Palliative Care" 
-            className="h-16 w-auto mx-auto mb-4"
-          />
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            CRM Dashboard
-          </h1>
-          <p className="text-gray-600">
-            Elevate Hospice & Palliative Care
-          </p>
+        <div className="login-container">
+          <div className="text-center mb-8">
+            <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+              <img 
+                src="/lovable-uploads/0581d561-551f-491a-8b13-0be84633073f.png" 
+                alt="Elevate Hospice & Palliative Care" 
+                className="h-12 w-auto"
+              />
+            </div>
+            <h1 className="text-3xl font-bold text-white mb-2 drop-shadow-lg">
+              Welcome Back
+            </h1>
+            <p className="text-white/80 text-lg">
+              Elevate Hospice & Palliative Care
+            </p>
+            <div className="w-16 h-1 bg-white/30 rounded-full mx-auto mt-4"></div>
+          </div>
+          <LoginForm onToggleMode={toggleMode} isSignUp={isSignUp} />
         </div>
-        <LoginForm onToggleMode={toggleMode} isSignUp={isSignUp} />
       </div>
     </div>
   );

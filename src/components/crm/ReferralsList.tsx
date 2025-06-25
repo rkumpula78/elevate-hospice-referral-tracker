@@ -52,7 +52,6 @@ const ReferralsList = () => {
     }
   });
 
-  // Get marketers from localStorage
   const { data: marketers, refetch: refetchMarketers } = useQuery({
     queryKey: ['marketers-local'],
     queryFn: () => {
@@ -64,7 +63,6 @@ const ReferralsList = () => {
     }
   });
 
-  // Listen for marketer updates
   React.useEffect(() => {
     const handleMarketerUpdate = () => {
       refetchMarketers();
@@ -182,7 +180,6 @@ const ReferralsList = () => {
       <div className="space-y-4">
         <div className="flex justify-between items-center">
           <div className="flex space-x-2">
-            {/* Filter skeleton */}
             <div className="w-48 h-10 bg-gray-200 rounded animate-pulse" />
             <div className="w-40 h-10 bg-gray-200 rounded animate-pulse" />
             <div className="w-48 h-10 bg-gray-200 rounded animate-pulse" />
@@ -201,56 +198,56 @@ const ReferralsList = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <div className="flex space-x-2">
+        <div className="flex space-x-3">
           <Select value={selectedStatus} onValueChange={(value: ReferralStatus | 'all') => setSelectedStatus(value)}>
-            <SelectTrigger className="w-48">
+            <SelectTrigger className="w-48 modern-filter">
               <SelectValue placeholder="Filter by status" />
             </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="new_referral">New Referral</SelectItem>
-              <SelectItem value="contact_attempted">Contact Attempted</SelectItem>
-              <SelectItem value="information_gathering">Information Gathering</SelectItem>
-              <SelectItem value="assessment_scheduled">Assessment Scheduled</SelectItem>
-              <SelectItem value="pending_admission">Pending Admission</SelectItem>
-              <SelectItem value="admitted">Admitted</SelectItem>
-              <SelectItem value="not_admitted_patient_choice">Not Admitted - Patient Choice</SelectItem>
-              <SelectItem value="not_admitted_not_appropriate">Not Admitted - Not Appropriate</SelectItem>
-              <SelectItem value="not_admitted_lost_contact">Not Admitted - Lost Contact</SelectItem>
-              <SelectItem value="deceased_prior_admission">Deceased Prior to Admission</SelectItem>
+            <SelectContent className="modern-dropdown">
+              <SelectItem value="all" className="modern-dropdown-item">All Status</SelectItem>
+              <SelectItem value="new_referral" className="modern-dropdown-item">New Referral</SelectItem>
+              <SelectItem value="contact_attempted" className="modern-dropdown-item">Contact Attempted</SelectItem>
+              <SelectItem value="information_gathering" className="modern-dropdown-item">Information Gathering</SelectItem>
+              <SelectItem value="assessment_scheduled" className="modern-dropdown-item">Assessment Scheduled</SelectItem>
+              <SelectItem value="pending_admission" className="modern-dropdown-item">Pending Admission</SelectItem>
+              <SelectItem value="admitted" className="modern-dropdown-item">Admitted</SelectItem>
+              <SelectItem value="not_admitted_patient_choice" className="modern-dropdown-item">Not Admitted - Patient Choice</SelectItem>
+              <SelectItem value="not_admitted_not_appropriate" className="modern-dropdown-item">Not Admitted - Not Appropriate</SelectItem>
+              <SelectItem value="not_admitted_lost_contact" className="modern-dropdown-item">Not Admitted - Lost Contact</SelectItem>
+              <SelectItem value="deceased_prior_admission" className="modern-dropdown-item">Deceased Prior to Admission</SelectItem>
             </SelectContent>
           </Select>
 
           <Select value={selectedPriority} onValueChange={setSelectedPriority}>
-            <SelectTrigger className="w-40">
+            <SelectTrigger className="w-40 modern-filter">
               <SelectValue placeholder="Filter by priority" />
             </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Priority</SelectItem>
-              <SelectItem value="urgent">Urgent</SelectItem>
-              <SelectItem value="routine">Routine</SelectItem>
-              <SelectItem value="low">Low</SelectItem>
+            <SelectContent className="modern-dropdown">
+              <SelectItem value="all" className="modern-dropdown-item">All Priority</SelectItem>
+              <SelectItem value="urgent" className="modern-dropdown-item">Urgent</SelectItem>
+              <SelectItem value="routine" className="modern-dropdown-item">Routine</SelectItem>
+              <SelectItem value="low" className="modern-dropdown-item">Low</SelectItem>
             </SelectContent>
           </Select>
 
           <Select value={selectedMarketer} onValueChange={setSelectedMarketer}>
-            <SelectTrigger className="w-48">
+            <SelectTrigger className="w-48 modern-filter">
               <SelectValue placeholder="Filter by marketer" />
             </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Marketers</SelectItem>
+            <SelectContent className="modern-dropdown">
+              <SelectItem value="all" className="modern-dropdown-item">All Marketers</SelectItem>
               {marketers?.map((marketer: string) => (
-                <SelectItem key={marketer} value={marketer}>{marketer}</SelectItem>
+                <SelectItem key={marketer} value={marketer} className="modern-dropdown-item">{marketer}</SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => setShowMarketerSettings(true)}>
+        <div className="flex gap-3">
+          <Button variant="outline" onClick={() => setShowMarketerSettings(true)} className="modern-btn-secondary">
             <Settings className="w-4 h-4 mr-2" />
             Manage Marketers
           </Button>
-          <Button onClick={() => setShowAddDialog(true)}>
+          <Button onClick={() => setShowAddDialog(true)} className="modern-btn-primary">
             <Plus className="w-4 h-4 mr-2" />
             Add Referral
           </Button>

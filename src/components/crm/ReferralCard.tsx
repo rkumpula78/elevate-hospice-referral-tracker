@@ -38,17 +38,17 @@ const ReferralCard = ({
 }: ReferralCardProps) => {
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'new_referral': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'contact_attempted': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'information_gathering': return 'bg-purple-100 text-purple-800 border-purple-200';
-      case 'assessment_scheduled': return 'bg-indigo-100 text-indigo-800 border-indigo-200';
-      case 'pending_admission': return 'bg-orange-100 text-orange-800 border-orange-200';
-      case 'admitted': return 'bg-green-100 text-green-800 border-green-200';
-      case 'not_admitted_patient_choice': return 'bg-red-100 text-red-800 border-red-200';
-      case 'not_admitted_not_appropriate': return 'bg-red-100 text-red-800 border-red-200';
-      case 'not_admitted_lost_contact': return 'bg-gray-100 text-gray-800 border-gray-200';
-      case 'deceased_prior_admission': return 'bg-gray-100 text-gray-800 border-gray-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+      case 'new_referral': return 'modern-badge pending';
+      case 'contact_attempted': return 'modern-badge routine';
+      case 'information_gathering': return 'modern-badge routine';
+      case 'assessment_scheduled': return 'modern-badge contacted';
+      case 'pending_admission': return 'modern-badge pending';
+      case 'admitted': return 'modern-badge contacted';
+      case 'not_admitted_patient_choice': return 'modern-badge';
+      case 'not_admitted_not_appropriate': return 'modern-badge';
+      case 'not_admitted_lost_contact': return 'modern-badge';
+      case 'deceased_prior_admission': return 'modern-badge';
+      default: return 'modern-badge';
     }
   };
 
@@ -70,10 +70,10 @@ const ReferralCard = ({
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'urgent': return 'bg-red-500 text-white border-red-600';
-      case 'routine': return 'bg-blue-500 text-white border-blue-600';
-      case 'low': return 'bg-gray-500 text-white border-gray-600';
-      default: return 'bg-gray-500 text-white border-gray-600';
+      case 'urgent': return 'modern-badge urgent';
+      case 'routine': return 'modern-badge routine';
+      case 'low': return 'modern-badge';
+      default: return 'modern-badge routine';
     }
   };
 
@@ -108,8 +108,11 @@ const ReferralCard = ({
   };
 
   return (
-    <Card className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border-l-4 border-l-primary/20 hover:border-l-primary">
+    <Card className="modern-card group relative overflow-hidden">
       <CardContent className="p-6">
+        {/* Gradient accent line */}
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-purple-500"></div>
+        
         {/* Header with Patient Name and Actions */}
         <div className="flex items-start justify-between mb-4">
           <div className="flex-1 min-w-0">
@@ -123,24 +126,36 @@ const ReferralCard = ({
             </Link>
             {referral.patient_phone && (
               <div className="flex items-center text-sm text-gray-600 mb-2">
-                <Phone className="w-4 h-4 mr-2 flex-shrink-0" />
+                <Phone className="w-4 h-4 mr-2 flex-shrink-0 text-blue-500" />
                 <span className="font-medium">{referral.patient_phone}</span>
               </div>
             )}
           </div>
-          <div className="flex gap-1 ml-4 flex-shrink-0">
-            <Button variant="outline" size="sm" onClick={() => onEdit(referral.id)} className="h-8 px-2">
-              <Edit className="w-3 h-3" />
+          <div className="flex gap-2 ml-4 flex-shrink-0">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => onEdit(referral.id)} 
+              className="modern-btn-secondary h-8 px-3 text-xs"
+            >
+              <Edit className="w-3 h-3 mr-1" />
+              Edit
             </Button>
-            <Button variant="outline" size="sm" onClick={handleSchedule} className="h-8 px-2">
-              <Calendar className="w-3 h-3" />
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleSchedule} 
+              className="modern-btn-primary h-8 px-3 text-xs"
+            >
+              <Calendar className="w-3 h-3 mr-1" />
+              Schedule
             </Button>
           </div>
         </div>
 
-        {/* Organization */}
-        <div className="flex items-center mb-4 p-3 bg-gray-50 rounded-lg">
-          <Building2 className="w-5 h-5 text-gray-500 mr-3 flex-shrink-0" />
+        {/* Organization with modern styling */}
+        <div className="flex items-center mb-4 p-4 rounded-xl bg-gradient-to-r from-gray-50 to-blue-50 border border-gray-100">
+          <Building2 className="w-5 h-5 text-blue-500 mr-3 flex-shrink-0" />
           <div className="min-w-0 flex-1">
             <div className="font-medium text-gray-900 truncate">{referral.organizations?.name || 'Unknown Organization'}</div>
             <div className="text-sm text-gray-600">{referral.organizations?.type}</div>
@@ -160,16 +175,16 @@ const ReferralCard = ({
                 onValueChange={(value: string) => onPriorityChange(referral.id, value)}
                 disabled={isUpdatingPriority}
               >
-                <SelectTrigger className="w-32 h-8">
-                  <Badge className={cn("border text-xs", getPriorityColor(referral.priority || 'routine'))}>
+                <SelectTrigger className="w-32 h-8 modern-filter">
+                  <Badge className={getPriorityColor(referral.priority || 'routine')}>
                     {getPriorityIcon(referral.priority || 'routine')}
                     <span className="ml-1 capitalize">{referral.priority || 'routine'}</span>
                   </Badge>
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="urgent">Urgent</SelectItem>
-                  <SelectItem value="routine">Routine</SelectItem>
-                  <SelectItem value="low">Low</SelectItem>
+                <SelectContent className="modern-dropdown">
+                  <SelectItem value="urgent" className="modern-dropdown-item">Urgent</SelectItem>
+                  <SelectItem value="routine" className="modern-dropdown-item">Routine</SelectItem>
+                  <SelectItem value="low" className="modern-dropdown-item">Low</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -179,37 +194,37 @@ const ReferralCard = ({
         {/* Status with Progress Bar */}
         <div className="mb-4">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-gray-600">Status</span>
+            <span className="text-sm text-gray-600 font-medium">Status</span>
             <Select
               value={referral.status || 'new_referral'}
               onValueChange={(value: string) => onStatusChange(referral.id, value)}
               disabled={isUpdatingStatus}
             >
-              <SelectTrigger className="w-48">
-                <Badge className={cn("border text-sm", getStatusColor(referral.status || 'new_referral'))}>
+              <SelectTrigger className="w-48 modern-filter">
+                <Badge className={getStatusColor(referral.status || 'new_referral')}>
                   {getStatusLabel(referral.status || 'new_referral')}
                 </Badge>
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="new_referral">New Referral</SelectItem>
-                <SelectItem value="contact_attempted">Contact Attempted</SelectItem>
-                <SelectItem value="information_gathering">Information Gathering</SelectItem>
-                <SelectItem value="assessment_scheduled">Assessment Scheduled</SelectItem>
-                <SelectItem value="pending_admission">Pending Admission</SelectItem>
-                <SelectItem value="admitted">Admitted</SelectItem>
-                <SelectItem value="not_admitted_patient_choice">Not Admitted - Patient Choice</SelectItem>
-                <SelectItem value="not_admitted_not_appropriate">Not Admitted - Not Appropriate</SelectItem>
-                <SelectItem value="not_admitted_lost_contact">Not Admitted - Lost Contact</SelectItem>
-                <SelectItem value="deceased_prior_admission">Deceased Prior to Admission</SelectItem>
+              <SelectContent className="modern-dropdown">
+                <SelectItem value="new_referral" className="modern-dropdown-item">New Referral</SelectItem>
+                <SelectItem value="contact_attempted" className="modern-dropdown-item">Contact Attempted</SelectItem>
+                <SelectItem value="information_gathering" className="modern-dropdown-item">Information Gathering</SelectItem>
+                <SelectItem value="assessment_scheduled" className="modern-dropdown-item">Assessment Scheduled</SelectItem>
+                <SelectItem value="pending_admission" className="modern-dropdown-item">Pending Admission</SelectItem>
+                <SelectItem value="admitted" className="modern-dropdown-item">Admitted</SelectItem>
+                <SelectItem value="not_admitted_patient_choice" className="modern-dropdown-item">Not Admitted - Patient Choice</SelectItem>
+                <SelectItem value="not_admitted_not_appropriate" className="modern-dropdown-item">Not Admitted - Not Appropriate</SelectItem>
+                <SelectItem value="not_admitted_lost_contact" className="modern-dropdown-item">Not Admitted - Lost Contact</SelectItem>
+                <SelectItem value="deceased_prior_admission" className="modern-dropdown-item">Deceased Prior to Admission</SelectItem>
               </SelectContent>
             </Select>
           </div>
           
-          {/* Progress Bar */}
+          {/* Modern Progress Bar */}
           {progressPercentage > 0 && (
-            <div className="w-full bg-gray-200 rounded-full h-2 mb-3">
+            <div className="w-full bg-gray-200 rounded-full h-2 mb-3 overflow-hidden">
               <div 
-                className="bg-primary rounded-full h-2 transition-all duration-300"
+                className="h-2 rounded-full transition-all duration-500 bg-gradient-to-r from-blue-500 to-blue-600"
                 style={{ width: `${progressPercentage}%` }}
               />
             </div>
@@ -226,8 +241,8 @@ const ReferralCard = ({
         {/* Assigned Marketer */}
         <div className="flex items-center justify-between pt-4 border-t border-gray-100">
           <div className="flex items-center flex-1 min-w-0">
-            <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
-              <User className="w-4 h-4 text-primary" />
+            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+              <User className="w-4 h-4 text-white" />
             </div>
             <div className="flex-1 min-w-0">
               <div className="text-xs text-gray-500 mb-1">Assigned Marketer</div>
@@ -252,14 +267,14 @@ const ReferralCard = ({
                     </span>
                   </SelectValue>
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="unassigned">
+                <SelectContent className="modern-dropdown">
+                  <SelectItem value="unassigned" className="modern-dropdown-item">
                     <span className="text-gray-500 italic">Unassigned</span>
                   </SelectItem>
                   {marketers?.map((marketer: string) => (
-                    <SelectItem key={marketer} value={marketer}>{marketer}</SelectItem>
+                    <SelectItem key={marketer} value={marketer} className="modern-dropdown-item">{marketer}</SelectItem>
                   ))}
-                  <SelectItem value="add_new">
+                  <SelectItem value="add_new" className="modern-dropdown-item">
                     <div className="flex items-center text-primary">
                       <Plus className="w-4 h-4 mr-2" />
                       Add New Marketer
