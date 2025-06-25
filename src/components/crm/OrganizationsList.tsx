@@ -6,9 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Phone, Mail, MapPin, User, Edit } from "lucide-react";
+import { Plus, Phone, Mail, MapPin, User, Edit, ExternalLink } from "lucide-react";
+import { Link } from 'react-router-dom';
 import AddOrganizationDialog from './AddOrganizationDialog';
 import EditOrganizationDialog from './EditOrganizationDialog';
+import OrganizationKPICard from './OrganizationKPICard';
+import OrganizationTrainingCard from './OrganizationTrainingCard';
 
 const OrganizationsList = () => {
   const [selectedType, setSelectedType] = useState<string>('all');
@@ -100,6 +103,8 @@ const OrganizationsList = () => {
             <TableHead>Organization</TableHead>
             <TableHead>Type</TableHead>
             <TableHead>Contact Info</TableHead>
+            <TableHead>KPIs</TableHead>
+            <TableHead>Training</TableHead>
             <TableHead>Assigned Marketer</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Actions</TableHead>
@@ -110,9 +115,17 @@ const OrganizationsList = () => {
             <TableRow key={org.id}>
               <TableCell className="font-medium">
                 <div>
-                  <div>{org.name}</div>
+                  <div className="flex items-center space-x-2">
+                    <Link 
+                      to={`/organizations/${org.id}`}
+                      className="hover:text-primary hover:underline"
+                    >
+                      {org.name}
+                    </Link>
+                    <ExternalLink className="w-3 h-3 text-muted-foreground" />
+                  </div>
                   {org.address && (
-                    <div className="text-sm text-muted-foreground flex items-center">
+                    <div className="text-sm text-muted-foreground flex items-center mt-1">
                       <MapPin className="w-3 h-3 mr-1" />
                       {org.address}
                     </div>
@@ -144,6 +157,19 @@ const OrganizationsList = () => {
                       {org.contact_email}
                     </div>
                   )}
+                </div>
+              </TableCell>
+              <TableCell>
+                <div className="w-48">
+                  <OrganizationKPICard 
+                    organizationId={org.id} 
+                    organizationType={org.type}
+                  />
+                </div>
+              </TableCell>
+              <TableCell>
+                <div className="w-48">
+                  <OrganizationTrainingCard organizationType={org.type} />
                 </div>
               </TableCell>
               <TableCell>

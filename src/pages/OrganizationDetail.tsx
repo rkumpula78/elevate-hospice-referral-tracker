@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -9,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import EditOrganizationDialog from '@/components/crm/EditOrganizationDialog';
 import SimpleOrganizationTraining from '@/components/training/SimpleOrganizationTraining';
+import OrganizationKPICard from '@/components/crm/OrganizationKPICard';
 
 const OrganizationDetail = () => {
   const { id } = useParams();
@@ -81,9 +83,9 @@ const OrganizationDetail = () => {
       <div className="container mx-auto p-6 space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <Button variant="outline" onClick={() => navigate('/dashboard')}>
+            <Button variant="outline" onClick={() => navigate('/organizations')}>
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Dashboard
+              Back to Organizations
             </Button>
             <h1 className="text-2xl font-bold">Organization Details</h1>
           </div>
@@ -97,6 +99,7 @@ const OrganizationDetail = () => {
           <TabsList>
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="training">Training & Resources</TabsTrigger>
+            <TabsTrigger value="kpis">KPIs & Metrics</TabsTrigger>
             <TabsTrigger value="referrals">Referrals</TabsTrigger>
           </TabsList>
 
@@ -176,6 +179,45 @@ const OrganizationDetail = () => {
               organizationId={id!} 
               organizationType={organization.type}
             />
+          </TabsContent>
+
+          <TabsContent value="kpis">
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              <OrganizationKPICard 
+                organizationId={id!} 
+                organizationType={organization.type}
+              />
+              
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Partnership Stage</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Badge variant="secondary" className="mb-2">
+                    {organization.partnership_stage || 'Prospect'}
+                  </Badge>
+                  {organization.partnership_notes && (
+                    <p className="text-sm text-muted-foreground mt-2">
+                      {organization.partnership_notes}
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Last Training Review</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm">
+                    {organization.last_training_review 
+                      ? new Date(organization.last_training_review).toLocaleDateString()
+                      : 'No review scheduled'
+                    }
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
 
           <TabsContent value="referrals">
