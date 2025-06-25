@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -23,6 +22,8 @@ import ReferralDetail from "./pages/ReferralDetail";
 import OrganizationDetail from "./pages/OrganizationDetail";
 import TrainingPage from "./pages/TrainingPage";
 import NotFound from "./pages/NotFound";
+import AnalyticsPage from "./pages/AnalyticsPage";
+import ReportsPage from "./pages/ReportsPage";
 
 const queryClient = new QueryClient();
 
@@ -51,6 +52,8 @@ const App = () => (
                         <Route path="map" element={<MapPage />} />
                         <Route path="compliance" element={<CompliancePage />} />
                         <Route path="training" element={<TrainingPage />} />
+                        <Route path="analytics" element={<AnalyticsPage />} />
+                        <Route path="reports" element={<ReportsPage />} />
                         <Route path="settings" element={<SettingsPage />} />
                         <Route path="patient/:id" element={<PatientDetail />} />
                         <Route path="referral/:id" element={<ReferralDetail />} />

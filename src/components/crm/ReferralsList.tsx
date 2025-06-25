@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,9 +7,10 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Plus, Phone, Mail, Calendar, User, ArrowUpDown, ArrowUp, ArrowDown, Edit, AlertCircle, Clock, CheckCircle, Settings, Check, X } from "lucide-react";
+import { Plus, Phone, Mail, Calendar, User, ArrowUpDown, ArrowUp, ArrowDown, Edit, AlertCircle, Clock, CheckCircle, Settings, Check, X, ExternalLink } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { Link } from "react-router-dom";
 import AddReferralDialog from './AddReferralDialog';
 import EditReferralDialog from './EditReferralDialog';
 import MarketerSettingsDialog from './MarketerSettingsDialog';
@@ -397,7 +399,13 @@ const ReferralsList = () => {
                 <TableRow key={referral.id}>
                   <TableCell className="font-medium">
                     <div>
-                      <div>{referral.patient_name}</div>
+                      <Link 
+                        to={`/referral/${referral.id}`}
+                        className="hover:text-primary hover:underline flex items-center space-x-1"
+                      >
+                        <span>{referral.patient_name}</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </Link>
                       {referral.patient_phone && (
                         <div className="text-sm text-muted-foreground flex items-center">
                           <Phone className="w-3 h-3 mr-1" />

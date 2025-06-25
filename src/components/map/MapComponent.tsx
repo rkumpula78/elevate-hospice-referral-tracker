@@ -2,115 +2,101 @@
 import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { MapPin, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 const MapComponent = () => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [mapboxToken, setMapboxToken] = useState<string>('');
+  const [tokenInput, setTokenInput] = useState<string>('');
+  const [isTokenSet, setIsTokenSet] = useState(false);
 
-  const initializeMap = async () => {
-    if (!mapContainer.current) return;
-
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      // Fetch Mapbox token from Supabase edge function
-      const { data, error: functionError } = await supabase.functions.invoke('get-mapbox-token');
-      
-      if (functionError) {
-        throw new Error('Failed to get Mapbox token: ' + functionError.message);
-      }
-
-      if (!data?.token) {
-        throw new Error('Mapbox token not configured. Please add your MAPBOX_PUBLIC_TOKEN in Supabase secrets.');
-      }
-
-      mapboxgl.accessToken = data.token;
-      
-      map.current = new mapboxgl.Map({
-        container: mapContainer.current,
-        style: 'mapbox://styles/mapbox/light-v11',
-        center: [-112.074, 33.448], // Phoenix, AZ area
-        zoom: 10,
-      });
-
-      // Add navigation controls
-      map.current.addControl(
-        new mapboxgl.NavigationControl(),
-        'top-right'
-      );
-
-      // Add some sample markers for referral sources
-      const sampleLocations = [
-        { name: 'Banner Health', coordinates: [-112.074, 33.448] },
-        { name: 'Mayo Clinic', coordinates: [-111.974, 33.498] },
-        { name: 'Phoenix VA Medical Center', coordinates: [-112.024, 33.528] },
-        { name: 'St. Joseph Hospital', coordinates: [-112.054, 33.508] },
-      ];
-
-      sampleLocations.forEach(location => {
-        if (map.current) {
-          new mapboxgl.Marker({ color: '#3B82F6' })
-            .setLngLat(location.coordinates as [number, number])
-            .setPopup(
-              new mapboxgl.Popup({ offset: 25 })
-                .setHTML(`<h3 class="font-semibold">${location.name}</h3><p>Referral Source</p>`)
-            )
-            .addTo(map.current);
+  useEffect(() => {
+    // Try to get token from Supabase Edge Function
+    const getMapboxToken = async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('get-mapbox-token');
+        if (data && data.token) {
+          setMapboxToken(data.token);
+          setIsTokenSet(true);
+          initializeMap(data.token);
         }
-      });
+      } catch (error) {
+        console.log('Could not get token from edge function, will require manual input');
+      }
+    };
 
-      setIsLoading(false);
-    } catch (err) {
-      console.error('Map initialization error:', err);
-      setError(err instanceof Error ? err.message : 'Failed to initialize map');
-      setIsLoading(false);
+    getMapboxToken();
+  }, []);
+
+  const initializeMap = (token: string) => {
+    if (!mapContainer.current || map.current) return;
+
+    mapboxgl.accessToken = token;
+    
+    map.current = new mapboxgl.Map({
+      container: mapContainer.current,
+      style: 'mapbox://styles/mapbox/light-v11',
+      center: [-111.9, 33.4], // Phoenix, AZ area
+      zoom: 10,
+    });
+
+    // Add navigation controls
+    map.current.addControl(
+      new mapboxgl.NavigationControl({
+        visualizePitch: true,
+      }),
+      'top-right'
+    );
+
+    // Add sample markers for organizations
+    const sampleLocations = [
+      { lng: -111.9262, lat: 33.4734, name: 'Paradise Valley Estates' },
+      { lng: -111.8868, lat: 33.5092, name: 'HonorHealth Thompson Peak' },
+      { lng: -111.9013, lat: 33.4629, name: 'Scottsdale Memory Care' },
+    ];
+
+    sampleLocations.forEach(location => {
+      new mapboxgl.Marker()
+        .setLngLat([location.lng, location.lat])
+        .setPopup(new mapboxgl.Popup().setText(location.name))
+        .addTo(map.current!);
+    });
+  };
+
+  const handleTokenSubmit = () => {
+    if (tokenInput.trim()) {
+      setMapboxToken(tokenInput);
+      setIsTokenSet(true);
+      initializeMap(tokenInput);
     }
   };
 
-  useEffect(() => {
-    initializeMap();
-
-    return () => {
-      map.current?.remove();
-    };
-  }, []);
-
-  if (isLoading) {
+  if (!isTokenSet) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <Card className="w-full max-w-md">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-center space-x-2">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-              <span>Loading map...</span>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <Card className="w-full max-w-md">
+      <div className="p-6">
+        <Card className="max-w-md mx-auto">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-red-600">
-              <AlertCircle className="h-5 w-5" />
-              Map Configuration Error
-            </CardTitle>
+            <CardTitle>Mapbox Token Required</CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-sm text-gray-600 mb-4">{error}</p>
-            <p className="text-sm text-gray-600">
-              Please make sure your Mapbox public token is properly configured in the Supabase secrets.
+          <CardContent className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Please enter your Mapbox public token to view the map. You can get this from your Mapbox account at mapbox.com.
             </p>
+            <div className="space-y-2">
+              <Input
+                type="text"
+                placeholder="Enter your Mapbox public token"
+                value={tokenInput}
+                onChange={(e) => setTokenInput(e.target.value)}
+              />
+              <Button onClick={handleTokenSubmit} className="w-full">
+                Load Map
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>

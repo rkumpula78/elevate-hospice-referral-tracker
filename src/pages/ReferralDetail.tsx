@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -7,13 +8,14 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Calendar, Phone, Mail, User, Building2, Edit } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import EditReferralDialog from '@/components/crm/EditReferralDialog';
+import PageLayout from '@/components/layout/PageLayout';
 
 const ReferralDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [showEditDialog, setShowEditDialog] = useState(false);
 
-  const { data: referral, isLoading } = useQuery({
+  const { data: referral, isLoading, refetch } = useQuery({
     queryKey: ['referral', id],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -33,21 +35,35 @@ const ReferralDetail = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
-        <div className="container mx-auto">
-          <div className="animate-pulse">Loading...</div>
+      <PageLayout title="Loading..." subtitle="Please wait">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
+          <div className="space-y-4">
+            <div className="h-32 bg-gray-200 rounded"></div>
+            <div className="h-32 bg-gray-200 rounded"></div>
+          </div>
         </div>
-      </div>
+      </PageLayout>
     );
   }
 
   if (!referral) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
-        <div className="container mx-auto">
-          <p>Referral not found</p>
-        </div>
-      </div>
+      <PageLayout title="Referral Not Found" subtitle="The requested referral could not be found">
+        <Card>
+          <CardContent className="pt-6">
+            <p className="text-center text-muted-foreground">
+              The referral you're looking for doesn't exist or may have been deleted.
+            </p>
+            <div className="flex justify-center mt-4">
+              <Button onClick={() => navigate('/referrals')}>
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Referrals
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </PageLayout>
     );
   }
 
@@ -61,17 +77,22 @@ const ReferralDetail = () => {
     }
   };
 
+  const handleEditSuccess = () => {
+    refetch();
+    setShowEditDialog(false);
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto p-6 space-y-6">
+    <PageLayout 
+      title={`Referral: ${referral.patient_name}`}
+      subtitle="Referral details and management"
+    >
+      <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <Button variant="outline" onClick={() => navigate('/dashboard')}>
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Dashboard
-            </Button>
-            <h1 className="text-2xl font-bold">Referral Details</h1>
-          </div>
+          <Button variant="outline" onClick={() => navigate('/referrals')}>
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Referrals
+          </Button>
           <Button onClick={() => setShowEditDialog(true)}>
             <Edit className="w-4 h-4 mr-2" />
             Edit Referral
@@ -109,6 +130,18 @@ const ReferralDetail = () => {
                 <div>
                   <p className="text-sm text-gray-600">Insurance</p>
                   <p className="font-medium">{referral.insurance}</p>
+                </div>
+              )}
+              {referral.priority && (
+                <div>
+                  <p className="text-sm text-gray-600">Priority</p>
+                  <Badge className={
+                    referral.priority === 'urgent' ? 'bg-red-100 text-red-800' :
+                    referral.priority === 'routine' ? 'bg-blue-100 text-blue-800' :
+                    'bg-gray-100 text-gray-800'
+                  }>
+                    {referral.priority}
+                  </Badge>
                 </div>
               )}
             </CardContent>
@@ -173,6 +206,12 @@ const ReferralDetail = () => {
                   </p>
                 </div>
               )}
+              {referral.assigned_marketer && (
+                <div>
+                  <p className="text-sm text-gray-600">Assigned Marketer</p>
+                  <p className="font-medium">{referral.assigned_marketer}</p>
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -182,7 +221,7 @@ const ReferralDetail = () => {
                 <CardTitle>Notes</CardTitle>
               </CardHeader>
               <CardContent>
-                <p>{referral.notes}</p>
+                <p className="whitespace-pre-wrap">{referral.notes}</p>
               </CardContent>
             </Card>
           )}
@@ -192,9 +231,10 @@ const ReferralDetail = () => {
           open={showEditDialog}
           onOpenChange={setShowEditDialog}
           referralId={id!}
+          onSuccess={handleEditSuccess}
         />
       </div>
-    </div>
+    </PageLayout>
   );
 };
 
