@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Phone, Building2, User, Edit, Calendar, AlertCircle, Clock, CheckCircle, Plus } from "lucide-react";
+import { Phone, Building2, User, Edit, Calendar, AlertCircle, Clock, CheckCircle, Plus, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -113,72 +113,58 @@ const ReferralCard = ({
         {/* Gradient accent line */}
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-purple-500"></div>
         
-        {/* Header with Patient Name and Actions */}
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex-1 min-w-0">
-            <Link 
-              to={`/referral/${referral.id}`}
-              className="hover:text-primary transition-colors group-hover:underline"
-            >
-              <h3 className="text-xl font-bold text-gray-900 mb-1 truncate">
-                {referral.patient_name}
-              </h3>
-            </Link>
-            {referral.patient_phone && (
-              <div className="flex items-center text-sm text-gray-600 mb-2">
-                <Phone className="w-4 h-4 mr-2 flex-shrink-0 text-blue-500" />
-                <span className="font-medium">{referral.patient_phone}</span>
+        {/* Patient Header Section */}
+        <div className="mb-6">
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex-1 min-w-0">
+              <Link 
+                to={`/referral/${referral.id}`}
+                className="hover:text-primary transition-colors group-hover:underline"
+              >
+                <h3 className="text-xl font-bold text-gray-900 mb-2 truncate">
+                  {referral.patient_name}
+                </h3>
+              </Link>
+              
+              {/* Patient Contact Information */}
+              <div className="space-y-2 mb-3">
+                {referral.patient_phone && (
+                  <div className="flex items-center text-sm text-gray-600">
+                    <Phone className="w-4 h-4 mr-2 flex-shrink-0 text-blue-500" />
+                    <span className="font-medium">{referral.patient_phone}</span>
+                  </div>
+                )}
+                
+                {(referral.patient_address || referral.patient_city || referral.patient_state) && (
+                  <div className="flex items-start text-sm text-gray-600">
+                    <MapPin className="w-4 h-4 mr-2 flex-shrink-0 text-blue-500 mt-0.5" />
+                    <div className="min-w-0 flex-1">
+                      {referral.patient_address && (
+                        <div className="truncate">{referral.patient_address}</div>
+                      )}
+                      {(referral.patient_city || referral.patient_state) && (
+                        <div className="truncate">
+                          {[referral.patient_city, referral.patient_state].filter(Boolean).join(', ')}
+                          {referral.patient_zip && ` ${referral.patient_zip}`}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-          <div className="flex gap-2 ml-4 flex-shrink-0">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => onEdit(referral.id)} 
-              className="modern-btn-secondary h-8 px-3 text-xs"
-            >
-              <Edit className="w-3 h-3 mr-1" />
-              Edit
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={handleSchedule} 
-              className="modern-btn-primary h-8 px-3 text-xs"
-            >
-              <Calendar className="w-3 h-3 mr-1" />
-              Schedule
-            </Button>
-          </div>
-        </div>
-
-        {/* Organization with modern styling */}
-        <div className="flex items-center mb-4 p-4 rounded-xl bg-gradient-to-r from-gray-50 to-blue-50 border border-gray-100">
-          <Building2 className="w-5 h-5 text-blue-500 mr-3 flex-shrink-0" />
-          <div className="min-w-0 flex-1">
-            <div className="font-medium text-gray-900 truncate">{referral.organizations?.name || 'Unknown Organization'}</div>
-            <div className="text-sm text-gray-600">{referral.organizations?.type}</div>
-          </div>
-        </div>
-
-        {/* Diagnosis and Priority */}
-        <div className="mb-4">
-          <div className="flex items-start justify-between mb-3">
-            <div className="flex-1 min-w-0 mr-4">
-              <div className="text-sm text-gray-600 mb-1">Diagnosis</div>
-              <div className="font-medium text-gray-900">{referral.diagnosis || 'Not specified'}</div>
             </div>
-            <div className="flex-shrink-0">
+            
+            {/* Priority Badge */}
+            <div className="flex-shrink-0 ml-4">
               <Select
                 value={referral.priority || 'routine'}
                 onValueChange={(value: string) => onPriorityChange(referral.id, value)}
                 disabled={isUpdatingPriority}
               >
-                <SelectTrigger className="w-32 h-8 modern-filter">
+                <SelectTrigger className="w-28 h-8 modern-filter">
                   <Badge className={getPriorityColor(referral.priority || 'routine')}>
                     {getPriorityIcon(referral.priority || 'routine')}
-                    <span className="ml-1 capitalize">{referral.priority || 'routine'}</span>
+                    <span className="ml-1 capitalize text-xs">{referral.priority || 'routine'}</span>
                   </Badge>
                 </SelectTrigger>
                 <SelectContent className="modern-dropdown">
@@ -189,6 +175,45 @@ const ReferralCard = ({
               </Select>
             </div>
           </div>
+
+          {/* Action Buttons */}
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => onEdit(referral.id)} 
+              className="modern-btn-secondary h-8 px-3 text-xs flex-1"
+            >
+              <Edit className="w-3 h-3 mr-1" />
+              Edit
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleSchedule} 
+              className="modern-btn-primary h-8 px-3 text-xs flex-1"
+            >
+              <Calendar className="w-3 h-3 mr-1" />
+              Schedule
+            </Button>
+          </div>
+        </div>
+
+        {/* Organization Section */}
+        <div className="mb-4 p-4 rounded-xl bg-gradient-to-r from-gray-50 to-blue-50 border border-gray-100">
+          <div className="flex items-center">
+            <Building2 className="w-5 h-5 text-blue-500 mr-3 flex-shrink-0" />
+            <div className="min-w-0 flex-1">
+              <div className="font-medium text-gray-900 truncate">{referral.organizations?.name || 'Unknown Organization'}</div>
+              <div className="text-sm text-gray-600">{referral.organizations?.type}</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Diagnosis */}
+        <div className="mb-4">
+          <div className="text-sm text-gray-600 mb-1">Diagnosis</div>
+          <div className="font-medium text-gray-900">{referral.diagnosis || 'Not specified'}</div>
         </div>
 
         {/* Status with Progress Bar */}
