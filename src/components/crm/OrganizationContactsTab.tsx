@@ -180,6 +180,23 @@ const OrganizationContactsTab = ({ organizationId, organizationName }: Organizat
     }
   };
 
+  const getRoleColor = (role: string) => {
+    switch (role) {
+      case 'decision_maker': return 'bg-red-100 text-red-800';
+      case 'influencer': return 'bg-blue-100 text-blue-800';
+      case 'gatekeeper': return 'bg-yellow-100 text-yellow-800';
+      case 'primary_contact': return 'bg-green-100 text-green-800';
+      case 'administrator': return 'bg-purple-100 text-purple-800';
+      case 'physician': return 'bg-indigo-100 text-indigo-800';
+      case 'nurse': return 'bg-pink-100 text-pink-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const formatRoleDisplay = (role: string) => {
+    return role.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+  };
+
   if (isLoading) {
     return <div>Loading contacts...</div>;
   }
@@ -233,12 +250,26 @@ const OrganizationContactsTab = ({ organizationId, organizationName }: Organizat
                 </div>
                 <div>
                   <Label htmlFor="role_in_referral">Role in Referral Process</Label>
-                  <Input
-                    id="role_in_referral"
-                    value={formData.role_in_referral}
-                    onChange={(e) => setFormData(prev => ({ ...prev, role_in_referral: e.target.value }))}
-                    placeholder="e.g., Decision Maker, Influencer"
-                  />
+                  <Select value={formData.role_in_referral} onValueChange={(value) => setFormData(prev => ({ ...prev, role_in_referral: value }))}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="decision_maker">Decision Maker</SelectItem>
+                      <SelectItem value="influencer">Influencer</SelectItem>
+                      <SelectItem value="gatekeeper">Gatekeeper</SelectItem>
+                      <SelectItem value="primary_contact">Primary Contact</SelectItem>
+                      <SelectItem value="secondary_contact">Secondary Contact</SelectItem>
+                      <SelectItem value="administrator">Administrator</SelectItem>
+                      <SelectItem value="nurse">Nurse</SelectItem>
+                      <SelectItem value="social_worker">Social Worker</SelectItem>
+                      <SelectItem value="physician">Physician</SelectItem>
+                      <SelectItem value="manager">Manager</SelectItem>
+                      <SelectItem value="director">Director</SelectItem>
+                      <SelectItem value="coordinator">Coordinator</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
@@ -347,6 +378,11 @@ const OrganizationContactsTab = ({ organizationId, organizationName }: Organizat
                     <Badge className={getInfluenceColor(contact.influence_level)}>
                       {contact.influence_level} influence
                     </Badge>
+                    {contact.role_in_referral && (
+                      <Badge className={getRoleColor(contact.role_in_referral)}>
+                        {formatRoleDisplay(contact.role_in_referral)}
+                      </Badge>
+                    )}
                   </div>
                   
                   {contact.title && (
@@ -367,12 +403,6 @@ const OrganizationContactsTab = ({ organizationId, organizationName }: Organizat
                       </div>
                     )}
                   </div>
-                  
-                  {contact.role_in_referral && (
-                    <p className="text-sm text-gray-600 mt-2">
-                      <strong>Role:</strong> {contact.role_in_referral}
-                    </p>
-                  )}
                 </div>
                 
                 <div className="flex gap-1">
