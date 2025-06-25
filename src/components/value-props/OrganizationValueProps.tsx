@@ -318,7 +318,6 @@ const OrganizationValueProps = ({ organizationType, organizationId }: Organizati
           <OrganizationTraining
             organizationId={organizationId}
             organizationType={organizationType}
-            defaultActiveSection={activeSection}
           />
         );
       default:
