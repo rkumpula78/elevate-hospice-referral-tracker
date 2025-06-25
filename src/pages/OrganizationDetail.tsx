@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -14,6 +13,7 @@ import OrganizationKPIs from '@/components/crm/OrganizationKPIs';
 import PartnershipStageManager from '@/components/crm/PartnershipStageManager';
 import SimpleOrganizationTraining from '@/components/training/SimpleOrganizationTraining';
 import OrganizationKPICard from '@/components/crm/OrganizationKPICard';
+import OrganizationContactsTab from '@/components/crm/OrganizationContactsTab';
 
 const OrganizationDetail = () => {
   const { id } = useParams();
@@ -123,6 +123,7 @@ const OrganizationDetail = () => {
         <Tabs defaultValue="overview" className="space-y-4">
           <TabsList>
             <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="contacts">Contacts</TabsTrigger>
             <TabsTrigger value="partnership">Partnership</TabsTrigger>
             <TabsTrigger value="training">Training & Resources</TabsTrigger>
             <TabsTrigger value="kpis">KPIs & Metrics</TabsTrigger>
@@ -374,6 +375,13 @@ const OrganizationDetail = () => {
                 )}
               </div>
             )}
+          </TabsContent>
+
+          <TabsContent value="contacts">
+            <OrganizationContactsTab 
+              organizationId={id!} 
+              organizationName={organization.name}
+            />
           </TabsContent>
 
           <TabsContent value="partnership">
