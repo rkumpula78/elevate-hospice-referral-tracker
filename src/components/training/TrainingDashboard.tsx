@@ -1,10 +1,11 @@
 
 import React from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/components/ui/use-toast';
 import { 
   BookOpen, 
   CheckCircle2, 
@@ -15,8 +16,12 @@ import {
   Award,
   Clock
 } from 'lucide-react';
+import TrainingModuleCard from './TrainingModuleCard';
 
 const TrainingDashboard = () => {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  
   // Get current user info (would normally come from auth context)
   const marketerName = "Current Marketer"; // Replace with actual auth user
 
@@ -58,6 +63,28 @@ const TrainingDashboard = () => {
       }
       console.log('TrainingDashboard: Training progress fetched successfully:', data);
       return data;
+    }
+  });
+
+  // Mutation to mark module as complete
+  const markModuleComplete = useMutation({
+    mutationFn: async (moduleId: string) => {
+      const { error } = await supabase
+        .from('marketer_training_progress')
+        .insert({
+          marketer_name: marketerName,
+          module_id: moduleId,
+          completed_at: new Date().toISOString()
+        });
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['marketer-training-progress', marketerName] });
+      toast({
+        title: "Module completed!",
+        description: "Your training progress has been updated."
+      });
     }
   });
 
@@ -154,6 +181,10 @@ const TrainingDashboard = () => {
   const completedModules = trainingProgress?.length || 0;
   const overallProgress = totalModules > 0 ? (completedModules / totalModules) * 100 : 0;
 
+  const isModuleCompleted = (moduleId: string) => {
+    return trainingProgress?.some(p => p.module_id === moduleId) || false;
+  };
+
   console.log('TrainingDashboard: Final calculated values:', { 
     totalModules, 
     completedModules, 
@@ -208,44 +239,37 @@ const TrainingDashboard = () => {
         </CardContent>
       </Card>
 
-      {/* Available Training Modules by Type */}
+      {/* Training Modules by Organization Type */}
       {Object.keys(modulesByType).length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Available Training Modules</CardTitle>
-            <CardDescription>Browse training content by organization type</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {Object.entries(modulesByType).map(([type, modules]) => (
-                <div key={type} className="border rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center space-x-2">
-                      {getOrgTypeIcon(type)}
-                      <h4 className="font-semibold">{getOrgTypeLabel(type)}</h4>
-                    </div>
-                    <Badge variant="secondary">
-                      {(modules as any[]).length} modules
-                    </Badge>
+        <div className="space-y-6">
+          {Object.entries(modulesByType).map(([type, modules]) => (
+            <Card key={type}>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    {getOrgTypeIcon(type)}
+                    <CardTitle>{getOrgTypeLabel(type)}</CardTitle>
                   </div>
-                  <div className="space-y-2">
-                    {(modules as any[]).map((module: any) => (
-                      <div key={module.id} className="flex items-center justify-between text-sm">
-                        <span>{module.module_name}</span>
-                        <Badge 
-                          variant={trainingProgress?.some(p => p.module_id === module.id) ? "default" : "outline"}
-                          className={trainingProgress?.some(p => p.module_id === module.id) ? "bg-green-500" : ""}
-                        >
-                          {trainingProgress?.some(p => p.module_id === module.id) ? "Completed" : "Available"}
-                        </Badge>
-                      </div>
-                    ))}
-                  </div>
+                  <Badge variant="secondary">
+                    {(modules as any[]).length} modules
+                  </Badge>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {(modules as any[]).map((module: any) => (
+                    <TrainingModuleCard
+                      key={module.id}
+                      module={module}
+                      isCompleted={isModuleCompleted(module.id)}
+                      onMarkComplete={(moduleId) => markModuleComplete.mutate(moduleId)}
+                    />
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       )}
 
       {/* Progress by Organization Type */}
