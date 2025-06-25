@@ -149,17 +149,26 @@ const PartnershipStageManager: React.FC<PartnershipStageManagerProps> = ({
               <div className="flex-1">
                 <Label>Update Stage</Label>
                 <Select value={selectedStage} onValueChange={setSelectedStage}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {PARTNERSHIP_STAGES.map(stage => (
-                      <SelectItem key={stage.value} value={stage.value}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue>
+                      {PARTNERSHIP_STAGES.find(s => s.value === selectedStage) && (
                         <div className="flex items-center gap-2">
-                          <Badge variant="secondary" className={stage.color}>
-                            {stage.label}
+                          <Badge 
+                            variant="secondary" 
+                            className={PARTNERSHIP_STAGES.find(s => s.value === selectedStage)?.color}
+                          >
+                            {PARTNERSHIP_STAGES.find(s => s.value === selectedStage)?.label}
                           </Badge>
                         </div>
+                      )}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent className="bg-white border shadow-lg z-50">
+                    {PARTNERSHIP_STAGES.map(stage => (
+                      <SelectItem key={stage.value} value={stage.value} className="cursor-pointer hover:bg-gray-50">
+                        <Badge variant="secondary" className={`${stage.color} mr-2`}>
+                          {stage.label}
+                        </Badge>
                       </SelectItem>
                     ))}
                   </SelectContent>
