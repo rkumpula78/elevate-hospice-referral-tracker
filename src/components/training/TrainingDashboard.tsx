@@ -208,6 +208,46 @@ const TrainingDashboard = () => {
         </CardContent>
       </Card>
 
+      {/* Available Training Modules by Type */}
+      {Object.keys(modulesByType).length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Available Training Modules</CardTitle>
+            <CardDescription>Browse training content by organization type</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {Object.entries(modulesByType).map(([type, modules]) => (
+                <div key={type} className="border rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center space-x-2">
+                      {getOrgTypeIcon(type)}
+                      <h4 className="font-semibold">{getOrgTypeLabel(type)}</h4>
+                    </div>
+                    <Badge variant="secondary">
+                      {(modules as any[]).length} modules
+                    </Badge>
+                  </div>
+                  <div className="space-y-2">
+                    {(modules as any[]).map((module: any) => (
+                      <div key={module.id} className="flex items-center justify-between text-sm">
+                        <span>{module.module_name}</span>
+                        <Badge 
+                          variant={trainingProgress?.some(p => p.module_id === module.id) ? "default" : "outline"}
+                          className={trainingProgress?.some(p => p.module_id === module.id) ? "bg-green-500" : ""}
+                        >
+                          {trainingProgress?.some(p => p.module_id === module.id) ? "Completed" : "Available"}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Progress by Organization Type */}
       {Object.keys(modulesByType).length > 0 && (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
