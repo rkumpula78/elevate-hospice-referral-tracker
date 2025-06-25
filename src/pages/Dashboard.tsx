@@ -8,6 +8,7 @@ import QuickAddDialog from "@/components/crm/QuickAddDialog";
 import ConversionFunnelChart from "@/components/charts/ConversionFunnelChart";
 import SourcePerformanceChart from "@/components/charts/SourcePerformanceChart";
 import MarketerPerformance from "@/components/charts/MarketerPerformance";
+import TrainingMetrics from "@/components/charts/TrainingMetrics";
 import PageLayout from "@/components/layout/PageLayout";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -104,8 +105,11 @@ const Dashboard = () => {
           <SourcePerformanceChart />
         </div>
 
-        {/* Marketer Performance */}
-        <MarketerPerformance />
+        {/* Training and Marketer Performance */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <TrainingMetrics />
+          <MarketerPerformance />
+        </div>
 
         {/* Recent Patients Table */}
         <Card>

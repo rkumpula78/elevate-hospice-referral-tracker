@@ -9,6 +9,8 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import EditOrganizationDialog from '@/components/crm/EditOrganizationDialog';
 import OrganizationTraining from '@/components/crm/OrganizationTraining';
+import OrganizationKPIs from '@/components/crm/OrganizationKPIs';
+import PartnershipStageManager from '@/components/crm/PartnershipStageManager';
 
 const OrganizationDetail = () => {
   const { id } = useParams();
@@ -96,7 +98,9 @@ const OrganizationDetail = () => {
         <Tabs defaultValue="overview" className="space-y-4">
           <TabsList>
             <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="partnership">Partnership</TabsTrigger>
             <TabsTrigger value="training">Training & Resources</TabsTrigger>
+            <TabsTrigger value="kpis">KPIs</TabsTrigger>
             <TabsTrigger value="referrals">Referrals</TabsTrigger>
           </TabsList>
 
@@ -171,9 +175,25 @@ const OrganizationDetail = () => {
             </div>
           </TabsContent>
 
+          <TabsContent value="partnership">
+            <PartnershipStageManager
+              organizationId={id!}
+              currentStage={organization.partnership_stage || 'prospect'}
+              lastTrainingReview={organization.last_training_review}
+              partnershipNotes={organization.partnership_notes}
+            />
+          </TabsContent>
+
           <TabsContent value="training">
             <OrganizationTraining 
               organizationId={id!} 
+              organizationType={organization.type}
+            />
+          </TabsContent>
+
+          <TabsContent value="kpis">
+            <OrganizationKPIs
+              organizationId={id!}
               organizationType={organization.type}
             />
           </TabsContent>

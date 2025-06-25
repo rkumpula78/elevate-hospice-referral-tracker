@@ -53,6 +53,16 @@ const OrganizationsList = () => {
     }
   };
 
+  const getStageColor = (stage: string) => {
+    switch (stage) {
+      case 'prospect': return 'bg-gray-100 text-gray-800';
+      case 'developing': return 'bg-blue-100 text-blue-800';
+      case 'active': return 'bg-green-100 text-green-800';
+      case 'strategic': return 'bg-purple-100 text-purple-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
   if (isLoading) {
     return <div>Loading organizations...</div>;
   }
@@ -99,6 +109,7 @@ const OrganizationsList = () => {
           <TableRow>
             <TableHead>Organization</TableHead>
             <TableHead>Type</TableHead>
+            <TableHead>Partnership Stage</TableHead>
             <TableHead>Contact Info</TableHead>
             <TableHead>Assigned Marketer</TableHead>
             <TableHead>Status</TableHead>
@@ -122,6 +133,12 @@ const OrganizationsList = () => {
               <TableCell>
                 <Badge className={getTypeColor(org.type)}>
                   {org.type.replace('_', ' ')}
+                </Badge>
+              </TableCell>
+              <TableCell>
+                <Badge className={getStageColor(org.partnership_stage || 'prospect')}>
+                  {(org.partnership_stage || 'prospect').charAt(0).toUpperCase() + 
+                   (org.partnership_stage || 'prospect').slice(1)}
                 </Badge>
               </TableCell>
               <TableCell>
