@@ -14,7 +14,7 @@ const PageLayout = ({ title, subtitle, children }: PageLayoutProps) => {
   const { displayName } = useAuth();
 
   return (
-    <SidebarInset className="flex-1">
+    <SidebarInset className="flex-1 min-h-screen">
       {/* Header */}
       <header className="sticky top-0 z-10 bg-white border-b">
         <div className="flex h-16 items-center px-6 gap-4">
@@ -34,9 +34,9 @@ const PageLayout = ({ title, subtitle, children }: PageLayoutProps) => {
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="flex-1 overflow-auto">
-        <div className="p-6">
+      {/* Main Content with proper spacing */}
+      <main className="flex-1 overflow-auto bg-gray-50">
+        <div className="max-w-7xl mx-auto">
           {children}
         </div>
       </main>

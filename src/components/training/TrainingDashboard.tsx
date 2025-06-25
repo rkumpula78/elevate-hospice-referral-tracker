@@ -14,7 +14,8 @@ import {
   Users, 
   Calendar,
   Award,
-  Clock
+  Clock,
+  AlertCircle
 } from 'lucide-react';
 import TrainingModuleCard from './TrainingModuleCard';
 
@@ -101,7 +102,7 @@ const TrainingDashboard = () => {
   if (modulesLoading || progressLoading) {
     console.log('TrainingDashboard: Showing loading state');
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 p-6 ml-0">
         <Card>
           <CardContent className="pt-6">
             <div className="text-center">
@@ -117,7 +118,7 @@ const TrainingDashboard = () => {
   if (modulesError || progressError) {
     console.error('TrainingDashboard: Showing error state', { modulesError, progressError });
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 p-6 ml-0">
         <Card>
           <CardContent className="pt-6">
             <div className="text-center">
@@ -193,7 +194,7 @@ const TrainingDashboard = () => {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-7xl mx-auto p-6">
       {/* Overall Progress Card */}
       <Card>
         <CardHeader>
@@ -225,13 +226,11 @@ const TrainingDashboard = () => {
             )}
 
             {totalModules === 0 && (
-              <div className="text-center py-4">
+              <div className="text-center py-8">
+                <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-lg font-medium text-gray-900 mb-2">No Training Content Available</p>
                 <p className="text-muted-foreground">
-                  No training modules found in database. 
-                  Please check that the database migration was successful and data was inserted properly.
-                </p>
-                <p className="text-xs text-muted-foreground mt-2">
-                  Debug info: Modules loading: {String(modulesLoading)}, Error: {modulesError?.message || 'none'}
+                  Training materials are currently being developed. Please check back soon for comprehensive partnership training modules.
                 </p>
               </div>
             )}

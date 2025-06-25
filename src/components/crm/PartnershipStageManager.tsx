@@ -98,7 +98,7 @@ const PartnershipStageManager: React.FC<PartnershipStageManagerProps> = ({
     : null;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6 ml-0">
       {/* Partnership Stage Progress */}
       <Card>
         <CardHeader>
@@ -149,26 +149,33 @@ const PartnershipStageManager: React.FC<PartnershipStageManagerProps> = ({
               <div className="flex-1">
                 <Label>Update Stage</Label>
                 <Select value={selectedStage} onValueChange={setSelectedStage}>
-                  <SelectTrigger className="w-full">
+                  <SelectTrigger className="w-full bg-white">
                     <SelectValue>
-                      {PARTNERSHIP_STAGES.find(s => s.value === selectedStage) && (
-                        <div className="flex items-center gap-2">
-                          <Badge 
-                            variant="secondary" 
-                            className={PARTNERSHIP_STAGES.find(s => s.value === selectedStage)?.color}
-                          >
-                            {PARTNERSHIP_STAGES.find(s => s.value === selectedStage)?.label}
-                          </Badge>
-                        </div>
-                      )}
+                      {(() => {
+                        const currentStageObj = PARTNERSHIP_STAGES.find(s => s.value === selectedStage);
+                        return currentStageObj ? (
+                          <div className="flex items-center gap-2">
+                            <Badge variant="secondary" className={currentStageObj.color}>
+                              {currentStageObj.label}
+                            </Badge>
+                          </div>
+                        ) : null;
+                      })()}
                     </SelectValue>
                   </SelectTrigger>
-                  <SelectContent className="bg-white border shadow-lg z-50">
+                  <SelectContent className="bg-white border shadow-lg z-[100] max-h-[200px] overflow-y-auto">
                     {PARTNERSHIP_STAGES.map(stage => (
-                      <SelectItem key={stage.value} value={stage.value} className="cursor-pointer hover:bg-gray-50">
-                        <Badge variant="secondary" className={`${stage.color} mr-2`}>
-                          {stage.label}
-                        </Badge>
+                      <SelectItem 
+                        key={stage.value} 
+                        value={stage.value} 
+                        className="cursor-pointer hover:bg-gray-50 focus:bg-gray-50 py-3"
+                      >
+                        <div className="flex items-center gap-3">
+                          <Badge variant="secondary" className={stage.color}>
+                            {stage.label}
+                          </Badge>
+                          <span className="text-sm text-gray-600">{stage.description}</span>
+                        </div>
                       </SelectItem>
                     ))}
                   </SelectContent>
