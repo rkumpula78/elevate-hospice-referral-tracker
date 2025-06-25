@@ -3,24 +3,17 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Plus, Phone, Mail, Calendar, User, ArrowUpDown, ArrowUp, ArrowDown, Edit, AlertCircle, Clock, CheckCircle, Settings, Check, X, ExternalLink } from "lucide-react";
+import { Plus, Settings } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { format } from "date-fns";
-import { Link } from "react-router-dom";
 import AddReferralDialog from './AddReferralDialog';
 import EditReferralDialog from './EditReferralDialog';
 import MarketerSettingsDialog from './MarketerSettingsDialog';
 import { sendAdmissionNotification, formatEmailData } from '@/utils/emailNotifications';
-import { TableSkeleton } from '@/components/ui/table-skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
+import ReferralCard from './ReferralCard';
 
-type ReferralStatus = 'pending' | 'contacted' | 'scheduled' | 'admitted' | 'declined' | 'lost' | 'lost_death' | 'lost_move' | 'lost_other_hospice';
-type SortField = 'patient_name' | 'organizations.name' | 'assigned_marketer' | 'diagnosis' | 'priority' | 'status' | 'referral_date';
-type SortDirection = 'asc' | 'desc';
+type ReferralStatus = 'new_referral' | 'contact_attempted' | 'information_gathering' | 'assessment_scheduled' | 'pending_admission' | 'admitted' | 'not_admitted_patient_choice' | 'not_admitted_not_appropriate' | 'not_admitted_lost_contact' | 'deceased_prior_admission';
 
 const ReferralsList = () => {
   const { toast } = useToast();
@@ -32,18 +25,16 @@ const ReferralsList = () => {
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showMarketerSettings, setShowMarketerSettings] = useState(false);
   const [editingReferralId, setEditingReferralId] = useState<string>('');
-  const [sortField, setSortField] = useState<SortField>('referral_date');
-  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [editingMarketer, setEditingMarketer] = useState<string | null>(null);
   const [tempMarketerValue, setTempMarketerValue] = useState<string>('');
 
   const { data: referrals, isLoading } = useQuery({
-    queryKey: ['referrals', selectedStatus, selectedPriority, selectedMarketer, sortField, sortDirection],
+    queryKey: ['referrals', selectedStatus, selectedPriority, selectedMarketer],
     queryFn: async () => {
       let query = supabase
         .from('referrals')
         .select('*, organizations(name, type)')
-        .order(sortField === 'organizations.name' ? 'organizations(name)' : sortField, { ascending: sortDirection === 'asc' });
+        .order('referral_date', { ascending: false });
 
       if (selectedStatus !== 'all') {
         query = query.eq('status', selectedStatus);
@@ -84,21 +75,6 @@ const ReferralsList = () => {
       window.removeEventListener('marketers-updated', handleMarketerUpdate);
     };
   }, [refetchMarketers]);
-
-  // Get unique marketers for filter
-  const { data: uniqueMarketers } = useQuery({
-    queryKey: ['marketers'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('referrals')
-        .select('assigned_marketer')
-        .not('assigned_marketer', 'is', null);
-      
-      if (error) throw error;
-      const uniqueMarketers = [...new Set(data.map(r => r.assigned_marketer).filter(Boolean))];
-      return uniqueMarketers;
-    }
-  });
 
   const updateStatusMutation = useMutation({
     mutationFn: async ({ id, status }: { id: string, status: ReferralStatus }) => {
@@ -171,7 +147,6 @@ const ReferralsList = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['referrals'] });
-      queryClient.invalidateQueries({ queryKey: ['marketers'] });
       toast({ title: "Marketer updated successfully" });
       setEditingMarketer(null);
       setTempMarketerValue('');
@@ -183,65 +158,9 @@ const ReferralsList = () => {
     }
   });
 
-  const handleSort = (field: SortField) => {
-    if (sortField === field) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortField(field);
-      setSortDirection('asc');
-    }
-  };
-
-  const getSortIcon = (field: SortField) => {
-    if (sortField !== field) return <ArrowUpDown className="w-3 h-3 ml-1" />;
-    return sortDirection === 'asc' ? <ArrowUp className="w-3 h-3 ml-1" /> : <ArrowDown className="w-3 h-3 ml-1" />;
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'contacted': return 'bg-blue-100 text-blue-800';
-      case 'scheduled': return 'bg-purple-100 text-purple-800';
-      case 'admitted': return 'bg-green-100 text-green-800';
-      case 'declined': return 'bg-red-100 text-red-800';
-      case 'lost': return 'bg-gray-100 text-gray-800';
-      case 'lost_death': return 'bg-gray-100 text-gray-800';
-      case 'lost_move': return 'bg-gray-100 text-gray-800';
-      case 'lost_other_hospice': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'lost_death': return 'Lost - Death';
-      case 'lost_move': return 'Lost - Move';
-      case 'lost_other_hospice': return 'Lost - Other Hospice';
-      default: return status;
-    }
-  };
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'urgent': return 'bg-red-100 text-red-800';
-      case 'routine': return 'bg-blue-100 text-blue-800';
-      case 'low': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
   const handleEditReferral = (referralId: string) => {
     setEditingReferralId(referralId);
     setShowEditDialog(true);
-  };
-
-  const getPriorityIcon = (priority: string) => {
-    switch (priority) {
-      case 'urgent': return <AlertCircle className="w-3 h-3 mr-1 text-red-600" />;
-      case 'routine': return <Clock className="w-3 h-3 mr-1 text-blue-600" />;
-      case 'low': return <CheckCircle className="w-3 h-3 mr-1 text-gray-600" />;
-      default: return <Clock className="w-3 h-3 mr-1 text-gray-600" />;
-    }
   };
 
   const resetFilters = () => {
@@ -279,13 +198,17 @@ const ReferralsList = () => {
           </div>
           <div className="w-32 h-10 bg-gray-200 rounded animate-pulse" />
         </div>
-        <TableSkeleton rows={8} columns={8} />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="h-64 bg-gray-200 rounded-lg animate-pulse" />
+          ))}
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div className="flex space-x-2">
           <Select value={selectedStatus} onValueChange={(value: ReferralStatus | 'all') => setSelectedStatus(value)}>
@@ -294,15 +217,16 @@ const ReferralsList = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="contacted">Contacted</SelectItem>
-              <SelectItem value="scheduled">Scheduled</SelectItem>
+              <SelectItem value="new_referral">New Referral</SelectItem>
+              <SelectItem value="contact_attempted">Contact Attempted</SelectItem>
+              <SelectItem value="information_gathering">Information Gathering</SelectItem>
+              <SelectItem value="assessment_scheduled">Assessment Scheduled</SelectItem>
+              <SelectItem value="pending_admission">Pending Admission</SelectItem>
               <SelectItem value="admitted">Admitted</SelectItem>
-              <SelectItem value="declined">Declined</SelectItem>
-              <SelectItem value="lost">Lost</SelectItem>
-              <SelectItem value="lost_death">Lost - Death</SelectItem>
-              <SelectItem value="lost_move">Lost - Move</SelectItem>
-              <SelectItem value="lost_other_hospice">Lost - Other Hospice</SelectItem>
+              <SelectItem value="not_admitted_patient_choice">Not Admitted - Patient Choice</SelectItem>
+              <SelectItem value="not_admitted_not_appropriate">Not Admitted - Not Appropriate</SelectItem>
+              <SelectItem value="not_admitted_lost_contact">Not Admitted - Lost Contact</SelectItem>
+              <SelectItem value="deceased_prior_admission">Deceased Prior to Admission</SelectItem>
             </SelectContent>
           </Select>
 
@@ -352,190 +276,26 @@ const ReferralsList = () => {
           onResetFilters={resetFilters}
         />
       ) : (
-        <div className="rounded-md border overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>
-                  <Button variant="ghost" onClick={() => handleSort('patient_name')} className="h-auto p-0 font-medium">
-                    Patient{getSortIcon('patient_name')}
-                  </Button>
-                </TableHead>
-                <TableHead>
-                  <Button variant="ghost" onClick={() => handleSort('organizations.name')} className="h-auto p-0 font-medium">
-                    Organization{getSortIcon('organizations.name')}
-                  </Button>
-                </TableHead>
-                <TableHead>
-                  <Button variant="ghost" onClick={() => handleSort('assigned_marketer')} className="h-auto p-0 font-medium">
-                    Assigned Marketer{getSortIcon('assigned_marketer')}
-                  </Button>
-                </TableHead>
-                <TableHead>
-                  <Button variant="ghost" onClick={() => handleSort('diagnosis')} className="h-auto p-0 font-medium">
-                    Diagnosis{getSortIcon('diagnosis')}
-                  </Button>
-                </TableHead>
-                <TableHead>
-                  <Button variant="ghost" onClick={() => handleSort('priority')} className="h-auto p-0 font-medium">
-                    Priority{getSortIcon('priority')}
-                  </Button>
-                </TableHead>
-                <TableHead>
-                  <Button variant="ghost" onClick={() => handleSort('status')} className="h-auto p-0 font-medium">
-                    Status{getSortIcon('status')}
-                  </Button>
-                </TableHead>
-                <TableHead>
-                  <Button variant="ghost" onClick={() => handleSort('referral_date')} className="h-auto p-0 font-medium">
-                    Referral Date{getSortIcon('referral_date')}
-                  </Button>
-                </TableHead>
-                <TableHead className="w-[200px]">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {referrals?.map((referral) => (
-                <TableRow key={referral.id}>
-                  <TableCell className="font-medium">
-                    <div>
-                      <Link 
-                        to={`/referral/${referral.id}`}
-                        className="hover:text-primary hover:underline flex items-center space-x-1"
-                      >
-                        <span>{referral.patient_name}</span>
-                        <ExternalLink className="w-3 h-3" />
-                      </Link>
-                      {referral.patient_phone && (
-                        <div className="text-sm text-muted-foreground flex items-center">
-                          <Phone className="w-3 h-3 mr-1" />
-                          {referral.patient_phone}
-                        </div>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div>
-                      <div>{referral.organizations?.name || 'Unknown'}</div>
-                      <div className="text-sm text-muted-foreground">{referral.organizations?.type}</div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    {editingMarketer === referral.id ? (
-                      <div className="flex items-center gap-2">
-                        <Input
-                          value={tempMarketerValue}
-                          onChange={(e) => setTempMarketerValue(e.target.value)}
-                          placeholder="Enter marketer name"
-                          className="w-40"
-                          onKeyPress={(e) => {
-                            if (e.key === 'Enter') {
-                              handleMarketerSave(referral.id);
-                            } else if (e.key === 'Escape') {
-                              handleMarketerCancel();
-                            }
-                          }}
-                          autoFocus
-                        />
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handleMarketerSave(referral.id)}
-                          disabled={updateMarketerMutation.isPending}
-                        >
-                          <Check className="w-3 h-3" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={handleMarketerCancel}
-                        >
-                          <X className="w-3 h-3" />
-                        </Button>
-                      </div>
-                    ) : (
-                      <div
-                        className="flex items-center cursor-pointer hover:bg-gray-50 p-1 rounded"
-                        onClick={() => handleMarketerEdit(referral.id, referral.assigned_marketer)}
-                      >
-                        {referral.assigned_marketer ? (
-                          <div className="flex items-center">
-                            <User className="w-3 h-3 mr-1" />
-                            {referral.assigned_marketer}
-                          </div>
-                        ) : (
-                          <span className="text-muted-foreground">Click to assign</span>
-                        )}
-                      </div>
-                    )}
-                  </TableCell>
-                  <TableCell className="max-w-[200px] truncate">{referral.diagnosis}</TableCell>
-                  <TableCell>
-                    <Select
-                      value={referral.priority || 'routine'}
-                      onValueChange={(value: string) => 
-                        updatePriorityMutation.mutate({ id: referral.id, priority: value })
-                      }
-                      disabled={updatePriorityMutation.isPending}
-                    >
-                      <SelectTrigger className="w-32">
-                        <Badge className={getPriorityColor(referral.priority || 'routine')}>
-                          {getPriorityIcon(referral.priority || 'routine')}
-                          {referral.priority || 'routine'}
-                        </Badge>
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="urgent">Urgent</SelectItem>
-                        <SelectItem value="routine">Routine</SelectItem>
-                        <SelectItem value="low">Low</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </TableCell>
-                  <TableCell>
-                    <Select
-                      value={referral.status || 'pending'}
-                      onValueChange={(value: ReferralStatus) => 
-                        updateStatusMutation.mutate({ id: referral.id, status: value })
-                      }
-                      disabled={updateStatusMutation.isPending}
-                    >
-                      <SelectTrigger className="w-40">
-                        <Badge className={getStatusColor(referral.status || 'pending')}>
-                          {getStatusLabel(referral.status || 'pending')}
-                        </Badge>
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="contacted">Contacted</SelectItem>
-                        <SelectItem value="scheduled">Scheduled</SelectItem>
-                        <SelectItem value="admitted">Admitted</SelectItem>
-                        <SelectItem value="declined">Declined</SelectItem>
-                        <SelectItem value="lost">Lost</SelectItem>
-                        <SelectItem value="lost_death">Lost - Death</SelectItem>
-                        <SelectItem value="lost_move">Lost - Move</SelectItem>
-                        <SelectItem value="lost_other_hospice">Lost - Other Hospice</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </TableCell>
-                  <TableCell>
-                    {referral.referral_date && format(new Date(referral.referral_date), 'MMM dd, yyyy')}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex space-x-1">
-                      <Button variant="outline" size="sm" onClick={() => handleEditReferral(referral.id)}>
-                        <Edit className="w-3 h-3 mr-1" />
-                        Edit
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        <Calendar className="w-3 h-3 mr-1" />
-                        Schedule
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {referrals?.map((referral) => (
+            <ReferralCard
+              key={referral.id}
+              referral={referral}
+              marketers={marketers || []}
+              editingMarketer={editingMarketer}
+              tempMarketerValue={tempMarketerValue}
+              isUpdatingStatus={updateStatusMutation.isPending}
+              isUpdatingPriority={updatePriorityMutation.isPending}
+              isUpdatingMarketer={updateMarketerMutation.isPending}
+              onStatusChange={(id, status) => updateStatusMutation.mutate({ id, status: status as ReferralStatus })}
+              onPriorityChange={(id, priority) => updatePriorityMutation.mutate({ id, priority })}
+              onMarketerEdit={handleMarketerEdit}
+              onMarketerSave={handleMarketerSave}
+              onMarketerCancel={handleMarketerCancel}
+              onTempMarketerChange={setTempMarketerValue}
+              onEdit={handleEditReferral}
+            />
+          ))}
         </div>
       )}
 
