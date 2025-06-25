@@ -15,6 +15,8 @@ import {
 } from 'lucide-react';
 
 const SimpleTrainingDashboard = () => {
+  console.log('SimpleTrainingDashboard: Component is rendering');
+
   // Mock data for demonstration
   const mockProgress = {
     totalModules: 24,
@@ -42,6 +44,8 @@ const SimpleTrainingDashboard = () => {
     };
     return icons[type] || <BookOpen className="w-5 h-5" />;
   };
+
+  console.log('SimpleTrainingDashboard: About to render with mock data:', mockProgress);
 
   return (
     <div className="space-y-6">

@@ -4,6 +4,8 @@ import PageHeader from '@/components/layout/PageHeader';
 import SimpleTrainingDashboard from '@/components/training/SimpleTrainingDashboard';
 
 const TrainingPage = () => {
+  console.log('TrainingPage: Component is rendering');
+
   return (
     <div className="min-h-screen bg-gray-50">
       <PageHeader 
