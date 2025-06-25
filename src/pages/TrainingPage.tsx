@@ -1,7 +1,7 @@
 
 import React from 'react';
 import PageHeader from '@/components/layout/PageHeader';
-import TrainingDashboard from '@/components/training/TrainingDashboard';
+import ValuePropositionsDashboard from '@/components/value-props/ValuePropositionsDashboard';
 
 const TrainingPage = () => {
   console.log('TrainingPage: Component is rendering');
@@ -19,12 +19,12 @@ const TrainingPage = () => {
   return (
     <div className="min-h-screen bg-gray-50" data-testid="training-page">
       <PageHeader 
-        title="Training Center" 
-        subtitle="Master your hospice partnership strategies"
+        title="Value Propositions" 
+        subtitle="Core value propositions for different organization types"
       />
       
       <div className="container mx-auto p-6">
-        <TrainingDashboard />
+        <ValuePropositionsDashboard />
       </div>
     </div>
   );

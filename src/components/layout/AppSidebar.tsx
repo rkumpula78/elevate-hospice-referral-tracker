@@ -57,7 +57,7 @@ const menuItems = [
     icon: Map,
   },
   {
-    title: "Training",
+    title: "Value Propositions",
     url: "/training",
     icon: BookOpen,
   },
