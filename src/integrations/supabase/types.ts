@@ -1767,6 +1767,15 @@ export type Database = {
         | "lost_death"
         | "lost_move"
         | "lost_other_hospice"
+        | "new_referral"
+        | "contact_attempted"
+        | "information_gathering"
+        | "assessment_scheduled"
+        | "pending_admission"
+        | "not_admitted_patient_choice"
+        | "not_admitted_not_appropriate"
+        | "not_admitted_lost_contact"
+        | "deceased_prior_admission"
       visit_type: "admission" | "routine" | "urgent" | "discharge"
     }
     CompositeTypes: {
@@ -1903,6 +1912,15 @@ export const Constants = {
         "lost_death",
         "lost_move",
         "lost_other_hospice",
+        "new_referral",
+        "contact_attempted",
+        "information_gathering",
+        "assessment_scheduled",
+        "pending_admission",
+        "not_admitted_patient_choice",
+        "not_admitted_not_appropriate",
+        "not_admitted_lost_contact",
+        "deceased_prior_admission",
       ],
       visit_type: ["admission", "routine", "urgent", "discharge"],
     },

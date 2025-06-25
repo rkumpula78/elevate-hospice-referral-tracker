@@ -74,12 +74,12 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
     mutationFn: async (data: typeof formData) => {
       const { error } = await supabase
         .from('referrals')
-        .insert([{
+        .insert({
           ...data,
           organization_id: data.organization_id || null,
           referral_intake_coordinator: data.referral_intake_coordinator || null,
           reason_for_non_admittance: data.reason_for_non_admittance || null
-        }]);
+        });
       if (error) throw error;
     },
     onSuccess: () => {
