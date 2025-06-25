@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -11,7 +10,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { Upload, X, FileText, Download } from 'lucide-react';
+import { Upload, X, FileText, Download, Plus, Edit, Trash } from 'lucide-react';
+import OrganizationContactsTab from './OrganizationContactsTab';
 
 interface EditOrganizationDialogProps {
   open: boolean;
@@ -61,9 +61,25 @@ const EditOrganizationDialog = ({ open, onOpenChange, organizationId }: EditOrga
   // Update organization mutation
   const updateOrganizationMutation = useMutation({
     mutationFn: async (data: any) => {
+      // Clean the data to remove undefined values and ensure proper types
+      const cleanData = Object.fromEntries(
+        Object.entries(data).filter(([_, value]) => value !== undefined && value !== '')
+      );
+      
+      // Ensure numeric fields are properly converted
+      if (cleanData.bed_count) {
+        cleanData.bed_count = parseInt(cleanData.bed_count as string);
+      }
+      if (cleanData.service_radius) {
+        cleanData.service_radius = parseInt(cleanData.service_radius as string);
+      }
+      if (cleanData.referral_potential) {
+        cleanData.referral_potential = parseInt(cleanData.referral_potential as string);
+      }
+
       const { error } = await supabase
         .from('organizations')
-        .update(data)
+        .update(cleanData)
         .eq('id', organizationId);
       
       if (error) throw error;
@@ -75,6 +91,7 @@ const EditOrganizationDialog = ({ open, onOpenChange, organizationId }: EditOrga
       onOpenChange(false);
     },
     onError: (error) => {
+      console.error('Organization update error:', error);
       toast({ title: 'Error updating organization', description: error.message, variant: 'destructive' });
     }
   });
@@ -152,38 +169,38 @@ const EditOrganizationDialog = ({ open, onOpenChange, organizationId }: EditOrga
     
     const updateData = {
       // Basic Info
-      name: formData.get('name'),
-      dba_name: formData.get('dba_name'),
-      type: formData.get('type'),
-      sub_type: formData.get('sub_type'),
-      medicare_id: formData.get('medicare_id'),
+      name: formData.get('name') as string || organization?.name,
+      dba_name: formData.get('dba_name') as string || null,
+      type: formData.get('type') as string || organization?.type,
+      sub_type: formData.get('sub_type') as string || null,
+      medicare_id: formData.get('medicare_id') as string || null,
       bed_count: formData.get('bed_count') ? parseInt(formData.get('bed_count') as string) : null,
-      ownership_type: formData.get('ownership_type'),
+      ownership_type: formData.get('ownership_type') as string || null,
       
       // Contact Info
-      address: formData.get('address'),
-      phone: formData.get('phone'),
-      website: formData.get('website'),
-      after_hours_contact: formData.get('after_hours_contact'),
+      address: formData.get('address') as string || null,
+      phone: formData.get('phone') as string || null,
+      website: formData.get('website') as string || null,
+      after_hours_contact: formData.get('after_hours_contact') as string || null,
       service_radius: formData.get('service_radius') ? parseInt(formData.get('service_radius') as string) : null,
-      contact_person: formData.get('contact_person'),
-      contact_email: formData.get('contact_email'),
+      contact_person: formData.get('contact_person') as string || null,
+      contact_email: formData.get('contact_email') as string || null,
       
       // Strategy
-      account_rating: formData.get('account_rating'),
-      partnership_stage: formData.get('partnership_stage'),
-      referral_potential: formData.get('referral_potential') ? parseInt(formData.get('referral_potential') as string) : null,
-      assigned_marketer: formData.get('assigned_marketer'),
-      contract_status: formData.get('contract_status'),
-      partnership_notes: formData.get('partnership_notes'),
+      account_rating: formData.get('account_rating') as string || organization?.account_rating,
+      partnership_stage: formData.get('partnership_stage') as string || organization?.partnership_stage,
+      referral_potential: formData.get('referral_potential') ? parseInt(formData.get('referral_potential') as string) : organization?.referral_potential,
+      assigned_marketer: formData.get('assigned_marketer') as string || null,
+      contract_status: formData.get('contract_status') as string || organization?.contract_status,
+      partnership_notes: formData.get('partnership_notes') as string || null,
       
       // Intelligence
-      competitive_landscape: formData.get('competitive_landscape'),
-      financial_health_notes: formData.get('financial_health_notes'),
-      expansion_plans: formData.get('expansion_plans'),
-      regulatory_notes: formData.get('regulatory_notes'),
+      competitive_landscape: formData.get('competitive_landscape') as string || null,
+      financial_health_notes: formData.get('financial_health_notes') as string || null,
+      expansion_plans: formData.get('expansion_plans') as string || null,
+      regulatory_notes: formData.get('regulatory_notes') as string || null,
       
-      // License numbers and hospice providers will be handled separately
+      // Keep existing arrays
       license_numbers: organization?.license_numbers || [],
       current_hospice_providers: organization?.current_hospice_providers || [],
       
@@ -275,11 +292,12 @@ const EditOrganizationDialog = ({ open, onOpenChange, organizationId }: EditOrga
 
         <div className="flex-1 overflow-hidden">
           <Tabs defaultValue="basic-info" className="h-full flex flex-col">
-            <TabsList className="flex-shrink-0 grid w-full grid-cols-5">
+            <TabsList className="flex-shrink-0 grid w-full grid-cols-6">
               <TabsTrigger value="basic-info">Basic Info</TabsTrigger>
               <TabsTrigger value="contact">Contact</TabsTrigger>
               <TabsTrigger value="strategy">Strategy</TabsTrigger>
               <TabsTrigger value="intelligence">Intelligence</TabsTrigger>
+              <TabsTrigger value="contacts">Contacts</TabsTrigger>
               <TabsTrigger value="documents">Documents</TabsTrigger>
             </TabsList>
 
@@ -681,6 +699,13 @@ const EditOrganizationDialog = ({ open, onOpenChange, organizationId }: EditOrga
                       ))}
                     </div>
                   </div>
+                </TabsContent>
+
+                <TabsContent value="contacts" className="mt-4">
+                  <OrganizationContactsTab 
+                    organizationId={organizationId}
+                    organizationName={organization.name}
+                  />
                 </TabsContent>
 
                 <div className="flex justify-end gap-2 pt-4 border-t bg-white sticky bottom-0">

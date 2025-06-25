@@ -1,16 +1,16 @@
-
 import React, { useState } from 'react';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Phone, Mail, MapPin, User, Edit, ExternalLink, Users, Building, Calendar } from "lucide-react";
+import { Plus, MapPin, User, Edit, ExternalLink, Users, Building, Calendar } from "lucide-react";
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import EnhancedAddOrganizationDialog from './EnhancedAddOrganizationDialog';
 import EditOrganizationDialog from './EditOrganizationDialog';
 import OrganizationContactsDialog from './OrganizationContactsDialog';
+import ScheduleVisitDialog from './ScheduleVisitDialog';
 
 const OrganizationsList = () => {
   const [selectedType, setSelectedType] = useState<string>('all');
@@ -19,6 +19,7 @@ const OrganizationsList = () => {
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingOrganizationId, setEditingOrganizationId] = useState<string | null>(null);
   const [contactsOrganization, setContactsOrganization] = useState<{id: string, name: string} | null>(null);
+  const [showScheduleDialog, setShowScheduleDialog] = useState(false);
 
   const { data: organizations, isLoading } = useQuery({
     queryKey: ['organizations', selectedType, selectedStatus, selectedRating],
@@ -266,19 +267,16 @@ const OrganizationsList = () => {
                 </div>
               )}
 
-              {/* Action Buttons */}
+              {/* Action Buttons - Updated to only show Visit button */}
               <div className="flex space-x-2 pt-2">
-                <Button size="sm" variant="outline" className="flex-1">
-                  <Phone className="w-4 h-4 mr-1" />
-                  Call
-                </Button>
-                <Button size="sm" variant="outline" className="flex-1">
-                  <Mail className="w-4 h-4 mr-1" />
-                  Email
-                </Button>
-                <Button size="sm" variant="outline" className="flex-1">
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className="flex-1"
+                  onClick={() => setShowScheduleDialog(true)}
+                >
                   <Calendar className="w-4 h-4 mr-1" />
-                  Visit
+                  Schedule Visit
                 </Button>
               </div>
 
@@ -329,6 +327,11 @@ const OrganizationsList = () => {
           organizationName={contactsOrganization.name}
         />
       )}
+
+      <ScheduleVisitDialog
+        open={showScheduleDialog}
+        onOpenChange={setShowScheduleDialog}
+      />
     </div>
   );
 };
