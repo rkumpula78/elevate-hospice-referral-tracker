@@ -9,6 +9,94 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      activity_communications: {
+        Row: {
+          activity_date: string
+          completed_by: string
+          contact_id: string | null
+          cost_amount: number | null
+          created_at: string | null
+          discussion_points: string | null
+          duration_minutes: number | null
+          follow_up_completed: boolean | null
+          follow_up_date: string | null
+          follow_up_required: boolean | null
+          id: string
+          interaction_type: string
+          materials_provided: string[] | null
+          next_step: string | null
+          organization_id: string | null
+          outcome_sentiment: string | null
+          purpose: string[] | null
+          referral_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          activity_date?: string
+          completed_by: string
+          contact_id?: string | null
+          cost_amount?: number | null
+          created_at?: string | null
+          discussion_points?: string | null
+          duration_minutes?: number | null
+          follow_up_completed?: boolean | null
+          follow_up_date?: string | null
+          follow_up_required?: boolean | null
+          id?: string
+          interaction_type: string
+          materials_provided?: string[] | null
+          next_step?: string | null
+          organization_id?: string | null
+          outcome_sentiment?: string | null
+          purpose?: string[] | null
+          referral_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          activity_date?: string
+          completed_by?: string
+          contact_id?: string | null
+          cost_amount?: number | null
+          created_at?: string | null
+          discussion_points?: string | null
+          duration_minutes?: number | null
+          follow_up_completed?: boolean | null
+          follow_up_date?: string | null
+          follow_up_required?: boolean | null
+          id?: string
+          interaction_type?: string
+          materials_provided?: string[] | null
+          next_step?: string | null
+          organization_id?: string | null
+          outcome_sentiment?: string | null
+          purpose?: string[] | null
+          referral_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_communications_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "organization_contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activity_communications_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activity_communications_referral_id_fkey"
+            columns: ["referral_id"]
+            isOneToOne: false
+            referencedRelation: "referrals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       activity_log: {
         Row: {
           activity_date: string
@@ -131,6 +219,54 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      bereavement_tracking: {
+        Row: {
+          bereavement_status: string | null
+          created_at: string | null
+          enrollment_date: string | null
+          family_contact_id: string | null
+          id: string
+          referral_id: string
+          support_notes: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          bereavement_status?: string | null
+          created_at?: string | null
+          enrollment_date?: string | null
+          family_contact_id?: string | null
+          id?: string
+          referral_id: string
+          support_notes?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          bereavement_status?: string | null
+          created_at?: string | null
+          enrollment_date?: string | null
+          family_contact_id?: string | null
+          id?: string
+          referral_id?: string
+          support_notes?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bereavement_tracking_family_contact_id_fkey"
+            columns: ["family_contact_id"]
+            isOneToOne: false
+            referencedRelation: "referral_family_contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bereavement_tracking_referral_id_fkey"
+            columns: ["referral_id"]
+            isOneToOne: false
+            referencedRelation: "referrals"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       care_team_assignments: {
         Row: {
@@ -442,6 +578,45 @@ export type Database = {
         }
         Relationships: []
       }
+      liaison_goals: {
+        Row: {
+          created_at: string | null
+          goal_period_end: string
+          goal_period_start: string
+          id: string
+          in_person_visits_goal: number | null
+          liaison_name: string
+          lunch_learns_goal: number | null
+          new_referrals_goal: number | null
+          phone_calls_goal: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          goal_period_end: string
+          goal_period_start: string
+          id?: string
+          in_person_visits_goal?: number | null
+          liaison_name: string
+          lunch_learns_goal?: number | null
+          new_referrals_goal?: number | null
+          phone_calls_goal?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          goal_period_end?: string
+          goal_period_start?: string
+          id?: string
+          in_person_visits_goal?: number | null
+          liaison_name?: string
+          lunch_learns_goal?: number | null
+          new_referrals_goal?: number | null
+          phone_calls_goal?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       marketer_training_progress: {
         Row: {
           completed_at: string | null
@@ -532,10 +707,12 @@ export type Database = {
           last_name: string
           organization_id: string
           personal_interests: string | null
+          personal_notes: string | null
           previous_experience: string | null
           professional_networks: string | null
           relationship_strength: number | null
           role_in_referral: string | null
+          role_in_referral_process: string | null
           title: string | null
           updated_at: string | null
           years_in_position: number | null
@@ -552,10 +729,12 @@ export type Database = {
           last_name: string
           organization_id: string
           personal_interests?: string | null
+          personal_notes?: string | null
           previous_experience?: string | null
           professional_networks?: string | null
           relationship_strength?: number | null
           role_in_referral?: string | null
+          role_in_referral_process?: string | null
           title?: string | null
           updated_at?: string | null
           years_in_position?: number | null
@@ -572,10 +751,12 @@ export type Database = {
           last_name?: string
           organization_id?: string
           personal_interests?: string | null
+          personal_notes?: string | null
           previous_experience?: string | null
           professional_networks?: string | null
           relationship_strength?: number | null
           role_in_referral?: string | null
+          role_in_referral_process?: string | null
           title?: string | null
           updated_at?: string | null
           years_in_position?: number | null
@@ -730,6 +911,7 @@ export type Database = {
           competitive_landscape: string | null
           contact_email: string | null
           contact_person: string | null
+          contract_on_file: boolean | null
           contract_status: string | null
           created_at: string | null
           current_hospice_providers: string[] | null
@@ -740,16 +922,20 @@ export type Database = {
           gps_longitude: number | null
           id: string
           is_active: boolean | null
+          last_contact_date: string | null
           last_training_review: string | null
           license_numbers: string[] | null
           medicare_id: string | null
           name: string
+          next_followup_date: string | null
           ownership_type: string | null
           partnership_notes: string | null
           partnership_stage: string | null
           phone: string | null
           referral_potential: number | null
+          referral_potential_level: string | null
           regulatory_notes: string | null
+          relationship_status: string | null
           service_radius: number | null
           sub_type: string | null
           type: string
@@ -765,6 +951,7 @@ export type Database = {
           competitive_landscape?: string | null
           contact_email?: string | null
           contact_person?: string | null
+          contract_on_file?: boolean | null
           contract_status?: string | null
           created_at?: string | null
           current_hospice_providers?: string[] | null
@@ -775,16 +962,20 @@ export type Database = {
           gps_longitude?: number | null
           id?: string
           is_active?: boolean | null
+          last_contact_date?: string | null
           last_training_review?: string | null
           license_numbers?: string[] | null
           medicare_id?: string | null
           name?: string
+          next_followup_date?: string | null
           ownership_type?: string | null
           partnership_notes?: string | null
           partnership_stage?: string | null
           phone?: string | null
           referral_potential?: number | null
+          referral_potential_level?: string | null
           regulatory_notes?: string | null
+          relationship_status?: string | null
           service_radius?: number | null
           sub_type?: string | null
           type: string
@@ -800,6 +991,7 @@ export type Database = {
           competitive_landscape?: string | null
           contact_email?: string | null
           contact_person?: string | null
+          contract_on_file?: boolean | null
           contract_status?: string | null
           created_at?: string | null
           current_hospice_providers?: string[] | null
@@ -810,16 +1002,20 @@ export type Database = {
           gps_longitude?: number | null
           id?: string
           is_active?: boolean | null
+          last_contact_date?: string | null
           last_training_review?: string | null
           license_numbers?: string[] | null
           medicare_id?: string | null
           name?: string
+          next_followup_date?: string | null
           ownership_type?: string | null
           partnership_notes?: string | null
           partnership_stage?: string | null
           phone?: string | null
           referral_potential?: number | null
+          referral_potential_level?: string | null
           regulatory_notes?: string | null
+          relationship_status?: string | null
           service_radius?: number | null
           sub_type?: string | null
           type?: string
@@ -1215,11 +1411,100 @@ export type Database = {
         }
         Relationships: []
       }
+      referral_assessments: {
+        Row: {
+          assessment_outcome: string | null
+          assigned_clinician: string | null
+          created_at: string | null
+          id: string
+          outcome_notes: string | null
+          referral_id: string
+          scheduled_date: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          assessment_outcome?: string | null
+          assigned_clinician?: string | null
+          created_at?: string | null
+          id?: string
+          outcome_notes?: string | null
+          referral_id: string
+          scheduled_date?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          assessment_outcome?: string | null
+          assigned_clinician?: string | null
+          created_at?: string | null
+          id?: string
+          outcome_notes?: string | null
+          referral_id?: string
+          scheduled_date?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_assessments_referral_id_fkey"
+            columns: ["referral_id"]
+            isOneToOne: false
+            referencedRelation: "referrals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      referral_family_contacts: {
+        Row: {
+          contact_name: string
+          created_at: string | null
+          email: string | null
+          id: string
+          is_poa: boolean | null
+          is_primary_contact: boolean | null
+          phone: string | null
+          referral_id: string
+          relationship: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          contact_name: string
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          is_poa?: boolean | null
+          is_primary_contact?: boolean | null
+          phone?: string | null
+          referral_id: string
+          relationship?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          contact_name?: string
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          is_poa?: boolean | null
+          is_primary_contact?: boolean | null
+          phone?: string | null
+          referral_id?: string
+          relationship?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_family_contacts_referral_id_fkey"
+            columns: ["referral_id"]
+            isOneToOne: false
+            referencedRelation: "referrals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       referrals: {
         Row: {
           address: string | null
           admission_date: string | null
           advanced_directive: boolean | null
+          assessment_scheduled_date: string | null
           assigned_marketer: string | null
           attending_physician: string | null
           caregiver_contact: string | null
@@ -1246,6 +1531,7 @@ export type Database = {
           next_steps: string | null
           notes: string | null
           organization_id: string | null
+          patient_location: string | null
           patient_name: string
           patient_phone: string | null
           phone: string | null
@@ -1253,10 +1539,12 @@ export type Database = {
           primary_insurance: string | null
           prior_hospice_info: string | null
           priority: string | null
+          reason_for_non_admittance: string | null
           referral_contact_email: string | null
           referral_contact_person: string | null
           referral_contact_phone: string | null
           referral_date: string | null
+          referral_intake_coordinator: string | null
           referral_source: string | null
           referring_physician: string | null
           responsible_party_contact: string | null
@@ -1276,6 +1564,7 @@ export type Database = {
           address?: string | null
           admission_date?: string | null
           advanced_directive?: boolean | null
+          assessment_scheduled_date?: string | null
           assigned_marketer?: string | null
           attending_physician?: string | null
           caregiver_contact?: string | null
@@ -1302,6 +1591,7 @@ export type Database = {
           next_steps?: string | null
           notes?: string | null
           organization_id?: string | null
+          patient_location?: string | null
           patient_name: string
           patient_phone?: string | null
           phone?: string | null
@@ -1309,10 +1599,12 @@ export type Database = {
           primary_insurance?: string | null
           prior_hospice_info?: string | null
           priority?: string | null
+          reason_for_non_admittance?: string | null
           referral_contact_email?: string | null
           referral_contact_person?: string | null
           referral_contact_phone?: string | null
           referral_date?: string | null
+          referral_intake_coordinator?: string | null
           referral_source?: string | null
           referring_physician?: string | null
           responsible_party_contact?: string | null
@@ -1332,6 +1624,7 @@ export type Database = {
           address?: string | null
           admission_date?: string | null
           advanced_directive?: boolean | null
+          assessment_scheduled_date?: string | null
           assigned_marketer?: string | null
           attending_physician?: string | null
           caregiver_contact?: string | null
@@ -1358,6 +1651,7 @@ export type Database = {
           next_steps?: string | null
           notes?: string | null
           organization_id?: string | null
+          patient_location?: string | null
           patient_name?: string
           patient_phone?: string | null
           phone?: string | null
@@ -1365,10 +1659,12 @@ export type Database = {
           primary_insurance?: string | null
           prior_hospice_info?: string | null
           priority?: string | null
+          reason_for_non_admittance?: string | null
           referral_contact_email?: string | null
           referral_contact_person?: string | null
           referral_contact_phone?: string | null
           referral_date?: string | null
+          referral_intake_coordinator?: string | null
           referral_source?: string | null
           referring_physician?: string | null
           responsible_party_contact?: string | null

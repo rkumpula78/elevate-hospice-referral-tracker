@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,6 +11,7 @@ import EnhancedAddOrganizationDialog from './EnhancedAddOrganizationDialog';
 import EditOrganizationDialog from './EditOrganizationDialog';
 import OrganizationContactsDialog from './OrganizationContactsDialog';
 import ScheduleVisitDialog from './ScheduleVisitDialog';
+import EnhancedEditOrganizationDialog from './EnhancedEditOrganizationDialog';
 
 const OrganizationsList = () => {
   const [selectedType, setSelectedType] = useState<string>('all');
@@ -313,7 +313,7 @@ const OrganizationsList = () => {
       />
       
       {editingOrganizationId && (
-        <EditOrganizationDialog
+        <EnhancedEditOrganizationDialog
           open={!!editingOrganizationId}
           onOpenChange={(open) => !open && setEditingOrganizationId(null)}
           organizationId={editingOrganizationId}
