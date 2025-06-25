@@ -15,14 +15,17 @@ import {
 } from "@/components/ui/sidebar";
 import { 
   LayoutDashboard, 
-  FileText, 
-  Shield, 
+  Building, 
+  Users, 
+  Phone, 
+  Calendar,
+  FileText,
+  BarChart3,
   Settings,
   LogOut,
-  Calendar,
-  Building2,
   Map,
-  BookOpen
+  BookOpen,
+  Shield
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -35,14 +38,14 @@ const menuItems = [
     icon: LayoutDashboard,
   },
   {
-    title: "Referrals",
-    url: "/referrals",
-    icon: FileText,
-  },
-  {
     title: "Organizations",
     url: "/organizations",
-    icon: Building2,
+    icon: Building,
+  },
+  {
+    title: "Referrals",
+    url: "/referrals",
+    icon: Phone,
   },
   {
     title: "Schedule",
@@ -58,6 +61,16 @@ const menuItems = [
     title: "Training",
     url: "/training",
     icon: BookOpen,
+  },
+  {
+    title: "Reports",
+    url: "/reports",
+    icon: FileText,
+  },
+  {
+    title: "Analytics",
+    url: "/analytics",
+    icon: BarChart3,
   },
   {
     title: "Compliance",
@@ -84,8 +97,8 @@ const AppSidebar = () => {
   };
 
   return (
-    <Sidebar>
-      <SidebarHeader className="p-4">
+    <Sidebar className="bg-gray-900 text-white">
+      <SidebarHeader className="p-6 border-b border-gray-700">
         <div className="flex items-center space-x-3">
           <img 
             src="/lovable-uploads/69cccced-0ccf-4626-b1ab-7712c36cfd7f.png" 
@@ -93,12 +106,13 @@ const AppSidebar = () => {
             className="h-12 w-auto"
           />
         </div>
-        <p className="text-xs text-blue-600 mt-2 font-medium">Raising The Standard</p>
+        <h2 className="text-xl font-bold text-white mt-2">Elevate Hospice</h2>
+        <p className="text-sm text-gray-400">CRM Dashboard</p>
       </SidebarHeader>
       
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>AI Search</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-gray-400">Search</SidebarGroupLabel>
           <SidebarGroupContent>
             <div className="px-2 py-2">
               <GlobalSearchBar />
@@ -107,35 +121,45 @@ const AppSidebar = () => {
         </SidebarGroup>
 
         <SidebarGroup>
-          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-gray-400">Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {menuItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={location.pathname === item.url}>
-                    <Link to={item.url}>
-                      <item.icon className="w-4 h-4" />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              {menuItems.map((item) => {
+                const isActive = location.pathname === item.url;
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild isActive={isActive}>
+                      <Link 
+                        to={item.url}
+                        className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
+                          isActive 
+                            ? 'bg-blue-600 text-white' 
+                            : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                        }`}
+                      >
+                        <item.icon className="w-5 h-5" />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="p-4">
-        <div className="flex items-center space-x-2 mb-3">
-          <div className="w-6 h-6 bg-gray-300 rounded-full flex items-center justify-center text-xs font-medium">
-            {getInitials(displayName)}
+      <SidebarFooter className="p-4 border-t border-gray-700">
+        <div className="flex items-center space-x-3 mb-3">
+          <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+            <span className="text-sm font-bold">{getInitials(displayName)}</span>
           </div>
           <div className="flex-1">
-            <p className="text-sm font-medium">{displayName}</p>
-            <p className="text-xs text-gray-600">{user?.email}</p>
+            <p className="text-sm font-medium text-white">{displayName}</p>
+            <p className="text-xs text-gray-400">{user?.email}</p>
           </div>
         </div>
-        <Button variant="outline" size="sm" onClick={handleSignOut} className="w-full">
+        <Button variant="outline" size="sm" onClick={handleSignOut} className="w-full border-gray-600 text-gray-300 hover:bg-gray-800">
           <LogOut className="w-4 h-4 mr-2" />
           Sign Out
         </Button>
