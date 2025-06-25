@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { ChevronRight, Users } from 'lucide-react';
+import { ChevronRight, Users, FileText, Target, TrendingUp } from 'lucide-react';
 
 interface ValuePropModule {
   id: string;
@@ -15,6 +15,7 @@ interface OrganizationValuePropsProps {
 }
 
 const OrganizationValueProps = ({ organizationType }: OrganizationValuePropsProps) => {
+  const [activeSection, setActiveSection] = useState<string>('value-props');
   const [expandedModule, setExpandedModule] = useState<string | null>(null);
 
   const getValuePropModules = (orgType: string): ValuePropModule[] => {
@@ -264,65 +265,140 @@ const OrganizationValueProps = ({ organizationType }: OrganizationValuePropsProp
     setExpandedModule(expandedModule === moduleId ? null : moduleId);
   };
 
+  const renderValuePropsContent = () => (
+    <div className="space-y-3">
+      {modules.map((module) => (
+        <Card 
+          key={module.id} 
+          className="border border-gray-200 hover:shadow-md transition-shadow cursor-pointer"
+          onClick={() => toggleModule(module.id)}
+        >
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <Users className="w-5 h-5 text-gray-600" />
+                <div>
+                  <h3 className="font-semibold text-gray-900">{module.title}</h3>
+                  {expandedModule === module.id && (
+                    <div className="mt-3 space-y-2">
+                      <p className="text-sm text-gray-600">{module.description}</p>
+                      <ul className="space-y-1">
+                        {module.keyPoints.map((point, index) => (
+                          <li key={index} className="text-sm text-gray-700 flex items-start">
+                            <span className="text-green-500 mr-2 mt-1">•</span>
+                            {point}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              </div>
+              <ChevronRight 
+                className={`w-5 h-5 text-gray-400 transition-transform ${
+                  expandedModule === module.id ? 'rotate-90' : ''
+                }`} 
+              />
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+
+  const renderActionPlanContent = () => (
+    <Card>
+      <CardContent className="p-6">
+        <div className="text-center py-8">
+          <FileText className="w-12 h-12 text-green-500 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold mb-2">Action Plan</h3>
+          <p className="text-gray-600">Implementation strategies and step-by-step guidance coming soon.</p>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  const renderChecklistsContent = () => (
+    <Card>
+      <CardContent className="p-6">
+        <div className="text-center py-8">
+          <Target className="w-12 h-12 text-purple-500 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold mb-2">Quality Checklists</h3>
+          <p className="text-gray-600">Quality assurance checklists and verification tools coming soon.</p>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  const renderKPIsContent = () => (
+    <Card>
+      <CardContent className="p-6">
+        <div className="text-center py-8">
+          <TrendingUp className="w-12 h-12 text-orange-500 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold mb-2">KPIs & Metrics</h3>
+          <p className="text-gray-600">Key performance indicators and success metrics coming soon.</p>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  const renderActiveContent = () => {
+    switch (activeSection) {
+      case 'value-props':
+        return renderValuePropsContent();
+      case 'action-plan':
+        return renderActionPlanContent();
+      case 'checklists':
+        return renderChecklistsContent();
+      case 'kpis':
+        return renderKPIsContent();
+      default:
+        return renderValuePropsContent();
+    }
+  };
+
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <Card className="p-4 text-center">
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card 
+          className={`p-4 text-center cursor-pointer transition-all ${
+            activeSection === 'value-props' ? 'ring-2 ring-blue-500 bg-blue-50' : 'hover:shadow-md'
+          }`}
+          onClick={() => setActiveSection('value-props')}
+        >
           <div className="text-2xl font-bold text-blue-600 mb-1">Value Props</div>
           <div className="text-sm text-gray-600">Strategic Benefits</div>
         </Card>
-        <Card className="p-4 text-center">
+        <Card 
+          className={`p-4 text-center cursor-pointer transition-all ${
+            activeSection === 'action-plan' ? 'ring-2 ring-green-500 bg-green-50' : 'hover:shadow-md'
+          }`}
+          onClick={() => setActiveSection('action-plan')}
+        >
           <div className="text-2xl font-bold text-green-600 mb-1">Action Plan</div>
           <div className="text-sm text-gray-600">Implementation</div>
         </Card>
-        <Card className="p-4 text-center">
+        <Card 
+          className={`p-4 text-center cursor-pointer transition-all ${
+            activeSection === 'checklists' ? 'ring-2 ring-purple-500 bg-purple-50' : 'hover:shadow-md'
+          }`}
+          onClick={() => setActiveSection('checklists')}
+        >
           <div className="text-2xl font-bold text-purple-600 mb-1">Checklists</div>
           <div className="text-sm text-gray-600">Quality Assurance</div>
         </Card>
-        <Card className="p-4 text-center">
+        <Card 
+          className={`p-4 text-center cursor-pointer transition-all ${
+            activeSection === 'kpis' ? 'ring-2 ring-orange-500 bg-orange-50' : 'hover:shadow-md'
+          }`}
+          onClick={() => setActiveSection('kpis')}
+        >
           <div className="text-2xl font-bold text-orange-600 mb-1">KPIs</div>
           <div className="text-sm text-gray-600">Performance Metrics</div>
         </Card>
       </div>
 
-      <div className="space-y-3">
-        {modules.map((module) => (
-          <Card 
-            key={module.id} 
-            className="border border-gray-200 hover:shadow-md transition-shadow cursor-pointer"
-            onClick={() => toggleModule(module.id)}
-          >
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <Users className="w-5 h-5 text-gray-600" />
-                  <div>
-                    <h3 className="font-semibold text-gray-900">{module.title}</h3>
-                    {expandedModule === module.id && (
-                      <div className="mt-3 space-y-2">
-                        <p className="text-sm text-gray-600">{module.description}</p>
-                        <ul className="space-y-1">
-                          {module.keyPoints.map((point, index) => (
-                            <li key={index} className="text-sm text-gray-700 flex items-start">
-                              <span className="text-green-500 mr-2 mt-1">•</span>
-                              {point}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <ChevronRight 
-                  className={`w-5 h-5 text-gray-400 transition-transform ${
-                    expandedModule === module.id ? 'rotate-90' : ''
-                  }`} 
-                />
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      {renderActiveContent()}
     </div>
   );
 };
