@@ -29,6 +29,9 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
     organization_id: '',
     referring_physician: '',
     assigned_marketer: '',
+    referral_intake_coordinator: '',
+    status: 'new_referral',
+    reason_for_non_admittance: '',
     notes: ''
   });
 
@@ -46,13 +49,36 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
     }
   });
 
+  // Fetch marketers from localStorage/settings
+  const { data: marketers } = useQuery({
+    queryKey: ['marketers-settings'],
+    queryFn: () => {
+      const stored = localStorage.getItem('hospice-marketers');
+      if (stored) {
+        return JSON.parse(stored);
+      }
+      return ['John Smith', 'Sarah Johnson', 'Mike Davis', 'Lisa Wilson', 'David Brown'];
+    }
+  });
+
+  // Sample intake coordinators - in a real app, this would come from your staff database
+  const intakeCoordinators = [
+    'Maria Rodriguez',
+    'Jennifer Thompson',
+    'Robert Chen',
+    'Amanda Williams',
+    'Michael Foster'
+  ];
+
   const addReferralMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
       const { error } = await supabase
         .from('referrals')
         .insert([{
           ...data,
-          organization_id: data.organization_id || null
+          organization_id: data.organization_id || null,
+          referral_intake_coordinator: data.referral_intake_coordinator || null,
+          reason_for_non_admittance: data.reason_for_non_admittance || null
         }]);
       if (error) throw error;
     },
@@ -69,6 +95,9 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
         organization_id: '',
         referring_physician: '',
         assigned_marketer: '',
+        referral_intake_coordinator: '',
+        status: 'new_referral',
+        reason_for_non_admittance: '',
         notes: ''
       });
     },
@@ -84,6 +113,13 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
       toast({ title: "Patient name is required", variant: "destructive" });
       return;
     }
+
+    // Validate that reason for non-admittance is provided if status indicates not admitted
+    const notAdmittedStatuses = ['not_admitted_patient_choice', 'not_admitted_not_appropriate', 'not_admitted_lost_contact'];
+    if (notAdmittedStatuses.includes(formData.status) && !formData.reason_for_non_admittance.trim()) {
+      toast({ title: "Reason for non-admittance is required for this status", variant: "destructive" });
+      return;
+    }
     
     addReferralMutation.mutate(formData);
   };
@@ -93,118 +129,201 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
   };
 
   const isSubmitting = addReferralMutation.isPending;
+  const showReasonField = ['not_admitted_patient_choice', 'not_admitted_not_appropriate', 'not_admitted_lost_contact'].includes(formData.status);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add New Referral</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="patient_name">Patient Name *</Label>
-              <Input
-                id="patient_name"
-                value={formData.patient_name}
-                onChange={(e) => handleInputChange('patient_name', e.target.value)}
-                required
-                disabled={isSubmitting}
-              />
-            </div>
-            <div>
-              <Label htmlFor="patient_phone">Patient Phone</Label>
-              <PhoneInput
-                id="patient_phone"
-                value={formData.patient_phone}
-                onChange={(value) => handleInputChange('patient_phone', value)}
-                disabled={isSubmitting}
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="organization_id">Referral Source</Label>
-              <Select 
-                value={formData.organization_id} 
-                onValueChange={(value) => handleInputChange('organization_id', value)}
-                disabled={isSubmitting}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select organization" />
-                </SelectTrigger>
-                <SelectContent>
-                  {organizations?.map((org) => (
-                    <SelectItem key={org.id} value={org.id}>
-                      {org.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="assigned_marketer">Assigned Marketer</Label>
-              <Input
-                id="assigned_marketer"
-                value={formData.assigned_marketer}
-                onChange={(e) => handleInputChange('assigned_marketer', e.target.value)}
-                placeholder="Elevate staff member"
-                disabled={isSubmitting}
-              />
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Patient Information */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">Patient Information</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="patient_name">Patient Name *</Label>
+                <Input
+                  id="patient_name"
+                  value={formData.patient_name}
+                  onChange={(e) => handleInputChange('patient_name', e.target.value)}
+                  required
+                  disabled={isSubmitting}
+                />
+              </div>
+              <div>
+                <Label htmlFor="patient_phone">Patient Phone</Label>
+                <PhoneInput
+                  id="patient_phone"
+                  value={formData.patient_phone}
+                  onChange={(value) => handleInputChange('patient_phone', value)}
+                  disabled={isSubmitting}
+                />
+              </div>
+              <div>
+                <Label htmlFor="diagnosis">Diagnosis</Label>
+                <Input
+                  id="diagnosis"
+                  value={formData.diagnosis}
+                  onChange={(e) => handleInputChange('diagnosis', e.target.value)}
+                  disabled={isSubmitting}
+                />
+              </div>
+              <div>
+                <Label htmlFor="insurance">Insurance</Label>
+                <Input
+                  id="insurance"
+                  value={formData.insurance}
+                  onChange={(e) => handleInputChange('insurance', e.target.value)}
+                  disabled={isSubmitting}
+                />
+              </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="referring_physician">Referring Physician</Label>
-              <Input
-                id="referring_physician"
-                value={formData.referring_physician}
-                onChange={(e) => handleInputChange('referring_physician', e.target.value)}
-                disabled={isSubmitting}
-              />
-            </div>
-            <div>
-              <Label htmlFor="priority">Priority</Label>
-              <Select 
-                value={formData.priority} 
-                onValueChange={(value) => handleInputChange('priority', value)}
-                disabled={isSubmitting}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="low">Low</SelectItem>
-                  <SelectItem value="routine">Routine</SelectItem>
-                  <SelectItem value="urgent">Urgent</SelectItem>
-                </SelectContent>
-              </Select>
+          {/* Referral Source & Assignment */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">Referral Source & Assignment</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="organization_id">Referral Source</Label>
+                <Select 
+                  value={formData.organization_id} 
+                  onValueChange={(value) => handleInputChange('organization_id', value)}
+                  disabled={isSubmitting}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select organization" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {organizations?.map((org) => (
+                      <SelectItem key={org.id} value={org.id}>
+                        {org.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="referring_physician">Referring Physician</Label>
+                <Input
+                  id="referring_physician"
+                  value={formData.referring_physician}
+                  onChange={(e) => handleInputChange('referring_physician', e.target.value)}
+                  disabled={isSubmitting}
+                />
+              </div>
+              <div>
+                <Label htmlFor="assigned_marketer">Assigned Marketer</Label>
+                <Select 
+                  value={formData.assigned_marketer} 
+                  onValueChange={(value) => handleInputChange('assigned_marketer', value)}
+                  disabled={isSubmitting}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select marketer" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {marketers?.map((marketer: string) => (
+                      <SelectItem key={marketer} value={marketer}>{marketer}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="referral_intake_coordinator">Referral Intake Coordinator</Label>
+                <Select 
+                  value={formData.referral_intake_coordinator} 
+                  onValueChange={(value) => handleInputChange('referral_intake_coordinator', value)}
+                  disabled={isSubmitting}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select intake coordinator" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {intakeCoordinators.map((coordinator) => (
+                      <SelectItem key={coordinator} value={coordinator}>{coordinator}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="diagnosis">Diagnosis</Label>
-              <Input
-                id="diagnosis"
-                value={formData.diagnosis}
-                onChange={(e) => handleInputChange('diagnosis', e.target.value)}
-                disabled={isSubmitting}
-              />
+          {/* Status & Priority */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">Status & Priority</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="status">Referral Status</Label>
+                <Select 
+                  value={formData.status} 
+                  onValueChange={(value) => handleInputChange('status', value)}
+                  disabled={isSubmitting}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="new_referral">New Referral</SelectItem>
+                    <SelectItem value="contact_attempted">Contact Attempted</SelectItem>
+                    <SelectItem value="information_gathering">Information Gathering</SelectItem>
+                    <SelectItem value="assessment_scheduled">Assessment Scheduled</SelectItem>
+                    <SelectItem value="pending_admission">Pending Admission</SelectItem>
+                    <SelectItem value="admitted">Admitted</SelectItem>
+                    <SelectItem value="not_admitted_patient_choice">Not Admitted - Patient Choice</SelectItem>
+                    <SelectItem value="not_admitted_not_appropriate">Not Admitted - Not Yet Appropriate</SelectItem>
+                    <SelectItem value="not_admitted_lost_contact">Not Admitted - Lost Contact</SelectItem>
+                    <SelectItem value="deceased_prior_admission">Deceased Prior to Admission</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="priority">Priority</Label>
+                <Select 
+                  value={formData.priority} 
+                  onValueChange={(value) => handleInputChange('priority', value)}
+                  disabled={isSubmitting}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low">Low</SelectItem>
+                    <SelectItem value="routine">Routine</SelectItem>
+                    <SelectItem value="urgent">Urgent</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            <div>
-              <Label htmlFor="insurance">Insurance</Label>
-              <Input
-                id="insurance"
-                value={formData.insurance}
-                onChange={(e) => handleInputChange('insurance', e.target.value)}
-                disabled={isSubmitting}
-              />
-            </div>
+
+            {/* Conditional Reason for Non-Admittance */}
+            {showReasonField && (
+              <div>
+                <Label htmlFor="reason_for_non_admittance">Reason for Non-Admittance *</Label>
+                <Select 
+                  value={formData.reason_for_non_admittance} 
+                  onValueChange={(value) => handleInputChange('reason_for_non_admittance', value)}
+                  disabled={isSubmitting}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select reason" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="patient_family_chose_competitor">Patient/Family chose competitor</SelectItem>
+                    <SelectItem value="patient_stabilized_improved">Patient stabilized/improved</SelectItem>
+                    <SelectItem value="family_not_ready">Family not ready</SelectItem>
+                    <SelectItem value="financial_insurance_issues">Financial/Insurance issues</SelectItem>
+                    <SelectItem value="unable_to_contact">Unable to contact</SelectItem>
+                    <SelectItem value="chose_curative_care">Chose curative care</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
 
+          {/* Notes */}
           <div>
             <Label htmlFor="notes">Notes</Label>
             <Textarea

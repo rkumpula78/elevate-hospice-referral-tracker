@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -35,8 +36,6 @@ interface Comment {
   author: string;
 }
 
-type ReferralStatus = 'pending' | 'contacted' | 'scheduled' | 'admitted' | 'declined' | 'lost' | 'lost_death' | 'lost_move' | 'lost_other_hospice';
-
 const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDialogProps) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -53,7 +52,7 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
     documents: false
   });
 
-  // Fetch referral data (now contains all patient info)
+  // Fetch referral data
   const { data: referralData, isLoading } = useQuery({
     queryKey: ['referral', referralId],
     queryFn: async () => {
@@ -97,6 +96,15 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
     enabled: open
   });
 
+  // Sample intake coordinators
+  const intakeCoordinators = [
+    'Maria Rodriguez',
+    'Jennifer Thompson',
+    'Robert Chen',
+    'Amanda Williams',
+    'Michael Foster'
+  ];
+
   // Fetch documents linked to this referral
   const { data: documents } = useQuery({
     queryKey: ['referral-documents', referralId],
@@ -104,7 +112,7 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
       const { data, error } = await supabase
         .from('patient_documents')
         .select('*')
-        .eq('patient_id', referralId) // Use referral ID as patient ID
+        .eq('patient_id', referralId)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
@@ -113,7 +121,7 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
     enabled: open && !!referralId
   });
 
-  // Mutation for updating referral data (now includes all patient fields)
+  // Mutation for updating referral data
   const updateReferralMutation = useMutation({
     mutationFn: async (data: any) => {
       const { error } = await supabase
@@ -151,7 +159,7 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
       const { data: docData, error: dbError } = await supabase
         .from('patient_documents')
         .insert({
-          patient_id: referralId, // Use referral ID as patient ID
+          patient_id: referralId,
           file_name: file.name,
           file_path: fileName,
           file_size: file.size,
@@ -285,13 +293,15 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
     
     const updateData: { [key: string]: any } = {};
 
-    // Process all form fields and put them in the referrals table
+    // Process all form fields
     for (const [key, value] of formData.entries()) {
       if (key === 'organization_id' && value === 'none') {
         updateData[key] = null;
       } else if (key === 'insurance_verification' || key === 'medical_records_received') {
         updateData[key] = value === 'on';
       } else if (key === 'assigned_marketer' && value === 'none') {
+        updateData[key] = null;
+      } else if (key === 'referral_intake_coordinator' && value === 'none') {
         updateData[key] = null;
       } else if (key === 'date_of_birth' && value === '') {
         updateData[key] = null;
@@ -307,7 +317,12 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
     // Add comments to notes
     updateData.notes = JSON.stringify(comments);
 
-    console.log('Updating referral with all patient data:', updateData);
+    // Validate reason for non-admittance
+    const notAdmittedStatuses = ['not_admitted_patient_choice', 'not_admitted_not_appropriate', 'not_admitted_lost_contact'];
+    if (notAdmittedStatuses.includes(updateData.status) && !updateData.reason_for_non_admittance?.trim()) {
+      toast({ title: 'Reason for non-admittance is required for this status', variant: 'destructive' });
+      return;
+    }
 
     try {
       await updateReferralMutation.mutateAsync(updateData);
@@ -334,10 +349,11 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
     return null;
   }
 
-  // Use safe property access with fallbacks for the title
   const displayName = (referralData as any).first_name && (referralData as any).last_name 
     ? `${(referralData as any).first_name} ${(referralData as any).last_name}` 
     : referralData?.patient_name || 'N/A';
+
+  const showReasonField = ['not_admitted_patient_choice', 'not_admitted_not_appropriate', 'not_admitted_lost_contact'].includes(referralData.status);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -422,7 +438,7 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
                 </div>
               </div>
 
-              {/* Patient sections - now working with referral data directly */}
+              {/* Patient sections */}
               <PatientOverviewSection 
                 patient={referralData}
                 isOpen={openSections.overview}
@@ -488,24 +504,59 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
                 </div>
                 <div>
                   <Label htmlFor="status" className="text-gray-700">Status</Label>
-                  <Select name="status" defaultValue={referralData.status || 'pending'}>
+                  <Select name="status" defaultValue={referralData.status || 'new_referral'}>
                     <SelectTrigger className="bg-white border-gray-300 text-gray-900">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-white border border-gray-300 z-[100]">
-                      <SelectItem value="pending">Pending</SelectItem>
-                      <SelectItem value="contacted">Contacted</SelectItem>
-                      <SelectItem value="scheduled">Scheduled</SelectItem>
+                      <SelectItem value="new_referral">New Referral</SelectItem>
+                      <SelectItem value="contact_attempted">Contact Attempted</SelectItem>
+                      <SelectItem value="information_gathering">Information Gathering</SelectItem>
+                      <SelectItem value="assessment_scheduled">Assessment Scheduled</SelectItem>
+                      <SelectItem value="pending_admission">Pending Admission</SelectItem>
                       <SelectItem value="admitted">Admitted</SelectItem>
-                      <SelectItem value="declined">Declined</SelectItem>
-                      <SelectItem value="lost">Lost</SelectItem>
-                      <SelectItem value="lost_death">Lost - Death</SelectItem>
-                      <SelectItem value="lost_move">Lost - Move</SelectItem>
-                      <SelectItem value="lost_other_hospice">Lost - Other Hospice</SelectItem>
+                      <SelectItem value="not_admitted_patient_choice">Not Admitted - Patient Choice</SelectItem>
+                      <SelectItem value="not_admitted_not_appropriate">Not Admitted - Not Yet Appropriate</SelectItem>
+                      <SelectItem value="not_admitted_lost_contact">Not Admitted - Lost Contact</SelectItem>
+                      <SelectItem value="deceased_prior_admission">Deceased Prior to Admission</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="referral_intake_coordinator" className="text-gray-700">Referral Intake Coordinator</Label>
+                  <Select name="referral_intake_coordinator" defaultValue={referralData?.referral_intake_coordinator || 'none'}>
+                    <SelectTrigger className="bg-white border-gray-300 text-gray-900">
+                      <SelectValue placeholder="Select intake coordinator" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white border border-gray-300 z-[100]">
+                      <SelectItem value="none">Unassigned</SelectItem>
+                      {intakeCoordinators.map((coordinator) => (
+                        <SelectItem key={coordinator} value={coordinator}>{coordinator}</SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
               </div>
+
+              {/* Conditional Reason for Non-Admittance */}
+              {showReasonField && (
+                <div>
+                  <Label htmlFor="reason_for_non_admittance" className="text-gray-700">Reason for Non-Admittance *</Label>
+                  <Select name="reason_for_non_admittance" defaultValue={referralData?.reason_for_non_admittance || ''}>
+                    <SelectTrigger className="bg-white border-gray-300 text-gray-900">
+                      <SelectValue placeholder="Select reason" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white border border-gray-300 z-[100]">
+                      <SelectItem value="patient_family_chose_competitor">Patient/Family chose competitor</SelectItem>
+                      <SelectItem value="patient_stabilized_improved">Patient stabilized/improved</SelectItem>
+                      <SelectItem value="family_not_ready">Family not ready</SelectItem>
+                      <SelectItem value="financial_insurance_issues">Financial/Insurance issues</SelectItem>
+                      <SelectItem value="unable_to_contact">Unable to contact</SelectItem>
+                      <SelectItem value="chose_curative_care">Chose curative care</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
 
               {/* Running Comments Section */}
               <div className="space-y-4">
