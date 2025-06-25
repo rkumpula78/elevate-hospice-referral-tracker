@@ -8,6 +8,7 @@ import { ArrowLeft, Calendar, Phone, Mail, User, Building2, Edit, Plus } from 'l
 import { Badge } from '@/components/ui/badge';
 import EditReferralDialog from '@/components/crm/EditReferralDialog';
 import ScheduleVisitDialog from '@/components/crm/ScheduleVisitDialog';
+import ReferralFamilyContacts from '@/components/crm/ReferralFamilyContacts';
 import PageLayout from '@/components/layout/PageLayout';
 import { format } from 'date-fns';
 
@@ -237,8 +238,15 @@ const ReferralDetail = () => {
             </CardContent>
           </Card>
 
+          {/* Family Contacts Section */}
+          <Card className="lg:col-span-2">
+            <CardContent className="pt-6">
+              <ReferralFamilyContacts referralId={id!} />
+            </CardContent>
+          </Card>
+
           {parsedNotes && parsedNotes.length > 0 && (
-            <Card>
+            <Card className="lg:col-span-2">
               <CardHeader>
                 <CardTitle>Notes</CardTitle>
               </CardHeader>
