@@ -111,24 +111,26 @@ const PartnershipStageManager: React.FC<PartnershipStageManagerProps> = ({
             <div className="relative">
               <div className="flex items-center justify-between">
                 {PARTNERSHIP_STAGES.map((stage, index) => {
-                  const Icon = stage.icon;
+                  const IconComponent = stage.icon;
                   const isActive = index <= currentStageIndex;
                   const isCurrent = stage.value === currentStage;
                   
                   return (
                     <div key={stage.value} className="flex flex-col items-center relative z-10">
                       <div
-                        className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${
-                          isActive ? 'bg-primary text-white' : 'bg-gray-200 text-gray-400'
-                        } ${isCurrent ? 'ring-4 ring-primary/20' : ''}`}
+                        className={`w-12 h-12 rounded-full flex items-center justify-center transition-all border-2 ${
+                          isActive 
+                            ? 'bg-primary text-white border-primary' 
+                            : 'bg-gray-100 text-gray-400 border-gray-200'
+                        } ${isCurrent ? 'ring-4 ring-primary/20 shadow-lg' : ''}`}
                       >
-                        <Icon className="w-6 h-6" />
+                        <IconComponent className="w-5 h-5" />
                       </div>
                       <div className="mt-2 text-center">
                         <p className={`text-sm font-medium ${isActive ? 'text-gray-900' : 'text-gray-400'}`}>
                           {stage.label}
                         </p>
-                        <p className="text-xs text-gray-500 max-w-[100px]">{stage.description}</p>
+                        <p className="text-xs text-gray-500 max-w-[100px] text-center leading-tight">{stage.description}</p>
                       </div>
                     </div>
                   );
@@ -136,10 +138,14 @@ const PartnershipStageManager: React.FC<PartnershipStageManagerProps> = ({
               </div>
               
               {/* Progress Line */}
-              <div className="absolute top-6 left-0 right-0 h-0.5 bg-gray-200 -z-10">
+              <div className="absolute top-6 left-6 right-6 h-0.5 bg-gray-200 -z-10">
                 <div 
                   className="h-full bg-primary transition-all duration-500"
-                  style={{ width: `${(currentStageIndex / (PARTNERSHIP_STAGES.length - 1)) * 100}%` }}
+                  style={{ 
+                    width: currentStageIndex > 0 
+                      ? `${(currentStageIndex / (PARTNERSHIP_STAGES.length - 1)) * 100}%` 
+                      : '0%' 
+                  }}
                 />
               </div>
             </div>
@@ -155,6 +161,7 @@ const PartnershipStageManager: React.FC<PartnershipStageManagerProps> = ({
                         const currentStageObj = PARTNERSHIP_STAGES.find(s => s.value === selectedStage);
                         return currentStageObj ? (
                           <div className="flex items-center gap-2">
+                            <currentStageObj.icon className="w-4 h-4" />
                             <Badge variant="secondary" className={currentStageObj.color}>
                               {currentStageObj.label}
                             </Badge>
@@ -164,20 +171,24 @@ const PartnershipStageManager: React.FC<PartnershipStageManagerProps> = ({
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent className="bg-white border shadow-lg z-[100] max-h-[200px] overflow-y-auto">
-                    {PARTNERSHIP_STAGES.map(stage => (
-                      <SelectItem 
-                        key={stage.value} 
-                        value={stage.value} 
-                        className="cursor-pointer hover:bg-gray-50 focus:bg-gray-50 py-3"
-                      >
-                        <div className="flex items-center gap-3">
-                          <Badge variant="secondary" className={stage.color}>
-                            {stage.label}
-                          </Badge>
-                          <span className="text-sm text-gray-600">{stage.description}</span>
-                        </div>
-                      </SelectItem>
-                    ))}
+                    {PARTNERSHIP_STAGES.map(stage => {
+                      const IconComponent = stage.icon;
+                      return (
+                        <SelectItem 
+                          key={stage.value} 
+                          value={stage.value} 
+                          className="cursor-pointer hover:bg-gray-50 focus:bg-gray-50 py-3"
+                        >
+                          <div className="flex items-center gap-3">
+                            <IconComponent className="w-4 h-4" />
+                            <Badge variant="secondary" className={stage.color}>
+                              {stage.label}
+                            </Badge>
+                            <span className="text-sm text-gray-600">{stage.description}</span>
+                          </div>
+                        </SelectItem>
+                      );
+                    })}
                   </SelectContent>
                 </Select>
               </div>
