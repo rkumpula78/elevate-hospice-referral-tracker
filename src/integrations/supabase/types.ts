@@ -530,7 +530,7 @@ export type Database = {
           id: string
           influence_level: string | null
           last_name: string
-          organization_id: string | null
+          organization_id: string
           personal_interests: string | null
           previous_experience: string | null
           professional_networks: string | null
@@ -550,7 +550,7 @@ export type Database = {
           id?: string
           influence_level?: string | null
           last_name: string
-          organization_id?: string | null
+          organization_id: string
           personal_interests?: string | null
           previous_experience?: string | null
           professional_networks?: string | null
@@ -570,7 +570,7 @@ export type Database = {
           id?: string
           influence_level?: string | null
           last_name?: string
-          organization_id?: string | null
+          organization_id?: string
           personal_interests?: string | null
           previous_experience?: string | null
           professional_networks?: string | null
@@ -778,7 +778,7 @@ export type Database = {
           last_training_review?: string | null
           license_numbers?: string[] | null
           medicare_id?: string | null
-          name: string
+          name?: string
           ownership_type?: string | null
           partnership_notes?: string | null
           partnership_stage?: string | null

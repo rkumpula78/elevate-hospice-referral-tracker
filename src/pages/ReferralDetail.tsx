@@ -5,9 +5,10 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Calendar, Phone, Mail, User, Building2, Edit } from 'lucide-react';
+import { ArrowLeft, Calendar, Phone, Mail, User, Building2, Edit, Plus } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import EditReferralDialog from '@/components/crm/EditReferralDialog';
+import ScheduleVisitDialog from '@/components/crm/ScheduleVisitDialog';
 import PageLayout from '@/components/layout/PageLayout';
 import { format } from 'date-fns';
 
@@ -15,6 +16,7 @@ const ReferralDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showScheduleDialog, setShowScheduleDialog] = useState(false);
 
   const { data: referral, isLoading, refetch } = useQuery({
     queryKey: ['referral', id],
@@ -108,10 +110,16 @@ const ReferralDetail = () => {
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Referrals
           </Button>
-          <Button onClick={() => setShowEditDialog(true)}>
-            <Edit className="w-4 h-4 mr-2" />
-            Edit Referral
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setShowScheduleDialog(true)}>
+              <Plus className="w-4 h-4 mr-2" />
+              Schedule Visit
+            </Button>
+            <Button onClick={() => setShowEditDialog(true)}>
+              <Edit className="w-4 h-4 mr-2" />
+              Edit Referral
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -261,6 +269,11 @@ const ReferralDetail = () => {
             }
           }}
           referralId={id!}
+        />
+
+        <ScheduleVisitDialog
+          open={showScheduleDialog}
+          onOpenChange={setShowScheduleDialog}
         />
       </div>
     </PageLayout>

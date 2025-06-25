@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, Edit, Trash2, Phone, Mail, Star } from "lucide-react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -71,7 +71,73 @@ const OrganizationContactsDialog = ({ open, onOpenChange, organizationId, organi
       if (error) throw error;
       return data as Contact[];
     },
-    enabled: open
+    enabled: open && !!organizationId
+  });
+
+  const createContactMutation = useMutation({
+    mutationFn: async (contactData: any) => {
+      const { error } = await supabase
+        .from('organization_contacts')
+        .insert([{
+          ...contactData,
+          organization_id: organizationId,
+          years_in_position: contactData.years_in_position ? parseInt(contactData.years_in_position) : null
+        }]);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success('Contact added successfully');
+      queryClient.invalidateQueries({ queryKey: ['organization-contacts', organizationId] });
+      resetForm();
+    },
+    onError: (error) => {
+      console.error('Error creating contact:', error);
+      toast.error('Failed to add contact');
+    }
+  });
+
+  const updateContactMutation = useMutation({
+    mutationFn: async ({ id, contactData }: { id: string; contactData: any }) => {
+      const { error } = await supabase
+        .from('organization_contacts')
+        .update({
+          ...contactData,
+          organization_id: organizationId,
+          years_in_position: contactData.years_in_position ? parseInt(contactData.years_in_position) : null
+        })
+        .eq('id', id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success('Contact updated successfully');
+      queryClient.invalidateQueries({ queryKey: ['organization-contacts', organizationId] });
+      resetForm();
+    },
+    onError: (error) => {
+      console.error('Error updating contact:', error);
+      toast.error('Failed to update contact');
+    }
+  });
+
+  const deleteContactMutation = useMutation({
+    mutationFn: async (contactId: string) => {
+      const { error } = await supabase
+        .from('organization_contacts')
+        .delete()
+        .eq('id', contactId);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success('Contact deleted successfully');
+      queryClient.invalidateQueries({ queryKey: ['organization-contacts', organizationId] });
+    },
+    onError: (error) => {
+      console.error('Error deleting contact:', error);
+      toast.error('Failed to delete contact');
+    }
   });
 
   const resetForm = () => {
@@ -85,40 +151,21 @@ const OrganizationContactsDialog = ({ open, onOpenChange, organizationId, organi
     setEditingContact(null);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    const dataToSubmit = {
-      ...formData,
-      organization_id: organizationId,
-      years_in_position: formData.years_in_position ? parseInt(formData.years_in_position) : null
-    };
+    if (!formData.first_name || !formData.last_name) {
+      toast.error('First name and last name are required');
+      return;
+    }
 
     if (editingContact) {
-      const { error } = await supabase
-        .from('organization_contacts')
-        .update(dataToSubmit)
-        .eq('id', editingContact.id);
-      
-      if (error) {
-        toast.error('Failed to update contact');
-      } else {
-        toast.success('Contact updated successfully');
-        queryClient.invalidateQueries({ queryKey: ['organization-contacts', organizationId] });
-        resetForm();
-      }
+      updateContactMutation.mutate({
+        id: editingContact.id,
+        contactData: formData
+      });
     } else {
-      const { error } = await supabase
-        .from('organization_contacts')
-        .insert([dataToSubmit]);
-      
-      if (error) {
-        toast.error('Failed to add contact');
-      } else {
-        toast.success('Contact added successfully');
-        queryClient.invalidateQueries({ queryKey: ['organization-contacts', organizationId] });
-        resetForm();
-      }
+      createContactMutation.mutate(formData);
     }
   };
 
@@ -143,19 +190,9 @@ const OrganizationContactsDialog = ({ open, onOpenChange, organizationId, organi
     setShowAddForm(true);
   };
 
-  const handleDelete = async (contactId: string) => {
+  const handleDelete = (contactId: string) => {
     if (confirm('Are you sure you want to delete this contact?')) {
-      const { error } = await supabase
-        .from('organization_contacts')
-        .delete()
-        .eq('id', contactId);
-      
-      if (error) {
-        toast.error('Failed to delete contact');
-      } else {
-        toast.success('Contact deleted successfully');
-        queryClient.invalidateQueries({ queryKey: ['organization-contacts', organizationId] });
-      }
+      deleteContactMutation.mutate(contactId);
     }
   };
 
@@ -328,8 +365,13 @@ const OrganizationContactsDialog = ({ open, onOpenChange, organizationId, organi
                   <Button type="button" variant="outline" onClick={resetForm}>
                     Cancel
                   </Button>
-                  <Button type="submit">
-                    {editingContact ? 'Update' : 'Add'} Contact
+                  <Button 
+                    type="submit" 
+                    disabled={createContactMutation.isPending || updateContactMutation.isPending}
+                  >
+                    {createContactMutation.isPending || updateContactMutation.isPending 
+                      ? 'Saving...' 
+                      : editingContact ? 'Update' : 'Add'} Contact
                   </Button>
                 </div>
               </form>
