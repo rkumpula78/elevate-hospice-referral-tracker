@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { BookOpen, Briefcase, TrendingUp, Users } from 'lucide-react';
+import { BookOpen, Briefcase, TrendingUp, Users, AlertCircle } from 'lucide-react';
 
 const TrainingMetrics = () => {
   // Fetch partnership stage distribution
@@ -110,25 +110,32 @@ const TrainingMetrics = () => {
             <Briefcase className="w-4 h-4 mr-2" />
             Partnership Pipeline
           </h4>
-          <div className="space-y-2">
-            {Object.entries(stageDistribution || {}).map(([stage, count]) => {
-              const percentage = totalOrgs > 0 ? (count / totalOrgs) * 100 : 0;
-              return (
-                <div key={stage} className="space-y-1">
-                  <div className="flex items-center justify-between text-sm">
-                    <Badge 
-                      variant="secondary" 
-                      className={stageColors[stage as keyof typeof stageColors]}
-                    >
-                      {stage.charAt(0).toUpperCase() + stage.slice(1)}
-                    </Badge>
-                    <span className="text-muted-foreground">{count} orgs</span>
+          {totalOrgs > 0 ? (
+            <div className="space-y-2">
+              {Object.entries(stageDistribution || {}).map(([stage, count]) => {
+                const percentage = totalOrgs > 0 ? (count / totalOrgs) * 100 : 0;
+                return (
+                  <div key={stage} className="space-y-1">
+                    <div className="flex items-center justify-between text-sm">
+                      <Badge 
+                        variant="secondary" 
+                        className={stageColors[stage as keyof typeof stageColors]}
+                      >
+                        {stage.charAt(0).toUpperCase() + stage.slice(1)}
+                      </Badge>
+                      <span className="text-muted-foreground">{count} orgs</span>
+                    </div>
+                    <Progress value={percentage} className="h-2" />
                   </div>
-                  <Progress value={percentage} className="h-2" />
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="text-center text-muted-foreground py-4">
+              <AlertCircle className="w-8 h-8 mx-auto mb-2" />
+              <p className="text-sm">No partnership data available yet</p>
+            </div>
+          )}
         </div>
 
         {/* Training Completion */}
@@ -146,7 +153,7 @@ const TrainingMetrics = () => {
             </div>
             <Progress value={trainingStats?.completionRate || 0} className="h-2" />
             <p className="text-xs text-muted-foreground">
-              {trainingStats?.completedChecklists} of {trainingStats?.totalChecklists} checklists started
+              {trainingStats?.completedChecklists || 0} of {trainingStats?.totalChecklists || 0} checklists started
             </p>
           </div>
         </div>
@@ -169,7 +176,10 @@ const TrainingMetrics = () => {
               ))}
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground">No training reviews recorded yet</p>
+            <div className="text-center text-muted-foreground py-4">
+              <AlertCircle className="w-8 h-8 mx-auto mb-2" />
+              <p className="text-sm">No training reviews recorded yet</p>
+            </div>
           )}
         </div>
       </CardContent>

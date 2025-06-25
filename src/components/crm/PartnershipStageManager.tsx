@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
-import { ArrowRight, Calendar, CheckCircle2, Briefcase, Star } from 'lucide-react';
+import { ArrowRight, Calendar, CheckCircle2, Briefcase, Star, Eye, TrendingUp } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface PartnershipStageManagerProps {
@@ -23,14 +23,14 @@ const PARTNERSHIP_STAGES = [
   {
     value: 'prospect',
     label: 'Prospect',
-    icon: Briefcase,
+    icon: Eye,
     color: 'bg-gray-100 text-gray-800',
     description: 'Initial contact and qualification'
   },
   {
     value: 'developing',
     label: 'Developing',
-    icon: ArrowRight,
+    icon: TrendingUp,
     color: 'bg-blue-100 text-blue-800',
     description: 'Building relationship and trust'
   },

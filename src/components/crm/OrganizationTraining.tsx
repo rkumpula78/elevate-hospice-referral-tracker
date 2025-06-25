@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -18,7 +17,8 @@ import {
   Users, 
   Calendar,
   ChevronRight,
-  Award
+  Award,
+  AlertCircle
 } from 'lucide-react';
 
 interface OrganizationTrainingProps {
@@ -194,6 +194,37 @@ const OrganizationTraining: React.FC<OrganizationTrainingProps> = ({
       </div>
     );
   }
+
+  const getOrganizationTypeLabel = (type: string) => {
+    const labels: { [key: string]: string } = {
+      'assisted_living': 'Assisted Living Facilities',
+      'hospital': 'Hospitals',
+      'physician_office': 'Physician Offices',
+      'nursing_home': 'Skilled Nursing Facilities',
+      'home_health': 'Home Health Agencies',
+      'clinic': 'Cancer Centers & Clinics'
+    };
+    return labels[type] || type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+  };
+
+  const renderEmptyState = (tabName: string, description: string) => (
+    <Card>
+      <CardContent className="pt-6">
+        <div className="text-center space-y-4">
+          <AlertCircle className="w-12 h-12 text-muted-foreground mx-auto" />
+          <div>
+            <h3 className="text-lg font-semibold">No {tabName} Content Available</h3>
+            <p className="text-muted-foreground mt-2">
+              {description} for {getOrganizationTypeLabel(organizationType)} organizations.
+            </p>
+            <p className="text-sm text-muted-foreground mt-4">
+              Content is being developed and will be available soon. Check back for updates.
+            </p>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
 
   const renderValueProposition = (module: any) => {
     const content = module.content;
@@ -408,29 +439,20 @@ const OrganizationTraining: React.FC<OrganizationTrainingProps> = ({
               .filter(m => m.module_category === 'value_proposition')
               .map(module => renderValueProposition(module))
           ) : (
-            <Card>
-              <CardContent className="pt-6">
-                <div className="text-center">
-                  <p className="text-muted-foreground">
-                    No training modules found for {organizationType}. 
-                    Check that the database migration completed successfully.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+            renderEmptyState("Value Proposition", "Training modules are being developed")
           )}
         </div>
       </TabsContent>
 
       <TabsContent value="action-plan" className="mt-6">
         <div className="space-y-4">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="text-center">
-                <p className="text-muted-foreground">Action plan modules coming soon for {organizationType}.</p>
-              </div>
-            </CardContent>
-          </Card>
+          {trainingModules && trainingModules.some(m => m.module_category === 'action_plan') ? (
+            trainingModules
+              .filter(m => m.module_category === 'action_plan')
+              .map(module => renderActionPlan(module))
+          ) : (
+            renderEmptyState("Action Plan", "Strategic action plans are being developed")
+          )}
         </div>
       </TabsContent>
 
@@ -439,29 +461,20 @@ const OrganizationTraining: React.FC<OrganizationTrainingProps> = ({
           {checklists && checklists.length > 0 ? (
             checklists.map(checklist => renderChecklist(checklist))
           ) : (
-            <Card>
-              <CardContent className="pt-6">
-                <div className="text-center">
-                  <p className="text-muted-foreground">
-                    No checklists found for {organizationType}. 
-                    Check that the database migration completed successfully.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+            renderEmptyState("Checklist", "Implementation checklists are being developed")
           )}
         </div>
       </TabsContent>
 
       <TabsContent value="kpis" className="mt-6">
         <div className="space-y-4">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="text-center">
-                <p className="text-muted-foreground">KPI modules coming soon for {organizationType}.</p>
-              </div>
-            </CardContent>
-          </Card>
+          {trainingModules && trainingModules.some(m => m.module_category === 'kpi') ? (
+            trainingModules
+              .filter(m => m.module_category === 'kpi')
+              .map(module => renderKPIs(module))
+          ) : (
+            renderEmptyState("KPI", "Key performance indicators are being developed")
+          )}
         </div>
       </TabsContent>
     </Tabs>
