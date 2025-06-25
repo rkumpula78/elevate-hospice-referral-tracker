@@ -159,7 +159,7 @@ const OrganizationDetail = () => {
               value="training"
               className="data-[state=active]:bg-blue-600 data-[state=active]:text-white bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 h-12 text-base font-medium rounded-lg shadow-sm transition-all"
             >
-              Value Props & Resources
+              Resources
             </TabsTrigger>
             <TabsTrigger 
               value="kpis"
