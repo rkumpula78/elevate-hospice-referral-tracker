@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import AddReferralDialog from './AddReferralDialog';
 import EditReferralDialog from './EditReferralDialog';
 import MarketerSettingsDialog from './MarketerSettingsDialog';
+import ScheduleVisitDialog from './ScheduleVisitDialog';
 import { sendAdmissionNotification, formatEmailData } from '@/utils/emailNotifications';
 import { EmptyState } from '@/components/ui/empty-state';
 import ReferralCard from './ReferralCard';
@@ -24,9 +24,9 @@ const ReferralsList = () => {
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showMarketerSettings, setShowMarketerSettings] = useState(false);
+  const [showScheduleDialog, setShowScheduleDialog] = useState(false);
   const [editingReferralId, setEditingReferralId] = useState<string>('');
-  const [editingMarketer, setEditingMarketer] = useState<string | null>(null);
-  const [tempMarketerValue, setTempMarketerValue] = useState<string>('');
+  const [schedulingReferralId, setSchedulingReferralId] = useState<string>('');
 
   const { data: referrals, isLoading } = useQuery({
     queryKey: ['referrals', selectedStatus, selectedPriority, selectedMarketer],
@@ -141,26 +141,31 @@ const ReferralsList = () => {
     mutationFn: async ({ id, marketer }: { id: string, marketer: string }) => {
       const { error } = await supabase
         .from('referrals')
-        .update({ assigned_marketer: marketer === 'none' ? null : marketer })
+        .update({ assigned_marketer: marketer || null })
         .eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['referrals'] });
       toast({ title: "Marketer updated successfully" });
-      setEditingMarketer(null);
-      setTempMarketerValue('');
     },
     onError: () => {
       toast({ title: "Error updating marketer", variant: "destructive" });
-      setEditingMarketer(null);
-      setTempMarketerValue('');
     }
   });
 
   const handleEditReferral = (referralId: string) => {
     setEditingReferralId(referralId);
     setShowEditDialog(true);
+  };
+
+  const handleScheduleReferral = (referralId: string) => {
+    setSchedulingReferralId(referralId);
+    setShowScheduleDialog(true);
+  };
+
+  const handleMarketerChange = (referralId: string, marketer: string) => {
+    updateMarketerMutation.mutate({ id: referralId, marketer });
   };
 
   const resetFilters = () => {
@@ -171,20 +176,6 @@ const ReferralsList = () => {
 
   const hasActiveFilters = selectedStatus !== 'all' || selectedPriority !== 'all' || selectedMarketer !== 'all';
   const hasResults = referrals && referrals.length > 0;
-
-  const handleMarketerEdit = (referralId: string, currentMarketer: string | null) => {
-    setEditingMarketer(referralId);
-    setTempMarketerValue(currentMarketer || '');
-  };
-
-  const handleMarketerSave = (referralId: string) => {
-    updateMarketerMutation.mutate({ id: referralId, marketer: tempMarketerValue || 'none' });
-  };
-
-  const handleMarketerCancel = () => {
-    setEditingMarketer(null);
-    setTempMarketerValue('');
-  };
 
   if (isLoading) {
     return (
@@ -282,18 +273,15 @@ const ReferralsList = () => {
               key={referral.id}
               referral={referral}
               marketers={marketers || []}
-              editingMarketer={editingMarketer}
-              tempMarketerValue={tempMarketerValue}
               isUpdatingStatus={updateStatusMutation.isPending}
               isUpdatingPriority={updatePriorityMutation.isPending}
               isUpdatingMarketer={updateMarketerMutation.isPending}
               onStatusChange={(id, status) => updateStatusMutation.mutate({ id, status: status as ReferralStatus })}
               onPriorityChange={(id, priority) => updatePriorityMutation.mutate({ id, priority })}
-              onMarketerEdit={handleMarketerEdit}
-              onMarketerSave={handleMarketerSave}
-              onMarketerCancel={handleMarketerCancel}
-              onTempMarketerChange={setTempMarketerValue}
+              onMarketerChange={handleMarketerChange}
               onEdit={handleEditReferral}
+              onSchedule={handleScheduleReferral}
+              onAddMarketer={() => setShowMarketerSettings(true)}
             />
           ))}
         </div>
@@ -313,6 +301,12 @@ const ReferralsList = () => {
       <MarketerSettingsDialog
         open={showMarketerSettings}
         onOpenChange={setShowMarketerSettings}
+      />
+
+      <ScheduleVisitDialog
+        open={showScheduleDialog}
+        onOpenChange={setShowScheduleDialog}
+        referralId={schedulingReferralId}
       />
     </div>
   );

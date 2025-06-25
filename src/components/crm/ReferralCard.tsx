@@ -3,9 +3,8 @@ import React, { useState } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Phone, Building2, User, Edit, Calendar, Check, X, ExternalLink, AlertCircle, Clock, CheckCircle } from "lucide-react";
+import { Phone, Building2, User, Edit, Calendar, AlertCircle, Clock, CheckCircle, Plus } from "lucide-react";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -13,35 +12,29 @@ import { cn } from "@/lib/utils";
 interface ReferralCardProps {
   referral: any;
   marketers: string[];
-  editingMarketer: string | null;
-  tempMarketerValue: string;
   isUpdatingStatus: boolean;
   isUpdatingPriority: boolean;
   isUpdatingMarketer: boolean;
   onStatusChange: (id: string, status: string) => void;
   onPriorityChange: (id: string, priority: string) => void;
-  onMarketerEdit: (id: string, currentMarketer: string | null) => void;
-  onMarketerSave: (id: string) => void;
-  onMarketerCancel: () => void;
-  onTempMarketerChange: (value: string) => void;
+  onMarketerChange: (id: string, marketer: string) => void;
   onEdit: (id: string) => void;
+  onSchedule?: (id: string) => void;
+  onAddMarketer?: () => void;
 }
 
 const ReferralCard = ({ 
   referral, 
   marketers,
-  editingMarketer,
-  tempMarketerValue,
   isUpdatingStatus,
   isUpdatingPriority,
   isUpdatingMarketer,
   onStatusChange,
   onPriorityChange,
-  onMarketerEdit,
-  onMarketerSave,
-  onMarketerCancel,
-  onTempMarketerChange,
-  onEdit
+  onMarketerChange,
+  onEdit,
+  onSchedule,
+  onAddMarketer
 }: ReferralCardProps) => {
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -108,45 +101,48 @@ const ReferralCard = ({
 
   const progressPercentage = getStatusProgress(referral.status);
 
+  const handleSchedule = () => {
+    if (onSchedule) {
+      onSchedule(referral.id);
+    }
+  };
+
   return (
     <Card className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border-l-4 border-l-primary/20 hover:border-l-primary">
       <CardContent className="p-6">
-        {/* Header with Patient Name and Phone */}
+        {/* Header with Patient Name and Actions */}
         <div className="flex items-start justify-between mb-4">
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <Link 
               to={`/referral/${referral.id}`}
               className="hover:text-primary transition-colors group-hover:underline"
             >
-              <h3 className="text-xl font-bold text-gray-900 mb-1 flex items-center gap-2">
+              <h3 className="text-xl font-bold text-gray-900 mb-1 truncate">
                 {referral.patient_name}
-                <ExternalLink className="w-4 h-4 opacity-50 group-hover:opacity-100 transition-opacity" />
               </h3>
             </Link>
             {referral.patient_phone && (
               <div className="flex items-center text-sm text-gray-600 mb-2">
-                <Phone className="w-4 h-4 mr-2" />
+                <Phone className="w-4 h-4 mr-2 flex-shrink-0" />
                 <span className="font-medium">{referral.patient_phone}</span>
               </div>
             )}
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => onEdit(referral.id)}>
-              <Edit className="w-4 h-4 mr-1" />
-              Edit
+          <div className="flex gap-1 ml-4 flex-shrink-0">
+            <Button variant="outline" size="sm" onClick={() => onEdit(referral.id)} className="h-8 px-2">
+              <Edit className="w-3 h-3" />
             </Button>
-            <Button variant="outline" size="sm">
-              <Calendar className="w-4 h-4 mr-1" />
-              Schedule
+            <Button variant="outline" size="sm" onClick={handleSchedule} className="h-8 px-2">
+              <Calendar className="w-3 h-3" />
             </Button>
           </div>
         </div>
 
         {/* Organization */}
         <div className="flex items-center mb-4 p-3 bg-gray-50 rounded-lg">
-          <Building2 className="w-5 h-5 text-gray-500 mr-3" />
-          <div>
-            <div className="font-medium text-gray-900">{referral.organizations?.name || 'Unknown Organization'}</div>
+          <Building2 className="w-5 h-5 text-gray-500 mr-3 flex-shrink-0" />
+          <div className="min-w-0 flex-1">
+            <div className="font-medium text-gray-900 truncate">{referral.organizations?.name || 'Unknown Organization'}</div>
             <div className="text-sm text-gray-600">{referral.organizations?.type}</div>
           </div>
         </div>
@@ -154,18 +150,18 @@ const ReferralCard = ({
         {/* Diagnosis and Priority */}
         <div className="mb-4">
           <div className="flex items-start justify-between mb-3">
-            <div className="flex-1">
+            <div className="flex-1 min-w-0 mr-4">
               <div className="text-sm text-gray-600 mb-1">Diagnosis</div>
               <div className="font-medium text-gray-900">{referral.diagnosis || 'Not specified'}</div>
             </div>
-            <div className="ml-4">
+            <div className="flex-shrink-0">
               <Select
                 value={referral.priority || 'routine'}
                 onValueChange={(value: string) => onPriorityChange(referral.id, value)}
                 disabled={isUpdatingPriority}
               >
-                <SelectTrigger className="w-32">
-                  <Badge className={cn("border", getPriorityColor(referral.priority || 'routine'))}>
+                <SelectTrigger className="w-32 h-8">
+                  <Badge className={cn("border text-xs", getPriorityColor(referral.priority || 'routine'))}>
                     {getPriorityIcon(referral.priority || 'routine')}
                     <span className="ml-1 capitalize">{referral.priority || 'routine'}</span>
                   </Badge>
@@ -229,56 +225,48 @@ const ReferralCard = ({
 
         {/* Assigned Marketer */}
         <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-          <div className="flex items-center">
-            <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center mr-3">
+          <div className="flex items-center flex-1 min-w-0">
+            <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
               <User className="w-4 h-4 text-primary" />
             </div>
-            <div>
+            <div className="flex-1 min-w-0">
               <div className="text-xs text-gray-500 mb-1">Assigned Marketer</div>
-              {editingMarketer === referral.id ? (
-                <div className="flex items-center gap-2">
-                  <Input
-                    value={tempMarketerValue}
-                    onChange={(e) => onTempMarketerChange(e.target.value)}
-                    placeholder="Enter marketer name"
-                    className="w-40 h-8 text-sm"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        onMarketerSave(referral.id);
-                      } else if (e.key === 'Escape') {
-                        onMarketerCancel();
-                      }
-                    }}
-                    autoFocus
-                  />
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="h-8 w-8 p-0"
-                    onClick={() => onMarketerSave(referral.id)}
-                    disabled={isUpdatingMarketer}
-                  >
-                    <Check className="w-3 h-3" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="h-8 w-8 p-0"
-                    onClick={onMarketerCancel}
-                  >
-                    <X className="w-3 h-3" />
-                  </Button>
-                </div>
-              ) : (
-                <div
-                  className="font-medium text-gray-900 cursor-pointer hover:text-primary transition-colors"
-                  onClick={() => onMarketerEdit(referral.id, referral.assigned_marketer)}
-                >
-                  {referral.assigned_marketer || (
-                    <span className="text-gray-500 italic">Click to assign</span>
-                  )}
-                </div>
-              )}
+              <Select
+                value={referral.assigned_marketer || 'unassigned'}
+                onValueChange={(value: string) => {
+                  if (value === 'add_new') {
+                    onAddMarketer?.();
+                  } else {
+                    onMarketerChange(referral.id, value === 'unassigned' ? '' : value);
+                  }
+                }}
+                disabled={isUpdatingMarketer}
+              >
+                <SelectTrigger className="w-full h-8 border-none p-0 focus:ring-0 focus:ring-offset-0">
+                  <SelectValue>
+                    <span className={cn(
+                      "font-medium transition-colors text-sm",
+                      referral.assigned_marketer ? "text-gray-900" : "text-gray-500 italic"
+                    )}>
+                      {referral.assigned_marketer || "Click to assign"}
+                    </span>
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="unassigned">
+                    <span className="text-gray-500 italic">Unassigned</span>
+                  </SelectItem>
+                  {marketers?.map((marketer: string) => (
+                    <SelectItem key={marketer} value={marketer}>{marketer}</SelectItem>
+                  ))}
+                  <SelectItem value="add_new">
+                    <div className="flex items-center text-primary">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add New Marketer
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </div>
