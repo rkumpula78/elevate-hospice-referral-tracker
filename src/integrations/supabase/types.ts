@@ -9,6 +9,81 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      activity_log: {
+        Row: {
+          activity_date: string
+          activity_type: string
+          contact_id: string | null
+          created_at: string | null
+          discussion_points: string | null
+          duration_minutes: number | null
+          follow_up_completed: boolean | null
+          follow_up_date: string | null
+          id: string
+          marketer_name: string | null
+          materials_left: string[] | null
+          next_steps: string | null
+          notes: string | null
+          organization_id: string | null
+          participants: string[] | null
+          purpose: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          activity_date?: string
+          activity_type: string
+          contact_id?: string | null
+          created_at?: string | null
+          discussion_points?: string | null
+          duration_minutes?: number | null
+          follow_up_completed?: boolean | null
+          follow_up_date?: string | null
+          id?: string
+          marketer_name?: string | null
+          materials_left?: string[] | null
+          next_steps?: string | null
+          notes?: string | null
+          organization_id?: string | null
+          participants?: string[] | null
+          purpose?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          activity_date?: string
+          activity_type?: string
+          contact_id?: string | null
+          created_at?: string | null
+          discussion_points?: string | null
+          duration_minutes?: number | null
+          follow_up_completed?: boolean | null
+          follow_up_date?: string | null
+          id?: string
+          marketer_name?: string | null
+          materials_left?: string[] | null
+          next_steps?: string | null
+          notes?: string | null
+          organization_id?: string | null
+          participants?: string[] | null
+          purpose?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_log_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "organization_contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activity_log_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       admission_data: {
         Row: {
           admissions: number
@@ -142,6 +217,53 @@ export type Database = {
           },
           {
             foreignKeyName: "checklist_completions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      competitive_analysis: {
+        Row: {
+          competitor_name: string
+          contract_details: string | null
+          created_at: string | null
+          displacement_opportunities: string | null
+          id: string
+          last_updated: string | null
+          organization_id: string | null
+          relationship_strength: string | null
+          strengths: string | null
+          weaknesses: string | null
+        }
+        Insert: {
+          competitor_name: string
+          contract_details?: string | null
+          created_at?: string | null
+          displacement_opportunities?: string | null
+          id?: string
+          last_updated?: string | null
+          organization_id?: string | null
+          relationship_strength?: string | null
+          strengths?: string | null
+          weaknesses?: string | null
+        }
+        Update: {
+          competitor_name?: string
+          contract_details?: string | null
+          created_at?: string | null
+          displacement_opportunities?: string | null
+          id?: string
+          last_updated?: string | null
+          organization_id?: string | null
+          relationship_strength?: string | null
+          strengths?: string | null
+          weaknesses?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "competitive_analysis_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
@@ -397,6 +519,77 @@ export type Database = {
         }
         Relationships: []
       }
+      organization_contacts: {
+        Row: {
+          best_contact_times: string | null
+          communication_preferences: string[] | null
+          created_at: string | null
+          direct_phone: string | null
+          email: string | null
+          first_name: string
+          id: string
+          influence_level: string | null
+          last_name: string
+          organization_id: string | null
+          personal_interests: string | null
+          previous_experience: string | null
+          professional_networks: string | null
+          relationship_strength: number | null
+          role_in_referral: string | null
+          title: string | null
+          updated_at: string | null
+          years_in_position: number | null
+        }
+        Insert: {
+          best_contact_times?: string | null
+          communication_preferences?: string[] | null
+          created_at?: string | null
+          direct_phone?: string | null
+          email?: string | null
+          first_name: string
+          id?: string
+          influence_level?: string | null
+          last_name: string
+          organization_id?: string | null
+          personal_interests?: string | null
+          previous_experience?: string | null
+          professional_networks?: string | null
+          relationship_strength?: number | null
+          role_in_referral?: string | null
+          title?: string | null
+          updated_at?: string | null
+          years_in_position?: number | null
+        }
+        Update: {
+          best_contact_times?: string | null
+          communication_preferences?: string[] | null
+          created_at?: string | null
+          direct_phone?: string | null
+          email?: string | null
+          first_name?: string
+          id?: string
+          influence_level?: string | null
+          last_name?: string
+          organization_id?: string | null
+          personal_interests?: string | null
+          previous_experience?: string | null
+          professional_networks?: string | null
+          relationship_strength?: number | null
+          role_in_referral?: string | null
+          title?: string | null
+          updated_at?: string | null
+          years_in_position?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_contacts_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organization_documents: {
         Row: {
           content_type: string | null
@@ -529,52 +722,109 @@ export type Database = {
       }
       organizations: {
         Row: {
+          account_rating: string | null
           address: string | null
+          after_hours_contact: string | null
           assigned_marketer: string | null
+          bed_count: number | null
+          competitive_landscape: string | null
           contact_email: string | null
           contact_person: string | null
+          contract_status: string | null
           created_at: string | null
+          current_hospice_providers: string[] | null
+          dba_name: string | null
+          expansion_plans: string | null
+          financial_health_notes: string | null
+          gps_latitude: number | null
+          gps_longitude: number | null
           id: string
           is_active: boolean | null
           last_training_review: string | null
+          license_numbers: string[] | null
+          medicare_id: string | null
           name: string
+          ownership_type: string | null
           partnership_notes: string | null
           partnership_stage: string | null
           phone: string | null
+          referral_potential: number | null
+          regulatory_notes: string | null
+          service_radius: number | null
+          sub_type: string | null
           type: string
           updated_at: string | null
+          website: string | null
         }
         Insert: {
+          account_rating?: string | null
           address?: string | null
+          after_hours_contact?: string | null
           assigned_marketer?: string | null
+          bed_count?: number | null
+          competitive_landscape?: string | null
           contact_email?: string | null
           contact_person?: string | null
+          contract_status?: string | null
           created_at?: string | null
+          current_hospice_providers?: string[] | null
+          dba_name?: string | null
+          expansion_plans?: string | null
+          financial_health_notes?: string | null
+          gps_latitude?: number | null
+          gps_longitude?: number | null
           id?: string
           is_active?: boolean | null
           last_training_review?: string | null
+          license_numbers?: string[] | null
+          medicare_id?: string | null
           name: string
+          ownership_type?: string | null
           partnership_notes?: string | null
           partnership_stage?: string | null
           phone?: string | null
+          referral_potential?: number | null
+          regulatory_notes?: string | null
+          service_radius?: number | null
+          sub_type?: string | null
           type: string
           updated_at?: string | null
+          website?: string | null
         }
         Update: {
+          account_rating?: string | null
           address?: string | null
+          after_hours_contact?: string | null
           assigned_marketer?: string | null
+          bed_count?: number | null
+          competitive_landscape?: string | null
           contact_email?: string | null
           contact_person?: string | null
+          contract_status?: string | null
           created_at?: string | null
+          current_hospice_providers?: string[] | null
+          dba_name?: string | null
+          expansion_plans?: string | null
+          financial_health_notes?: string | null
+          gps_latitude?: number | null
+          gps_longitude?: number | null
           id?: string
           is_active?: boolean | null
           last_training_review?: string | null
+          license_numbers?: string[] | null
+          medicare_id?: string | null
           name?: string
+          ownership_type?: string | null
           partnership_notes?: string | null
           partnership_stage?: string | null
           phone?: string | null
+          referral_potential?: number | null
+          regulatory_notes?: string | null
+          service_radius?: number | null
+          sub_type?: string | null
           type?: string
           updated_at?: string | null
+          website?: string | null
         }
         Relationships: []
       }
