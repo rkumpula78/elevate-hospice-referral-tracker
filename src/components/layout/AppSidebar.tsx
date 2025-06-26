@@ -22,7 +22,6 @@ import {
   BarChart3,
   Settings,
   LogOut,
-  Map,
   BookOpen,
   Shield
 } from "lucide-react";
@@ -50,11 +49,6 @@ const menuItems = [
     title: "Schedule",
     url: "/schedule",
     icon: Calendar,
-  },
-  {
-    title: "Map",
-    url: "/map",
-    icon: Map,
   },
   {
     title: "Value Propositions",
