@@ -151,12 +151,12 @@ const GlobalSearchBar = () => {
         </div>
 
         {showResults && searchQuery.length > 2 && (
-          <Card className="absolute top-full left-0 right-0 mt-1 z-50 max-h-96 overflow-y-auto shadow-lg">
+          <Card className="absolute top-full left-0 right-0 mt-1 z-50 max-h-96 overflow-y-auto shadow-lg bg-white border border-gray-200">
             <CardContent className="p-0">
               {isLoading ? (
-                <div className="p-4 text-center text-gray-500">
+                <div className="p-4 text-center text-gray-500 bg-white">
                   <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500 mx-auto"></div>
-                  <p className="mt-2 text-sm">Searching...</p>
+                  <p className="mt-2 text-sm text-gray-600">Searching...</p>
                 </div>
               ) : searchResults?.type === 'ai_response' ? (
                 <div className="p-4 border-l-4 border-blue-500 bg-blue-50">
@@ -184,10 +184,10 @@ const GlobalSearchBar = () => {
                   </div>
                 </div>
               ) : searchResults?.results && (
-                <div>
+                <div className="bg-white">
                   {/* Referrals Results */}
                   {searchResults.results.referrals.length > 0 && (
-                    <div className="border-b">
+                    <div className="border-b border-gray-200">
                       <div className="px-4 py-2 bg-gray-50 text-xs font-medium text-gray-700 flex items-center">
                         <FileText className="h-3 w-3 mr-1" />
                         Referrals
@@ -195,12 +195,12 @@ const GlobalSearchBar = () => {
                       {searchResults.results.referrals.map((referral) => (
                         <div
                           key={referral.id}
-                          className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0"
+                          className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0 bg-white"
                           onClick={() => handleResultClick('referral', referral.id)}
                         >
                           <div className="flex justify-between items-start">
                             <div>
-                              <p className="font-medium text-sm">{referral.patient_name}</p>
+                              <p className="font-medium text-sm text-gray-900">{referral.patient_name}</p>
                               <p className="text-xs text-gray-600">
                                 {referral.organizations?.name} • Status: {referral.status}
                               </p>
@@ -220,7 +220,7 @@ const GlobalSearchBar = () => {
 
                   {/* Patients Results */}
                   {searchResults.results.patients.length > 0 && (
-                    <div className="border-b">
+                    <div className="border-b border-gray-200">
                       <div className="px-4 py-2 bg-gray-50 text-xs font-medium text-gray-700 flex items-center">
                         <User className="h-3 w-3 mr-1" />
                         Patients
@@ -228,12 +228,12 @@ const GlobalSearchBar = () => {
                       {searchResults.results.patients.map((patient) => (
                         <div
                           key={patient.id}
-                          className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0"
+                          className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0 bg-white"
                           onClick={() => handleResultClick('patient', patient.id)}
                         >
                           <div className="flex justify-between items-start">
                             <div>
-                              <p className="font-medium text-sm">{patient.first_name} {patient.last_name}</p>
+                              <p className="font-medium text-sm text-gray-900">{patient.first_name} {patient.last_name}</p>
                               <p className="text-xs text-gray-600">{patient.diagnosis}</p>
                             </div>
                             <span className={`px-2 py-1 text-xs rounded-full ${
@@ -258,12 +258,12 @@ const GlobalSearchBar = () => {
                       {searchResults.results.organizations.map((org) => (
                         <div
                           key={org.id}
-                          className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0"
+                          className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0 bg-white"
                           onClick={() => handleResultClick('organization', org.id)}
                         >
                           <div className="flex justify-between items-start">
                             <div>
-                              <p className="font-medium text-sm">{org.name}</p>
+                              <p className="font-medium text-sm text-gray-900">{org.name}</p>
                               <p className="text-xs text-gray-600">
                                 {org.type} • Contact: {org.contact_person}
                               </p>
@@ -282,9 +282,9 @@ const GlobalSearchBar = () => {
                   {searchResults.results.referrals.length === 0 && 
                    searchResults.results.patients.length === 0 && 
                    searchResults.results.organizations.length === 0 && (
-                    <div className="p-4 text-center text-gray-500">
-                      <p className="text-sm">No results found for "{searchQuery}"</p>
-                      <p className="text-xs mt-1">Try a different search term or ask the AI assistant</p>
+                    <div className="p-4 text-center bg-white">
+                      <p className="text-sm text-gray-900">No results found for "{searchQuery}"</p>
+                      <p className="text-xs mt-1 text-gray-600">Try a different search term or ask the AI assistant</p>
                     </div>
                   )}
                 </div>
