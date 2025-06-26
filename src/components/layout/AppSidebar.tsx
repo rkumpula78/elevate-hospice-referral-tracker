@@ -37,14 +37,14 @@ const menuItems = [
     icon: LayoutDashboard,
   },
   {
-    title: "Organizations",
-    url: "/organizations",
-    icon: Building,
-  },
-  {
     title: "Referrals",
     url: "/referrals",
     icon: Phone,
+  },
+  {
+    title: "Organizations",
+    url: "/organizations",
+    icon: Building,
   },
   {
     title: "Schedule",
