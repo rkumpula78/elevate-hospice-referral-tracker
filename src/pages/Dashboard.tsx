@@ -12,49 +12,117 @@ import MarketerPerformance from "@/components/charts/MarketerPerformance";
 import TrainingMetrics from "@/components/charts/TrainingMetrics";
 import PageLayout from "@/components/layout/PageLayout";
 import { useAuth } from "@/hooks/useAuth";
-
-interface DashboardStats {
-  todayReferrals: number;
-  pendingFollowUps: number;
-  activeProspects: number;
-  monthlyReferrals: number;
-  conversionRate: number;
-}
+import { format, startOfDay, startOfMonth, subDays } from "date-fns";
 
 const Dashboard = () => {
   const [showQuickAdd, setShowQuickAdd] = useState(false);
   const { displayName } = useAuth();
 
-  // Mock stats for enhanced display
-  const stats: DashboardStats = {
-    todayReferrals: 3,
-    pendingFollowUps: 7,
-    activeProspects: 24,
-    monthlyReferrals: 45,
-    conversionRate: 78
-  };
-
-  // Fetch dashboard statistics
-  const { data: dbStats } = useQuery({
+  // Fetch real dashboard statistics
+  const { data: dashboardStats, isLoading: statsLoading } = useQuery({
     queryKey: ['dashboard-stats'],
     queryFn: async () => {
-      const [referralsCount, visitsCount, organizationsCount, patientsCount, admitsCount] = await Promise.all([
-        supabase.from('referrals').select('*', { count: 'exact', head: true }),
-        supabase.from('visits').select('*', { count: 'exact', head: true }),
-        supabase.from('organizations').select('*', { count: 'exact', head: true }),
-        supabase.from('patients').select('*', { count: 'exact', head: true }),
-        supabase.from('patients').select('*', { count: 'exact', head: true }).not('admission_date', 'is', null)
-      ]);
+      const today = startOfDay(new Date());
+      const thisMonth = startOfMonth(new Date());
+      const thirtyDaysAgo = subDays(new Date(), 30);
+
+      // Get today's referrals count
+      const { count: todayReferrals } = await supabase
+        .from('referrals')
+        .select('*', { count: 'exact', head: true })
+        .gte('created_at', today.toISOString());
+
+      // Get monthly referrals count
+      const { count: monthlyReferrals } = await supabase
+        .from('referrals')
+        .select('*', { count: 'exact', head: true })
+        .gte('created_at', thisMonth.toISOString());
+
+      // Get pending follow-ups (activities with follow_up_required = true and not completed)
+      const { count: pendingFollowUps } = await supabase
+        .from('activity_communications')
+        .select('*', { count: 'exact', head: true })
+        .eq('follow_up_required', true)
+        .eq('follow_up_completed', false);
+
+      // Get active prospects (organizations with partnership_stage = 'prospect' or 'active')
+      const { count: activeProspects } = await supabase
+        .from('organizations')
+        .select('*', { count: 'exact', head: true })
+        .in('partnership_stage', ['prospect', 'active'])
+        .eq('is_active', true);
+
+      // Calculate conversion rate (admitted referrals vs total referrals in last 30 days)
+      const { data: recentReferrals } = await supabase
+        .from('referrals')
+        .select('status')
+        .gte('created_at', thirtyDaysAgo.toISOString());
+
+      const totalRecentReferrals = recentReferrals?.length || 0;
+      const admittedReferrals = recentReferrals?.filter(r => 
+        r.status === 'admitted' || r.status === 'admitted_our_hospice'
+      ).length || 0;
+      
+      const conversionRate = totalRecentReferrals > 0 
+        ? Math.round((admittedReferrals / totalRecentReferrals) * 100) 
+        : 0;
 
       return {
-        referrals: referralsCount.count || 0,
-        visits: visitsCount.count || 0,
-        organizations: organizationsCount.count || 0,
-        patients: patientsCount.count || 0,
-        admits: admitsCount.count || 0
+        todayReferrals: todayReferrals || 0,
+        pendingFollowUps: pendingFollowUps || 0,
+        activeProspects: activeProspects || 0,
+        monthlyReferrals: monthlyReferrals || 0,
+        conversionRate
       };
     }
   });
+
+  // Get recent activities for priority section
+  const { data: recentActivities } = useQuery({
+    queryKey: ['recent-activities'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('activity_communications')
+        .select(`
+          *,
+          organizations(name)
+        `)
+        .order('activity_date', { ascending: false })
+        .limit(10);
+
+      return data || [];
+    }
+  });
+
+  // Get overdue follow-ups
+  const { data: overdueFollowUps } = useQuery({
+    queryKey: ['overdue-followups'],
+    queryFn: async () => {
+      const today = new Date().toISOString().split('T')[0];
+      
+      const { data } = await supabase
+        .from('activity_communications')
+        .select(`
+          *,
+          organizations(name)
+        `)
+        .eq('follow_up_required', true)
+        .eq('follow_up_completed', false)
+        .lt('follow_up_date', today)
+        .order('follow_up_date', { ascending: true })
+        .limit(5);
+
+      return data || [];
+    }
+  });
+
+  const stats = dashboardStats || {
+    todayReferrals: 0,
+    pendingFollowUps: 0,
+    activeProspects: 0,
+    monthlyReferrals: 0,
+    conversionRate: 0
+  };
 
   return (
     <PageLayout 
@@ -90,8 +158,10 @@ const Dashboard = () => {
               <TrendingUp className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-900">{stats.todayReferrals}</div>
-              <p className="text-xs text-green-600">+2 from yesterday</p>
+              <div className="text-2xl font-bold text-green-900">
+                {statsLoading ? '...' : stats.todayReferrals}
+              </div>
+              <p className="text-xs text-green-600">New referrals today</p>
             </CardContent>
           </Card>
 
@@ -103,8 +173,12 @@ const Dashboard = () => {
               <AlertCircle className="h-4 w-4 text-orange-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-orange-900">{stats.pendingFollowUps}</div>
-              <p className="text-xs text-orange-600">3 overdue</p>
+              <div className="text-2xl font-bold text-orange-900">
+                {statsLoading ? '...' : stats.pendingFollowUps}
+              </div>
+              <p className="text-xs text-orange-600">
+                {overdueFollowUps?.length || 0} overdue
+              </p>
             </CardContent>
           </Card>
 
@@ -116,8 +190,10 @@ const Dashboard = () => {
               <Users className="h-4 w-4 text-blue-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-blue-900">{stats.activeProspects}</div>
-              <p className="text-xs text-blue-600">5 A-rated accounts</p>
+              <div className="text-2xl font-bold text-blue-900">
+                {statsLoading ? '...' : stats.activeProspects}
+              </div>
+              <p className="text-xs text-blue-600">Organizations in pipeline</p>
             </CardContent>
           </Card>
 
@@ -129,8 +205,10 @@ const Dashboard = () => {
               <Building className="h-4 w-4 text-purple-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-purple-900">{stats.monthlyReferrals}</div>
-              <p className="text-xs text-purple-600">Goal: 50</p>
+              <div className="text-2xl font-bold text-purple-900">
+                {statsLoading ? '...' : stats.monthlyReferrals}
+              </div>
+              <p className="text-xs text-purple-600">This month</p>
             </CardContent>
           </Card>
 
@@ -142,8 +220,10 @@ const Dashboard = () => {
               <TrendingUp className="h-4 w-4 text-indigo-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-indigo-900">{stats.conversionRate}%</div>
-              <p className="text-xs text-indigo-600">+5% vs last month</p>
+              <div className="text-2xl font-bold text-indigo-900">
+                {statsLoading ? '...' : `${stats.conversionRate}%`}
+              </div>
+              <p className="text-xs text-indigo-600">Last 30 days</p>
             </CardContent>
           </Card>
         </div>
@@ -152,31 +232,29 @@ const Dashboard = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg font-semibold">Today's Priorities</CardTitle>
+              <CardTitle className="text-lg font-semibold">Overdue Follow-ups</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
-                  <div>
-                    <p className="font-medium text-red-900">Call Paradise Valley Estates</p>
-                    <p className="text-sm text-red-600">Follow-up overdue by 2 days</p>
+                {overdueFollowUps && overdueFollowUps.length > 0 ? (
+                  overdueFollowUps.map((activity) => (
+                    <div key={activity.id} className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
+                      <div>
+                        <p className="font-medium text-red-900">
+                          {activity.organizations?.name || 'Unknown Organization'}
+                        </p>
+                        <p className="text-sm text-red-600">
+                          Due: {activity.follow_up_date ? format(new Date(activity.follow_up_date), 'MMM dd, yyyy') : 'No date'}
+                        </p>
+                      </div>
+                      <Button size="sm" variant="outline">Follow Up</Button>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-4 text-gray-500">
+                    No overdue follow-ups
                   </div>
-                  <Button size="sm" variant="outline">Call Now</Button>
-                </div>
-                <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
-                  <div>
-                    <p className="font-medium text-yellow-900">Visit HonorHealth Thompson Peak</p>
-                    <p className="text-sm text-yellow-600">Scheduled for 2:00 PM</p>
-                  </div>
-                  <Button size="sm" variant="outline">Directions</Button>
-                </div>
-                <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                  <div>
-                    <p className="font-medium text-green-900">Email Arizona Cancer Care</p>
-                    <p className="text-sm text-green-600">Send case study follow-up</p>
-                  </div>
-                  <Button size="sm" variant="outline">Send Email</Button>
-                </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -187,27 +265,25 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                <div className="flex items-start space-x-3">
-                  <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
-                  <div>
-                    <p className="text-sm font-medium">New referral from Scottsdale Memory Care</p>
-                    <p className="text-xs text-gray-500">2 hours ago</p>
+                {recentActivities && recentActivities.length > 0 ? (
+                  recentActivities.slice(0, 5).map((activity) => (
+                    <div key={activity.id} className="flex items-start space-x-3">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
+                      <div>
+                        <p className="text-sm font-medium">
+                          {activity.interaction_type} with {activity.organizations?.name || 'Unknown'}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {format(new Date(activity.activity_date), 'MMM dd, h:mm a')}
+                        </p>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-4 text-gray-500">
+                    No recent activities
                   </div>
-                </div>
-                <div className="flex items-start space-x-3">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
-                  <div>
-                    <p className="text-sm font-medium">Meeting completed at Grayhawk Medical</p>
-                    <p className="text-xs text-gray-500">4 hours ago</p>
-                  </div>
-                </div>
-                <div className="flex items-start space-x-3">
-                  <div className="w-2 h-2 bg-purple-500 rounded-full mt-2"></div>
-                  <div>
-                    <p className="text-sm font-medium">Follow-up email sent to Arizona Pulmonary</p>
-                    <p className="text-xs text-gray-500">Yesterday</p>
-                  </div>
-                </div>
+                )}
               </div>
             </CardContent>
           </Card>
