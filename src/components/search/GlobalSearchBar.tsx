@@ -91,7 +91,7 @@ const GlobalSearchBar = () => {
   };
 
   const handleResultClick = (type: string, id: string) => {
-    // Navigate to the specific item
+    // Navigate to the specific item - Fixed organization route
     switch (type) {
       case 'referral':
         navigate(`/referral/${id}`);
@@ -100,7 +100,7 @@ const GlobalSearchBar = () => {
         navigate(`/patient/${id}`);
         break;
       case 'organization':
-        navigate(`/organization/${id}`);
+        navigate(`/organizations/${id}`); // Fixed: changed from /organization to /organizations
         break;
       default:
         console.log(`Unknown type: ${type}`);

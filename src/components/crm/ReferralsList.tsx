@@ -5,6 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Settings } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ViewToggle } from "@/components/ui/view-toggle";
+import { SortHeader } from "@/components/ui/sort-header";
 import AddReferralDialog from './AddReferralDialog';
 import EditReferralDialog from './EditReferralDialog';
 import MarketerSettingsDialog from './MarketerSettingsDialog';
@@ -21,6 +24,8 @@ const ReferralsList = () => {
   const [selectedStatus, setSelectedStatus] = useState<ReferralStatus | 'all'>('all');
   const [selectedPriority, setSelectedPriority] = useState<string>('all');
   const [selectedMarketer, setSelectedMarketer] = useState<string>('all');
+  const [view, setView] = useState<'card' | 'list'>('card');
+  const [sortConfig, setSortConfig] = useState<{ field: string; direction: 'asc' | 'desc' } | null>(null);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showMarketerSettings, setShowMarketerSettings] = useState(false);
@@ -152,6 +157,36 @@ const ReferralsList = () => {
     }
   });
 
+  const handleSort = (field: string) => {
+    let direction: 'asc' | 'desc' = 'asc';
+    if (sortConfig?.field === field && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ field, direction });
+  };
+
+  const sortedReferrals = React.useMemo(() => {
+    if (!referrals || !sortConfig) return referrals;
+
+    return [...referrals].sort((a, b) => {
+      const aValue = a[sortConfig.field as keyof typeof a];
+      const bValue = b[sortConfig.field as keyof typeof b];
+      
+      if (aValue === null || aValue === undefined) return 1;
+      if (bValue === null || bValue === undefined) return -1;
+      
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        return sortConfig.direction === 'asc' 
+          ? aValue.localeCompare(bValue)
+          : bValue.localeCompare(aValue);
+      }
+      
+      return sortConfig.direction === 'asc' 
+        ? (aValue as any) - (bValue as any)
+        : (bValue as any) - (aValue as any);
+    });
+  }, [referrals, sortConfig]);
+
   const handleEditReferral = (referralId: string) => {
     setEditingReferralId(referralId);
     setShowEditDialog(true);
@@ -194,6 +229,77 @@ const ReferralsList = () => {
       </div>
     );
   }
+
+  const renderListView = () => (
+    <div className="bg-white rounded-lg shadow-sm border">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>
+              <SortHeader label="Patient" field="patient_name" currentSort={sortConfig} onSort={handleSort} />
+            </TableHead>
+            <TableHead>
+              <SortHeader label="Organization" field="organizations.name" currentSort={sortConfig} onSort={handleSort} />
+            </TableHead>
+            <TableHead>
+              <SortHeader label="Status" field="status" currentSort={sortConfig} onSort={handleSort} />
+            </TableHead>
+            <TableHead>
+              <SortHeader label="Priority" field="priority" currentSort={sortConfig} onSort={handleSort} />
+            </TableHead>
+            <TableHead>
+              <SortHeader label="Marketer" field="assigned_marketer" currentSort={sortConfig} onSort={handleSort} />
+            </TableHead>
+            <TableHead>
+              <SortHeader label="Date" field="referral_date" currentSort={sortConfig} onSort={handleSort} />
+            </TableHead>
+            <TableHead>Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {sortedReferrals?.map((referral) => (
+            <TableRow key={referral.id}>
+              <TableCell className="font-medium">{referral.patient_name}</TableCell>
+              <TableCell>{referral.organizations?.name || 'N/A'}</TableCell>
+              <TableCell>
+                <span className={`px-2 py-1 text-xs rounded-full ${
+                  referral.status === 'admitted' ? 'bg-green-100 text-green-800' :
+                  referral.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                  'bg-blue-100 text-blue-800'
+                }`}>
+                  {referral.status}
+                </span>
+              </TableCell>
+              <TableCell>
+                <span className={`px-2 py-1 text-xs rounded-full ${
+                  referral.priority === 'urgent' ? 'bg-red-100 text-red-800' :
+                  referral.priority === 'routine' ? 'bg-blue-100 text-blue-800' :
+                  'bg-gray-100 text-gray-800'
+                }`}>
+                  {referral.priority}
+                </span>
+              </TableCell>
+              <TableCell>{referral.assigned_marketer || 'Unassigned'}</TableCell>
+              <TableCell>
+                {referral.referral_date ? new Date(referral.referral_date).toLocaleDateString() : 'N/A'}
+              </TableCell>
+              <TableCell>
+                <div className="flex space-x-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleEditReferral(referral.id)}
+                  >
+                    Edit
+                  </Button>
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
 
   return (
     <div className="space-y-6">
@@ -243,6 +349,7 @@ const ReferralsList = () => {
           </Select>
         </div>
         <div className="flex gap-3">
+          <ViewToggle view={view} onViewChange={setView} />
           <Button variant="outline" onClick={() => setShowMarketerSettings(true)} className="modern-btn-secondary">
             <Settings className="w-4 h-4 mr-2" />
             Manage Marketers
@@ -264,24 +371,28 @@ const ReferralsList = () => {
           onResetFilters={resetFilters}
         />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {referrals?.map((referral) => (
-            <ReferralCard
-              key={referral.id}
-              referral={referral}
-              marketers={marketers || []}
-              isUpdatingStatus={updateStatusMutation.isPending}
-              isUpdatingPriority={updatePriorityMutation.isPending}
-              isUpdatingMarketer={updateMarketerMutation.isPending}
-              onStatusChange={(id, status) => updateStatusMutation.mutate({ id, status: status as ReferralStatus })}
-              onPriorityChange={(id, priority) => updatePriorityMutation.mutate({ id, priority })}
-              onMarketerChange={handleMarketerChange}
-              onEdit={handleEditReferral}
-              onSchedule={handleScheduleReferral}
-              onAddMarketer={() => setShowMarketerSettings(true)}
-            />
-          ))}
-        </div>
+        <>
+          {view === 'list' ? renderListView() : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {sortedReferrals?.map((referral) => (
+                <ReferralCard
+                  key={referral.id}
+                  referral={referral}
+                  marketers={marketers || []}
+                  isUpdatingStatus={updateStatusMutation.isPending}
+                  isUpdatingPriority={updatePriorityMutation.isPending}
+                  isUpdatingMarketer={updateMarketerMutation.isPending}
+                  onStatusChange={(id, status) => updateStatusMutation.mutate({ id, status: status as ReferralStatus })}
+                  onPriorityChange={(id, priority) => updatePriorityMutation.mutate({ id, priority })}
+                  onMarketerChange={handleMarketerChange}
+                  onEdit={handleEditReferral}
+                  onSchedule={handleScheduleReferral}
+                  onAddMarketer={() => setShowMarketerSettings(true)}
+                />
+              ))}
+            </div>
+          )}
+        </>
       )}
 
       <AddReferralDialog 
