@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -136,14 +135,6 @@ const Dashboard = () => {
             <Button className="bg-blue-600 hover:bg-blue-700" onClick={() => setShowQuickAdd(true)}>
               <Plus className="w-4 h-4 mr-2" />
               Add Referral
-            </Button>
-            <Button variant="outline">
-              <Phone className="w-4 h-4 mr-2" />
-              Log Call
-            </Button>
-            <Button variant="outline">
-              <Calendar className="w-4 h-4 mr-2" />
-              Schedule Visit
             </Button>
           </div>
         </div>
