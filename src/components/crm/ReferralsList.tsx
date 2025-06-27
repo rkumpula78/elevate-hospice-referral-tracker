@@ -3,7 +3,9 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Settings } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Plus, Settings, Filter } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ViewToggle } from "@/components/ui/view-toggle";
@@ -18,10 +20,23 @@ import ReferralCard from './ReferralCard';
 
 type ReferralStatus = 'new_referral' | 'contact_attempted' | 'information_gathering' | 'assessment_scheduled' | 'pending_admission' | 'admitted' | 'not_admitted_patient_choice' | 'not_admitted_not_appropriate' | 'not_admitted_lost_contact' | 'deceased_prior_admission';
 
+const statusOptions = [
+  { value: 'new_referral', label: 'New Referral' },
+  { value: 'contact_attempted', label: 'Contact Attempted' },
+  { value: 'information_gathering', label: 'Information Gathering' },
+  { value: 'assessment_scheduled', label: 'Assessment Scheduled' },
+  { value: 'pending_admission', label: 'Pending Admission' },
+  { value: 'admitted', label: 'Admitted' },
+  { value: 'not_admitted_patient_choice', label: 'Not Admitted - Patient Choice' },
+  { value: 'not_admitted_not_appropriate', label: 'Not Admitted - Not Appropriate' },
+  { value: 'not_admitted_lost_contact', label: 'Not Admitted - Lost Contact' },
+  { value: 'deceased_prior_admission', label: 'Deceased Prior to Admission' },
+];
+
 const ReferralsList = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [selectedStatus, setSelectedStatus] = useState<ReferralStatus | 'all'>('all');
+  const [selectedStatuses, setSelectedStatuses] = useState<ReferralStatus[]>([]);
   const [selectedPriority, setSelectedPriority] = useState<string>('all');
   const [selectedMarketer, setSelectedMarketer] = useState<string>('all');
   const [view, setView] = useState<'card' | 'list'>('card');
@@ -34,15 +49,15 @@ const ReferralsList = () => {
   const [schedulingReferralId, setSchedulingReferralId] = useState<string>('');
 
   const { data: referrals, isLoading } = useQuery({
-    queryKey: ['referrals', selectedStatus, selectedPriority, selectedMarketer],
+    queryKey: ['referrals', selectedStatuses, selectedPriority, selectedMarketer],
     queryFn: async () => {
       let query = supabase
         .from('referrals')
         .select('*, organizations(name, type)')
         .order('referral_date', { ascending: false });
 
-      if (selectedStatus !== 'all') {
-        query = query.eq('status', selectedStatus);
+      if (selectedStatuses.length > 0) {
+        query = query.in('status', selectedStatuses);
       }
       if (selectedPriority !== 'all') {
         query = query.eq('priority', selectedPriority);
@@ -201,14 +216,31 @@ const ReferralsList = () => {
     updateMarketerMutation.mutate({ id: referralId, marketer });
   };
 
+  const handleStatusChange = (status: ReferralStatus, checked: boolean) => {
+    if (checked) {
+      setSelectedStatuses(prev => [...prev, status]);
+    } else {
+      setSelectedStatuses(prev => prev.filter(s => s !== status));
+    }
+  };
+
   const resetFilters = () => {
-    setSelectedStatus('all');
+    setSelectedStatuses([]);
     setSelectedPriority('all');
     setSelectedMarketer('all');
   };
 
-  const hasActiveFilters = selectedStatus !== 'all' || selectedPriority !== 'all' || selectedMarketer !== 'all';
+  const hasActiveFilters = selectedStatuses.length > 0 || selectedPriority !== 'all' || selectedMarketer !== 'all';
   const hasResults = referrals && referrals.length > 0;
+
+  const getStatusFilterLabel = () => {
+    if (selectedStatuses.length === 0) return 'All Status';
+    if (selectedStatuses.length === 1) {
+      const status = statusOptions.find(s => s.value === selectedStatuses[0]);
+      return status?.label || 'All Status';
+    }
+    return `${selectedStatuses.length} statuses selected`;
+  };
 
   if (isLoading) {
     return (
@@ -305,24 +337,50 @@ const ReferralsList = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div className="flex space-x-3">
-          <Select value={selectedStatus} onValueChange={(value: ReferralStatus | 'all') => setSelectedStatus(value)}>
-            <SelectTrigger className="w-48 modern-filter">
-              <SelectValue placeholder="Filter by status" />
-            </SelectTrigger>
-            <SelectContent className="modern-dropdown">
-              <SelectItem value="all" className="modern-dropdown-item">All Status</SelectItem>
-              <SelectItem value="new_referral" className="modern-dropdown-item">New Referral</SelectItem>
-              <SelectItem value="contact_attempted" className="modern-dropdown-item">Contact Attempted</SelectItem>
-              <SelectItem value="information_gathering" className="modern-dropdown-item">Information Gathering</SelectItem>
-              <SelectItem value="assessment_scheduled" className="modern-dropdown-item">Assessment Scheduled</SelectItem>
-              <SelectItem value="pending_admission" className="modern-dropdown-item">Pending Admission</SelectItem>
-              <SelectItem value="admitted" className="modern-dropdown-item">Admitted</SelectItem>
-              <SelectItem value="not_admitted_patient_choice" className="modern-dropdown-item">Not Admitted - Patient Choice</SelectItem>
-              <SelectItem value="not_admitted_not_appropriate" className="modern-dropdown-item">Not Admitted - Not Appropriate</SelectItem>
-              <SelectItem value="not_admitted_lost_contact" className="modern-dropdown-item">Not Admitted - Lost Contact</SelectItem>
-              <SelectItem value="deceased_prior_admission" className="modern-dropdown-item">Deceased Prior to Admission</SelectItem>
-            </SelectContent>
-          </Select>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className="w-48 modern-filter justify-between">
+                <span>{getStatusFilterLabel()}</span>
+                <Filter className="w-4 h-4" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-80 modern-dropdown" align="start">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-medium">Filter by Status</h4>
+                  {selectedStatuses.length > 0 && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => setSelectedStatuses([])}
+                      className="h-auto p-1 text-xs"
+                    >
+                      Clear all
+                    </Button>
+                  )}
+                </div>
+                <div className="space-y-2 max-h-64 overflow-y-auto">
+                  {statusOptions.map((status) => (
+                    <div key={status.value} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={status.value}
+                        checked={selectedStatuses.includes(status.value as ReferralStatus)}
+                        onCheckedChange={(checked) => 
+                          handleStatusChange(status.value as ReferralStatus, checked as boolean)
+                        }
+                      />
+                      <label 
+                        htmlFor={status.value}
+                        className="text-sm cursor-pointer flex-1"
+                      >
+                        {status.label}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
 
           <Select value={selectedPriority} onValueChange={setSelectedPriority}>
             <SelectTrigger className="w-40 modern-filter">
