@@ -26,7 +26,15 @@ const PatientOverviewSection = ({ patient, isOpen, onToggle }: PatientOverviewSe
             <Input
               id="first_name"
               name="first_name"
-              defaultValue={patient?.first_name || ''}
+              defaultValue={patient?.first_name || patient?.patient_name?.split(' ')[0] || ''}
+            />
+          </div>
+          <div>
+            <Label htmlFor="middle_name">Middle Name (Optional)</Label>
+            <Input
+              id="middle_name"
+              name="middle_name"
+              defaultValue={patient?.middle_name || ''}
             />
           </div>
           <div>
@@ -34,7 +42,7 @@ const PatientOverviewSection = ({ patient, isOpen, onToggle }: PatientOverviewSe
             <Input
               id="last_name"
               name="last_name"
-              defaultValue={patient?.last_name || ''}
+              defaultValue={patient?.last_name || patient?.patient_name?.split(' ').slice(1).join(' ') || ''}
             />
           </div>
           <div>
