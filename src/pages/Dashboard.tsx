@@ -12,6 +12,7 @@ import TrainingMetrics from "@/components/charts/TrainingMetrics";
 import PageLayout from "@/components/layout/PageLayout";
 import { useAuth } from "@/hooks/useAuth";
 import { format, startOfDay, startOfMonth, subDays } from "date-fns";
+import AlertCenter from "@/components/dashboard/AlertCenter";
 
 const Dashboard = () => {
   const [showQuickAdd, setShowQuickAdd] = useState(false);
@@ -138,6 +139,9 @@ const Dashboard = () => {
             </Button>
           </div>
         </div>
+
+        {/* Alert Center - Shows urgent actions needed */}
+        <AlertCenter />
 
         {/* Key Metrics Tiles */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">

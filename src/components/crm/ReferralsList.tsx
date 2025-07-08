@@ -33,12 +33,29 @@ const statusOptions = [
   { value: 'deceased_prior_admission', label: 'Deceased Prior to Admission' },
 ];
 
-const ReferralsList = () => {
+interface ReferralsListProps {
+  initialFilter?: string | null;
+}
+
+const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [selectedStatuses, setSelectedStatuses] = useState<ReferralStatus[]>([]);
-  const [selectedPriority, setSelectedPriority] = useState<string>('all');
-  const [selectedMarketer, setSelectedMarketer] = useState<string>('all');
+  
+  // Initialize filters based on initialFilter prop
+  const getInitialFilters = () => {
+    if (initialFilter === 'unassigned') {
+      return { statuses: [], priority: 'all', marketer: 'unassigned' };
+    } else if (initialFilter === 'urgent') {
+      return { statuses: [], priority: 'urgent', marketer: 'all' };
+    }
+    return { statuses: [], priority: 'all', marketer: 'all' };
+  };
+
+  const { statuses: initialStatuses, priority: initialPriority, marketer: initialMarketer } = getInitialFilters();
+  
+  const [selectedStatuses, setSelectedStatuses] = useState<ReferralStatus[]>(initialStatuses);
+  const [selectedPriority, setSelectedPriority] = useState<string>(initialPriority);
+  const [selectedMarketer, setSelectedMarketer] = useState<string>(initialMarketer);
   const [view, setView] = useState<'card' | 'list'>('card');
   const [sortConfig, setSortConfig] = useState<{ field: string; direction: 'asc' | 'desc' } | null>(null);
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -62,7 +79,11 @@ const ReferralsList = () => {
       if (selectedPriority !== 'all') {
         query = query.eq('priority', selectedPriority);
       }
-      if (selectedMarketer !== 'all') {
+      
+      // Handle marketer filter
+      if (selectedMarketer === 'unassigned') {
+        query = query.or('assigned_marketer.is.null,assigned_marketer.eq.');
+      } else if (selectedMarketer !== 'all') {
         query = query.eq('assigned_marketer', selectedMarketer);
       }
 
@@ -400,6 +421,7 @@ const ReferralsList = () => {
             </SelectTrigger>
             <SelectContent className="modern-dropdown">
               <SelectItem value="all" className="modern-dropdown-item">All Marketers</SelectItem>
+              <SelectItem value="unassigned" className="modern-dropdown-item">Unassigned</SelectItem>
               {marketers?.map((marketer: string) => (
                 <SelectItem key={marketer} value={marketer} className="modern-dropdown-item">{marketer}</SelectItem>
               ))}
