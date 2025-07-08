@@ -9,7 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { PhoneInput } from "@/components/ui/phone-input";
-import { Loader2 } from "lucide-react";
+import { Loader2, Plus } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 
 type ReferralStatus = Database['public']['Enums']['referral_status'];
@@ -22,6 +22,9 @@ interface AddReferralDialogProps {
 const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [showNewOrgForm, setShowNewOrgForm] = useState(false);
+  const [newOrgName, setNewOrgName] = useState('');
+  const [newOrgType, setNewOrgType] = useState<'hospital' | 'physician_office' | 'snf' | 'home_health' | 'other'>('hospital');
   const [formData, setFormData] = useState({
     patient_name: '',
     patient_phone: '',
@@ -74,6 +77,24 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
 
   const addReferralMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
+      // If creating a new organization, do that first
+      let organizationId = data.organization_id;
+      
+      if (showNewOrgForm && newOrgName.trim()) {
+        const { data: newOrg, error: orgError } = await supabase
+          .from('organizations')
+          .insert({
+            name: newOrgName.trim(),
+            type: newOrgType,
+            is_active: true
+          })
+          .select()
+          .single();
+          
+        if (orgError) throw orgError;
+        organizationId = newOrg.id;
+      }
+
       const { error } = await supabase
         .from('referrals')
         .insert({
@@ -82,7 +103,7 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
           diagnosis: data.diagnosis || null,
           insurance: data.insurance || null,
           priority: data.priority,
-          organization_id: data.organization_id || null,
+          organization_id: organizationId || null,
           referring_physician: data.referring_physician || null,
           assigned_marketer: data.assigned_marketer || null,
           referral_intake_coordinator: data.referral_intake_coordinator || null,
@@ -94,6 +115,7 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['referrals'] });
+      queryClient.invalidateQueries({ queryKey: ['organizations'] });
       toast({ title: "Referral added successfully" });
       onOpenChange(false);
       setFormData({
@@ -110,6 +132,9 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
         reason_for_non_admittance: '',
         notes: ''
       });
+      setShowNewOrgForm(false);
+      setNewOrgName('');
+      setNewOrgType('hospital');
     },
     onError: () => {
       toast({ title: "Error adding referral", variant: "destructive" });
@@ -198,22 +223,80 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="organization_id">Referral Source</Label>
-                <Select 
-                  value={formData.organization_id} 
-                  onValueChange={(value) => handleInputChange('organization_id', value)}
-                  disabled={isSubmitting}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select organization" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {organizations?.map((org) => (
-                      <SelectItem key={org.id} value={org.id}>
-                        {org.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {!showNewOrgForm ? (
+                  <div className="space-y-2">
+                    <Select 
+                      value={formData.organization_id} 
+                      onValueChange={(value) => {
+                        if (value === 'create-new') {
+                          setShowNewOrgForm(true);
+                        } else {
+                          handleInputChange('organization_id', value);
+                        }
+                      }}
+                      disabled={isSubmitting}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select organization" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="create-new" className="text-primary">
+                          <div className="flex items-center">
+                            <Plus className="w-4 h-4 mr-2" />
+                            Create New Organization
+                          </div>
+                        </SelectItem>
+                        {organizations?.map((org) => (
+                          <SelectItem key={org.id} value={org.id}>
+                            {org.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                ) : (
+                  <div className="space-y-2 border rounded-lg p-4 bg-gray-50">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="text-sm font-medium">New Organization</h4>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setShowNewOrgForm(false);
+                          setNewOrgName('');
+                          setNewOrgType('hospital');
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                    <div className="space-y-2">
+                      <Input
+                        placeholder="Organization Name"
+                        value={newOrgName}
+                        onChange={(e) => setNewOrgName(e.target.value)}
+                        disabled={isSubmitting}
+                      />
+                      <Select 
+                        value={newOrgType} 
+                        onValueChange={(value: typeof newOrgType) => setNewOrgType(value)}
+                        disabled={isSubmitting}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="hospital">Hospital</SelectItem>
+                          <SelectItem value="physician_office">Physician Office</SelectItem>
+                          <SelectItem value="snf">Skilled Nursing Facility</SelectItem>
+                          <SelectItem value="home_health">Home Health</SelectItem>
+                          <SelectItem value="other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                )}
               </div>
               <div>
                 <Label htmlFor="referring_physician">Referring Physician</Label>

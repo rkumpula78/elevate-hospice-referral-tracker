@@ -32,9 +32,9 @@ const EditVisitDialog = ({ open, onOpenChange, visitId }: EditVisitDialogProps) 
   const [formData, setFormData] = useState({
     subject: '',
     visit_target: 'patient' as VisitTarget,
-    patient_id: '',
+    referral_id: '',
     organization_id: '',
-    visit_type: '' as VisitType,
+    visit_type: 'routine' as VisitType,
     scheduled_date: '',
     scheduled_time: '',
     staff_name: '',
@@ -52,7 +52,7 @@ const EditVisitDialog = ({ open, onOpenChange, visitId }: EditVisitDialogProps) 
       if (!visitId) return null;
       const { data, error } = await supabase
         .from('visits')
-        .select('*, patients(first_name, last_name)')
+        .select('*, referrals(id, patient_name)')
         .eq('id', visitId)
         .single();
       if (error) throw error;
@@ -61,15 +61,15 @@ const EditVisitDialog = ({ open, onOpenChange, visitId }: EditVisitDialogProps) 
     enabled: !!visitId && open
   });
 
-  // Fetch patients for the dropdown
-  const { data: patients } = useQuery({
-    queryKey: ['patients'],
+  // Fetch referrals for the dropdown
+  const { data: referrals } = useQuery({
+    queryKey: ['referrals-for-visits'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('patients')
-        .select('id, first_name, last_name')
-        .eq('status', 'active')
-        .order('first_name');
+        .from('referrals')
+        .select('id, patient_name, status')
+        .in('status', ['pending', 'contacted', 'scheduled'])
+        .order('patient_name');
       if (error) throw error;
       return data;
     },
@@ -134,8 +134,8 @@ const EditVisitDialog = ({ open, onOpenChange, visitId }: EditVisitDialogProps) 
 
       setFormData({
         subject,
-        visit_target: visit.patient_id ? 'patient' : visitTarget,
-        patient_id: visit.patient_id || '',
+        visit_target: visit.referral_id ? 'patient' : visitTarget,
+        referral_id: visit.referral_id || '',
         organization_id: '',
         visit_type: visit.visit_type,
         scheduled_date: scheduledDate.toISOString().split('T')[0],
@@ -172,7 +172,7 @@ const EditVisitDialog = ({ open, onOpenChange, visitId }: EditVisitDialogProps) 
       const { error } = await supabase
         .from('visits')
         .update({
-          patient_id: data.visit_target === 'patient' ? data.patient_id || null : null,
+          referral_id: data.visit_target === 'patient' ? data.referral_id || null : null,
           visit_type: data.visit_type,
           scheduled_date: scheduledDateTime,
           staff_name: data.staff_name,
@@ -220,7 +220,7 @@ const EditVisitDialog = ({ open, onOpenChange, visitId }: EditVisitDialogProps) 
       toast({ title: "Please fill in all required fields", variant: "destructive" });
       return;
     }
-    if (formData.visit_target === 'patient' && !formData.patient_id) {
+    if (formData.visit_target === 'patient' && !formData.referral_id) {
       toast({ title: "Please select a patient", variant: "destructive" });
       return;
     }
@@ -287,15 +287,15 @@ const EditVisitDialog = ({ open, onOpenChange, visitId }: EditVisitDialogProps) 
             {formData.visit_target === 'patient' && (
               <>
                 <div className="grid gap-2">
-                  <Label htmlFor="patient_id">Patient *</Label>
-                  <Select value={formData.patient_id} onValueChange={(value) => handleInputChange('patient_id', value)}>
+                  <Label htmlFor="referral_id">Patient *</Label>
+                  <Select value={formData.referral_id} onValueChange={(value) => handleInputChange('referral_id', value)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select patient" />
                     </SelectTrigger>
                     <SelectContent>
-                      {patients?.map((patient) => (
-                        <SelectItem key={patient.id} value={patient.id}>
-                          {patient.first_name} {patient.last_name}
+                      {referrals?.map((referral) => (
+                        <SelectItem key={referral.id} value={referral.id}>
+                          {referral.patient_name}
                         </SelectItem>
                       ))}
                     </SelectContent>

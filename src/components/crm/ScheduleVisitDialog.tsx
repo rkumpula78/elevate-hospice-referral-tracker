@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -32,7 +31,7 @@ const ScheduleVisitDialog = ({ open, onOpenChange, referralId }: ScheduleVisitDi
   const [formData, setFormData] = useState({
     subject: '',
     visit_target: 'patient' as VisitTarget,
-    patient_id: referralId || '',
+    referral_id: referralId || '',
     organization_id: '',
     visit_type: 'routine' as VisitType,
     scheduled_date: '',
@@ -80,7 +79,7 @@ const ScheduleVisitDialog = ({ open, onOpenChange, referralId }: ScheduleVisitDi
         const { error } = await supabase
           .from('visits')
           .insert([{
-            patient_id: data.patient_id,
+            referral_id: data.referral_id,
             visit_type: data.visit_type,
             scheduled_date: scheduledDateTime,
             staff_name: data.staff_name,
@@ -103,7 +102,7 @@ const ScheduleVisitDialog = ({ open, onOpenChange, referralId }: ScheduleVisitDi
         const { error } = await supabase
           .from('visits')
           .insert([{
-            patient_id: null,
+            referral_id: null,
             visit_type: data.visit_type || 'routine',
             scheduled_date: scheduledDateTime,
             staff_name: data.staff_name,
@@ -120,7 +119,7 @@ const ScheduleVisitDialog = ({ open, onOpenChange, referralId }: ScheduleVisitDi
       setFormData({
         subject: '',
         visit_target: 'patient' as VisitTarget,
-        patient_id: '',
+        referral_id: '',
         organization_id: '',
         visit_type: 'routine' as VisitType,
         scheduled_date: '',
@@ -143,7 +142,7 @@ const ScheduleVisitDialog = ({ open, onOpenChange, referralId }: ScheduleVisitDi
       toast({ title: "Please fill in all required fields", variant: "destructive" });
       return;
     }
-    if (formData.visit_target === 'patient' && !formData.patient_id) {
+    if (formData.visit_target === 'patient' && !formData.referral_id) {
       toast({ title: "Please select a patient", variant: "destructive" });
       return;
     }
@@ -156,7 +155,7 @@ const ScheduleVisitDialog = ({ open, onOpenChange, referralId }: ScheduleVisitDi
 
   React.useEffect(() => {
     if (referralId) {
-      setFormData(prev => ({ ...prev, patient_id: referralId }));
+      setFormData(prev => ({ ...prev, referral_id: referralId }));
     }
   }, [referralId]);
 
@@ -200,8 +199,8 @@ const ScheduleVisitDialog = ({ open, onOpenChange, referralId }: ScheduleVisitDi
             {formData.visit_target === 'patient' && (
               <>
                 <div className="grid gap-2">
-                  <Label htmlFor="patient_id">Patient *</Label>
-                  <Select value={formData.patient_id} onValueChange={(value) => handleInputChange('patient_id', value)}>
+                  <Label htmlFor="referral_id">Patient *</Label>
+                  <Select value={formData.referral_id} onValueChange={(value) => handleInputChange('referral_id', value)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select patient" />
                     </SelectTrigger>
