@@ -23,7 +23,7 @@ const VisitsList = () => {
     queryFn: async () => {
       let query = supabase
         .from('visits')
-        .select('*, patients(first_name, last_name)');
+        .select('*, referrals(first_name, last_name, patient_name)');
 
       if (selectedType !== 'all') {
         query = query.eq('visit_type', selectedType);
@@ -116,9 +116,9 @@ const VisitsList = () => {
           >
             <div className="flex justify-between items-start mb-2">
               <div className="flex items-center space-x-2">
-                <h3 className="font-medium">
-                  {visit.patients ? `${visit.patients.first_name} ${visit.patients.last_name}` : 'General Visit'}
-                </h3>
+                 <h3 className="font-medium">
+                   {visit.referrals ? `${visit.referrals.first_name || ''} ${visit.referrals.last_name || ''}`.trim() || visit.referrals.patient_name : 'General Visit'}
+                 </h3>
                 <Badge className={getTypeColor(visit.visit_type)}>
                   {visit.visit_type}
                 </Badge>
