@@ -11,6 +11,7 @@ import ScheduleVisitDialog from '@/components/crm/ScheduleVisitDialog';
 import ReferralFamilyContacts from '@/components/crm/ReferralFamilyContacts';
 import PageLayout from '@/components/layout/PageLayout';
 import { format } from 'date-fns';
+import AIQuickHelp from '@/components/dashboard/AIQuickHelp';
 
 const ReferralDetail = () => {
   const { id } = useParams();
@@ -111,6 +112,15 @@ const ReferralDetail = () => {
             Back to Referrals
           </Button>
           <div className="flex gap-2">
+            <AIQuickHelp 
+              contactName={referral.patient_name}
+              contextData={{
+                referralStatus: referral.status,
+                diagnosis: referral.diagnosis,
+                priority: referral.priority,
+                organizationName: referral.organizations?.name
+              }}
+            />
             <Button variant="outline" onClick={() => setShowScheduleDialog(true)}>
               <Plus className="w-4 h-4 mr-2" />
               Schedule Visit

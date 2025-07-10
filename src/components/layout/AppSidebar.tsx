@@ -28,6 +28,7 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import GlobalSearchBar from "@/components/search/GlobalSearchBar";
+import AIQuickHelp from "@/components/dashboard/AIQuickHelp";
 
 const menuItems = [
   {
@@ -100,10 +101,11 @@ const AppSidebar = () => {
       
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="text-gray-400">Search</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-gray-400">Search & AI</SidebarGroupLabel>
           <SidebarGroupContent>
-            <div className="px-2 py-2">
+            <div className="px-2 py-2 space-y-2">
               <GlobalSearchBar />
+              <AIQuickHelp fullWidth variant="sidebar" />
             </div>
           </SidebarGroupContent>
         </SidebarGroup>

@@ -14,6 +14,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { format, startOfDay, startOfMonth, subDays } from "date-fns";
 import AlertCenter from "@/components/dashboard/AlertCenter";
 import CensusManager from "@/components/dashboard/CensusManager";
+import ValuesReminder from "@/components/dashboard/ValuesReminder";
 
 const Dashboard = () => {
   const [showQuickAdd, setShowQuickAdd] = useState(false);
@@ -297,6 +298,9 @@ const Dashboard = () => {
             </Button>
           </div>
         </div>
+
+        {/* Values Reminder */}
+        <ValuesReminder />
 
         {/* Alert Center - Shows urgent actions needed */}
         <AlertCenter />

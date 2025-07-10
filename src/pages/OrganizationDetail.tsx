@@ -12,6 +12,7 @@ import OrganizationKPIs from '@/components/crm/OrganizationKPIs';
 import PartnershipStageManager from '@/components/crm/PartnershipStageManager';
 import OrganizationContactsTab from '@/components/crm/OrganizationContactsTab';
 import OrganizationValueProps from '@/components/value-props/OrganizationValueProps';
+import AIQuickHelp from '@/components/dashboard/AIQuickHelp';
 
 const OrganizationDetail = () => {
   const { id } = useParams();
@@ -129,10 +130,20 @@ const OrganizationDetail = () => {
               <p className="text-lg text-gray-600">{getOrganizationTypeLabel(organization.type)}</p>
             </div>
           </div>
-          <Button onClick={() => setShowEditDialog(true)}>
-            <Edit className="w-4 h-4 mr-2" />
-            Edit Organization
-          </Button>
+          <div className="flex items-center gap-2">
+            <AIQuickHelp 
+              organizationName={organization.name}
+              contextData={{
+                organizationType: organization.type,
+                contactPerson: organization.contact_person,
+                assignedMarketer: organization.assigned_marketer
+              }}
+            />
+            <Button onClick={() => setShowEditDialog(true)}>
+              <Edit className="w-4 h-4 mr-2" />
+              Edit Organization
+            </Button>
+          </div>
         </div>
 
         <Tabs defaultValue="overview" className="space-y-4">
