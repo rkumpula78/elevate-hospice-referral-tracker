@@ -365,6 +365,57 @@ export type Database = {
           },
         ]
       }
+      communication_templates: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean | null
+          organization_type: string | null
+          subject_line: string | null
+          success_rate: number | null
+          template_category: string
+          template_content: string
+          template_name: string
+          template_type: string
+          updated_at: string
+          usage_count: number | null
+          variables: Json | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          organization_type?: string | null
+          subject_line?: string | null
+          success_rate?: number | null
+          template_category: string
+          template_content: string
+          template_name: string
+          template_type: string
+          updated_at?: string
+          usage_count?: number | null
+          variables?: Json | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          organization_type?: string | null
+          subject_line?: string | null
+          success_rate?: number | null
+          template_category?: string
+          template_content?: string
+          template_name?: string
+          template_type?: string
+          updated_at?: string
+          usage_count?: number | null
+          variables?: Json | null
+        }
+        Relationships: []
+      }
       competitive_analysis: {
         Row: {
           competitor_name: string
@@ -913,16 +964,27 @@ export type Database = {
           after_hours_contact: string | null
           assigned_marketer: string | null
           bed_count: number | null
+          competition_level: string | null
           competitive_landscape: string | null
           contact_email: string | null
           contact_person: string | null
           contract_on_file: boolean | null
           contract_status: string | null
           created_at: string | null
+          cultural_alignment_score: number | null
           current_hospice_providers: string[] | null
+          current_provider_satisfaction_score: number | null
           dba_name: string | null
+          decision_maker_email: string | null
+          decision_maker_name: string | null
+          decision_maker_phone: string | null
+          decision_maker_title: string | null
+          estimated_annual_revenue: number | null
+          estimated_monthly_referrals: number | null
           expansion_plans: string | null
           financial_health_notes: string | null
+          financial_stability_score: number | null
+          geographic_alignment_score: number | null
           gps_latitude: number | null
           gps_longitude: number | null
           id: string
@@ -935,12 +997,19 @@ export type Database = {
           next_followup_date: string | null
           ownership_type: string | null
           partnership_notes: string | null
+          partnership_priority_level: string | null
+          partnership_score: number | null
           partnership_stage: string | null
           phone: string | null
           referral_potential: number | null
           referral_potential_level: string | null
           regulatory_notes: string | null
+          relationship_accessibility_score: number | null
           relationship_status: string | null
+          relationship_temperature: string | null
+          research_completed: boolean | null
+          revenue_ytd: number | null
+          roi_calculation: Json | null
           service_radius: number | null
           sub_type: string | null
           type: string
@@ -953,16 +1022,27 @@ export type Database = {
           after_hours_contact?: string | null
           assigned_marketer?: string | null
           bed_count?: number | null
+          competition_level?: string | null
           competitive_landscape?: string | null
           contact_email?: string | null
           contact_person?: string | null
           contract_on_file?: boolean | null
           contract_status?: string | null
           created_at?: string | null
+          cultural_alignment_score?: number | null
           current_hospice_providers?: string[] | null
+          current_provider_satisfaction_score?: number | null
           dba_name?: string | null
+          decision_maker_email?: string | null
+          decision_maker_name?: string | null
+          decision_maker_phone?: string | null
+          decision_maker_title?: string | null
+          estimated_annual_revenue?: number | null
+          estimated_monthly_referrals?: number | null
           expansion_plans?: string | null
           financial_health_notes?: string | null
+          financial_stability_score?: number | null
+          geographic_alignment_score?: number | null
           gps_latitude?: number | null
           gps_longitude?: number | null
           id?: string
@@ -975,12 +1055,19 @@ export type Database = {
           next_followup_date?: string | null
           ownership_type?: string | null
           partnership_notes?: string | null
+          partnership_priority_level?: string | null
+          partnership_score?: number | null
           partnership_stage?: string | null
           phone?: string | null
           referral_potential?: number | null
           referral_potential_level?: string | null
           regulatory_notes?: string | null
+          relationship_accessibility_score?: number | null
           relationship_status?: string | null
+          relationship_temperature?: string | null
+          research_completed?: boolean | null
+          revenue_ytd?: number | null
+          roi_calculation?: Json | null
           service_radius?: number | null
           sub_type?: string | null
           type: string
@@ -993,16 +1080,27 @@ export type Database = {
           after_hours_contact?: string | null
           assigned_marketer?: string | null
           bed_count?: number | null
+          competition_level?: string | null
           competitive_landscape?: string | null
           contact_email?: string | null
           contact_person?: string | null
           contract_on_file?: boolean | null
           contract_status?: string | null
           created_at?: string | null
+          cultural_alignment_score?: number | null
           current_hospice_providers?: string[] | null
+          current_provider_satisfaction_score?: number | null
           dba_name?: string | null
+          decision_maker_email?: string | null
+          decision_maker_name?: string | null
+          decision_maker_phone?: string | null
+          decision_maker_title?: string | null
+          estimated_annual_revenue?: number | null
+          estimated_monthly_referrals?: number | null
           expansion_plans?: string | null
           financial_health_notes?: string | null
+          financial_stability_score?: number | null
+          geographic_alignment_score?: number | null
           gps_latitude?: number | null
           gps_longitude?: number | null
           id?: string
@@ -1015,12 +1113,19 @@ export type Database = {
           next_followup_date?: string | null
           ownership_type?: string | null
           partnership_notes?: string | null
+          partnership_priority_level?: string | null
+          partnership_score?: number | null
           partnership_stage?: string | null
           phone?: string | null
           referral_potential?: number | null
           referral_potential_level?: string | null
           regulatory_notes?: string | null
+          relationship_accessibility_score?: number | null
           relationship_status?: string | null
+          relationship_temperature?: string | null
+          research_completed?: boolean | null
+          revenue_ytd?: number | null
+          roi_calculation?: Json | null
           service_radius?: number | null
           sub_type?: string | null
           type?: string
@@ -1028,6 +1133,160 @@ export type Database = {
           website?: string | null
         }
         Relationships: []
+      }
+      partnership_agreements: {
+        Row: {
+          agreement_type: string
+          approved_by: string | null
+          auto_renewal: boolean | null
+          communication_protocols: Json | null
+          created_at: string
+          created_by: string | null
+          effective_date: string | null
+          expiration_date: string | null
+          financial_terms: Json | null
+          id: string
+          initial_term_months: number | null
+          notes: string | null
+          organization_id: string
+          performance_metrics: Json | null
+          quality_standards: Json | null
+          service_level_agreements: Json | null
+          signed_date: string | null
+          status: string
+          termination_notice_days: number | null
+          updated_at: string
+          volume_targets: Json | null
+        }
+        Insert: {
+          agreement_type?: string
+          approved_by?: string | null
+          auto_renewal?: boolean | null
+          communication_protocols?: Json | null
+          created_at?: string
+          created_by?: string | null
+          effective_date?: string | null
+          expiration_date?: string | null
+          financial_terms?: Json | null
+          id?: string
+          initial_term_months?: number | null
+          notes?: string | null
+          organization_id: string
+          performance_metrics?: Json | null
+          quality_standards?: Json | null
+          service_level_agreements?: Json | null
+          signed_date?: string | null
+          status?: string
+          termination_notice_days?: number | null
+          updated_at?: string
+          volume_targets?: Json | null
+        }
+        Update: {
+          agreement_type?: string
+          approved_by?: string | null
+          auto_renewal?: boolean | null
+          communication_protocols?: Json | null
+          created_at?: string
+          created_by?: string | null
+          effective_date?: string | null
+          expiration_date?: string | null
+          financial_terms?: Json | null
+          id?: string
+          initial_term_months?: number | null
+          notes?: string | null
+          organization_id?: string
+          performance_metrics?: Json | null
+          quality_standards?: Json | null
+          service_level_agreements?: Json | null
+          signed_date?: string | null
+          status?: string
+          termination_notice_days?: number | null
+          updated_at?: string
+          volume_targets?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partnership_agreements_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partnership_performance_metrics: {
+        Row: {
+          accepted_referrals: number | null
+          average_admission_time_hours: number | null
+          communication_timeliness_score: number | null
+          created_at: string
+          family_satisfaction_score: number | null
+          goals_met: Json | null
+          id: string
+          investment_costs: number | null
+          metric_period_end: string
+          metric_period_start: string
+          notes: string | null
+          organization_id: string
+          partner_satisfaction_score: number | null
+          patient_satisfaction_score: number | null
+          performance_alerts: Json | null
+          revenue_generated: number | null
+          roi_ratio: number | null
+          total_referrals: number | null
+          updated_at: string
+        }
+        Insert: {
+          accepted_referrals?: number | null
+          average_admission_time_hours?: number | null
+          communication_timeliness_score?: number | null
+          created_at?: string
+          family_satisfaction_score?: number | null
+          goals_met?: Json | null
+          id?: string
+          investment_costs?: number | null
+          metric_period_end: string
+          metric_period_start: string
+          notes?: string | null
+          organization_id: string
+          partner_satisfaction_score?: number | null
+          patient_satisfaction_score?: number | null
+          performance_alerts?: Json | null
+          revenue_generated?: number | null
+          roi_ratio?: number | null
+          total_referrals?: number | null
+          updated_at?: string
+        }
+        Update: {
+          accepted_referrals?: number | null
+          average_admission_time_hours?: number | null
+          communication_timeliness_score?: number | null
+          created_at?: string
+          family_satisfaction_score?: number | null
+          goals_met?: Json | null
+          id?: string
+          investment_costs?: number | null
+          metric_period_end?: string
+          metric_period_start?: string
+          notes?: string | null
+          organization_id?: string
+          partner_satisfaction_score?: number | null
+          patient_satisfaction_score?: number | null
+          performance_alerts?: Json | null
+          revenue_generated?: number | null
+          roi_ratio?: number | null
+          total_referrals?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partnership_performance_metrics_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       patient_attachments: {
         Row: {
