@@ -488,7 +488,24 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
             </TabsContent>
 
             <TabsContent value="status-notes" className="space-y-4 bg-white">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="benefit-period">Benefit Period</Label>
+                      <Select 
+                        name="benefit_period" 
+                        defaultValue={referralData?.benefit_period?.toString() || "1"}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select benefit period" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="1">Benefit Period 1 (0-60 days)</SelectItem>
+                          <SelectItem value="2">Benefit Period 2 (61-150 days)</SelectItem>
+                          <SelectItem value="3">Benefit Period 3 (151-210 days)</SelectItem>
+                          <SelectItem value="4">Benefit Period 4+ (210+ days)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                 <div>
                   <Label htmlFor="priority" className="text-gray-700">Priority</Label>
                   <Select name="priority" defaultValue={referralData.priority || 'routine'}>
