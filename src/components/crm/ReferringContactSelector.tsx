@@ -58,7 +58,16 @@ const ReferringContactSelector: React.FC<ReferringContactSelectorProps> = ({
         .order('last_name');
       
       if (error) throw error;
-      return data as OrganizationContact[];
+      
+      // Map the data to ensure all required properties exist
+      return data.map((contact: any) => ({
+        ...contact,
+        is_referring_contact: contact.is_referring_contact || false,
+        is_primary_referrer: contact.is_primary_referrer || false,
+        specialization: contact.specialization || null,
+        referral_volume_monthly: contact.referral_volume_monthly || 0,
+        last_referral_date: contact.last_referral_date || null
+      })) as OrganizationContact[];
     },
     enabled: !!organizationId
   });

@@ -493,7 +493,7 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
                       <Label htmlFor="benefit-period">Benefit Period</Label>
                       <Select 
                         name="benefit_period" 
-                        defaultValue={referralData?.benefit_period?.toString() || "1"}
+                        defaultValue="1"
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Select benefit period" />
