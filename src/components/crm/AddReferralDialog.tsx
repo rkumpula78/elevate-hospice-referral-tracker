@@ -10,6 +10,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { Loader2, Plus } from "lucide-react";
+import ReferringContactSelector from "./ReferringContactSelector";
+import { useTeamsIntegration } from "@/hooks/useTeamsIntegration";
 import type { Database } from "@/integrations/supabase/types";
 
 type ReferralStatus = Database['public']['Enums']['referral_status'];
@@ -22,6 +24,7 @@ interface AddReferralDialogProps {
 const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { autoNotifyNewReferral } = useTeamsIntegration();
   const [showNewOrgForm, setShowNewOrgForm] = useState(false);
   const [newOrgName, setNewOrgName] = useState('');
   const [newOrgType, setNewOrgType] = useState<'hospital' | 'physician_office' | 'snf' | 'home_health' | 'other'>('hospital');
@@ -32,6 +35,8 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
     insurance: '',
     priority: 'routine' as 'low' | 'routine' | 'urgent',
     organization_id: '',
+    referring_contact_id: null as string | null,
+    referral_method: 'general' as 'general' | 'specific_contact',
     referring_physician: '',
     assigned_marketer: '',
     referral_intake_coordinator: '',
@@ -95,7 +100,7 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
         organizationId = newOrg.id;
       }
 
-      const { error } = await supabase
+      const { data: newReferral, error } = await supabase
         .from('referrals')
         .insert({
           patient_name: data.patient_name,
@@ -104,14 +109,23 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
           insurance: data.insurance || null,
           priority: data.priority,
           organization_id: organizationId || null,
+          referring_contact_id: data.referral_method === 'specific_contact' ? data.referring_contact_id : null,
+          referral_method: data.referral_method,
           referring_physician: data.referring_physician || null,
           assigned_marketer: data.assigned_marketer || null,
           referral_intake_coordinator: data.referral_intake_coordinator || null,
           status: data.status,
           reason_for_non_admittance: data.reason_for_non_admittance || null,
           notes: data.notes || null
-        });
+        })
+        .select()
+        .single();
       if (error) throw error;
+      
+      // Send Teams notification for new referral
+      if (newReferral) {
+        await autoNotifyNewReferral(newReferral);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['referrals'] });
@@ -125,6 +139,8 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
         insurance: '',
         priority: 'routine',
         organization_id: '',
+        referring_contact_id: null,
+        referral_method: 'general',
         referring_physician: '',
         assigned_marketer: '',
         referral_intake_coordinator: '',
@@ -161,6 +177,14 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
 
   const handleInputChange = (field: keyof typeof formData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleReferringContactChange = (contactId: string | null, method: 'general' | 'specific_contact') => {
+    setFormData(prev => ({
+      ...prev,
+      referring_contact_id: contactId,
+      referral_method: method
+    }));
   };
 
   const isSubmitting = addReferralMutation.isPending;
@@ -298,6 +322,22 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
                   </div>
                 )}
               </div>
+            </div>
+            
+            {/* Referring Contact Selection */}
+            {formData.organization_id && !showNewOrgForm && (
+              <div className="border-t pt-4">
+                <ReferringContactSelector
+                  organizationId={formData.organization_id}
+                  selectedContactId={formData.referring_contact_id}
+                  selectedMethod={formData.referral_method}
+                  onContactChange={handleReferringContactChange}
+                  disabled={isSubmitting}
+                />
+              </div>
+            )}
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="referring_physician">Referring Physician</Label>
                 <Input
