@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/components/ui/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 import { 
   BookOpen, 
   CheckCircle2, 
@@ -23,8 +24,9 @@ const TrainingDashboard = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
-  // Get current user info (would normally come from auth context)
-  const marketerName = "Current Marketer"; // Replace with actual auth user
+  // Get current user info from auth context
+  const { user, displayName } = useAuth();
+  const marketerName = displayName || user?.email || "Unknown Marketer";
 
   console.log('TrainingDashboard: Component mounted');
 
