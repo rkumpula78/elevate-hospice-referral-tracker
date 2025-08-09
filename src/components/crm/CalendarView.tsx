@@ -1,7 +1,8 @@
 
 import React, { useState } from 'react';
-import { Calendar, momentLocalizer, View } from 'react-big-calendar';
-import moment from 'moment';
+import { Calendar, dateFnsLocalizer, View } from 'react-big-calendar';
+import { format, parse, startOfWeek, getDay } from 'date-fns';
+import { enUS } from 'date-fns/locale';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -12,7 +13,17 @@ import ScheduleVisitDialog from "./ScheduleVisitDialog";
 import EditVisitDialog from "./EditVisitDialog";
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 
-const localizer = momentLocalizer(moment);
+const locales = {
+  'en-US': enUS,
+};
+
+const localizer = dateFnsLocalizer({
+  format,
+  parse,
+  startOfWeek,
+  getDay,
+  locales,
+});
 
 type VisitType = 'admission' | 'routine' | 'urgent' | 'discharge';
 

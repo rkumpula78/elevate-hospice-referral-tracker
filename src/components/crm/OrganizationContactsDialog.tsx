@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, Edit, Trash2, Phone, Mail, Star } from "lucide-react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { useToast } from "@/hooks/use-toast";
 
 interface OrganizationContactsDialogProps {
   open: boolean;
@@ -39,6 +39,7 @@ interface Contact {
 }
 
 const OrganizationContactsDialog = ({ open, onOpenChange, organizationId, organizationName }: OrganizationContactsDialogProps) => {
+  const { toast } = useToast();
   const queryClient = useQueryClient();
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingContact, setEditingContact] = useState<Contact | null>(null);
@@ -87,13 +88,13 @@ const OrganizationContactsDialog = ({ open, onOpenChange, organizationId, organi
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success('Contact added successfully');
+      toast({ title: 'Contact added successfully' });
       queryClient.invalidateQueries({ queryKey: ['organization-contacts', organizationId] });
       resetForm();
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       console.error('Error creating contact:', error);
-      toast.error('Failed to add contact');
+      toast({ title: 'Failed to add contact', description: error.message, variant: 'destructive' });
     }
   });
 
@@ -111,13 +112,13 @@ const OrganizationContactsDialog = ({ open, onOpenChange, organizationId, organi
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success('Contact updated successfully');
+      toast({ title: 'Contact updated successfully' });
       queryClient.invalidateQueries({ queryKey: ['organization-contacts', organizationId] });
       resetForm();
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       console.error('Error updating contact:', error);
-      toast.error('Failed to update contact');
+      toast({ title: 'Failed to update contact', description: error.message, variant: 'destructive' });
     }
   });
 
@@ -131,12 +132,12 @@ const OrganizationContactsDialog = ({ open, onOpenChange, organizationId, organi
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success('Contact deleted successfully');
+      toast({ title: 'Contact deleted successfully' });
       queryClient.invalidateQueries({ queryKey: ['organization-contacts', organizationId] });
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       console.error('Error deleting contact:', error);
-      toast.error('Failed to delete contact');
+      toast({ title: 'Failed to delete contact', description: error.message, variant: 'destructive' });
     }
   });
 
@@ -155,7 +156,7 @@ const OrganizationContactsDialog = ({ open, onOpenChange, organizationId, organi
     e.preventDefault();
     
     if (!formData.first_name || !formData.last_name) {
-      toast.error('First name and last name are required');
+      toast({ title: 'First name and last name are required', variant: 'destructive' });
       return;
     }
 
