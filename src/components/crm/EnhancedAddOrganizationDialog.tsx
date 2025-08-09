@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 
 interface EnhancedAddOrganizationDialogProps {
@@ -19,6 +19,7 @@ interface EnhancedAddOrganizationDialogProps {
 }
 
 const EnhancedAddOrganizationDialog = ({ open, onOpenChange }: EnhancedAddOrganizationDialogProps) => {
+  const { toast } = useToast();
   const queryClient = useQueryClient();
   const [formData, setFormData] = useState({
     // Basic Information
@@ -74,10 +75,10 @@ const EnhancedAddOrganizationDialog = ({ open, onOpenChange }: EnhancedAddOrgani
       .insert([dataToSubmit]);
 
     if (error) {
-      toast.error('Failed to create organization');
+      toast({ title: 'Failed to create organization', description: error.message, variant: 'destructive' });
       console.error('Error creating organization:', error);
     } else {
-      toast.success('Organization created successfully');
+      toast({ title: 'Organization created successfully' });
       queryClient.invalidateQueries({ queryKey: ['organizations'] });
       onOpenChange(false);
       setFormData({
