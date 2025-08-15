@@ -15,6 +15,7 @@ import { format, startOfDay, startOfMonth, subDays } from "date-fns";
 import AlertCenter from "@/components/dashboard/AlertCenter";
 import CensusManager from "@/components/dashboard/CensusManager";
 import ValuesReminder from "@/components/dashboard/ValuesReminder";
+import GrowthMetricsCard from "@/components/dashboard/GrowthMetricsCard";
 
 const Dashboard = () => {
   const [showQuickAdd, setShowQuickAdd] = useState(false);
@@ -570,9 +571,10 @@ const Dashboard = () => {
         </div>
 
         {/* Training and Marketer Performance */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <TrainingMetrics />
           <MarketerPerformance />
+          <GrowthMetricsCard />
         </div>
 
         <QuickAddDialog 

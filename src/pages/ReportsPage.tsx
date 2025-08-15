@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import PageLayout from "@/components/layout/PageLayout";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Download, FileText, Calendar, TrendingUp, Users, Building, Phone } from "lucide-react";
+import { Download, FileText, Calendar, TrendingUp, Users, Building, Phone, Target } from "lucide-react";
 import { format, startOfMonth, endOfMonth, subMonths } from 'date-fns';
 
 const ReportsPage = () => {
@@ -374,6 +374,48 @@ const ReportsPage = () => {
               <Button 
                 className="w-full" 
                 onClick={() => generateReport('Activity Report')}
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Generate Report
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Target className="h-5 w-5" />
+                <span>Growth Goals Report</span>
+              </CardTitle>
+              <CardDescription>
+                Account growth targets vs actual performance
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button 
+                className="w-full" 
+                onClick={() => generateReport('Growth Goals')}
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Generate Report
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <FileText className="h-5 w-5" />
+                <span>Strategic Actions</span>
+              </CardTitle>
+              <CardDescription>
+                Action items and completion tracking
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button 
+                className="w-full" 
+                onClick={() => generateReport('Strategic Actions')}
               >
                 <Download className="w-4 h-4 mr-2" />
                 Generate Report

@@ -13,6 +13,8 @@ import PartnershipStageManager from '@/components/crm/PartnershipStageManager';
 import OrganizationContactsTab from '@/components/crm/OrganizationContactsTab';
 import OrganizationValueProps from '@/components/value-props/OrganizationValueProps';
 import AIQuickHelp from '@/components/dashboard/AIQuickHelp';
+import AccountGrowthCard from '@/components/crm/AccountGrowthCard';
+import StrategicActionsManager from '@/components/crm/StrategicActionsManager';
 
 const OrganizationDetail = () => {
   const { id } = useParams();
@@ -147,7 +149,7 @@ const OrganizationDetail = () => {
         </div>
 
         <Tabs defaultValue="overview" className="space-y-4">
-          <TabsList className="grid grid-cols-6 gap-2 bg-transparent h-auto p-1">
+          <TabsList className="grid grid-cols-8 gap-2 bg-transparent h-auto p-1">
             <TabsTrigger 
               value="overview" 
               className="data-[state=active]:bg-blue-600 data-[state=active]:text-white bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 h-12 text-base font-medium rounded-lg shadow-sm transition-all"
@@ -177,6 +179,18 @@ const OrganizationDetail = () => {
               className="data-[state=active]:bg-blue-600 data-[state=active]:text-white bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 h-12 text-base font-medium rounded-lg shadow-sm transition-all"
             >
               KPIs & Metrics
+            </TabsTrigger>
+            <TabsTrigger 
+              value="growth"
+              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 h-12 text-base font-medium rounded-lg shadow-sm transition-all"
+            >
+              Growth Goals
+            </TabsTrigger>
+            <TabsTrigger 
+              value="actions"
+              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 h-12 text-base font-medium rounded-lg shadow-sm transition-all"
+            >
+              Strategic Actions
             </TabsTrigger>
             <TabsTrigger 
               value="referrals"
@@ -495,6 +509,22 @@ const OrganizationDetail = () => {
                 </CardContent>
               </Card>
             )}
+          </TabsContent>
+
+          <TabsContent value="growth" className="space-y-6">
+            <AccountGrowthCard 
+              organization={organization}
+              onUpdate={() => {
+                // Trigger a refetch if needed
+              }}
+            />
+          </TabsContent>
+
+          <TabsContent value="actions" className="space-y-6">
+            <StrategicActionsManager
+              organizationId={organization.id}
+              organizationName={organization.name}
+            />
           </TabsContent>
         </Tabs>
 

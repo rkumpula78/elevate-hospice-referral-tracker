@@ -23,7 +23,8 @@ import {
   Settings,
   LogOut,
   BookOpen,
-  Shield
+  Shield,
+  Target
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -55,6 +56,11 @@ const menuItems = [
     title: "Value Propositions",
     url: "/training",
     icon: BookOpen,
+  },
+  {
+    title: "Marketing",
+    url: "/marketing",
+    icon: Target,
   },
   {
     title: "Reports",
