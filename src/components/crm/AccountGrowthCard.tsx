@@ -31,7 +31,7 @@ const AccountGrowthCard: React.FC<AccountGrowthCardProps> = ({ organization, onU
         .from('organizations')
         .update({
           ...data,
-          last_goal_review_date: new Date().toISOString()
+          updated_at: new Date().toISOString()
         })
         .eq('id', organization.id);
       
@@ -215,11 +215,11 @@ const AccountGrowthCard: React.FC<AccountGrowthCardProps> = ({ organization, onU
                 <span className="text-sm text-muted-foreground">YTD Referrals</span>
                 <span className="text-sm font-medium">{organization.ytd_referrals || 0}</span>
               </div>
-              {organization.last_goal_review_date && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  Last reviewed: {new Date(organization.last_goal_review_date).toLocaleDateString()}
-                </p>
-              )}
+            {organization.last_training_review && (
+              <p className="text-xs text-muted-foreground mt-1">
+                Last reviewed: {new Date(organization.last_training_review).toLocaleDateString()}
+              </p>
+            )}
             </div>
 
             {/* Growth Notes */}
