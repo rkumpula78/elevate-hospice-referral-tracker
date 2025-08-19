@@ -24,7 +24,8 @@ import {
   LogOut,
   BookOpen,
   Shield,
-  Target
+  Target,
+  Activity
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -61,6 +62,11 @@ const menuItems = [
     title: "Marketing",
     url: "/marketing",
     icon: Target,
+  },
+  {
+    title: "KPI Dashboard",
+    url: "/kpi",
+    icon: Activity,
   },
   {
     title: "Reports",
