@@ -11,6 +11,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { Loader2, Plus } from "lucide-react";
 import ReferringContactSelector from "./ReferringContactSelector";
+import AddContactDialog from "./AddContactDialog";
 import { useTeamsIntegration } from "@/hooks/useTeamsIntegration";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -28,6 +29,8 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
   const [showNewOrgForm, setShowNewOrgForm] = useState(false);
   const [newOrgName, setNewOrgName] = useState('');
   const [newOrgType, setNewOrgType] = useState<'hospital' | 'physician_office' | 'snf' | 'home_health' | 'other'>('hospital');
+  const [showAddContactDialog, setShowAddContactDialog] = useState(false);
+  const [selectedOrgName, setSelectedOrgName] = useState<string>('');
   const [formData, setFormData] = useState({
     patient_name: '',
     patient_phone: '',
@@ -193,10 +196,27 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
     }));
   };
 
+  const handleAddContactClick = () => {
+    // Set the organization name for display in the dialog
+    const selectedOrg = organizations?.find(org => org.id === formData.organization_id);
+    setSelectedOrgName(selectedOrg?.name || '');
+    setShowAddContactDialog(true);
+  };
+
+  const handleContactAdded = (newContactId: string) => {
+    // Automatically select the newly added contact
+    setFormData(prev => ({
+      ...prev,
+      referring_contact_id: newContactId,
+      referral_method: 'specific_contact'
+    }));
+  };
+
   const isSubmitting = addReferralMutation.isPending;
   const showReasonField: boolean = ['not_admitted_patient_choice', 'not_admitted_not_appropriate', 'not_admitted_lost_contact'].includes(formData.status);
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
@@ -360,6 +380,7 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
                   selectedContactId={formData.referring_contact_id}
                   selectedMethod={formData.referral_method}
                   onContactChange={handleReferringContactChange}
+                  onAddContact={handleAddContactClick}
                   disabled={isSubmitting}
                 />
               </div>
@@ -514,6 +535,19 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
         </form>
       </DialogContent>
     </Dialog>
+
+    {/* Add Contact Dialog */}
+    {formData.organization_id && (
+      <AddContactDialog
+        open={showAddContactDialog}
+        onOpenChange={setShowAddContactDialog}
+        organizationId={formData.organization_id}
+        organizationName={selectedOrgName}
+        onContactAdded={handleContactAdded}
+        autoSelectAsReferrer={true}
+      />
+    )}
+    </>
   );
 };
 
