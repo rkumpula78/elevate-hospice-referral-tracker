@@ -42,7 +42,8 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
     referral_intake_coordinator: '',
     status: 'new_referral' as ReferralStatus,
     reason_for_non_admittance: '',
-    notes: ''
+    notes: '',
+    benefit_period_number: 1
   });
 
   // Fetch organizations for the dropdown
@@ -116,7 +117,8 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
           referral_intake_coordinator: data.referral_intake_coordinator || null,
           status: data.status,
           reason_for_non_admittance: data.reason_for_non_admittance || null,
-          notes: data.notes || null
+          notes: data.notes || null,
+          benefit_period_number: data.benefit_period_number
         })
         .select()
         .single();
@@ -146,7 +148,8 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
         referral_intake_coordinator: '',
         status: 'new_referral',
         reason_for_non_admittance: '',
-        notes: ''
+        notes: '',
+        benefit_period_number: 1
       });
       setShowNewOrgForm(false);
       setNewOrgName('');
@@ -176,7 +179,10 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
   };
 
   const handleInputChange = (field: keyof typeof formData, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData(prev => ({ 
+      ...prev, 
+      [field]: field === 'benefit_period_number' ? parseInt(value) || 1 : value 
+    }));
   };
 
   const handleReferringContactChange = (contactId: string | null, method: 'general' | 'specific_contact') => {
@@ -200,7 +206,7 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
           {/* Patient Information */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Patient Information</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div>
                 <Label htmlFor="patient_name">Patient Name *</Label>
                 <Input
@@ -237,6 +243,28 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
                   onChange={(e) => handleInputChange('insurance', e.target.value)}
                   disabled={isSubmitting}
                 />
+              </div>
+              <div>
+                <Label htmlFor="benefit_period_number">Benefit Period</Label>
+                <Select 
+                  value={formData.benefit_period_number.toString()} 
+                  onValueChange={(value) => handleInputChange('benefit_period_number', value)}
+                  disabled={isSubmitting}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">1st Benefit Period (60 days)</SelectItem>
+                    <SelectItem value="2">2nd Benefit Period (90 days)</SelectItem>
+                    <SelectItem value="3">3rd Benefit Period (60 days)</SelectItem>
+                    <SelectItem value="4">4th Benefit Period (60 days)</SelectItem>
+                    <SelectItem value="5">5th+ Benefit Period (60 days)</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Medicare hospice benefit period for F2F tracking
+                </p>
               </div>
             </div>
           </div>
