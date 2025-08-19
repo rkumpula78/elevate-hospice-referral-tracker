@@ -48,34 +48,52 @@ const AddContactDialog: React.FC<AddContactDialogProps> = ({
 
   const addContactMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
+      console.log('Adding contact with data:', { organizationId, ...data });
+      
+      // Validate organizationId exists
+      if (!organizationId) {
+        throw new Error('Organization ID is required');
+      }
+
       const { data: newContact, error } = await supabase
         .from('organization_contacts')
         .insert({
           organization_id: organizationId,
-          first_name: data.first_name,
-          last_name: data.last_name,
-          title: data.title || null,
-          direct_phone: data.direct_phone || null,
-          mobile_phone: data.mobile_phone || null,
-          email: data.email || null,
-          specialization: data.specialization || null,
+          first_name: data.first_name.trim(),
+          last_name: data.last_name.trim(),
+          title: data.title.trim() || null,
+          direct_phone: data.direct_phone.trim() || null,
+          mobile_phone: data.mobile_phone.trim() || null,
+          email: data.email.trim() || null,
+          specialization: data.specialization.trim() || null,
           is_referring_contact: data.is_referring_contact,
           is_primary_referrer: data.is_primary_referrer,
           preferred_contact_method: data.preferred_contact_method,
-          notes: data.notes || null
+          notes: data.notes.trim() || null
         })
         .select()
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error adding contact:', error);
+        throw error;
+      }
+      
+      console.log('Successfully created contact:', newContact);
       return newContact;
     },
     onSuccess: (newContact) => {
-      queryClient.invalidateQueries({ queryKey: ['organization-contacts', organizationId] });
+      console.log('Contact created successfully, invalidating queries...');
+      
+      // Invalidate all organization-contacts queries
+      queryClient.invalidateQueries({ queryKey: ['organization-contacts'] });
+      queryClient.invalidateQueries({ queryKey: ['organizations'] });
+      
       toast({ title: "Contact added successfully" });
       
       // Notify parent component of the new contact ID
       if (onContactAdded) {
+        console.log('Notifying parent of new contact:', newContact.id);
         onContactAdded(newContact.id);
       }
       
@@ -83,11 +101,23 @@ const AddContactDialog: React.FC<AddContactDialogProps> = ({
       resetForm();
       onOpenChange(false);
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error('Error adding contact:', error);
+      
+      let errorMessage = "Please try again";
+      
+      // Handle specific database errors
+      if (error?.code === '23505') {
+        errorMessage = "A contact with this information already exists";
+      } else if (error?.code === '23503') {
+        errorMessage = "Invalid organization selected";
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
       toast({ 
         title: "Error adding contact", 
-        description: "Please try again",
+        description: errorMessage,
         variant: "destructive" 
       });
     }
@@ -96,6 +126,7 @@ const AddContactDialog: React.FC<AddContactDialogProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Validate required fields
     if (!formData.first_name.trim() || !formData.last_name.trim()) {
       toast({ 
         title: "First and last name are required", 
@@ -103,7 +134,26 @@ const AddContactDialog: React.FC<AddContactDialogProps> = ({
       });
       return;
     }
+
+    // Validate email format if provided
+    if (formData.email.trim() && !formData.email.includes('@')) {
+      toast({ 
+        title: "Please enter a valid email address", 
+        variant: "destructive" 
+      });
+      return;
+    }
+
+    // Validate that at least one contact method is provided
+    if (!formData.direct_phone.trim() && !formData.mobile_phone.trim() && !formData.email.trim()) {
+      toast({ 
+        title: "Please provide at least one contact method (phone or email)", 
+        variant: "destructive" 
+      });
+      return;
+    }
     
+    console.log('Submitting contact form with data:', formData);
     addContactMutation.mutate(formData);
   };
 

@@ -285,7 +285,7 @@ const ReferringContactSelector: React.FC<ReferringContactSelectorProps> = ({
                 </div>
               )}
 
-              {/* Add contact button */}
+              {/* Add contact button - show for existing contacts */}
               {contacts && contacts.length > 0 && onAddContact && (
                 <>
                   <Separator />

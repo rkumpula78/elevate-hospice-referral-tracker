@@ -49,14 +49,14 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
     benefit_period_number: 1
   });
 
-  // Fetch organizations for the dropdown
+  // Fetch organizations for the dropdown (include all active organizations)
   const { data: organizations } = useQuery({
-    queryKey: ['organizations'],
+    queryKey: ['organizations-referral-dropdown'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('organizations')
-        .select('id, name, type')
-        .eq('is_active', true)
+        .select('id, name, type, is_active')
+        .order('is_active', { ascending: false }) // Active first
         .order('name');
       if (error) throw error;
       return data;
@@ -204,12 +204,14 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
   };
 
   const handleContactAdded = (newContactId: string) => {
+    console.log('New contact added with ID:', newContactId);
     // Automatically select the newly added contact
     setFormData(prev => ({
       ...prev,
       referring_contact_id: newContactId,
       referral_method: 'specific_contact'
     }));
+    console.log('Updated referral form to use new contact');
   };
 
   const isSubmitting = addReferralMutation.isPending;
@@ -320,7 +322,12 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
                         </SelectItem>
                         {organizations?.map((org) => (
                           <SelectItem key={org.id} value={org.id}>
-                            {org.name}
+                            <div className="flex items-center justify-between w-full">
+                              <span>{org.name}</span>
+                              {!org.is_active && (
+                                <span className="text-xs text-red-600 ml-2">(Inactive)</span>
+                              )}
+                            </div>
                           </SelectItem>
                         ))}
                       </SelectContent>
