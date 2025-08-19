@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -1771,21 +1771,16 @@ export type Database = {
           assessment_scheduled_date: string | null
           assigned_marketer: string | null
           attending_physician: string | null
-          benefit_period_end: string | null
-          benefit_period_number: number | null
-          benefit_period_start: string | null
           caregiver_contact: string | null
           caregiver_name: string | null
           contact_date: string | null
           created_at: string | null
           date_of_birth: string | null
-          days_in_current_period: number | null
           diagnosis: string | null
           dme_needs: string | null
           dnr_status: boolean | null
           emergency_contact: string | null
           emergency_phone: string | null
-          expected_admission_timeline: string | null
           first_name: string | null
           funeral_arrangements: string | null
           height: number | null
@@ -1814,11 +1809,7 @@ export type Database = {
           referral_contact_phone: string | null
           referral_date: string | null
           referral_intake_coordinator: string | null
-          referral_method: string | null
           referral_source: string | null
-          referral_urgency_level: number | null
-          referrer_relationship: string | null
-          referring_contact_id: string | null
           referring_physician: string | null
           responsible_party_contact: string | null
           responsible_party_name: string | null
@@ -1840,21 +1831,16 @@ export type Database = {
           assessment_scheduled_date?: string | null
           assigned_marketer?: string | null
           attending_physician?: string | null
-          benefit_period_end?: string | null
-          benefit_period_number?: number | null
-          benefit_period_start?: string | null
           caregiver_contact?: string | null
           caregiver_name?: string | null
           contact_date?: string | null
           created_at?: string | null
           date_of_birth?: string | null
-          days_in_current_period?: number | null
           diagnosis?: string | null
           dme_needs?: string | null
           dnr_status?: boolean | null
           emergency_contact?: string | null
           emergency_phone?: string | null
-          expected_admission_timeline?: string | null
           first_name?: string | null
           funeral_arrangements?: string | null
           height?: number | null
@@ -1905,21 +1891,16 @@ export type Database = {
           assessment_scheduled_date?: string | null
           assigned_marketer?: string | null
           attending_physician?: string | null
-          benefit_period_end?: string | null
-          benefit_period_number?: number | null
-          benefit_period_start?: string | null
           caregiver_contact?: string | null
           caregiver_name?: string | null
           contact_date?: string | null
           created_at?: string | null
           date_of_birth?: string | null
-          days_in_current_period?: number | null
           diagnosis?: string | null
           dme_needs?: string | null
           dnr_status?: boolean | null
           emergency_contact?: string | null
           emergency_phone?: string | null
-          expected_admission_timeline?: string | null
           first_name?: string | null
           funeral_arrangements?: string | null
           height?: number | null
@@ -2028,7 +2009,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_healthcare_access: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
     }
     Enums: {
       care_team_role:
