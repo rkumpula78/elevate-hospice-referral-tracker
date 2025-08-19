@@ -49,16 +49,29 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
     benefit_period_number: 1
   });
 
-  // Fetch organizations for the dropdown (include all active organizations)
-  const { data: organizations } = useQuery({
-    queryKey: ['organizations-referral-dropdown'],
+  // Fetch organizations for the dropdown (include all organizations, active and inactive)
+  const { data: organizations, isLoading: organizationsLoading } = useQuery({
+    queryKey: ['organizations', 'all', 'all', 'all', 'all'], // Use same cache key pattern as OrganizationsList
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Use the exact same query pattern as OrganizationsList for consistency
+      let query = supabase
         .from('organizations')
-        .select('id, name, type, is_active')
-        .order('is_active', { ascending: false }) // Active first
+        .select('*') // Select all fields like OrganizationsList
         .order('name');
-      if (error) throw error;
+
+      // No filters applied - show all organizations (active and inactive)
+      
+      const { data, error } = await query;
+      if (error) {
+        console.error('Error fetching organizations for referral dropdown:', error);
+        throw error;
+      }
+      
+      console.log('Organizations fetched for referral dropdown:', {
+        count: data?.length || 0,
+        organizations: data?.map(org => ({ id: org.id, name: org.name, is_active: org.is_active }))
+      });
+      
       return data;
     }
   });
@@ -308,10 +321,16 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
                           handleInputChange('organization_id', value);
                         }
                       }}
-                      disabled={isSubmitting}
+                      disabled={isSubmitting || organizationsLoading}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Select organization" />
+                        <SelectValue placeholder={
+                          organizationsLoading 
+                            ? "Loading organizations..." 
+                            : organizations?.length === 0 
+                              ? "No organizations found"
+                              : "Select organization"
+                        } />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="create-new" className="text-primary">
@@ -320,16 +339,26 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
                             Create New Organization
                           </div>
                         </SelectItem>
-                        {organizations?.map((org) => (
-                          <SelectItem key={org.id} value={org.id}>
-                            <div className="flex items-center justify-between w-full">
-                              <span>{org.name}</span>
-                              {!org.is_active && (
-                                <span className="text-xs text-red-600 ml-2">(Inactive)</span>
-                              )}
-                            </div>
+                        {organizationsLoading ? (
+                          <SelectItem value="loading" disabled>
+                            Loading organizations...
                           </SelectItem>
-                        ))}
+                        ) : organizations?.length === 0 ? (
+                          <SelectItem value="no-orgs" disabled>
+                            No organizations found. Please create one.
+                          </SelectItem>
+                        ) : (
+                          organizations?.map((org) => (
+                            <SelectItem key={org.id} value={org.id}>
+                              <div className="flex items-center justify-between w-full">
+                                <span>{org.name}</span>
+                                {!org.is_active && (
+                                  <span className="text-xs text-red-600 ml-2">(Inactive)</span>
+                                )}
+                              </div>
+                            </SelectItem>
+                          ))
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
