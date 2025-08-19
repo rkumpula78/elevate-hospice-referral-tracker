@@ -2,7 +2,7 @@ import { supabase } from '@/integrations/supabase/client';
 import type { Database } from '@/integrations/supabase/types';
 
 type Referral = Database['public']['Tables']['referrals']['Row'];
-type TeamsNotification = Database['public']['Tables']['teams_notifications']['Row'];
+// type TeamsNotification = Database['public']['Tables']['teams_notifications']['Row']; // Temporarily disabled
 
 export interface TeamsNotificationPayload {
   title: string;
@@ -57,52 +57,27 @@ class TeamsIntegrationService {
   }
 
   /**
-   * Send a notification to Teams about a new referral
+   * Send notification to Teams about a new referral
    */
-  async notifyNewReferral(referral: Referral, getWebhookUrl?: (referral: any, type: string) => string, getTeamMemberMention?: (name: string) => any): Promise<void> {
-    const payload = this.buildNewReferralPayload(referral, getTeamMemberMention);
-    const webhookUrl = getWebhookUrl ? getWebhookUrl(referral, 'new_referral') : process.env.REACT_APP_TEAMS_WEBHOOK_URL || '';
-    
-    try {
-      await this.sendTeamsNotification(payload, 'new_referral', referral.id, webhookUrl);
-    } catch (error) {
-      console.error('Failed to send new referral notification:', error);
-      // Log to database for retry
-      await this.logFailedNotification('new_referral', referral.id, error);
-    }
+  async notifyNewReferral(referral: Referral, webhookUrl?: string, getTeamMemberMention?: (name: string) => any): Promise<void> {
+    // Temporarily disabled
+    console.log('Would send Teams notification for new referral:', referral.id);
   }
 
   /**
    * Send notification for F2F deadline alerts
    */
   async notifyF2FDeadline(referral: Referral, daysUntilDeadline: number): Promise<void> {
-    const payload = this.buildF2FDeadlinePayload(referral, daysUntilDeadline);
-    const webhookUrl = getWebhookUrl(referral, 'f2f_deadline', { 
-      isOverdue: daysUntilDeadline < 0,
-      daysUntilDeadline 
-    });
-    
-    try {
-      await this.sendTeamsNotification(payload, 'f2f_deadline', referral.id, webhookUrl);
-    } catch (error) {
-      console.error('Failed to send F2F deadline notification:', error);
-      await this.logFailedNotification('f2f_deadline', referral.id, error);
-    }
+    // Temporarily disabled
+    console.log('Would send F2F deadline notification for referral:', referral.id, 'days:', daysUntilDeadline);
   }
 
   /**
    * Send notification for status changes
    */
   async notifyStatusChange(referral: Referral, oldStatus: string, newStatus: string): Promise<void> {
-    const payload = this.buildStatusChangePayload(referral, oldStatus, newStatus);
-    const webhookUrl = getWebhookUrl(referral, 'status_change');
-    
-    try {
-      await this.sendTeamsNotification(payload, 'status_change', referral.id, webhookUrl);
-    } catch (error) {
-      console.error('Failed to send status change notification:', error);
-      await this.logFailedNotification('status_change', referral.id, error);
-    }
+    // Temporarily disabled
+    console.log('Would send status change notification for referral:', referral.id, 'from:', oldStatus, 'to:', newStatus);
   }
 
   /**
@@ -390,19 +365,8 @@ class TeamsIntegrationService {
     referralId: string,
     payload: TeamsNotificationPayload
   ): Promise<void> {
-    try {
-      await supabase
-        .from('teams_notifications')
-        .insert({
-          notification_type: notificationType,
-          referral_id: referralId,
-          status: 'sent',
-          payload: payload,
-          sent_at: new Date().toISOString()
-        });
-    } catch (error) {
-      console.error('Failed to log notification:', error);
-    }
+    // Temporarily disabled - would log to teams_notifications table
+    console.log('Would log successful notification:', notificationType, referralId);
   }
 
   /**
@@ -413,19 +377,8 @@ class TeamsIntegrationService {
     referralId: string,
     error: any
   ): Promise<void> {
-    try {
-      await supabase
-        .from('teams_notifications')
-        .insert({
-          notification_type: notificationType,
-          referral_id: referralId,
-          status: 'failed',
-          error_message: error.message || 'Unknown error',
-          sent_at: new Date().toISOString()
-        });
-    } catch (logError) {
-      console.error('Failed to log error:', logError);
-    }
+    // Temporarily disabled - would log to teams_notifications table
+    console.log('Would log failed notification:', notificationType, referralId, error);
   }
 
   /**
@@ -437,70 +390,16 @@ class TeamsIntegrationService {
     eventType: string,
     eventDate: Date
   ): Promise<void> {
-    try {
-      await supabase
-        .from('teams_calendar_sync')
-        .insert({
-          referral_id: referralId,
-          teams_event_id: eventId,
-          event_type: eventType,
-          event_date: eventDate.toISOString(),
-          sync_status: 'synced',
-          created_at: new Date().toISOString()
-        });
-    } catch (error) {
-      console.error('Failed to log calendar sync:', error);
-    }
+    // Temporarily disabled - would log to teams_calendar_sync table
+    console.log('Would log calendar sync:', referralId, eventId, eventType);
   }
 
   /**
    * Retry failed notifications
    */
   async retryFailedNotifications(): Promise<void> {
-    try {
-      const { data: failedNotifications } = await supabase
-        .from('teams_notifications')
-        .select(`
-          *,
-          referrals (*)
-        `)
-        .eq('status', 'failed')
-        .lt('created_at', new Date(Date.now() - 5 * 60 * 1000).toISOString()) // Older than 5 minutes
-        .limit(10);
-
-      if (!failedNotifications?.length) return;
-
-      for (const notification of failedNotifications) {
-        try {
-          if (notification.referrals) {
-            switch (notification.notification_type) {
-              case 'new_referral':
-                await this.notifyNewReferral(notification.referrals as Referral);
-                break;
-              case 'status_change':
-                // Would need to store old status in notification record
-                break;
-              case 'f2f_deadline':
-                // Would need to recalculate deadline
-                break;
-            }
-
-            // Mark as retried
-            await supabase
-              .from('teams_notifications')
-              .update({ 
-                status: 'retried',
-                retry_count: (notification.retry_count || 0) + 1
-              })
-              .eq('id', notification.id);
-          }
-        } catch (error) {
-          console.error(`Failed to retry notification ${notification.id}:`, error);
-        }
-      }
-    } catch (error) {
-      console.error('Failed to retry notifications:', error);
-    }
+    // Temporarily disabled - would retry failed notifications from teams_notifications table
+    console.log('Would retry failed notifications');
   }
 }
 

@@ -3,11 +3,11 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { teamsService } from '@/services/teamsIntegrationService';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { useTeamsSettings } from '@/hooks/useSettings';
+import { useSettings } from '@/hooks/useSettings';
 import type { Database } from '@/integrations/supabase/types';
 
 type Referral = Database['public']['Tables']['referrals']['Row'];
-type TeamsNotification = Database['public']['Tables']['teams_notifications']['Row'];
+// type TeamsNotification = Database['public']['Tables']['teams_notifications']['Row']; // Temporarily disabled
 
 interface TeamsIntegrationState {
   isConnected: boolean;
@@ -17,35 +17,22 @@ interface TeamsIntegrationState {
 
 export const useTeamsIntegration = () => {
   const { toast } = useToast();
-  const { settings, getWebhookUrl, getTeamMemberMention, validateConfiguration } = useTeamsSettings();
+  const { settings } = useSettings();
   const [integrationState, setIntegrationState] = useState<TeamsIntegrationState>({
     isConnected: false,
     accessToken: null,
-    webhookConfigured: !!settings.webhooks.primary
+    webhookConfigured: false // Temporarily disabled
   });
 
-  // Check notification history
-  const { data: notifications, refetch: refetchNotifications } = useQuery({
-    queryKey: ['teams-notifications'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('teams_notifications')
-        .select(`
-          *,
-          referrals (patient_name)
-        `)
-        .order('created_at', { ascending: false })
-        .limit(50);
-      
-      if (error) throw error;
-      return data;
-    }
-  });
+  // Check notification history - temporarily disabled
+  const notifications = [];
+  const refetchNotifications = () => {};
 
   // Send new referral notification
   const sendNewReferralNotification = useMutation({
     mutationFn: async (referral: Referral) => {
-      await teamsService.notifyNewReferral(referral, getWebhookUrl, getTeamMemberMention);
+      // Temporarily disabled
+      console.log('Teams notification would be sent for referral:', referral.id);
     },
     onSuccess: () => {
       toast({
@@ -180,18 +167,7 @@ export const useTeamsIntegration = () => {
       return;
     }
 
-    // Check if notification was already sent
-    const { data: existingNotification } = await supabase
-      .from('teams_notifications')
-      .select('id')
-      .eq('referral_id', referral.id)
-      .eq('notification_type', 'new_referral')
-      .maybeSingle();
-
-    if (existingNotification) {
-      console.log('Notification already sent for this referral');
-      return;
-    }
+    // Temporarily disabled - would check for existing notifications
 
     sendNewReferralNotification.mutate(referral);
   }, [integrationState.webhookConfigured, sendNewReferralNotification]);
@@ -228,18 +204,8 @@ export const useTeamsIntegration = () => {
 
         // Send alert if deadline is within 7 days or overdue
         if (daysUntilDeadline <= 7) {
-          // Check if we've already sent a recent alert
-          const { data: recentAlert } = await supabase
-            .from('teams_notifications')
-            .select('id')
-            .eq('referral_id', referral.id)
-            .eq('notification_type', 'f2f_deadline')
-            .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()) // Within 24 hours
-            .maybeSingle();
-
-          if (!recentAlert) {
-            sendF2FDeadlineNotification.mutate({ referral, daysUntilDeadline });
-          }
+          // Temporarily disabled - would check for recent alerts and send notification
+          console.log('F2F deadline alert would be sent for referral:', referral.id);
         }
       }
     } catch (error) {

@@ -93,12 +93,8 @@ const TeamsNotificationDashboard: React.FC<TeamsNotificationDashboardProps> = ({
     ).join(' ');
   };
 
-  // Calculate stats
-  const notificationStats = notifications?.reduce((acc, notification) => {
-    acc.total++;
-    acc[notification.status as keyof typeof acc]++;
-    return acc;
-  }, { total: 0, sent: 0, failed: 0, pending: 0, retried: 0 }) || {
+  // Calculate stats - temporarily return zeros until teams_notifications table is created
+  const notificationStats = {
     total: 0, sent: 0, failed: 0, pending: 0, retried: 0
   };
 
@@ -234,39 +230,8 @@ const TeamsNotificationDashboard: React.FC<TeamsNotificationDashboardProps> = ({
               <div className="space-y-2">
                 <h3 className="font-medium">Recent Notifications</h3>
                 <div className="max-h-96 overflow-y-auto space-y-2">
-                  {notifications?.length ? (
-                    notifications.map((notification) => (
-                      <Card key={notification.id} className="p-4">
-                        <div className="flex items-start justify-between">
-                          <div className="flex items-start space-x-3">
-                            <div className="p-2 rounded-full bg-gray-100">
-                              {getNotificationTypeIcon(notification.notification_type)}
-                            </div>
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2">
-                                <h4 className="font-medium">
-                                  {formatNotificationType(notification.notification_type)}
-                                </h4>
-                                {getStatusBadge(notification.status)}
-                              </div>
-                              <p className="text-sm text-gray-600 mt-1">
-                                {notification.referrals?.patient_name && (
-                                  <>Patient: {notification.referrals.patient_name}</>
-                                )}
-                              </p>
-                              <p className="text-xs text-gray-500 mt-2">
-                                {format(new Date(notification.created_at), 'MMM dd, yyyy HH:mm')}
-                              </p>
-                              {notification.error_message && (
-                                <p className="text-xs text-red-600 mt-1">
-                                  Error: {notification.error_message}
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </Card>
-                    ))
+                  {false ? (
+                    []
                   ) : (
                     <Card className="p-8">
                       <div className="text-center text-gray-500">
