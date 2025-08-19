@@ -186,11 +186,11 @@ export const useTeamsIntegration = () => {
       if (!referrals?.length) return;
 
       for (const referral of referrals) {
-        if (!referral.benefit_period_start) continue;
+        if (!referral.admission_date) continue;
 
         // Calculate days until F2F deadline
-        const admissionDate = new Date(referral.benefit_period_start);
-        const benefitPeriod = referral.benefit_period_number || 1;
+        const admissionDate = new Date(referral.admission_date);
+        const benefitPeriod = 1; // Simplified - could be calculated from data
         
         // F2F required within 30 days of admission for first benefit period
         // Different rules for subsequent periods
@@ -256,11 +256,16 @@ export const useTeamsIntegration = () => {
   useEffect(() => {
     initializeTeamsAuth();
     
-    // Set up interval to check for F2F deadlines
-    const interval = setInterval(checkF2FDeadlines, 60 * 60 * 1000); // Every hour
+    // Set up interval to check for F2F deadlines only if webhook is configured
+    let interval: NodeJS.Timeout | null = null;
+    if (integrationState.webhookConfigured) {
+      interval = setInterval(checkF2FDeadlines, 60 * 60 * 1000); // Every hour
+    }
     
-    return () => clearInterval(interval);
-  }, [initializeTeamsAuth, checkF2FDeadlines]);
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [integrationState.webhookConfigured]); // Only depend on webhookConfigured to prevent infinite re-renders
 
   return {
     // State

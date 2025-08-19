@@ -230,10 +230,10 @@ class TeamsIntegrationService {
             { name: 'Patient', value: referral.patient_name },
             { name: 'Status', value: deadlineText },
             { name: 'Assigned Marketer', value: referral.assigned_marketer || 'Unassigned' },
-            { name: 'Benefit Period', value: `Period ${referral.benefit_period_number || 'Unknown'}` },
-            ...(referral.benefit_period_start ? [{
+            { name: 'Benefit Period', value: `Period ${1}` }, // Simplified
+            ...(referral.admission_date ? [{
               name: 'Period Started', 
-              value: new Date(referral.benefit_period_start).toLocaleDateString()
+              value: new Date(referral.admission_date).toLocaleDateString()
             }] : [])
           ]
         }

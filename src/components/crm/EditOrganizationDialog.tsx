@@ -570,7 +570,7 @@ const EditOrganizationDialog = ({ open, onOpenChange, organizationId }: EditOrga
                             <SelectValue placeholder="Select marketer" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="">Unassigned</SelectItem>
+                            <SelectItem value="unassigned">Unassigned</SelectItem>
                             {marketers.map((marketer) => (
                               <SelectItem key={marketer} value={marketer}>
                                 {marketer}
