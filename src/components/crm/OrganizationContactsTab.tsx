@@ -901,6 +901,28 @@ const OrganizationContactsTab = ({ organizationId, organizationName }: Organizat
                     )}
                   </div>
                 </div>
+                
+                <div className="flex gap-1 flex-shrink-0">
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    onClick={() => {
+                      // Pre-populate form with primary contact data
+                      setFormData(prev => ({
+                        ...prev,
+                        first_name: organization.contact_person?.split(' ')[0] || '',
+                        last_name: organization.contact_person?.split(' ').slice(1).join(' ') || '',
+                        email: organization.contact_email || '',
+                        direct_phone: organization.phone || '',
+                        contact_type: 'primary_contact',
+                        contact_stage: 'active'
+                      }));
+                      setShowAddForm(true);
+                    }}
+                  >
+                    <Edit className="w-3 h-3" />
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
