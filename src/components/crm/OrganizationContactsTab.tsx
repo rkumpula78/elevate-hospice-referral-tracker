@@ -12,7 +12,11 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Plus, Edit, Trash, Phone, Mail, User } from 'lucide-react';
+import { Plus, Edit, Trash, Phone, Mail, User, CalendarIcon } from 'lucide-react';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 interface OrganizationContactsTabProps {
   organizationId: string;
@@ -114,13 +118,19 @@ const OrganizationContactsTab = ({ organizationId, organizationName }: Organizat
   // Add contact mutation
   const addContactMutation = useMutation({
     mutationFn: async (contactData: any) => {
+      // Convert empty strings to null for date fields
+      const processedData = {
+        ...contactData,
+        organization_id: organizationId,
+        years_in_position: contactData.years_in_position ? parseInt(contactData.years_in_position) : null,
+        last_contact_date: contactData.last_contact_date || null,
+        next_followup_date: contactData.next_followup_date || null,
+        referral_conversion_rate: contactData.referral_conversion_rate ? parseFloat(contactData.referral_conversion_rate) : null
+      };
+      
       const { error } = await supabase
         .from('organization_contacts')
-        .insert([{
-          ...contactData,
-          organization_id: organizationId,
-          years_in_position: contactData.years_in_position ? parseInt(contactData.years_in_position) : null
-        }]);
+        .insert([processedData]);
       
       if (error) throw error;
     },
@@ -137,12 +147,18 @@ const OrganizationContactsTab = ({ organizationId, organizationName }: Organizat
   // Update contact mutation
   const updateContactMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: any }) => {
+      // Convert empty strings to null for date fields
+      const processedData = {
+        ...data,
+        years_in_position: data.years_in_position ? parseInt(data.years_in_position) : null,
+        last_contact_date: data.last_contact_date || null,
+        next_followup_date: data.next_followup_date || null,
+        referral_conversion_rate: data.referral_conversion_rate ? parseFloat(data.referral_conversion_rate) : null
+      };
+      
       const { error } = await supabase
         .from('organization_contacts')
-        .update({
-          ...data,
-          years_in_position: data.years_in_position ? parseInt(data.years_in_position) : null
-        })
+        .update(processedData)
         .eq('id', id);
       
       if (error) throw error;
@@ -626,21 +642,61 @@ const OrganizationContactsTab = ({ organizationId, organizationName }: Organizat
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="last_contact_date">Last Contact Date</Label>
-                      <Input
-                        id="last_contact_date"
-                        type="date"
-                        value={formData.last_contact_date}
-                        onChange={(e) => setFormData(prev => ({ ...prev, last_contact_date: e.target.value }))}
-                      />
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "w-full justify-start text-left font-normal",
+                              !formData.last_contact_date && "text-muted-foreground"
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {formData.last_contact_date ? format(new Date(formData.last_contact_date), "PPP") : "Pick a date"}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={formData.last_contact_date ? new Date(formData.last_contact_date) : undefined}
+                            onSelect={(date) => setFormData(prev => ({ 
+                              ...prev, 
+                              last_contact_date: date ? format(date, "yyyy-MM-dd") : ""
+                            }))}
+                            initialFocus
+                            className="p-3 pointer-events-auto"
+                          />
+                        </PopoverContent>
+                      </Popover>
                     </div>
                     <div>
                       <Label htmlFor="next_followup_date">Next Follow-up Date</Label>
-                      <Input
-                        id="next_followup_date"
-                        type="date"
-                        value={formData.next_followup_date}
-                        onChange={(e) => setFormData(prev => ({ ...prev, next_followup_date: e.target.value }))}
-                      />
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "w-full justify-start text-left font-normal",
+                              !formData.next_followup_date && "text-muted-foreground"
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {formData.next_followup_date ? format(new Date(formData.next_followup_date), "PPP") : "Pick a date"}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={formData.next_followup_date ? new Date(formData.next_followup_date) : undefined}
+                            onSelect={(date) => setFormData(prev => ({ 
+                              ...prev, 
+                              next_followup_date: date ? format(date, "yyyy-MM-dd") : ""
+                            }))}
+                            initialFocus
+                            className="p-3 pointer-events-auto"
+                          />
+                        </PopoverContent>
+                      </Popover>
                     </div>
                   </div>
                 </TabsContent>
