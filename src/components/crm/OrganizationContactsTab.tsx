@@ -39,8 +39,8 @@ const OrganizationContactsTab = ({ organizationId, organizationName }: Organizat
     previous_experience: ''
   });
 
-  // Fetch contacts
-  const { data: contacts, isLoading } = useQuery({
+  // Fetch contacts from organization_contacts table
+  const { data: contacts, isLoading: contactsLoading } = useQuery({
     queryKey: ['organization-contacts', organizationId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -53,6 +53,23 @@ const OrganizationContactsTab = ({ organizationId, organizationName }: Organizat
       return data;
     }
   });
+
+  // Fetch organization data to get primary contact
+  const { data: organization, isLoading: orgLoading } = useQuery({
+    queryKey: ['organization-primary-contact', organizationId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('organizations')
+        .select('contact_person, contact_email, phone')
+        .eq('id', organizationId)
+        .single();
+      
+      if (error) throw error;
+      return data;
+    }
+  });
+
+  const isLoading = contactsLoading || orgLoading;
 
   // Add contact mutation
   const addContactMutation = useMutation({
@@ -365,6 +382,45 @@ const OrganizationContactsTab = ({ organizationId, organizationName }: Organizat
       )}
 
       <div className="grid gap-4">
+        {/* Display primary contact from organization record */}
+        {organization?.contact_person && (
+          <Card className="border-blue-200 bg-blue-50">
+            <CardContent className="pt-4">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
+                    <div className="flex items-center gap-2">
+                      <User className="w-4 h-4" />
+                      <h4 className="font-medium">{organization.contact_person}</h4>
+                    </div>
+                    <div className="flex flex-wrap gap-1">
+                      <Badge className="bg-blue-100 text-blue-800">
+                        Primary Contact
+                      </Badge>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+                    {organization.phone && (
+                      <div className="flex items-center gap-1">
+                        <Phone className="w-3 h-3 flex-shrink-0" />
+                        <span className="truncate">{organization.phone}</span>
+                      </div>
+                    )}
+                    {organization.contact_email && (
+                      <div className="flex items-center gap-1">
+                        <Mail className="w-3 h-3 flex-shrink-0" />
+                        <span className="truncate" title={organization.contact_email}>{organization.contact_email}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Display additional contacts from organization_contacts table */}
         {contacts?.map((contact) => (
           <Card key={contact.id}>
             <CardContent className="pt-4">
@@ -426,7 +482,7 @@ const OrganizationContactsTab = ({ organizationId, organizationName }: Organizat
           </Card>
         ))}
         
-        {contacts?.length === 0 && (
+        {(!contacts || contacts.length === 0) && !organization?.contact_person && (
           <Card>
             <CardContent className="pt-6">
               <p className="text-center text-gray-500">No contacts added yet</p>
