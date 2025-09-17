@@ -149,54 +149,54 @@ const OrganizationDetail = () => {
         </div>
 
         <Tabs defaultValue="overview" className="space-y-4">
-          <TabsList className="grid grid-cols-8 gap-2 bg-transparent h-auto p-1">
+          <TabsList className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-2 bg-transparent h-auto p-1">
             <TabsTrigger 
               value="overview" 
-              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 h-12 text-base font-medium rounded-lg shadow-sm transition-all"
+              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 h-10 md:h-12 text-sm md:text-base font-medium rounded-lg shadow-sm transition-all px-2 md:px-4"
             >
-              Overview
+              <span className="truncate">Overview</span>
             </TabsTrigger>
             <TabsTrigger 
               value="contacts"
-              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 h-12 text-base font-medium rounded-lg shadow-sm transition-all"
+              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 h-10 md:h-12 text-sm md:text-base font-medium rounded-lg shadow-sm transition-all px-2 md:px-4"
             >
-              Contacts
+              <span className="truncate">Contacts</span>
             </TabsTrigger>
             <TabsTrigger 
               value="partnership"
-              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 h-12 text-base font-medium rounded-lg shadow-sm transition-all"
+              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 h-10 md:h-12 text-sm md:text-base font-medium rounded-lg shadow-sm transition-all px-2 md:px-4"
             >
-              Partnership
+              <span className="truncate">Partnership</span>
             </TabsTrigger>
             <TabsTrigger 
               value="training"
-              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 h-12 text-base font-medium rounded-lg shadow-sm transition-all"
+              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 h-10 md:h-12 text-sm md:text-base font-medium rounded-lg shadow-sm transition-all px-2 md:px-4"
             >
-              Resources
+              <span className="truncate">Resources</span>
             </TabsTrigger>
             <TabsTrigger 
               value="kpis"
-              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 h-12 text-base font-medium rounded-lg shadow-sm transition-all"
+              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 h-10 md:h-12 text-sm md:text-base font-medium rounded-lg shadow-sm transition-all px-2 md:px-4"
             >
-              KPIs & Metrics
+              <span className="truncate">KPIs & Metrics</span>
             </TabsTrigger>
             <TabsTrigger 
               value="growth"
-              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 h-12 text-base font-medium rounded-lg shadow-sm transition-all"
+              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 h-10 md:h-12 text-sm md:text-base font-medium rounded-lg shadow-sm transition-all px-2 md:px-4"
             >
-              Growth Goals
+              <span className="truncate">Growth Goals</span>
             </TabsTrigger>
             <TabsTrigger 
               value="actions"
-              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 h-12 text-base font-medium rounded-lg shadow-sm transition-all"
+              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 h-10 md:h-12 text-sm md:text-base font-medium rounded-lg shadow-sm transition-all px-2 md:px-4"
             >
-              Strategic Actions
+              <span className="truncate">Strategic Actions</span>
             </TabsTrigger>
             <TabsTrigger 
               value="referrals"
-              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 h-12 text-base font-medium rounded-lg shadow-sm transition-all"
+              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 h-10 md:h-12 text-sm md:text-base font-medium rounded-lg shadow-sm transition-all px-2 md:px-4"
             >
-              Referrals
+              <span className="truncate">Referrals</span>
             </TabsTrigger>
           </TabsList>
 
@@ -230,20 +230,20 @@ const OrganizationDetail = () => {
                     </div>
                   )}
                   
-                  <div className="grid grid-cols-2 gap-2 text-sm">
-                    {organization.phone && (
-                      <div className="flex items-center space-x-2">
-                        <Phone className="w-3 h-3 text-gray-500" />
-                        <span>{organization.phone}</span>
-                      </div>
-                    )}
-                    
-                    {organization.contact_email && (
-                      <div className="flex items-center space-x-2">
-                        <Mail className="w-3 h-3 text-gray-500" />
-                        <span>{organization.contact_email}</span>
-                      </div>
-                    )}
+                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+                     {organization.phone && (
+                       <div className="flex items-center space-x-2">
+                         <Phone className="w-3 h-3 text-gray-500 flex-shrink-0" />
+                         <span className="truncate">{organization.phone}</span>
+                       </div>
+                     )}
+                     
+                     {organization.contact_email && (
+                       <div className="flex items-center space-x-2">
+                         <Mail className="w-3 h-3 text-gray-500 flex-shrink-0" />
+                         <span className="truncate" title={organization.contact_email}>{organization.contact_email}</span>
+                       </div>
+                     )}
                     
                     {organization.website && (
                       <div className="flex items-center space-x-2">
@@ -347,42 +347,42 @@ const OrganizationDetail = () => {
                     <span>Contact & Assignment</span>
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  {organization.contact_person && (
-                    <div>
-                      <p className="text-sm text-gray-600">Primary Contact</p>
-                      <p className="font-medium">{organization.contact_person}</p>
-                    </div>
-                  )}
-                  
-                  {organization.assigned_marketer && (
-                    <div>
-                      <p className="text-sm text-gray-600">Assigned Marketer</p>
-                      <p className="font-medium">{organization.assigned_marketer}</p>
-                    </div>
-                  )}
+                 <CardContent className="space-y-4">
+                   {organization.contact_person && (
+                     <div>
+                       <p className="text-sm text-gray-600">Primary Contact</p>
+                       <p className="font-medium break-words">{organization.contact_person}</p>
+                     </div>
+                   )}
+                   
+                   {organization.assigned_marketer && (
+                     <div>
+                       <p className="text-sm text-gray-600">Assigned Marketer</p>
+                       <p className="font-medium break-words">{organization.assigned_marketer}</p>
+                     </div>
+                   )}
 
-                  {organization.after_hours_contact && (
-                    <div>
-                      <p className="text-sm text-gray-600">After Hours Contact</p>
-                      <p className="font-medium">{organization.after_hours_contact}</p>
-                    </div>
-                  )}
+                   {organization.after_hours_contact && (
+                     <div>
+                       <p className="text-sm text-gray-600">After Hours Contact</p>
+                       <p className="font-medium break-words">{organization.after_hours_contact}</p>
+                     </div>
+                   )}
 
-                  {organization.medicare_id && (
-                    <div>
-                      <p className="text-sm text-gray-600">Medicare ID</p>
-                      <p className="font-medium">{organization.medicare_id}</p>
-                    </div>
-                  )}
-                  
-                  <div>
-                    <p className="text-sm text-gray-600">Status</p>
-                    <Badge variant={organization.is_active ? "default" : "secondary"}>
-                      {organization.is_active ? "Active" : "Inactive"}
-                    </Badge>
-                  </div>
-                </CardContent>
+                   {organization.medicare_id && (
+                     <div>
+                       <p className="text-sm text-gray-600">Medicare ID</p>
+                       <p className="font-medium break-words">{organization.medicare_id}</p>
+                     </div>
+                   )}
+                   
+                   <div>
+                     <p className="text-sm text-gray-600">Status</p>
+                     <Badge variant={organization.is_active ? "default" : "secondary"}>
+                       {organization.is_active ? "Active" : "Inactive"}
+                     </Badge>
+                   </div>
+                 </CardContent>
               </Card>
             </div>
 

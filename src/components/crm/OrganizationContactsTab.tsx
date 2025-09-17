@@ -368,44 +368,48 @@ const OrganizationContactsTab = ({ organizationId, organizationName }: Organizat
         {contacts?.map((contact) => (
           <Card key={contact.id}>
             <CardContent className="pt-4">
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <User className="w-4 h-4" />
-                    <h4 className="font-medium">
-                      {contact.first_name} {contact.last_name}
-                    </h4>
-                    <Badge className={getInfluenceColor(contact.influence_level)}>
-                      {contact.influence_level} influence
-                    </Badge>
-                    {contact.role_in_referral && (
-                      <Badge className={getRoleColor(contact.role_in_referral)}>
-                        {formatRoleDisplay(contact.role_in_referral)}
-                      </Badge>
-                    )}
-                  </div>
+               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                 <div className="flex-1 min-w-0">
+                   <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
+                     <div className="flex items-center gap-2">
+                       <User className="w-4 h-4" />
+                       <h4 className="font-medium">
+                         {contact.first_name} {contact.last_name}
+                       </h4>
+                     </div>
+                     <div className="flex flex-wrap gap-1">
+                       <Badge className={getInfluenceColor(contact.influence_level)}>
+                         {contact.influence_level} influence
+                       </Badge>
+                       {contact.role_in_referral && (
+                         <Badge className={getRoleColor(contact.role_in_referral)}>
+                           {formatRoleDisplay(contact.role_in_referral)}
+                         </Badge>
+                       )}
+                     </div>
+                   </div>
                   
                   {contact.title && (
                     <p className="text-sm text-gray-600 mb-2">{contact.title}</p>
                   )}
                   
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    {contact.direct_phone && (
-                      <div className="flex items-center gap-1">
-                        <Phone className="w-3 h-3" />
-                        <span>{contact.direct_phone}</span>
-                      </div>
-                    )}
-                    {contact.email && (
-                      <div className="flex items-center gap-1">
-                        <Mail className="w-3 h-3" />
-                        <span>{contact.email}</span>
-                      </div>
-                    )}
-                  </div>
+                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+                     {contact.direct_phone && (
+                       <div className="flex items-center gap-1">
+                         <Phone className="w-3 h-3 flex-shrink-0" />
+                         <span className="truncate">{contact.direct_phone}</span>
+                       </div>
+                     )}
+                     {contact.email && (
+                       <div className="flex items-center gap-1">
+                         <Mail className="w-3 h-3 flex-shrink-0" />
+                         <span className="truncate" title={contact.email}>{contact.email}</span>
+                       </div>
+                     )}
+                   </div>
                 </div>
                 
-                <div className="flex gap-1">
+                <div className="flex gap-1 flex-shrink-0">
                   <Button size="sm" variant="outline" onClick={() => startEdit(contact)}>
                     <Edit className="w-3 h-3" />
                   </Button>
