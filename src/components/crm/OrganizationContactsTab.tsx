@@ -10,6 +10,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Plus, Edit, Trash, Phone, Mail, User } from 'lucide-react';
 
 interface OrganizationContactsTabProps {
@@ -23,14 +25,52 @@ const OrganizationContactsTab = ({ organizationId, organizationName }: Organizat
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingContact, setEditingContact] = useState<any>(null);
   const [formData, setFormData] = useState({
+    // Core Contact Information
     first_name: '',
     last_name: '',
+    middle_name: '',
     title: '',
-    direct_phone: '',
+    department: '',
+    professional_license: '',
+    npi_number: '',
     email: '',
+    direct_phone: '',
+    fax_number: '',
+    mailing_address: '',
+    preferred_contact_method: 'email',
+    
+    // Relationship & Referral Data
+    contact_type: '',
+    relationship_to_patient: '',
     role_in_referral: '',
+    referral_source_category: '',
+    lead_source: '',
+    assigned_owner: '',
     influence_level: 'medium',
     relationship_strength: 3,
+    last_contact_date: '',
+    next_followup_date: '',
+    
+    // Compliance & Operations
+    consent_status: 'pending',
+    hipaa_compliance: false,
+    credential_verification_status: 'pending',
+    affiliation_agreements: false,
+    
+    // CRM Engagement & Analytics
+    contact_stage: 'lead',
+    referral_conversion_rate: '',
+    marketing_preferences: [],
+    tags_categories: [],
+    
+    // Custom Hospice Fields
+    specialty: '',
+    areas_of_service: '',
+    patient_population_served: '',
+    preferred_hospital: '',
+    relationship_notes: '',
+    
+    // Legacy fields
     years_in_position: '',
     communication_preferences: ['email'],
     best_contact_times: '',
@@ -138,14 +178,52 @@ const OrganizationContactsTab = ({ organizationId, organizationName }: Organizat
 
   const resetForm = () => {
     setFormData({
+      // Core Contact Information
       first_name: '',
       last_name: '',
+      middle_name: '',
       title: '',
-      direct_phone: '',
+      department: '',
+      professional_license: '',
+      npi_number: '',
       email: '',
+      direct_phone: '',
+      fax_number: '',
+      mailing_address: '',
+      preferred_contact_method: 'email',
+      
+      // Relationship & Referral Data
+      contact_type: '',
+      relationship_to_patient: '',
       role_in_referral: '',
+      referral_source_category: '',
+      lead_source: '',
+      assigned_owner: '',
       influence_level: 'medium',
       relationship_strength: 3,
+      last_contact_date: '',
+      next_followup_date: '',
+      
+      // Compliance & Operations
+      consent_status: 'pending',
+      hipaa_compliance: false,
+      credential_verification_status: 'pending',
+      affiliation_agreements: false,
+      
+      // CRM Engagement & Analytics
+      contact_stage: 'lead',
+      referral_conversion_rate: '',
+      marketing_preferences: [],
+      tags_categories: [],
+      
+      // Custom Hospice Fields
+      specialty: '',
+      areas_of_service: '',
+      patient_population_served: '',
+      preferred_hospital: '',
+      relationship_notes: '',
+      
+      // Legacy fields
       years_in_position: '',
       communication_preferences: ['email'],
       best_contact_times: '',
@@ -169,14 +247,52 @@ const OrganizationContactsTab = ({ organizationId, organizationName }: Organizat
 
   const startEdit = (contact: any) => {
     setFormData({
+      // Core Contact Information
       first_name: contact.first_name || '',
       last_name: contact.last_name || '',
+      middle_name: contact.middle_name || '',
       title: contact.title || '',
-      direct_phone: contact.direct_phone || '',
+      department: contact.department || '',
+      professional_license: contact.professional_license || '',
+      npi_number: contact.npi_number || '',
       email: contact.email || '',
+      direct_phone: contact.direct_phone || '',
+      fax_number: contact.fax_number || '',
+      mailing_address: contact.mailing_address || '',
+      preferred_contact_method: contact.preferred_contact_method || 'email',
+      
+      // Relationship & Referral Data
+      contact_type: contact.contact_type || '',
+      relationship_to_patient: contact.relationship_to_patient || '',
       role_in_referral: contact.role_in_referral || '',
+      referral_source_category: contact.referral_source_category || '',
+      lead_source: contact.lead_source || '',
+      assigned_owner: contact.assigned_owner || '',
       influence_level: contact.influence_level || 'medium',
       relationship_strength: contact.relationship_strength || 3,
+      last_contact_date: contact.last_contact_date ? new Date(contact.last_contact_date).toISOString().split('T')[0] : '',
+      next_followup_date: contact.next_followup_date || '',
+      
+      // Compliance & Operations
+      consent_status: contact.consent_status || 'pending',
+      hipaa_compliance: contact.hipaa_compliance || false,
+      credential_verification_status: contact.credential_verification_status || 'pending',
+      affiliation_agreements: contact.affiliation_agreements || false,
+      
+      // CRM Engagement & Analytics
+      contact_stage: contact.contact_stage || 'lead',
+      referral_conversion_rate: contact.referral_conversion_rate?.toString() || '',
+      marketing_preferences: contact.marketing_preferences || [],
+      tags_categories: contact.tags_categories || [],
+      
+      // Custom Hospice Fields
+      specialty: contact.specialty || '',
+      areas_of_service: contact.areas_of_service || '',
+      patient_population_served: contact.patient_population_served || '',
+      preferred_hospital: contact.preferred_hospital || '',
+      relationship_notes: contact.relationship_notes || '',
+      
+      // Legacy fields
       years_in_position: contact.years_in_position?.toString() || '',
       communication_preferences: contact.communication_preferences || ['email'],
       best_contact_times: contact.best_contact_times || '',
@@ -234,141 +350,455 @@ const OrganizationContactsTab = ({ organizationId, organizationName }: Organizat
             <CardTitle>{editingContact ? 'Edit Contact' : 'Add New Contact'}</CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="first_name">First Name *</Label>
-                  <Input
-                    id="first_name"
-                    value={formData.first_name}
-                    onChange={(e) => setFormData(prev => ({ ...prev, first_name: e.target.value }))}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="last_name">Last Name *</Label>
-                  <Input
-                    id="last_name"
-                    value={formData.last_name}
-                    onChange={(e) => setFormData(prev => ({ ...prev, last_name: e.target.value }))}
-                    required
-                  />
-                </div>
-              </div>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <Tabs defaultValue="basic" className="w-full">
+                <TabsList className="grid w-full grid-cols-4">
+                  <TabsTrigger value="basic">Basic Info</TabsTrigger>
+                  <TabsTrigger value="referral">Referral Data</TabsTrigger>
+                  <TabsTrigger value="compliance">Compliance</TabsTrigger>
+                  <TabsTrigger value="notes">Notes</TabsTrigger>
+                </TabsList>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="title">Title</Label>
-                  <Input
-                    id="title"
-                    value={formData.title}
-                    onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="role_in_referral">Role in Referral Process</Label>
-                  <Select value={formData.role_in_referral} onValueChange={(value) => setFormData(prev => ({ ...prev, role_in_referral: value }))}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select role" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="decision_maker">Decision Maker</SelectItem>
-                      <SelectItem value="influencer">Influencer</SelectItem>
-                      <SelectItem value="gatekeeper">Gatekeeper</SelectItem>
-                      <SelectItem value="primary_contact">Primary Contact</SelectItem>
-                      <SelectItem value="secondary_contact">Secondary Contact</SelectItem>
-                      <SelectItem value="administrator">Administrator</SelectItem>
-                      <SelectItem value="nurse">Nurse</SelectItem>
-                      <SelectItem value="social_worker">Social Worker</SelectItem>
-                      <SelectItem value="physician">Physician</SelectItem>
-                      <SelectItem value="manager">Manager</SelectItem>
-                      <SelectItem value="director">Director</SelectItem>
-                      <SelectItem value="coordinator">Coordinator</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+                <TabsContent value="basic" className="space-y-4 mt-4">
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <Label htmlFor="first_name">First Name *</Label>
+                      <Input
+                        id="first_name"
+                        value={formData.first_name}
+                        onChange={(e) => setFormData(prev => ({ ...prev, first_name: e.target.value }))}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="middle_name">Middle Name</Label>
+                      <Input
+                        id="middle_name"
+                        value={formData.middle_name}
+                        onChange={(e) => setFormData(prev => ({ ...prev, middle_name: e.target.value }))}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="last_name">Last Name *</Label>
+                      <Input
+                        id="last_name"
+                        value={formData.last_name}
+                        onChange={(e) => setFormData(prev => ({ ...prev, last_name: e.target.value }))}
+                        required
+                      />
+                    </div>
+                  </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="direct_phone">Direct Phone</Label>
-                  <Input
-                    id="direct_phone"
-                    value={formData.direct_phone}
-                    onChange={(e) => setFormData(prev => ({ ...prev, direct_phone: e.target.value }))}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                  />
-                </div>
-              </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="title">Job Title</Label>
+                      <Input
+                        id="title"
+                        value={formData.title}
+                        onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="department">Department</Label>
+                      <Input
+                        id="department"
+                        value={formData.department}
+                        onChange={(e) => setFormData(prev => ({ ...prev, department: e.target.value }))}
+                      />
+                    </div>
+                  </div>
 
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <Label htmlFor="influence_level">Influence Level</Label>
-                  <Select value={formData.influence_level} onValueChange={(value) => setFormData(prev => ({ ...prev, influence_level: value }))}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="high">High</SelectItem>
-                      <SelectItem value="medium">Medium</SelectItem>
-                      <SelectItem value="low">Low</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="relationship_strength">Relationship Strength (1-5)</Label>
-                  <Select value={formData.relationship_strength.toString()} onValueChange={(value) => setFormData(prev => ({ ...prev, relationship_strength: parseInt(value) }))}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {[1, 2, 3, 4, 5].map(num => (
-                        <SelectItem key={num} value={num.toString()}>{num}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="years_in_position">Years in Position</Label>
-                  <Input
-                    id="years_in_position"
-                    type="number"
-                    value={formData.years_in_position}
-                    onChange={(e) => setFormData(prev => ({ ...prev, years_in_position: e.target.value }))}
-                  />
-                </div>
-              </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="professional_license">Professional License</Label>
+                      <Input
+                        id="professional_license"
+                        value={formData.professional_license}
+                        onChange={(e) => setFormData(prev => ({ ...prev, professional_license: e.target.value }))}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="npi_number">NPI Number</Label>
+                      <Input
+                        id="npi_number"
+                        value={formData.npi_number}
+                        onChange={(e) => setFormData(prev => ({ ...prev, npi_number: e.target.value }))}
+                      />
+                    </div>
+                  </div>
 
-              <div>
-                <Label htmlFor="best_contact_times">Best Contact Times</Label>
-                <Input
-                  id="best_contact_times"
-                  value={formData.best_contact_times}
-                  onChange={(e) => setFormData(prev => ({ ...prev, best_contact_times: e.target.value }))}
-                  placeholder="e.g., Mornings, After 2 PM"
-                />
-              </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="email">Email</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={formData.email}
+                        onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="direct_phone">Direct Phone</Label>
+                      <Input
+                        id="direct_phone"
+                        value={formData.direct_phone}
+                        onChange={(e) => setFormData(prev => ({ ...prev, direct_phone: e.target.value }))}
+                      />
+                    </div>
+                  </div>
 
-              <div>
-                <Label htmlFor="personal_interests">Personal Interests</Label>
-                <Textarea
-                  id="personal_interests"
-                  value={formData.personal_interests}
-                  onChange={(e) => setFormData(prev => ({ ...prev, personal_interests: e.target.value }))}
-                  rows={2}
-                />
-              </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="fax_number">Fax Number</Label>
+                      <Input
+                        id="fax_number"
+                        value={formData.fax_number}
+                        onChange={(e) => setFormData(prev => ({ ...prev, fax_number: e.target.value }))}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="preferred_contact_method">Preferred Contact Method</Label>
+                      <Select value={formData.preferred_contact_method} onValueChange={(value) => setFormData(prev => ({ ...prev, preferred_contact_method: value }))}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="email">Email</SelectItem>
+                          <SelectItem value="phone">Phone</SelectItem>
+                          <SelectItem value="fax">Fax</SelectItem>
+                          <SelectItem value="mail">Mail</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
 
-              <div className="flex justify-end gap-2">
+                  <div>
+                    <Label htmlFor="mailing_address">Mailing Address</Label>
+                    <Textarea
+                      id="mailing_address"
+                      value={formData.mailing_address}
+                      onChange={(e) => setFormData(prev => ({ ...prev, mailing_address: e.target.value }))}
+                      rows={2}
+                    />
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="referral" className="space-y-4 mt-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="contact_type">Contact Type</Label>
+                      <Select value={formData.contact_type} onValueChange={(value) => setFormData(prev => ({ ...prev, contact_type: value }))}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select contact type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="referral_source">Referral Source</SelectItem>
+                          <SelectItem value="physician">Physician</SelectItem>
+                          <SelectItem value="discharge_planner">Discharge Planner</SelectItem>
+                          <SelectItem value="case_manager">Case Manager</SelectItem>
+                          <SelectItem value="social_worker">Social Worker</SelectItem>
+                          <SelectItem value="family">Family</SelectItem>
+                          <SelectItem value="administrator">Administrator</SelectItem>
+                          <SelectItem value="nurse">Nurse</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="contact_stage">Contact Stage</Label>
+                      <Select value={formData.contact_stage} onValueChange={(value) => setFormData(prev => ({ ...prev, contact_stage: value }))}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="lead">Lead</SelectItem>
+                          <SelectItem value="active">Active</SelectItem>
+                          <SelectItem value="inactive">Inactive</SelectItem>
+                          <SelectItem value="former_partner">Former Partner</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="role_in_referral">Role in Referral Process</Label>
+                      <Select value={formData.role_in_referral} onValueChange={(value) => setFormData(prev => ({ ...prev, role_in_referral: value }))}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select role" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="decision_maker">Decision Maker</SelectItem>
+                          <SelectItem value="influencer">Influencer</SelectItem>
+                          <SelectItem value="gatekeeper">Gatekeeper</SelectItem>
+                          <SelectItem value="primary_contact">Primary Contact</SelectItem>
+                          <SelectItem value="secondary_contact">Secondary Contact</SelectItem>
+                          <SelectItem value="administrator">Administrator</SelectItem>
+                          <SelectItem value="nurse">Nurse</SelectItem>
+                          <SelectItem value="social_worker">Social Worker</SelectItem>
+                          <SelectItem value="physician">Physician</SelectItem>
+                          <SelectItem value="manager">Manager</SelectItem>
+                          <SelectItem value="director">Director</SelectItem>
+                          <SelectItem value="coordinator">Coordinator</SelectItem>
+                          <SelectItem value="other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="referral_source_category">Referral Source Category</Label>
+                      <Select value={formData.referral_source_category} onValueChange={(value) => setFormData(prev => ({ ...prev, referral_source_category: value }))}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="hospital">Hospital</SelectItem>
+                          <SelectItem value="clinic">Clinic</SelectItem>
+                          <SelectItem value="snf">SNF</SelectItem>
+                          <SelectItem value="community">Community</SelectItem>
+                          <SelectItem value="physician_office">Physician Office</SelectItem>
+                          <SelectItem value="home_health">Home Health</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="lead_source">Lead Source</Label>
+                      <Input
+                        id="lead_source"
+                        value={formData.lead_source}
+                        onChange={(e) => setFormData(prev => ({ ...prev, lead_source: e.target.value }))}
+                        placeholder="How contact was acquired"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="assigned_owner">Assigned Owner</Label>
+                      <Input
+                        id="assigned_owner"
+                        value={formData.assigned_owner}
+                        onChange={(e) => setFormData(prev => ({ ...prev, assigned_owner: e.target.value }))}
+                        placeholder="Account manager"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <Label htmlFor="influence_level">Influence Level</Label>
+                      <Select value={formData.influence_level} onValueChange={(value) => setFormData(prev => ({ ...prev, influence_level: value }))}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="high">High</SelectItem>
+                          <SelectItem value="medium">Medium</SelectItem>
+                          <SelectItem value="low">Low</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="relationship_strength">Relationship Strength (1-5)</Label>
+                      <Select value={formData.relationship_strength.toString()} onValueChange={(value) => setFormData(prev => ({ ...prev, relationship_strength: parseInt(value) }))}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {[1, 2, 3, 4, 5].map(num => (
+                            <SelectItem key={num} value={num.toString()}>{num}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="referral_conversion_rate">Conversion Rate (%)</Label>
+                      <Input
+                        id="referral_conversion_rate"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        max="100"
+                        value={formData.referral_conversion_rate}
+                        onChange={(e) => setFormData(prev => ({ ...prev, referral_conversion_rate: e.target.value }))}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="last_contact_date">Last Contact Date</Label>
+                      <Input
+                        id="last_contact_date"
+                        type="date"
+                        value={formData.last_contact_date}
+                        onChange={(e) => setFormData(prev => ({ ...prev, last_contact_date: e.target.value }))}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="next_followup_date">Next Follow-up Date</Label>
+                      <Input
+                        id="next_followup_date"
+                        type="date"
+                        value={formData.next_followup_date}
+                        onChange={(e) => setFormData(prev => ({ ...prev, next_followup_date: e.target.value }))}
+                      />
+                    </div>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="compliance" className="space-y-4 mt-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="consent_status">Consent Status</Label>
+                      <Select value={formData.consent_status} onValueChange={(value) => setFormData(prev => ({ ...prev, consent_status: value }))}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pending">Pending</SelectItem>
+                          <SelectItem value="granted">Granted</SelectItem>
+                          <SelectItem value="denied">Denied</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="credential_verification_status">Credential Verification</Label>
+                      <Select value={formData.credential_verification_status} onValueChange={(value) => setFormData(prev => ({ ...prev, credential_verification_status: value }))}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pending">Pending</SelectItem>
+                          <SelectItem value="verified">Verified</SelectItem>
+                          <SelectItem value="expired">Expired</SelectItem>
+                          <SelectItem value="not_required">Not Required</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="hipaa_compliance"
+                        checked={formData.hipaa_compliance}
+                        onCheckedChange={(checked) => setFormData(prev => ({ ...prev, hipaa_compliance: checked as boolean }))}
+                      />
+                      <Label htmlFor="hipaa_compliance">HIPAA Release on File</Label>
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="affiliation_agreements"
+                        checked={formData.affiliation_agreements}
+                        onCheckedChange={(checked) => setFormData(prev => ({ ...prev, affiliation_agreements: checked as boolean }))}
+                      />
+                      <Label htmlFor="affiliation_agreements">Affiliation Agreements on File</Label>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-4">
+                    <div>
+                      <Label htmlFor="specialty">Specialty</Label>
+                      <Input
+                        id="specialty"
+                        value={formData.specialty}
+                        onChange={(e) => setFormData(prev => ({ ...prev, specialty: e.target.value }))}
+                        placeholder="e.g., Oncology, Palliative, Family Medicine"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="areas_of_service">Areas of Service</Label>
+                      <Input
+                        id="areas_of_service"
+                        value={formData.areas_of_service}
+                        onChange={(e) => setFormData(prev => ({ ...prev, areas_of_service: e.target.value }))}
+                        placeholder="Coverage areas"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="patient_population_served">Patient Population Served</Label>
+                      <Input
+                        id="patient_population_served"
+                        value={formData.patient_population_served}
+                        onChange={(e) => setFormData(prev => ({ ...prev, patient_population_served: e.target.value }))}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="preferred_hospital">Preferred Hospital/Facility</Label>
+                      <Input
+                        id="preferred_hospital"
+                        value={formData.preferred_hospital}
+                        onChange={(e) => setFormData(prev => ({ ...prev, preferred_hospital: e.target.value }))}
+                      />
+                    </div>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="notes" className="space-y-4 mt-4">
+                  <div>
+                    <Label htmlFor="relationship_notes">Relationship Notes</Label>
+                    <Textarea
+                      id="relationship_notes"
+                      value={formData.relationship_notes}
+                      onChange={(e) => setFormData(prev => ({ ...prev, relationship_notes: e.target.value }))}
+                      rows={3}
+                      placeholder="Notes on relationship strength and influence"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="best_contact_times">Best Contact Times</Label>
+                    <Input
+                      id="best_contact_times"
+                      value={formData.best_contact_times}
+                      onChange={(e) => setFormData(prev => ({ ...prev, best_contact_times: e.target.value }))}
+                      placeholder="e.g., Mornings, After 2 PM"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="personal_interests">Personal Interests</Label>
+                    <Textarea
+                      id="personal_interests"
+                      value={formData.personal_interests}
+                      onChange={(e) => setFormData(prev => ({ ...prev, personal_interests: e.target.value }))}
+                      rows={2}
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="professional_networks">Professional Networks</Label>
+                    <Textarea
+                      id="professional_networks"
+                      value={formData.professional_networks}
+                      onChange={(e) => setFormData(prev => ({ ...prev, professional_networks: e.target.value }))}
+                      rows={2}
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="previous_experience">Previous Experience</Label>
+                    <Textarea
+                      id="previous_experience"
+                      value={formData.previous_experience}
+                      onChange={(e) => setFormData(prev => ({ ...prev, previous_experience: e.target.value }))}
+                      rows={2}
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="years_in_position">Years in Position</Label>
+                    <Input
+                      id="years_in_position"
+                      type="number"
+                      value={formData.years_in_position}
+                      onChange={(e) => setFormData(prev => ({ ...prev, years_in_position: e.target.value }))}
+                    />
+                  </div>
+                </TabsContent>
+              </Tabs>
+
+              <div className="flex justify-end gap-2 pt-4 border-t">
                 <Button type="button" variant="outline" onClick={resetForm}>
                   Cancel
                 </Button>
@@ -426,24 +856,34 @@ const OrganizationContactsTab = ({ organizationId, organizationName }: Organizat
             <CardContent className="pt-4">
                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                  <div className="flex-1 min-w-0">
-                   <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
-                     <div className="flex items-center gap-2">
-                       <User className="w-4 h-4" />
-                       <h4 className="font-medium">
-                         {contact.first_name} {contact.last_name}
-                       </h4>
-                     </div>
-                     <div className="flex flex-wrap gap-1">
-                       <Badge className={getInfluenceColor(contact.influence_level)}>
-                         {contact.influence_level} influence
-                       </Badge>
-                       {contact.role_in_referral && (
-                         <Badge className={getRoleColor(contact.role_in_referral)}>
-                           {formatRoleDisplay(contact.role_in_referral)}
-                         </Badge>
-                       )}
-                     </div>
-                   </div>
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
+                      <div className="flex items-center gap-2">
+                        <User className="w-4 h-4" />
+                        <h4 className="font-medium">
+                          {contact.first_name} {contact.middle_name && `${contact.middle_name} `}{contact.last_name}
+                        </h4>
+                      </div>
+                      <div className="flex flex-wrap gap-1">
+                        {contact.contact_type && (
+                          <Badge className="bg-purple-100 text-purple-800">
+                            {formatRoleDisplay(contact.contact_type)}
+                          </Badge>
+                        )}
+                        {contact.contact_stage && (
+                          <Badge className={contact.contact_stage === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}>
+                            {formatRoleDisplay(contact.contact_stage)}
+                          </Badge>
+                        )}
+                        <Badge className={getInfluenceColor(contact.influence_level)}>
+                          {contact.influence_level} influence
+                        </Badge>
+                        {contact.role_in_referral && (
+                          <Badge className={getRoleColor(contact.role_in_referral)}>
+                            {formatRoleDisplay(contact.role_in_referral)}
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
                   
                   {contact.title && (
                     <p className="text-sm text-gray-600 mb-2">{contact.title}</p>

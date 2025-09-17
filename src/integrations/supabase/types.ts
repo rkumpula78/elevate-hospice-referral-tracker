@@ -752,67 +752,160 @@ export type Database = {
       }
       organization_contacts: {
         Row: {
+          activity_log: Json | null
+          affiliation_agreements: boolean | null
+          areas_of_service: string | null
+          assigned_owner: string | null
           best_contact_times: string | null
+          communication_log: Json | null
           communication_preferences: string[] | null
+          consent_status: string | null
+          contact_stage: string | null
+          contact_type: string | null
           created_at: string | null
+          credential_verification_status: string | null
+          department: string | null
           direct_phone: string | null
           email: string | null
+          fax_number: string | null
           first_name: string
+          hipaa_compliance: boolean | null
           id: string
           influence_level: string | null
+          last_contact_date: string | null
           last_name: string
+          lead_source: string | null
+          linked_organizations: string[] | null
+          mailing_address: string | null
+          marketing_preferences: string[] | null
+          middle_name: string | null
+          next_followup_date: string | null
+          npi_number: string | null
           organization_id: string
+          patient_population_served: string | null
           personal_interests: string | null
           personal_notes: string | null
+          preferred_contact_method: string | null
+          preferred_hospital: string | null
           previous_experience: string | null
+          professional_license: string | null
           professional_networks: string | null
+          referral_conversion_rate: number | null
+          referral_history: Json | null
+          referral_source_category: string | null
+          relationship_notes: string | null
           relationship_strength: number | null
+          relationship_to_patient: string | null
           role_in_referral: string | null
           role_in_referral_process: string | null
+          specialty: string | null
+          tags_categories: string[] | null
           title: string | null
           updated_at: string | null
           years_in_position: number | null
         }
         Insert: {
+          activity_log?: Json | null
+          affiliation_agreements?: boolean | null
+          areas_of_service?: string | null
+          assigned_owner?: string | null
           best_contact_times?: string | null
+          communication_log?: Json | null
           communication_preferences?: string[] | null
+          consent_status?: string | null
+          contact_stage?: string | null
+          contact_type?: string | null
           created_at?: string | null
+          credential_verification_status?: string | null
+          department?: string | null
           direct_phone?: string | null
           email?: string | null
+          fax_number?: string | null
           first_name: string
+          hipaa_compliance?: boolean | null
           id?: string
           influence_level?: string | null
+          last_contact_date?: string | null
           last_name: string
+          lead_source?: string | null
+          linked_organizations?: string[] | null
+          mailing_address?: string | null
+          marketing_preferences?: string[] | null
+          middle_name?: string | null
+          next_followup_date?: string | null
+          npi_number?: string | null
           organization_id: string
+          patient_population_served?: string | null
           personal_interests?: string | null
           personal_notes?: string | null
+          preferred_contact_method?: string | null
+          preferred_hospital?: string | null
           previous_experience?: string | null
+          professional_license?: string | null
           professional_networks?: string | null
+          referral_conversion_rate?: number | null
+          referral_history?: Json | null
+          referral_source_category?: string | null
+          relationship_notes?: string | null
           relationship_strength?: number | null
+          relationship_to_patient?: string | null
           role_in_referral?: string | null
           role_in_referral_process?: string | null
+          specialty?: string | null
+          tags_categories?: string[] | null
           title?: string | null
           updated_at?: string | null
           years_in_position?: number | null
         }
         Update: {
+          activity_log?: Json | null
+          affiliation_agreements?: boolean | null
+          areas_of_service?: string | null
+          assigned_owner?: string | null
           best_contact_times?: string | null
+          communication_log?: Json | null
           communication_preferences?: string[] | null
+          consent_status?: string | null
+          contact_stage?: string | null
+          contact_type?: string | null
           created_at?: string | null
+          credential_verification_status?: string | null
+          department?: string | null
           direct_phone?: string | null
           email?: string | null
+          fax_number?: string | null
           first_name?: string
+          hipaa_compliance?: boolean | null
           id?: string
           influence_level?: string | null
+          last_contact_date?: string | null
           last_name?: string
+          lead_source?: string | null
+          linked_organizations?: string[] | null
+          mailing_address?: string | null
+          marketing_preferences?: string[] | null
+          middle_name?: string | null
+          next_followup_date?: string | null
+          npi_number?: string | null
           organization_id?: string
+          patient_population_served?: string | null
           personal_interests?: string | null
           personal_notes?: string | null
+          preferred_contact_method?: string | null
+          preferred_hospital?: string | null
           previous_experience?: string | null
+          professional_license?: string | null
           professional_networks?: string | null
+          referral_conversion_rate?: number | null
+          referral_history?: Json | null
+          referral_source_category?: string | null
+          relationship_notes?: string | null
           relationship_strength?: number | null
+          relationship_to_patient?: string | null
           role_in_referral?: string | null
           role_in_referral_process?: string | null
+          specialty?: string | null
+          tags_categories?: string[] | null
           title?: string | null
           updated_at?: string | null
           years_in_position?: number | null
