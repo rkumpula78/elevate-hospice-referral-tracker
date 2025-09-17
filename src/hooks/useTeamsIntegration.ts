@@ -19,20 +19,31 @@ export const useTeamsIntegration = () => {
   const { toast } = useToast();
   const { settings } = useSettings();
   const [integrationState, setIntegrationState] = useState<TeamsIntegrationState>({
-    isConnected: false,
+    isConnected: true, // Enable Teams integration
     accessToken: null,
-    webhookConfigured: false // Temporarily disabled
+    webhookConfigured: true // Enable webhook functionality
   });
 
-  // Check notification history - temporarily disabled
-  const notifications = [];
-  const refetchNotifications = () => {};
+  // Check notification history
+  const { data: notifications, refetch: refetchNotifications } = useQuery({
+    queryKey: ['teams-notifications'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('teams_notifications')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(50);
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: integrationState.webhookConfigured
+  });
 
   // Send new referral notification
   const sendNewReferralNotification = useMutation({
     mutationFn: async (referral: Referral) => {
-      // Temporarily disabled
-      console.log('Teams notification would be sent for referral:', referral.id);
+      await teamsService.notifyNewReferral(referral);
     },
     onSuccess: () => {
       toast({
@@ -167,9 +178,28 @@ export const useTeamsIntegration = () => {
       return;
     }
 
-    // Temporarily disabled - would check for existing notifications
+    // Check if notifications are enabled for new referrals
+    try {
+      const { data: config } = await supabase
+        .from('teams_configuration')
+        .select('config_value')
+        .eq('config_type', 'notification_settings')
+        .eq('config_key', 'auto_notify_new_referrals')
+        .eq('is_active', true)
+        .single();
 
-    sendNewReferralNotification.mutate(referral);
+      if (config?.config_value && typeof config.config_value === 'object') {
+        const configObj = config.config_value as any;
+        if (configObj.enabled) {
+          const priorityFilter = configObj.priority_filter || [];
+          if (priorityFilter.includes(referral.priority)) {
+            sendNewReferralNotification.mutate(referral);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Failed to check notification settings:', error);
+    }
   }, [integrationState.webhookConfigured, sendNewReferralNotification]);
 
   // Auto-check for F2F deadlines
@@ -204,8 +234,18 @@ export const useTeamsIntegration = () => {
 
         // Send alert if deadline is within 7 days or overdue
         if (daysUntilDeadline <= 7) {
-          // Temporarily disabled - would check for recent alerts and send notification
-          console.log('F2F deadline alert would be sent for referral:', referral.id);
+          // Check for recent alerts to avoid spam
+          const { data: recentAlert } = await supabase
+            .from('teams_notifications')
+            .select('id')
+            .eq('referral_id', referral.id)
+            .eq('notification_type', 'f2f_deadline')
+            .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()) // Last 24 hours
+            .single();
+
+          if (!recentAlert) {
+            sendF2FDeadlineNotification.mutate({ referral, daysUntilDeadline });
+          }
         }
       }
     } catch (error) {

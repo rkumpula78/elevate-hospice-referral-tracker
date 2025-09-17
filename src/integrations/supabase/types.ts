@@ -1954,6 +1954,105 @@ export type Database = {
           },
         ]
       }
+      teams_configuration: {
+        Row: {
+          config_key: string
+          config_type: string
+          config_value: Json
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          updated_at: string
+        }
+        Insert: {
+          config_key: string
+          config_type: string
+          config_value: Json
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          updated_at?: string
+        }
+        Update: {
+          config_key?: string
+          config_type?: string
+          config_value?: Json
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      teams_notifications: {
+        Row: {
+          attempt_count: number | null
+          created_at: string
+          error_message: string | null
+          id: string
+          n8n_webhook_url: string | null
+          notification_type: string
+          organization_id: string | null
+          payload: Json | null
+          referral_id: string | null
+          response_data: Json | null
+          sent_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          attempt_count?: number | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          n8n_webhook_url?: string | null
+          notification_type: string
+          organization_id?: string | null
+          payload?: Json | null
+          referral_id?: string | null
+          response_data?: Json | null
+          sent_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          attempt_count?: number | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          n8n_webhook_url?: string | null
+          notification_type?: string
+          organization_id?: string | null
+          payload?: Json | null
+          referral_id?: string | null
+          response_data?: Json | null
+          sent_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teams_notifications_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "teams_notifications_referral_id_fkey"
+            columns: ["referral_id"]
+            isOneToOne: false
+            referencedRelation: "referrals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       visits: {
         Row: {
           completed_date: string | null

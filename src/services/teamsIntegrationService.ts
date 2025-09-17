@@ -2,7 +2,6 @@ import { supabase } from '@/integrations/supabase/client';
 import type { Database } from '@/integrations/supabase/types';
 
 type Referral = Database['public']['Tables']['referrals']['Row'];
-// type TeamsNotification = Database['public']['Tables']['teams_notifications']['Row']; // Temporarily disabled
 
 export interface TeamsNotificationPayload {
   title: string;
@@ -60,24 +59,67 @@ class TeamsIntegrationService {
    * Send notification to Teams about a new referral
    */
   async notifyNewReferral(referral: Referral, webhookUrl?: string, getTeamMemberMention?: (name: string) => any): Promise<void> {
-    // Temporarily disabled
-    console.log('Would send Teams notification for new referral:', referral.id);
+    const notificationType = 'new_referral';
+    const payload = this.buildNewReferralPayload(referral, getTeamMemberMention);
+    
+    try {
+      // Get webhook URL from configuration or use provided one
+      const targetWebhookUrl = webhookUrl || await this.getWebhookUrl(notificationType, referral);
+      
+      if (!targetWebhookUrl) {
+        console.warn('No webhook URL configured for new referral notifications');
+        return;
+      }
+
+      await this.sendN8nNotification(payload, notificationType, referral.id, referral.organization_id, targetWebhookUrl);
+    } catch (error) {
+      console.error('Failed to send new referral notification:', error);
+      throw error;
+    }
   }
 
   /**
    * Send notification for F2F deadline alerts
    */
   async notifyF2FDeadline(referral: Referral, daysUntilDeadline: number): Promise<void> {
-    // Temporarily disabled
-    console.log('Would send F2F deadline notification for referral:', referral.id, 'days:', daysUntilDeadline);
+    const notificationType = 'f2f_deadline';
+    const payload = this.buildF2FDeadlinePayload(referral, daysUntilDeadline);
+    
+    try {
+      const webhookUrl = await this.getWebhookUrl('f2f_alerts', referral);
+      
+      if (!webhookUrl) {
+        console.warn('No webhook URL configured for F2F deadline notifications');
+        return;
+      }
+
+      await this.sendN8nNotification(payload, notificationType, referral.id, referral.organization_id, webhookUrl);
+    } catch (error) {
+      console.error('Failed to send F2F deadline notification:', error);
+      throw error;
+    }
   }
 
   /**
    * Send notification for status changes
    */
   async notifyStatusChange(referral: Referral, oldStatus: string, newStatus: string): Promise<void> {
-    // Temporarily disabled
-    console.log('Would send status change notification for referral:', referral.id, 'from:', oldStatus, 'to:', newStatus);
+    const notificationType = 'status_change';
+    const payload = this.buildStatusChangePayload(referral, oldStatus, newStatus);
+    
+    try {
+      const webhookUrl = await this.getWebhookUrl('status_changes', referral);
+      
+      if (!webhookUrl) {
+        console.warn('No webhook URL configured for status change notifications');
+        return;
+      }
+
+      await this.sendN8nNotification(payload, notificationType, referral.id, referral.organization_id, webhookUrl);
+    } catch (error) {
+      console.error('Failed to send status change notification:', error);
+      throw error;
+    }
   }
 
   /**
@@ -144,6 +186,70 @@ class TeamsIntegrationService {
     }
 
     return eventId;
+  }
+
+  /**
+   * Send notification to n8n webhook
+   */
+  private async sendN8nNotification(
+    payload: TeamsNotificationPayload, 
+    notificationType: string,
+    referralId: string,
+    organizationId: string | null,
+    webhookUrl: string
+  ): Promise<void> {
+    try {
+      // Log the notification attempt
+      const { data: notification } = await supabase
+        .from('teams_notifications')
+        .insert({
+          notification_type: notificationType,
+          referral_id: referralId,
+          organization_id: organizationId,
+          status: 'pending',
+          payload: payload as any, // Cast to any to handle Json type compatibility
+          n8n_webhook_url: webhookUrl,
+          attempt_count: 1
+        })
+        .select()
+        .single();
+
+      const response = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          notificationType,
+          referralId,
+          organizationId,
+          payload,
+          timestamp: new Date().toISOString()
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`n8n webhook failed: ${response.status} ${response.statusText}`);
+      }
+
+      const responseData = await response.json().catch(() => ({}));
+
+      // Update notification as sent
+      if (notification) {
+        await supabase
+          .from('teams_notifications')
+          .update({
+            status: 'sent',
+            response_data: responseData,
+            sent_at: new Date().toISOString()
+          })
+          .eq('id', notification.id);
+      }
+    } catch (error) {
+      // Log failed notification
+      await this.logFailedNotification(notificationType, referralId, error);
+      throw error;
+    }
   }
 
   /**
@@ -292,36 +398,6 @@ class TeamsIntegrationService {
   }
 
   /**
-   * Send notification to Teams webhook
-   */
-  private async sendTeamsNotification(
-    payload: TeamsNotificationPayload, 
-    notificationType: string,
-    referralId: string,
-    webhookUrl: string
-  ): Promise<void> {
-    if (!webhookUrl) {
-      console.warn('Teams webhook URL not configured for notification type:', notificationType);
-      return;
-    }
-
-    const response = await fetch(webhookUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(payload)
-    });
-
-    if (!response.ok) {
-      throw new Error(`Teams notification failed: ${response.statusText}`);
-    }
-
-    // Log successful notification
-    await this.logSuccessfulNotification(notificationType, referralId, payload);
-  }
-
-  /**
    * Build HTML body for F2F appointment
    */
   private buildF2FAppointmentBody(referral: Referral): string {
@@ -358,15 +434,26 @@ class TeamsIntegrationService {
   }
 
   /**
-   * Log successful notification to database
+   * Get webhook URL from configuration
    */
-  private async logSuccessfulNotification(
-    notificationType: string,
-    referralId: string,
-    payload: TeamsNotificationPayload
-  ): Promise<void> {
-    // Temporarily disabled - would log to teams_notifications table
-    console.log('Would log successful notification:', notificationType, referralId);
+  private async getWebhookUrl(configKey: string, referral?: Referral): Promise<string | null> {
+    try {
+      const { data: config } = await supabase
+        .from('teams_configuration')
+        .select('config_value')
+        .eq('config_type', 'webhook_url')
+        .eq('config_key', configKey)
+        .eq('is_active', true)
+        .single();
+
+      if (!config?.config_value) return null;
+      
+      const configValue = config.config_value as any;
+      return configValue.enabled ? configValue.url : null;
+    } catch (error) {
+      console.error('Failed to get webhook URL:', error);
+      return null;
+    }
   }
 
   /**
@@ -377,8 +464,19 @@ class TeamsIntegrationService {
     referralId: string,
     error: any
   ): Promise<void> {
-    // Temporarily disabled - would log to teams_notifications table
-    console.log('Would log failed notification:', notificationType, referralId, error);
+    try {
+      await supabase
+        .from('teams_notifications')
+        .update({
+          status: 'failed',
+          error_message: error.message || String(error)
+        })
+        .eq('referral_id', referralId)
+        .eq('notification_type', notificationType)
+        .eq('status', 'pending');
+    } catch (dbError) {
+      console.error('Failed to log notification error:', dbError);
+    }
   }
 
   /**
@@ -390,16 +488,81 @@ class TeamsIntegrationService {
     eventType: string,
     eventDate: Date
   ): Promise<void> {
-    // Temporarily disabled - would log to teams_calendar_sync table
-    console.log('Would log calendar sync:', referralId, eventId, eventType);
+    // Could be implemented to track calendar integrations
+    console.log('Calendar sync logged:', referralId, eventId, eventType);
   }
 
   /**
    * Retry failed notifications
    */
   async retryFailedNotifications(): Promise<void> {
-    // Temporarily disabled - would retry failed notifications from teams_notifications table
-    console.log('Would retry failed notifications');
+    try {
+      const { data: failedNotifications } = await supabase
+        .from('teams_notifications')
+        .select('*')
+        .eq('status', 'failed')
+        .lt('attempt_count', 3); // Only retry up to 3 times
+
+      if (!failedNotifications?.length) return;
+
+      for (const notification of failedNotifications) {
+        try {
+          await supabase
+            .from('teams_notifications')
+            .update({
+              status: 'retrying',
+              attempt_count: notification.attempt_count + 1
+            })
+            .eq('id', notification.id);
+
+          const response = await fetch(notification.n8n_webhook_url, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              notificationType: notification.notification_type,
+              referralId: notification.referral_id,
+              organizationId: notification.organization_id,
+              payload: notification.payload,
+              timestamp: new Date().toISOString(),
+              isRetry: true,
+              originalAttempt: notification.created_at
+            })
+          });
+
+          if (response.ok) {
+            const responseData = await response.json().catch(() => ({}));
+            await supabase
+              .from('teams_notifications')
+              .update({
+                status: 'sent',
+                response_data: responseData,
+                sent_at: new Date().toISOString()
+              })
+              .eq('id', notification.id);
+          } else {
+            await supabase
+              .from('teams_notifications')
+              .update({
+                status: 'failed',
+                error_message: `Retry failed: ${response.status} ${response.statusText}`
+              })
+              .eq('id', notification.id);
+          }
+        } catch (error) {
+          await supabase
+            .from('teams_notifications')
+            .update({
+              status: 'failed',
+              error_message: `Retry error: ${error.message}`
+            })
+            .eq('id', notification.id);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to retry notifications:', error);
+    }
   }
 }
 
