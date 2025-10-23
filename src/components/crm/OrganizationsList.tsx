@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, MapPin, User, Edit, ExternalLink, Users, Building, Calendar, Phone, Settings } from "lucide-react";
+import { Plus, MapPin, User, Edit, ExternalLink, Users, Building, Calendar, Phone } from "lucide-react";
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -16,7 +16,6 @@ import EditOrganizationDialog from './EditOrganizationDialog';
 import OrganizationContactsDialog from './OrganizationContactsDialog';
 import ScheduleVisitDialog from './ScheduleVisitDialog';
 import EnhancedEditOrganizationDialog from './EnhancedEditOrganizationDialog';
-import MarketerSettingsDialog from './MarketerSettingsDialog';
 
 const OrganizationsList = () => {
   const { toast } = useToast();
@@ -28,7 +27,6 @@ const OrganizationsList = () => {
   const [view, setView] = useState<'card' | 'list'>('card');
   const [sortConfig, setSortConfig] = useState<{ field: string; direction: 'asc' | 'desc' } | null>(null);
   const [showAddDialog, setShowAddDialog] = useState(false);
-  const [showMarketerSettings, setShowMarketerSettings] = useState(false);
   const [editingOrganizationId, setEditingOrganizationId] = useState<string | null>(null);
   const [contactsOrganization, setContactsOrganization] = useState<{id: string, name: string} | null>(null);
   const [showScheduleDialog, setShowScheduleDialog] = useState(false);
@@ -445,16 +443,10 @@ const OrganizationsList = () => {
           <h1 className="text-3xl font-bold text-gray-900">Organizations</h1>
           <p className="text-gray-600">Manage your referral partners and prospects</p>
         </div>
-        <div className="flex gap-3">
-          <Button variant="outline" onClick={() => setShowMarketerSettings(true)} className="bg-white">
-            <Settings className="w-4 h-4 mr-2" />
-            Manage Marketers
-          </Button>
-          <Button onClick={() => setShowAddDialog(true)} className="bg-blue-600 hover:bg-blue-700">
-            <Plus className="w-4 h-4 mr-2" />
-            Add Organization
-          </Button>
-        </div>
+        <Button onClick={() => setShowAddDialog(true)} className="bg-blue-600 hover:bg-blue-700">
+          <Plus className="w-4 h-4 mr-2" />
+          Add Organization
+        </Button>
       </div>
 
       {/* Filter Tabs */}
@@ -566,11 +558,6 @@ const OrganizationsList = () => {
       <ScheduleVisitDialog
         open={showScheduleDialog}
         onOpenChange={setShowScheduleDialog}
-      />
-
-      <MarketerSettingsDialog
-        open={showMarketerSettings}
-        onOpenChange={setShowMarketerSettings}
       />
     </div>
   );
