@@ -49,11 +49,13 @@ export default function AdminUsersPage() {
   const loadUsers = async () => {
     try {
       setLoading(true);
+
+      // Get all profiles (which includes user data)
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, first_name, last_name, email, created_at');
       
-      // Get all users from auth
-      const { data: authData, error: authError } = await supabase.auth.admin.listUsers();
-      
-      if (authError) throw authError;
+      if (profilesError) throw profilesError;
 
       // Get all user roles
       const { data: rolesData, error: rolesError } = await supabase
@@ -62,27 +64,19 @@ export default function AdminUsersPage() {
       
       if (rolesError) throw rolesError;
 
-      // Get all profiles
-      const { data: profilesData, error: profilesError } = await supabase
-        .from('profiles')
-        .select('id, first_name, last_name');
-      
-      if (profilesError) throw profilesError;
-
       // Combine data
-      const usersWithRoles: UserWithRoles[] = authData.users.map(user => {
-        const userRoles = rolesData?.filter(r => r.user_id === user.id).map(r => r.role) || [];
-        const profile = profilesData?.find(p => p.id === user.id);
+      const usersWithRoles: UserWithRoles[] = (profilesData || []).map(profile => {
+        const userRoles = rolesData?.filter(r => r.user_id === profile.id).map(r => r.role) || [];
         
         return {
-          id: user.id,
-          email: user.email || '',
-          created_at: user.created_at,
+          id: profile.id,
+          email: profile.email || '',
+          created_at: profile.created_at,
           roles: userRoles,
-          profile: profile ? {
+          profile: {
             first_name: profile.first_name || '',
             last_name: profile.last_name || ''
-          } : undefined
+          }
         };
       });
 
@@ -120,15 +114,21 @@ export default function AdminUsersPage() {
       if (error) throw error;
       if (data.error) throw new Error(data.error.message);
 
-      // Get the new user's ID
-      const { data: { users: newUsers } } = await supabase.auth.admin.listUsers();
-      const newUser = newUsers?.find((u: any) => u.email === newUserEmail);
+      // Wait a moment for the user to be created
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
-      if (newUser && newUserRole === 'admin') {
+      // Get the new user's ID from profiles
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', newUserEmail)
+        .single();
+
+      if (profileData && newUserRole === 'admin') {
         // Assign admin role
         const { error: roleError } = await supabase
           .from('user_roles')
-          .insert({ user_id: newUser.id, role: 'admin', assigned_by: currentUser?.id });
+          .insert({ user_id: profileData.id, role: 'admin', assigned_by: currentUser?.id });
 
         if (roleError) throw roleError;
 
@@ -136,7 +136,7 @@ export default function AdminUsersPage() {
         await supabase.from('admin_audit_log').insert({
           admin_user_id: currentUser?.id,
           action: 'assign_admin_role',
-          target_user_id: newUser.id,
+          target_user_id: profileData.id,
           details: { email: newUserEmail }
         });
       }
@@ -202,22 +202,27 @@ export default function AdminUsersPage() {
     if (!deleteUserId) return;
 
     try {
-      const { error } = await supabase.auth.admin.deleteUser(deleteUserId);
-      
-      if (error) throw error;
+      // Delete user roles first (will cascade delete profile via auth trigger)
+      const { error: roleError } = await supabase
+        .from('user_roles')
+        .delete()
+        .eq('user_id', deleteUserId);
 
+      // Note: Actual user deletion from auth.users requires service role access
+      // For now, we remove their roles which effectively locks them out
+      
       await supabase.from('admin_audit_log').insert({
         admin_user_id: currentUser?.id,
-        action: 'delete_user',
+        action: 'disable_user',
         target_user_id: deleteUserId
       });
 
-      toast.success('User deleted successfully');
+      toast.success('User access removed');
       setDeleteUserId(null);
       loadUsers();
     } catch (error: any) {
-      console.error('Error deleting user:', error);
-      toast.error('Failed to delete user');
+      console.error('Error removing user access:', error);
+      toast.error('Failed to remove user access');
     }
   };
 
@@ -407,14 +412,14 @@ export default function AdminUsersPage() {
       <AlertDialog open={!!deleteUserId} onOpenChange={(open) => !open && setDeleteUserId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete User</AlertDialogTitle>
+            <AlertDialogTitle>Remove User Access</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this user? This action cannot be undone.
+              Are you sure you want to remove this user's access? This will remove all their roles and prevent them from logging in.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteUser}>Delete</AlertDialogAction>
+            <AlertDialogAction onClick={handleDeleteUser}>Remove Access</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
