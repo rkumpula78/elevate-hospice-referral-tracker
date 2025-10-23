@@ -39,7 +39,7 @@ const EditOrganizationDialog = ({ open, onOpenChange, organizationId }: EditOrga
         .order('first_name');
       
       if (error) throw error;
-      return data || [];
+      return (data || []).map(m => `${m.first_name} ${m.last_name}`);
     }
   });
 
@@ -564,8 +564,8 @@ const EditOrganizationDialog = ({ open, onOpenChange, organizationId }: EditOrga
                           <SelectContent>
                             <SelectItem value="">Unassigned</SelectItem>
                             {marketers.map((marketer) => (
-                              <SelectItem key={marketer.id} value={`${marketer.first_name} ${marketer.last_name}`}>
-                                {marketer.first_name} {marketer.last_name}
+                              <SelectItem key={marketer} value={marketer}>
+                                {marketer}
                               </SelectItem>
                             ))}
                           </SelectContent>

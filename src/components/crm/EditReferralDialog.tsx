@@ -95,7 +95,7 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
         .order('first_name');
       
       if (error) throw error;
-      return data || [];
+      return (data || []).map(m => `${m.first_name} ${m.last_name}`);
     },
     enabled: open
   });
@@ -435,8 +435,8 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
                     <SelectContent className="bg-white border border-gray-300 z-[100]">
                       <SelectItem value="none">Unassigned</SelectItem>
                       {marketers.map((marketer) => (
-                        <SelectItem key={marketer.id} value={`${marketer.first_name} ${marketer.last_name}`}>
-                          {marketer.first_name} {marketer.last_name}
+                        <SelectItem key={marketer} value={marketer}>
+                          {marketer}
                         </SelectItem>
                       ))}
                     </SelectContent>
