@@ -338,6 +338,33 @@ export type Database = {
           },
         ]
       }
+      census_entries: {
+        Row: {
+          census_date: string
+          created_at: string | null
+          id: string
+          notes: string | null
+          patient_count: number
+          updated_at: string | null
+        }
+        Insert: {
+          census_date: string
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          patient_count?: number
+          updated_at?: string | null
+        }
+        Update: {
+          census_date?: string
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          patient_count?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       checklist_completions: {
         Row: {
           checklist_id: string | null
