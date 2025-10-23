@@ -5,14 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Settings, Filter } from "lucide-react";
+import { Plus, Filter } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ViewToggle } from "@/components/ui/view-toggle";
 import { SortHeader } from "@/components/ui/sort-header";
 import AddReferralDialog from './AddReferralDialog';
 import EditReferralDialog from './EditReferralDialog';
-import MarketerSettingsDialog from './MarketerSettingsDialog';
 import ScheduleVisitDialog from './ScheduleVisitDialog';
 import { sendAdmissionNotification, formatEmailData } from '@/utils/emailNotifications';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -60,7 +59,6 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
   const [sortConfig, setSortConfig] = useState<{ field: string; direction: 'asc' | 'desc' } | null>(null);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
-  const [showMarketerSettings, setShowMarketerSettings] = useState(false);
   const [showScheduleDialog, setShowScheduleDialog] = useState(false);
   const [editingReferralId, setEditingReferralId] = useState<string>('');
   const [schedulingReferralId, setSchedulingReferralId] = useState<string>('');
@@ -99,10 +97,12 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
       const { data, error } = await supabase
         .from('profiles')
         .select('id, first_name, last_name, email')
+        .not('first_name', 'is', null)
+        .not('last_name', 'is', null)
         .order('first_name');
       
       if (error) throw error;
-      return data.map(m => `${m.first_name} ${m.last_name}`);
+      return data?.map(m => `${m.first_name} ${m.last_name}`) || [];
     }
   });
 
@@ -421,10 +421,6 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
         </div>
         <div className="flex gap-3">
           <ViewToggle view={view} onViewChange={setView} />
-          <Button variant="outline" onClick={() => setShowMarketerSettings(true)} className="modern-btn-secondary">
-            <Settings className="w-4 h-4 mr-2" />
-            Manage Marketers
-          </Button>
           <Button onClick={() => setShowAddDialog(true)} className="modern-btn-primary">
             <Plus className="w-4 h-4 mr-2" />
             Add Referral
@@ -458,7 +454,6 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
                   onMarketerChange={handleMarketerChange}
                   onEdit={handleEditReferral}
                   onSchedule={handleScheduleReferral}
-                  onAddMarketer={() => setShowMarketerSettings(true)}
                 />
               ))}
             </div>
@@ -475,11 +470,6 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
         open={showEditDialog} 
         onOpenChange={setShowEditDialog} 
         referralId={editingReferralId}
-      />
-
-      <MarketerSettingsDialog
-        open={showMarketerSettings}
-        onOpenChange={setShowMarketerSettings}
       />
 
       <ScheduleVisitDialog

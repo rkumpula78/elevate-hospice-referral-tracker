@@ -90,10 +90,12 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
       const { data, error } = await supabase
         .from('profiles')
         .select('id, first_name, last_name, email')
+        .not('first_name', 'is', null)
+        .not('last_name', 'is', null)
         .order('first_name');
       
       if (error) throw error;
-      return data;
+      return data || [];
     },
     enabled: open
   });

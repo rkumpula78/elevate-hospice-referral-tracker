@@ -20,7 +20,6 @@ interface ReferralCardProps {
   onMarketerChange: (id: string, marketer: string) => void;
   onEdit: (id: string) => void;
   onSchedule?: (id: string) => void;
-  onAddMarketer?: () => void;
 }
 
 const ReferralCard = ({ 
@@ -33,8 +32,7 @@ const ReferralCard = ({
   onPriorityChange,
   onMarketerChange,
   onEdit,
-  onSchedule,
-  onAddMarketer
+  onSchedule
 }: ReferralCardProps) => {
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -271,11 +269,7 @@ const ReferralCard = ({
               <Select
                 value={referral.assigned_marketer || 'unassigned'}
                 onValueChange={(value: string) => {
-                  if (value === 'add_new') {
-                    onAddMarketer?.();
-                  } else {
-                    onMarketerChange(referral.id, value === 'unassigned' ? '' : value);
-                  }
+                  onMarketerChange(referral.id, value === 'unassigned' ? '' : value);
                 }}
                 disabled={isUpdatingMarketer}
               >
@@ -296,12 +290,6 @@ const ReferralCard = ({
                   {marketers?.map((marketer: string) => (
                     <SelectItem key={marketer} value={marketer} className="modern-dropdown-item">{marketer}</SelectItem>
                   ))}
-                  <SelectItem value="add_new" className="modern-dropdown-item">
-                    <div className="flex items-center text-primary">
-                      <Plus className="w-4 h-4 mr-2" />
-                      Add New Marketer
-                    </div>
-                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
