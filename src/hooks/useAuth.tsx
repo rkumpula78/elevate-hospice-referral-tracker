@@ -8,9 +8,12 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   displayName: string;
+  roles: string[];
+  isAdmin: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signUp: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
+  refreshRoles: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -19,6 +22,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [roles, setRoles] = useState<string[]>([]);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const getDisplayName = (user: User | null) => {
     if (!user) return '';
@@ -26,6 +31,37 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
            user.user_metadata?.full_name || 
            user.email?.split('@')[0] || 
            'User';
+  };
+
+  const fetchUserRoles = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId);
+      
+      if (error) {
+        console.error('Error fetching roles:', error);
+        return [];
+      }
+      
+      return data?.map(r => r.role) || [];
+    } catch (error) {
+      console.error('Error fetching roles:', error);
+      return [];
+    }
+  };
+
+  const refreshRoles = async () => {
+    if (!user?.id) {
+      setRoles([]);
+      setIsAdmin(false);
+      return;
+    }
+
+    const userRoles = await fetchUserRoles(user.id);
+    setRoles(userRoles);
+    setIsAdmin(userRoles.includes('admin'));
   };
 
   useEffect(() => {
@@ -36,6 +72,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+        
+        // Fetch roles after auth state changes
+        if (session?.user) {
+          setTimeout(() => {
+            fetchUserRoles(session.user.id).then(userRoles => {
+              setRoles(userRoles);
+              setIsAdmin(userRoles.includes('admin'));
+            });
+          }, 0);
+        } else {
+          setRoles([]);
+          setIsAdmin(false);
+        }
       }
     );
 
@@ -44,6 +93,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+      
+      if (session?.user) {
+        fetchUserRoles(session.user.id).then(userRoles => {
+          setRoles(userRoles);
+          setIsAdmin(userRoles.includes('admin'));
+        });
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -100,9 +156,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       session,
       loading,
       displayName: getDisplayName(user),
+      roles,
+      isAdmin,
       signIn,
       signUp,
-      signOut
+      signOut,
+      refreshRoles
     }}>
       {children}
     </AuthContext.Provider>

@@ -87,7 +87,7 @@ const menuItems = [
 
 const AppSidebar = () => {
   const location = useLocation();
-  const { signOut, displayName, user } = useAuth();
+  const { signOut, displayName, user, isAdmin } = useAuth();
 
   const handleSignOut = async () => {
     await signOut();
@@ -146,6 +146,23 @@ const AppSidebar = () => {
                   </SidebarMenuItem>
                 );
               })}
+              {isAdmin && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={location.pathname === '/admin/users'}>
+                    <Link 
+                      to="/admin/users"
+                      className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
+                        location.pathname === '/admin/users'
+                          ? 'bg-blue-600 text-white' 
+                          : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                      }`}
+                    >
+                      <Shield className="w-5 h-5" />
+                      <span>User Management</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

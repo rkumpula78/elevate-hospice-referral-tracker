@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AuthProvider } from "@/hooks/useAuth";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import AdminRoute from "@/components/auth/AdminRoute";
 import AppSidebar from "@/components/layout/AppSidebar";
 import Auth from "./pages/Auth";
 import Index from "./pages/Index";
@@ -16,6 +17,7 @@ import PatientsPage from "./pages/PatientsPage";
 import SchedulePage from "./pages/SchedulePage";
 import CompliancePage from "./pages/CompliancePage";
 import SettingsPage from "./pages/SettingsPage";
+import AdminUsersPage from "./pages/AdminUsersPage";
 import OrganizationsPage from "./pages/OrganizationsPage";
 import PatientDetail from "./pages/PatientDetail";
 import ReferralDetail from "./pages/ReferralDetail";
@@ -58,6 +60,11 @@ const App = () => (
                         <Route path="marketing" element={<MarketingPage />} />
                         <Route path="kpi" element={<KPIPage />} />
                         <Route path="settings" element={<SettingsPage />} />
+                        <Route path="admin/users" element={
+                          <AdminRoute>
+                            <AdminUsersPage />
+                          </AdminRoute>
+                        } />
                         <Route path="patient/:id" element={<PatientDetail />} />
                         <Route path="referral/:id" element={<ReferralDetail />} />
                         <Route path="organizations/:id" element={<OrganizationDetail />} />
