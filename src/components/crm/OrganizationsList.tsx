@@ -60,27 +60,18 @@ const OrganizationsList = () => {
     }
   });
 
-  const { data: marketers, refetch: refetchMarketers } = useQuery({
-    queryKey: ['marketers-local'],
-    queryFn: () => {
-      const stored = localStorage.getItem('hospice-marketers');
-      if (stored) {
-        return JSON.parse(stored);
-      }
-      return ['John Smith', 'Sarah Johnson', 'Mike Davis', 'Lisa Wilson', 'David Brown'];
+  const { data: marketers = [] } = useQuery({
+    queryKey: ['marketers'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, first_name, last_name, email')
+        .order('first_name');
+      
+      if (error) throw error;
+      return data.map(m => `${m.first_name} ${m.last_name}`);
     }
   });
-
-  React.useEffect(() => {
-    const handleMarketerUpdate = () => {
-      refetchMarketers();
-    };
-
-    window.addEventListener('marketers-updated', handleMarketerUpdate);
-    return () => {
-      window.removeEventListener('marketers-updated', handleMarketerUpdate);
-    };
-  }, [refetchMarketers]);
 
   const updateMarketerMutation = useMutation({
     mutationFn: async ({ id, marketer }: { id: string, marketer: string }) => {

@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { useState } from 'react';
 import { PhoneInput } from "@/components/ui/phone-input";
 import { EmailInput } from "@/components/ui/email-input";
@@ -32,6 +32,20 @@ const AddOrganizationDialog = ({ open, onOpenChange }: AddOrganizationDialogProp
     assigned_marketer: ''
   });
   const [emailValid, setEmailValid] = useState(true);
+
+  // Fetch all users for marketer assignment
+  const { data: marketers = [] } = useQuery({
+    queryKey: ['marketers'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, first_name, last_name, email')
+        .order('first_name');
+      
+      if (error) throw error;
+      return data;
+    }
+  });
 
   const addOrganizationMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
@@ -124,13 +138,23 @@ const AddOrganizationDialog = ({ open, onOpenChange }: AddOrganizationDialogProp
           
           <div>
             <Label htmlFor="assigned_marketer">Assigned Marketer</Label>
-            <Input
-              id="assigned_marketer"
+            <Select
               value={formData.assigned_marketer}
-              onChange={(e) => handleInputChange('assigned_marketer', e.target.value)}
-              placeholder="Elevate staff member"
+              onValueChange={(value) => handleInputChange('assigned_marketer', value)}
               disabled={isSubmitting}
-            />
+            >
+              <SelectTrigger id="assigned_marketer">
+                <SelectValue placeholder="Select a marketer" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Unassigned</SelectItem>
+                {marketers.map((marketer) => (
+                  <SelectItem key={marketer.id} value={`${marketer.first_name} ${marketer.last_name}`}>
+                    {marketer.first_name} {marketer.last_name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

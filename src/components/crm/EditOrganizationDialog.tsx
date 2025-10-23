@@ -27,29 +27,20 @@ const EditOrganizationDialog = ({ open, onOpenChange, organizationId }: EditOrga
   const [licenseInput, setLicenseInput] = useState('');
   const [hospiceInput, setHospiceInput] = useState('');
   const [showMarketerSettings, setShowMarketerSettings] = useState(false);
-  const [marketers, setMarketers] = useState<string[]>([]);
 
-  // Load marketers from localStorage
-  useEffect(() => {
-    const loadMarketers = () => {
-      const stored = localStorage.getItem('hospice-marketers');
-      if (stored) {
-        setMarketers(JSON.parse(stored));
-      } else {
-        setMarketers(['John Smith', 'Sarah Johnson', 'Mike Davis', 'Lisa Wilson', 'David Brown']);
-      }
-    };
-
-    loadMarketers();
-
-    // Listen for marketer updates
-    const handleMarketersUpdate = () => {
-      loadMarketers();
-    };
-
-    window.addEventListener('marketers-updated', handleMarketersUpdate);
-    return () => window.removeEventListener('marketers-updated', handleMarketersUpdate);
-  }, []);
+  // Fetch all users for marketer assignment
+  const { data: marketers = [] } = useQuery({
+    queryKey: ['marketers'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, first_name, last_name, email')
+        .order('first_name');
+      
+      if (error) throw error;
+      return data;
+    }
+  });
 
   // Fetch organization data
   const { data: organization, isLoading } = useQuery({
@@ -570,10 +561,10 @@ const EditOrganizationDialog = ({ open, onOpenChange, organizationId }: EditOrga
                             <SelectValue placeholder="Select marketer" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="unassigned">Unassigned</SelectItem>
+                            <SelectItem value="">Unassigned</SelectItem>
                             {marketers.map((marketer) => (
-                              <SelectItem key={marketer} value={marketer}>
-                                {marketer}
+                              <SelectItem key={marketer.id} value={`${marketer.first_name} ${marketer.last_name}`}>
+                                {marketer.first_name} {marketer.last_name}
                               </SelectItem>
                             ))}
                           </SelectContent>

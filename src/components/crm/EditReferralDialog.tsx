@@ -83,15 +83,17 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
     enabled: open
   });
 
-  // Fetch marketers from localStorage/settings
-  const { data: marketers } = useQuery({
-    queryKey: ['marketers-settings'],
-    queryFn: () => {
-      const stored = localStorage.getItem('hospice-marketers');
-      if (stored) {
-        return JSON.parse(stored);
-      }
-      return ['John Smith', 'Sarah Johnson', 'Mike Davis', 'Lisa Wilson', 'David Brown'];
+  // Fetch marketers from profiles table
+  const { data: marketers = [] } = useQuery({
+    queryKey: ['marketers'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, first_name, last_name, email')
+        .order('first_name');
+      
+      if (error) throw error;
+      return data;
     },
     enabled: open
   });
@@ -430,8 +432,10 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
                     </SelectTrigger>
                     <SelectContent className="bg-white border border-gray-300 z-[100]">
                       <SelectItem value="none">Unassigned</SelectItem>
-                      {marketers?.map((marketer: string) => (
-                        <SelectItem key={marketer} value={marketer}>{marketer}</SelectItem>
+                      {marketers.map((marketer) => (
+                        <SelectItem key={marketer.id} value={`${marketer.first_name} ${marketer.last_name}`}>
+                          {marketer.first_name} {marketer.last_name}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>

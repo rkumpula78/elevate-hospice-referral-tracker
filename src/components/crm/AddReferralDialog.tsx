@@ -76,15 +76,17 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
     }
   });
 
-  // Fetch marketers from localStorage/settings
-  const { data: marketers } = useQuery({
-    queryKey: ['marketers-settings'],
-    queryFn: () => {
-      const stored = localStorage.getItem('hospice-marketers');
-      if (stored) {
-        return JSON.parse(stored);
-      }
-      return ['John Smith', 'Sarah Johnson', 'Mike Davis', 'Lisa Wilson', 'David Brown'];
+  // Fetch marketers from profiles table
+  const { data: marketers = [] } = useQuery({
+    queryKey: ['marketers'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, first_name, last_name, email')
+        .order('first_name');
+      
+      if (error) throw error;
+      return data;
     }
   });
 
@@ -443,8 +445,11 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
                     <SelectValue placeholder="Select marketer" />
                   </SelectTrigger>
                   <SelectContent>
-                    {marketers?.map((marketer: string) => (
-                      <SelectItem key={marketer} value={marketer}>{marketer}</SelectItem>
+                    <SelectItem value="">Unassigned</SelectItem>
+                    {marketers.map((marketer) => (
+                      <SelectItem key={marketer.id} value={`${marketer.first_name} ${marketer.last_name}`}>
+                        {marketer.first_name} {marketer.last_name}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
