@@ -206,7 +206,10 @@ const EditOrganizationDialog = ({ open, onOpenChange, organizationId }: EditOrga
       account_rating: formData.get('account_rating') as string || organization?.account_rating,
       partnership_stage: formData.get('partnership_stage') as string || organization?.partnership_stage,
       referral_potential: formData.get('referral_potential') ? parseInt(formData.get('referral_potential') as string) : organization?.referral_potential,
-      assigned_marketer: formData.get('assigned_marketer') as string || null,
+      assigned_marketer: (() => {
+        const value = formData.get('assigned_marketer') as string;
+        return value === 'unassigned' ? null : value || null;
+      })(),
       contract_status: formData.get('contract_status') as string || organization?.contract_status,
       partnership_notes: formData.get('partnership_notes') as string || null,
       
@@ -562,7 +565,7 @@ const EditOrganizationDialog = ({ open, onOpenChange, organizationId }: EditOrga
                             <SelectValue placeholder="Select marketer" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="">Unassigned</SelectItem>
+                            <SelectItem value="unassigned">Unassigned</SelectItem>
                             {marketers.map((marketer) => (
                               <SelectItem key={marketer} value={marketer}>
                                 {marketer}

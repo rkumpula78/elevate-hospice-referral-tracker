@@ -53,7 +53,10 @@ const AddOrganizationDialog = ({ open, onOpenChange }: AddOrganizationDialogProp
     mutationFn: async (data: typeof formData) => {
       const { error } = await supabase
         .from('organizations')
-        .insert([data]);
+        .insert([{
+          ...data,
+          assigned_marketer: data.assigned_marketer === 'unassigned' ? null : data.assigned_marketer
+        }]);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -149,7 +152,7 @@ const AddOrganizationDialog = ({ open, onOpenChange }: AddOrganizationDialogProp
                 <SelectValue placeholder="Select a marketer" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Unassigned</SelectItem>
+                <SelectItem value="unassigned">Unassigned</SelectItem>
                 {marketers.map((marketer) => (
                   <SelectItem key={marketer} value={marketer}>
                     {marketer}

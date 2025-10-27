@@ -133,7 +133,7 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
           referring_contact_id: data.referral_method === 'specific_contact' ? data.referring_contact_id : null,
           referral_method: data.referral_method,
           referring_physician: data.referring_physician || null,
-          assigned_marketer: data.assigned_marketer || null,
+          assigned_marketer: data.assigned_marketer === 'unassigned' ? null : data.assigned_marketer || null,
           referral_intake_coordinator: data.referral_intake_coordinator || null,
           status: data.status,
           reason_for_non_admittance: data.reason_for_non_admittance || null,
@@ -447,7 +447,7 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
                     <SelectValue placeholder="Select marketer" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Unassigned</SelectItem>
+                    <SelectItem value="unassigned">Unassigned</SelectItem>
                     {marketers.map((marketer) => (
                       <SelectItem key={marketer} value={marketer}>
                         {marketer}
