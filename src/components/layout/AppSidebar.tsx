@@ -31,6 +31,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import GlobalSearchBar from "@/components/search/GlobalSearchBar";
 import AIQuickHelp from "@/components/dashboard/AIQuickHelp";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const menuItems = [
   {
@@ -88,6 +89,7 @@ const menuItems = [
 const AppSidebar = () => {
   const location = useLocation();
   const { signOut, displayName, user, isAdmin } = useAuth();
+  const isMobile = useIsMobile();
 
   const handleSignOut = async () => {
     await signOut();
@@ -98,24 +100,26 @@ const AppSidebar = () => {
   };
 
   return (
-    <Sidebar className="bg-gray-900 text-white">
-      <SidebarHeader className="p-6 border-b border-gray-700">
+    <Sidebar className="bg-sidebar-background text-sidebar-foreground border-r border-sidebar-border">
+      <SidebarHeader className={`border-b border-sidebar-border ${isMobile ? 'p-4' : 'p-6'}`}>
         <div className="flex items-center space-x-3">
           <img 
             src="/lovable-uploads/69cccced-0ccf-4626-b1ab-7712c36cfd7f.png" 
             alt="Elevate Hospice & Palliative Care" 
-            className="h-12 w-auto"
+            className={`w-auto ${isMobile ? 'h-10' : 'h-12'}`}
           />
         </div>
-        <h2 className="text-xl font-bold text-white mt-2">Elevate Hospice</h2>
-        <p className="text-sm text-gray-400">CRM Dashboard</p>
+        <h2 className={`font-bold text-sidebar-foreground mt-2 ${isMobile ? 'text-lg' : 'text-xl'}`}>
+          Elevate Hospice
+        </h2>
+        <p className="text-sm text-muted-foreground">CRM Dashboard</p>
       </SidebarHeader>
       
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="text-gray-400">Search & AI</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-muted-foreground font-medium">Search & AI</SidebarGroupLabel>
           <SidebarGroupContent>
-            <div className="px-2 py-2 space-y-2">
+            <div className={`space-y-2 ${isMobile ? 'px-2 py-1' : 'px-2 py-2'}`}>
               <GlobalSearchBar />
               <AIQuickHelp fullWidth variant="sidebar" />
             </div>
@@ -123,7 +127,7 @@ const AppSidebar = () => {
         </SidebarGroup>
 
         <SidebarGroup>
-          <SidebarGroupLabel className="text-gray-400">Navigation</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-muted-foreground font-medium">Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => {
@@ -133,14 +137,16 @@ const AppSidebar = () => {
                     <SidebarMenuButton asChild isActive={isActive}>
                       <Link 
                         to={item.url}
-                        className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
+                        className={`flex items-center gap-3 rounded-lg transition-all touch-manipulation ${
+                          isMobile ? 'px-3 py-3 min-h-[44px]' : 'px-3 py-2'
+                        } ${
                           isActive 
-                            ? 'bg-blue-600 text-white' 
-                            : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                            ? 'bg-sidebar-primary text-sidebar-primary-foreground shadow-sm font-medium' 
+                            : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                         }`}
                       >
-                        <item.icon className="w-5 h-5" />
-                        <span>{item.title}</span>
+                        <item.icon className={`${isMobile ? 'w-5 h-5' : 'w-5 h-5'}`} />
+                        <span className={isMobile ? 'text-base' : ''}>{item.title}</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -151,14 +157,16 @@ const AppSidebar = () => {
                   <SidebarMenuButton asChild isActive={location.pathname === '/admin/users'}>
                     <Link 
                       to="/admin/users"
-                      className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
+                      className={`flex items-center gap-3 rounded-lg transition-all touch-manipulation ${
+                        isMobile ? 'px-3 py-3 min-h-[44px]' : 'px-3 py-2'
+                      } ${
                         location.pathname === '/admin/users'
-                          ? 'bg-blue-600 text-white' 
-                          : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                          ? 'bg-sidebar-primary text-sidebar-primary-foreground shadow-sm font-medium' 
+                          : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                       }`}
                     >
-                      <Shield className="w-5 h-5" />
-                      <span>User Management</span>
+                      <Shield className={`${isMobile ? 'w-5 h-5' : 'w-5 h-5'}`} />
+                      <span className={isMobile ? 'text-base' : ''}>User Management</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -168,17 +176,24 @@ const AppSidebar = () => {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="p-4 border-t border-gray-700">
-        <div className="flex items-center space-x-3 mb-3">
-          <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-            <span className="text-sm font-bold">{getInitials(displayName)}</span>
+      <SidebarFooter className={`border-t border-sidebar-border ${isMobile ? 'p-3' : 'p-4'}`}>
+        <div className={`flex items-center gap-3 mb-3`}>
+          <div className="w-9 h-9 bg-sidebar-primary rounded-full flex items-center justify-center flex-shrink-0 shadow-sm">
+            <span className="text-sm font-semibold text-sidebar-primary-foreground">{getInitials(displayName)}</span>
           </div>
-          <div className="flex-1">
-            <p className="text-sm font-medium text-white">{displayName}</p>
-            <p className="text-xs text-gray-400">{user?.email}</p>
+          <div className="flex-1 min-w-0">
+            <p className={`font-medium text-sidebar-foreground truncate ${isMobile ? 'text-sm' : 'text-sm'}`}>
+              {displayName}
+            </p>
+            <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
           </div>
         </div>
-        <Button variant="outline" size="sm" onClick={handleSignOut} className="w-full border-gray-600 text-gray-300 hover:bg-gray-800">
+        <Button 
+          variant="outline" 
+          size={isMobile ? "default" : "sm"}
+          onClick={handleSignOut} 
+          className={`w-full touch-manipulation ${isMobile ? 'h-11' : ''}`}
+        >
           <LogOut className="w-4 h-4 mr-2" />
           Sign Out
         </Button>

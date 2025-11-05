@@ -290,14 +290,15 @@ const Dashboard = () => {
       subtitle="Elevate Hospice & Palliative Care"
     >
       <div className="space-y-6">
-        {/* Header with Quick Actions */}
+        {/* Header with Quick Actions - Mobile optimized */}
         <div className="flex justify-end">
-          <div className="flex space-x-3">
-            <Button className="bg-blue-600 hover:bg-blue-700" onClick={() => setShowQuickAdd(true)}>
-              <Plus className="w-4 h-4 mr-2" />
-              Add Referral
-            </Button>
-          </div>
+          <Button 
+            onClick={() => setShowQuickAdd(true)}
+            className="shadow-lg touch-manipulation w-full sm:w-auto"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Add Referral
+          </Button>
         </div>
 
         {/* Values Reminder */}
@@ -308,8 +309,8 @@ const Dashboard = () => {
 
         {/* Enhanced Key Performance Indicators */}
         <div className="mb-6">
-          <h2 className="text-lg font-semibold mb-4">KEY METRICS - LAST 30 DAYS</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <h2 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-foreground">KEY METRICS - LAST 30 DAYS</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             {/* Census */}
             <Card className="relative overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-50 to-green-100 rounded-full -mr-16 -mt-16" />
