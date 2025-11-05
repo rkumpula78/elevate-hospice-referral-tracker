@@ -8,8 +8,10 @@ import PageLayout from "@/components/layout/PageLayout";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Download, FileText, Calendar, TrendingUp, Users, Building, Phone, Target } from "lucide-react";
 import { format, startOfMonth, endOfMonth, subMonths } from 'date-fns';
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const ReportsPage = () => {
+  const isMobile = useIsMobile();
   const [selectedPeriod, setSelectedPeriod] = useState('current-month');
 
   const getDateRange = (period: string) => {
@@ -140,12 +142,12 @@ const ReportsPage = () => {
 
   return (
     <PageLayout title="Reports" subtitle="Generate and download comprehensive reports">
-      <div className="space-y-6">
+      <div className={isMobile ? "space-y-4" : "space-y-6"}>
         {/* Period Selection */}
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold">Report Period</h3>
+        <div className={`flex items-center ${isMobile ? 'flex-col gap-3' : 'justify-between'}`}>
+          <h3 className={`font-semibold ${isMobile ? 'text-base w-full' : 'text-lg'}`}>Report Period</h3>
           <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
-            <SelectTrigger className="w-48">
+            <SelectTrigger className={isMobile ? "w-full" : "w-48"}>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -158,7 +160,7 @@ const ReportsPage = () => {
         </div>
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className={`grid grid-cols-1 md:grid-cols-4 ${isMobile ? 'gap-3' : 'gap-4'}`}>
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center space-x-2">
@@ -209,7 +211,7 @@ const ReportsPage = () => {
         </div>
 
         {/* Report Generation Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 ${isMobile ? 'gap-3' : 'gap-6'}`}>
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">

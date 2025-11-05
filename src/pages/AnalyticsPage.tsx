@@ -3,11 +3,14 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import PageLayout from "@/components/layout/PageLayout";
 import { BarChart3, TrendingUp, Users, Building } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const AnalyticsPage = () => {
+  const isMobile = useIsMobile();
+  
   return (
     <PageLayout title="Analytics" subtitle="Performance insights and trends">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 ${isMobile ? 'gap-3 mb-6' : 'gap-6 mb-8'}`}>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Referrals</CardTitle>
@@ -53,7 +56,7 @@ const AnalyticsPage = () => {
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className={`grid grid-cols-1 lg:grid-cols-2 ${isMobile ? 'gap-3' : 'gap-6'}`}>
         <Card>
           <CardHeader>
             <CardTitle>Referral Trends</CardTitle>

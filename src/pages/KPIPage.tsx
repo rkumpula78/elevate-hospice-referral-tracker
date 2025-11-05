@@ -10,9 +10,11 @@ import RepPerformanceDashboard from "@/components/kpis/RepPerformanceDashboard";
 import SegmentMixAnalysis from "@/components/kpis/SegmentMixAnalysis";
 import VisitSchedulingManager from "@/components/kpis/VisitSchedulingManager";
 import { useAuth } from "@/hooks/useAuth";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const KPIPage = () => {
   const { user } = useAuth();
+  const isMobile = useIsMobile();
   const [selectedTab, setSelectedTab] = useState('events');
 
   return (
@@ -20,9 +22,9 @@ const KPIPage = () => {
       title="KPI Dashboard" 
       subtitle="Track leading and lagging indicators for referral growth"
     >
-      <div className="space-y-6">
+      <div className={isMobile ? "space-y-4" : "space-y-6"}>
         {/* Header with Key Metrics Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className={`grid grid-cols-1 md:grid-cols-4 ${isMobile ? 'gap-3' : 'gap-4'}`}>
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-2 mb-2">
@@ -70,47 +72,47 @@ const KPIPage = () => {
 
         {/* Main KPI Tabs */}
         <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
-          <TabsList className="grid grid-cols-5 w-full max-w-3xl">
-            <TabsTrigger value="events" className="flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
-              Event Frequency
+          <TabsList className={`grid w-full ${isMobile ? 'grid-cols-2 h-auto gap-1' : 'grid-cols-5 max-w-3xl'}`}>
+            <TabsTrigger value="events" className={`flex items-center ${isMobile ? 'gap-1 text-xs py-2.5' : 'gap-2'}`}>
+              <Calendar className={isMobile ? "h-3 w-3" : "h-4 w-4"} />
+              {isMobile ? "Events" : "Event Frequency"}
             </TabsTrigger>
-            <TabsTrigger value="performance" className="flex items-center gap-2">
-              <BarChart3 className="h-4 w-4" />
-              Rep Performance
+            <TabsTrigger value="performance" className={`flex items-center ${isMobile ? 'gap-1 text-xs py-2.5' : 'gap-2'}`}>
+              <BarChart3 className={isMobile ? "h-3 w-3" : "h-4 w-4"} />
+              {isMobile ? "Reps" : "Rep Performance"}
             </TabsTrigger>
-            <TabsTrigger value="segments" className="flex items-center gap-2">
-              <TrendingUp className="h-4 w-4" />
-              Segment Mix
+            <TabsTrigger value="segments" className={`flex items-center ${isMobile ? 'gap-1 text-xs py-2.5' : 'gap-2'}`}>
+              <TrendingUp className={isMobile ? "h-3 w-3" : "h-4 w-4"} />
+              {isMobile ? "Segments" : "Segment Mix"}
             </TabsTrigger>
-            <TabsTrigger value="scheduling" className="flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
-              Visit Scheduling
+            <TabsTrigger value="scheduling" className={`flex items-center ${isMobile ? 'gap-1 text-xs py-2.5' : 'gap-2'}`}>
+              <Calendar className={isMobile ? "h-3 w-3" : "h-4 w-4"} />
+              {isMobile ? "Visits" : "Visit Scheduling"}
             </TabsTrigger>
-            <TabsTrigger value="overview" className="flex items-center gap-2">
-              <Award className="h-4 w-4" />
+            <TabsTrigger value="overview" className={`flex items-center ${isMobile ? 'gap-1 text-xs py-2.5 col-span-2' : 'gap-2'}`}>
+              <Award className={isMobile ? "h-3 w-3" : "h-4 w-4"} />
               Overview
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="events" className="mt-6">
+          <TabsContent value="events" className={isMobile ? "mt-4" : "mt-6"}>
             <EventFrequencyManager />
           </TabsContent>
 
-          <TabsContent value="performance" className="mt-6">
+          <TabsContent value="performance" className={isMobile ? "mt-4" : "mt-6"}>
             <RepPerformanceDashboard />
           </TabsContent>
 
-          <TabsContent value="segments" className="mt-6">
+          <TabsContent value="segments" className={isMobile ? "mt-4" : "mt-6"}>
             <SegmentMixAnalysis />
           </TabsContent>
 
-          <TabsContent value="scheduling" className="mt-6">
+          <TabsContent value="scheduling" className={isMobile ? "mt-4" : "mt-6"}>
             <VisitSchedulingManager />
           </TabsContent>
 
-          <TabsContent value="overview" className="mt-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <TabsContent value="overview" className={isMobile ? "mt-4" : "mt-6"}>
+            <div className={`grid grid-cols-1 lg:grid-cols-2 ${isMobile ? 'gap-3' : 'gap-6'}`}>
               {/* KPI Summary Card */}
               <Card>
                 <CardHeader>
@@ -221,7 +223,7 @@ const KPIPage = () => {
             </div>
 
             {/* Additional Overview Components */}
-            <div className="mt-6">
+            <div className={isMobile ? "mt-4" : "mt-6"}>
               <Card>
                 <CardHeader>
                   <CardTitle>Performance Trends</CardTitle>

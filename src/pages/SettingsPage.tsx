@@ -11,11 +11,13 @@ import { useProfile } from "@/hooks/useProfile";
 import PageLayout from "@/components/layout/PageLayout";
 import { useToast } from "@/hooks/use-toast";
 import { Eye, EyeOff, MapPin, Phone, Printer, Mail, Globe } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const SettingsPage = () => {
   const { user } = useAuth();
   const { profile, loading, updateProfile, updatePassword } = useProfile(user);
   const { toast } = useToast();
+  const isMobile = useIsMobile();
   
   // Profile form state
   const [profileForm, setProfileForm] = useState({
@@ -92,14 +94,14 @@ const SettingsPage = () => {
 
   return (
     <PageLayout title="Settings" subtitle="Configure application settings and preferences">
-      <div className="space-y-6">
+      <div className={isMobile ? "space-y-4" : "space-y-6"}>
         <Card>
-          <CardHeader>
-            <CardTitle>Company Information</CardTitle>
-            <CardDescription>Elevate Hospice & Palliative Care contact details</CardDescription>
+          <CardHeader className={isMobile ? "p-4" : ""}>
+            <CardTitle className={isMobile ? "text-lg" : ""}>Company Information</CardTitle>
+            {!isMobile && <CardDescription>Elevate Hospice & Palliative Care contact details</CardDescription>}
           </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <CardContent className={isMobile ? "p-4 pt-0" : ""}>
+            <div className={`grid grid-cols-1 md:grid-cols-2 ${isMobile ? 'gap-3' : 'gap-4'}`}>
               <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
                 <MapPin className="h-5 w-5 text-blue-600" />
                 <div>
@@ -144,12 +146,12 @@ const SettingsPage = () => {
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle>User Profile</CardTitle>
-            <CardDescription>Manage your personal information</CardDescription>
+          <CardHeader className={isMobile ? "p-4" : ""}>
+            <CardTitle className={isMobile ? "text-lg" : ""}>User Profile</CardTitle>
+            {!isMobile && <CardDescription>Manage your personal information</CardDescription>}
           </CardHeader>
-          <CardContent>
-            <form onSubmit={handleProfileSubmit} className="space-y-4">
+          <CardContent className={isMobile ? "p-4 pt-0" : ""}>
+            <form onSubmit={handleProfileSubmit} className={isMobile ? "space-y-3" : "space-y-4"}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="user-name">Display Name</Label>
@@ -182,12 +184,12 @@ const SettingsPage = () => {
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle>Change Password</CardTitle>
-            <CardDescription>Update your account password</CardDescription>
+          <CardHeader className={isMobile ? "p-4" : ""}>
+            <CardTitle className={isMobile ? "text-lg" : ""}>Change Password</CardTitle>
+            {!isMobile && <CardDescription>Update your account password</CardDescription>}
           </CardHeader>
-          <CardContent>
-            <form onSubmit={handlePasswordSubmit} className="space-y-4">
+          <CardContent className={isMobile ? "p-4 pt-0" : ""}>
+            <form onSubmit={handlePasswordSubmit} className={isMobile ? "space-y-3" : "space-y-4"}>
               <div>
                 <Label htmlFor="current-password">Current Password</Label>
                 <div className="relative">
