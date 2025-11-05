@@ -20,7 +20,7 @@ const PageLayout = ({ title, subtitle, children }: PageLayoutProps) => {
       {/* Mobile-Optimized Header */}
       <header className="sticky top-0 z-10 bg-white/95 backdrop-blur-md border-b border-border shadow-sm">
         <div className={`flex items-center gap-3 ${isMobile ? 'h-14 px-4' : 'h-16 px-6'}`}>
-          <SidebarTrigger className="-ml-1 h-10 w-10 touch-manipulation" />
+          <SidebarTrigger className={`touch-manipulation ${isMobile ? 'h-11 w-11 -ml-1' : '-ml-1 h-10 w-10'}`} />
           
           <div className="flex-1 min-w-0">
             <h1 className={`font-semibold text-foreground truncate ${isMobile ? 'text-lg' : 'text-xl'}`}>

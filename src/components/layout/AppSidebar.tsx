@@ -100,7 +100,7 @@ const AppSidebar = () => {
   };
 
   return (
-    <Sidebar className="bg-sidebar-background text-sidebar-foreground border-r border-sidebar-border">
+    <Sidebar className="bg-sidebar-background text-sidebar-foreground border-r border-sidebar-border" collapsible="offcanvas">
       <SidebarHeader className={`border-b border-sidebar-border ${isMobile ? 'p-4' : 'p-6'}`}>
         <div className="flex items-center space-x-3">
           <img 
