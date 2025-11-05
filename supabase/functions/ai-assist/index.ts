@@ -64,6 +64,10 @@ const MESSAGE_TEMPLATES = {
     schedule_inservice: {
       tone: "Educational, flexible, value-adding",
       structure: "1) Value of education 2) Topic options 3) Flexible scheduling 4) Clear CTA"
+    },
+    physician_outreach: {
+      tone: "Professional, educational, partnership-focused, evidence-based",
+      structure: "1) Professional greeting 2) Reference shared patient care goals 3) Educational value proposition 4) Clear call-to-action 5) Professional close"
     }
   }
 };
