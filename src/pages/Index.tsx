@@ -6,24 +6,27 @@ import HospiceReferralForm from '@/components/HospiceReferralForm';
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white shadow-sm border-b">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+    <div className="min-h-screen bg-gradient-to-br from-background via-secondary/20 to-background">
+      <nav className="bg-card/80 backdrop-blur-xl border-b border-border/50 sticky top-0 z-50 shadow-sm">
+        <div className="container mx-auto px-6 py-5 flex justify-between items-center">
           <div className="flex items-center">
             <img 
               src="/lovable-uploads/0581d561-551f-491a-8b13-0be84633073f.png" 
               alt="Elevate Hospice & Palliative Care" 
-              className="h-12 w-auto"
+              className="h-14 w-auto transition-transform duration-300 hover:scale-105"
             />
           </div>
           <Link to="/auth">
-            <Button variant="outline">
+            <Button 
+              variant="outline" 
+              className="font-semibold shadow-sm hover:shadow-md transition-all duration-300"
+            >
               Staff Login
             </Button>
           </Link>
         </div>
       </nav>
-      <main className="container mx-auto py-8">
+      <main className="container mx-auto px-4 py-12">
         <HospiceReferralForm />
       </main>
     </div>

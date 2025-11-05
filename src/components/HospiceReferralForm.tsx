@@ -253,51 +253,47 @@ const HospiceReferralForm = () => {
 
   if (showSuccess) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-blue-100 font-poppins px-4">
+      <div className="min-h-[60vh] flex items-center justify-center px-4 py-16">
         <div className="text-center animate-fade-in">
-          <div className="w-24 h-24 mx-auto mb-6 bg-blue-100 rounded-full flex items-center justify-center">
-            <svg className="w-12 h-12 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          <div className="w-28 h-28 mx-auto mb-8 bg-gradient-to-br from-success/20 to-success/10 rounded-3xl flex items-center justify-center shadow-lg shadow-success/20 backdrop-blur-sm border border-success/20">
+            <svg className="w-14 h-14 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <h2 className="text-3xl font-semibold text-gray-800 mb-4">Referral Successfully Submitted</h2>
-          <p className="text-lg text-gray-600">Thank you for your support.</p>
+          <h2 className="text-4xl font-bold text-foreground mb-3 tracking-tight">Referral Successfully Submitted</h2>
+          <p className="text-lg text-muted-foreground">Thank you for your support.</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100 font-poppins px-4 py-8">
+    <div className="px-4 py-8">
       <div className="max-w-4xl mx-auto">
-        {/* Header with Logo */}
-        <div className="text-center mb-8 animate-fade-in">
-          <div className="flex items-center justify-center mb-6">
-            <img 
-              src="/lovable-uploads/0581d561-551f-491a-8b13-0be84633073f.png" 
-              alt="Elevate Hospice & Palliative Care" 
-              className="h-16 w-auto"
-            />
-          </div>
-          <h1 className="text-3xl md:text-4xl font-semibold text-gray-800 mb-2">
+        {/* Header */}
+        <div className="text-center mb-10 animate-fade-in">
+          <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-3 tracking-tight">
             Request Hospice Care Support
           </h1>
-          <p className="text-gray-600 text-lg">Supporting Families Through Every Step</p>
+          <p className="text-muted-foreground text-lg md:text-xl">Supporting Families Through Every Step</p>
         </div>
 
         {/* Form */}
-        <Card className="backdrop-blur-sm bg-white/90 border border-blue-100 shadow-2xl animate-slide-up">
-          <CardContent className="p-6 md:p-8">
-            <form onSubmit={handleSubmit} className="space-y-8">
+        <Card className="backdrop-blur-xl bg-card/95 border border-border/50 shadow-xl shadow-primary/5 animate-slide-up">
+          <CardContent className="p-8 md:p-12">
+            <form onSubmit={handleSubmit} className="space-y-10">
               {/* Referring Information Section */}
               <div className="space-y-6">
-                <h3 className="text-xl font-semibold text-blue-800 border-b-2 border-blue-200 pb-3">
-                  Referring Information
-                </h3>
+                <div className="flex items-center gap-3 pb-4 border-b border-border/50">
+                  <div className="w-1.5 h-6 bg-gradient-to-b from-primary to-primary/60 rounded-full" />
+                  <h3 className="text-xl font-bold text-foreground tracking-tight">
+                    Referring Information
+                  </h3>
+                </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="physicianName" className="text-sm font-medium text-gray-700">
+                  <div className="space-y-2.5">
+                    <Label htmlFor="physicianName" className="text-sm font-semibold text-foreground">
                       Referring Physician Name *
                     </Label>
                     <Input
@@ -306,15 +302,15 @@ const HospiceReferralForm = () => {
                       placeholder="Dr. John Smith"
                       value={formData.physicianName}
                       onChange={(e) => handleInputChange('physicianName', e.target.value)}
-                      className={`transition-all duration-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-gray-300 rounded-lg ${
-                        errors.physicianName ? 'border-red-500' : ''
+                      className={`h-11 transition-all duration-200 ${
+                        errors.physicianName ? 'border-destructive focus:border-destructive focus:ring-destructive/20' : ''
                       }`}
                     />
-                    {errors.physicianName && <p className="text-red-500 text-xs">{errors.physicianName}</p>}
+                    {errors.physicianName && <p className="text-destructive text-xs font-medium">{errors.physicianName}</p>}
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="referringFacility" className="text-sm font-medium text-gray-700">
+                  <div className="space-y-2.5">
+                    <Label htmlFor="referringFacility" className="text-sm font-semibold text-foreground">
                       Referring Facility/Organization *
                     </Label>
                     <Input
@@ -323,20 +319,23 @@ const HospiceReferralForm = () => {
                       placeholder="ABC Hospital"
                       value={formData.referringFacility}
                       onChange={(e) => handleInputChange('referringFacility', e.target.value)}
-                      className={`transition-all duration-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-gray-300 rounded-lg ${
-                        errors.referringFacility ? 'border-red-500' : ''
+                      className={`h-11 transition-all duration-200 ${
+                        errors.referringFacility ? 'border-destructive focus:border-destructive focus:ring-destructive/20' : ''
                       }`}
                     />
-                    {errors.referringFacility && <p className="text-red-500 text-xs">{errors.referringFacility}</p>}
+                    {errors.referringFacility && <p className="text-destructive text-xs font-medium">{errors.referringFacility}</p>}
                   </div>
                 </div>
               </div>
 
               {/* Patient Information Section */}
               <div className="space-y-6">
-                <h3 className="text-xl font-semibold text-blue-800 border-b-2 border-blue-200 pb-3">
-                  Patient Information
-                </h3>
+                <div className="flex items-center gap-3 pb-4 border-b border-border/50">
+                  <div className="w-1.5 h-6 bg-gradient-to-b from-primary to-primary/60 rounded-full" />
+                  <h3 className="text-xl font-bold text-foreground tracking-tight">
+                    Patient Information
+                  </h3>
+                </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
@@ -461,9 +460,12 @@ const HospiceReferralForm = () => {
 
               {/* Medical Information Section */}
               <div className="space-y-6">
-                <h3 className="text-xl font-semibold text-blue-800 border-b-2 border-blue-200 pb-3">
-                  Medical Information
-                </h3>
+                <div className="flex items-center gap-3 pb-4 border-b border-border/50">
+                  <div className="w-1.5 h-6 bg-gradient-to-b from-primary to-primary/60 rounded-full" />
+                  <h3 className="text-xl font-bold text-foreground tracking-tight">
+                    Medical Information
+                  </h3>
+                </div>
                 
                 <div className="space-y-2">
                   <Label htmlFor="advanceDirectives" className="text-sm font-medium text-gray-700">
@@ -500,9 +502,12 @@ const HospiceReferralForm = () => {
 
               {/* Contact Information Section */}
               <div className="space-y-6">
-                <h3 className="text-xl font-semibold text-blue-800 border-b-2 border-blue-200 pb-3">
-                  Contact Information
-                </h3>
+                <div className="flex items-center gap-3 pb-4 border-b border-border/50">
+                  <div className="w-1.5 h-6 bg-gradient-to-b from-primary to-primary/60 rounded-full" />
+                  <h3 className="text-xl font-bold text-foreground tracking-tight">
+                    Contact Information
+                  </h3>
+                </div>
                 
                 <div className="space-y-4">
                   <Label className="text-sm font-medium text-gray-700">
@@ -557,9 +562,12 @@ const HospiceReferralForm = () => {
 
               {/* Additional Information Section */}
               <div className="space-y-6">
-                <h3 className="text-xl font-semibold text-blue-800 border-b-2 border-blue-200 pb-3">
-                  Additional Information
-                </h3>
+                <div className="flex items-center gap-3 pb-4 border-b border-border/50">
+                  <div className="w-1.5 h-6 bg-gradient-to-b from-primary to-primary/60 rounded-full" />
+                  <h3 className="text-xl font-bold text-foreground tracking-tight">
+                    Additional Information
+                  </h3>
+                </div>
                 
                 <div className="space-y-2">
                   <Label htmlFor="additionalComments" className="text-sm font-medium text-gray-700">
@@ -576,20 +584,23 @@ const HospiceReferralForm = () => {
               </div>
 
               {/* Submit Button */}
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900 text-white font-medium py-4 rounded-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
-              >
-                {isSubmitting ? (
-                  <div className="flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Submitting...
-                  </div>
-                ) : (
-                  'Submit Referral'
-                )}
-              </Button>
+              <div className="pt-4">
+                <Button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full h-14 text-base font-semibold shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                  size="lg"
+                >
+                  {isSubmitting ? (
+                    <div className="flex items-center justify-center gap-3">
+                      <div className="animate-spin rounded-full h-5 w-5 border-2 border-primary-foreground border-t-transparent"></div>
+                      <span>Submitting...</span>
+                    </div>
+                  ) : (
+                    'Submit Referral'
+                  )}
+                </Button>
+              </div>
             </form>
           </CardContent>
         </Card>

@@ -5,39 +5,114 @@
 
 @layer base {
   :root {
-    /* Modern Design System Variables */
-    --radius-sm: 4px;
-    --radius: 8px;
-    --radius-md: 12px;
-    --radius-lg: 16px;
-    --radius-xl: 20px;
-    --radius-2xl: 24px;
+    /* Refined Radii System */
+    --radius-sm: 6px;
+    --radius: 10px;
+    --radius-md: 14px;
+    --radius-lg: 18px;
+    --radius-xl: 24px;
+    --radius-2xl: 32px;
     --radius-full: 9999px;
     
-    /* Color Variables */
-    --primary-blue: #2563eb;
-    --primary-blue-light: #3b82f6;
-    --danger-red: #dc2626;
-    --danger-red-light: #ef4444;
-    --success-green: #16a34a;
-    --success-green-light: #22c55e;
-    --warning-orange: #ea580c;
-    --warning-orange-light: #f97316;
-    --gray-100: #f3f4f6;
-    --gray-200: #e5e7eb;
-    --gray-700: #374151;
+    /* Sophisticated Color Palette - HSL for semantic theming */
+    --background: 0 0% 100%;
+    --foreground: 222 47% 11%;
     
-    /* Shadow Variables */
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-    --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
-    --shadow-blue: 0 4px 14px 0 rgba(37, 99, 235, 0.25);
-    --shadow-red: 0 4px 14px 0 rgba(220, 38, 38, 0.25);
-    --shadow-green: 0 4px 14px 0 rgba(22, 163, 74, 0.25);
-    --shadow-orange: 0 4px 14px 0 rgba(234, 88, 12, 0.25);
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    
+    --primary: 217 91% 60%;
+    --primary-foreground: 0 0% 100%;
+    
+    --secondary: 214 32% 91%;
+    --secondary-foreground: 222 47% 11%;
+    
+    --muted: 214 32% 91%;
+    --muted-foreground: 215 16% 47%;
+    
+    --accent: 214 32% 91%;
+    --accent-foreground: 222 47% 11%;
+    
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
+    
+    --warning: 20 91% 48%;
+    --warning-foreground: 0 0% 100%;
+    
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 217 91% 60%;
+    
+    /* Enhanced Shadows - Layered for depth */
+    --shadow-subtle: 0 1px 2px 0 rgb(0 0 0 / 0.03);
+    --shadow-sm: 0 2px 4px 0 rgb(0 0 0 / 0.04);
+    --shadow: 0 4px 8px -2px rgb(0 0 0 / 0.06), 0 2px 4px -2px rgb(0 0 0 / 0.03);
+    --shadow-md: 0 8px 16px -4px rgb(0 0 0 / 0.08), 0 4px 8px -4px rgb(0 0 0 / 0.04);
+    --shadow-lg: 0 16px 32px -8px rgb(0 0 0 / 0.10), 0 8px 16px -8px rgb(0 0 0 / 0.05);
+    --shadow-xl: 0 24px 48px -12px rgb(0 0 0 / 0.12), 0 12px 24px -12px rgb(0 0 0 / 0.06);
+    --shadow-2xl: 0 32px 64px -16px rgb(0 0 0 / 0.14), 0 16px 32px -16px rgb(0 0 0 / 0.07);
+    --shadow-premium: 0 40px 80px -20px rgb(0 0 0 / 0.16), 0 20px 40px -20px rgb(0 0 0 / 0.08);
+    
+    /* Semantic Shadows */
+    --shadow-primary: 0 8px 24px -4px hsl(217 91% 60% / 0.28);
+    --shadow-destructive: 0 8px 24px -4px hsl(0 84% 60% / 0.28);
+    --shadow-success: 0 8px 24px -4px hsl(142 71% 45% / 0.28);
+    --shadow-warning: 0 8px 24px -4px hsl(20 91% 48% / 0.28);
+    
+    /* Sidebar */
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 222 47% 11%;
+    --sidebar-primary: 217 91% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 214 32% 91%;
+    --sidebar-accent-foreground: 222 47% 11%;
+    --sidebar-border: 214 32% 91%;
+    --sidebar-ring: 217 91% 60%;
+  }
+  
+  .dark {
+    --background: 222 47% 11%;
+    --foreground: 210 40% 98%;
+    
+    --card: 222 47% 11%;
+    --card-foreground: 210 40% 98%;
+    
+    --popover: 222 47% 11%;
+    --popover-foreground: 210 40% 98%;
+    
+    --primary: 217 91% 60%;
+    --primary-foreground: 222 47% 11%;
+    
+    --secondary: 217 19% 27%;
+    --secondary-foreground: 210 40% 98%;
+    
+    --muted: 217 19% 27%;
+    --muted-foreground: 215 20% 65%;
+    
+    --accent: 217 19% 27%;
+    --accent-foreground: 210 40% 98%;
+    
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 210 40% 98%;
+    
+    --border: 217 19% 27%;
+    --input: 217 19% 27%;
+    --ring: 217 91% 60%;
+    
+    --sidebar-background: 222 47% 11%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 217 91% 60%;
+    --sidebar-primary-foreground: 222 47% 11%;
+    --sidebar-accent: 217 19% 27%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 217 19% 27%;
+    --sidebar-ring: 217 91% 60%;
   }
 
   * {
@@ -45,55 +120,60 @@
   }
 
   body {
-    @apply bg-background text-foreground font-poppins;
-    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    @apply bg-background text-foreground font-poppins antialiased;
+    background: linear-gradient(135deg, hsl(var(--background)) 0%, hsl(214 32% 96%) 100%);
     min-height: 100vh;
+    letter-spacing: -0.011em;
   }
 }
 
-/* Modern Login Container */
+/* Premium Login Container */
 .login-container {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(250 54% 60%) 100%);
   border-radius: var(--radius-2xl);
-  box-shadow: var(--shadow-2xl);
+  box-shadow: var(--shadow-premium);
   padding: 3rem;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
-/* Modern Input Fields */
+/* Premium Input Fields */
 .modern-input {
-  border-radius: var(--radius-lg);
-  border: 2px solid var(--gray-200);
-  padding: 1rem 1.5rem;
-  font-size: 1rem;
-  transition: all 0.3s ease;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(5px);
+  border-radius: var(--radius-md);
+  border: 1.5px solid hsl(var(--border));
+  padding: 0.875rem 1.25rem;
+  font-size: 0.9375rem;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  background: hsl(var(--background));
+  backdrop-filter: blur(8px);
+  box-shadow: var(--shadow-subtle);
 }
 
 .modern-input:focus {
-  border-color: var(--primary-blue);
-  box-shadow: var(--shadow-blue);
+  border-color: hsl(var(--primary));
+  box-shadow: var(--shadow-primary);
+  outline: none;
   transform: translateY(-1px);
 }
 
-/* Modern Sign In Button */
+/* Premium Sign In Button */
 .modern-signin-btn {
-  background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-light) 100%);
-  border-radius: var(--radius-lg);
-  padding: 1rem 2rem;
-  color: white;
+  background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(217 91% 55%) 100%);
+  border-radius: var(--radius-md);
+  padding: 0.875rem 2rem;
+  color: hsl(var(--primary-foreground));
   font-weight: 600;
+  font-size: 0.9375rem;
+  letter-spacing: -0.011em;
   border: none;
-  box-shadow: var(--shadow-blue);
-  transition: all 0.3s ease;
+  box-shadow: var(--shadow-primary);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
 }
 
 .modern-signin-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(37, 99, 235, 0.3);
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: var(--shadow-xl), var(--shadow-primary);
 }
 
 /* Modern Filter Dropdown */
@@ -234,16 +314,18 @@
   width: 8px;
 }
 
-/* Modern Primary Button */
+/* Premium Primary Button */
 .modern-btn-primary {
-  background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-light) 100%);
-  border-radius: var(--radius-lg);
-  padding: 0.875rem 2rem;
-  color: white;
+  background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(217 91% 55%) 100%);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 1.75rem;
+  color: hsl(var(--primary-foreground));
   font-weight: 600;
+  font-size: 0.9375rem;
+  letter-spacing: -0.011em;
   border: none;
-  box-shadow: var(--shadow-blue);
-  transition: all 0.3s ease;
+  box-shadow: var(--shadow-primary);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
   position: relative;
   overflow: hidden;
@@ -256,37 +338,48 @@
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-  transition: left 0.5s ease;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+  transition: left 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .modern-btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(37, 99, 235, 0.3);
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: var(--shadow-xl), var(--shadow-primary);
 }
 
 .modern-btn-primary:hover::before {
   left: 100%;
 }
 
-/* Modern Secondary Button */
+.modern-btn-primary:active {
+  transform: translateY(0) scale(0.99);
+}
+
+/* Premium Secondary Button */
 .modern-btn-secondary {
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-  border-radius: var(--radius-lg);
-  padding: 0.875rem 2rem;
-  color: var(--gray-700);
+  background: hsl(var(--secondary));
+  border-radius: var(--radius-md);
+  padding: 0.75rem 1.75rem;
+  color: hsl(var(--secondary-foreground));
   font-weight: 600;
-  border: 2px solid var(--gray-200);
+  font-size: 0.9375rem;
+  letter-spacing: -0.011em;
+  border: 1.5px solid hsl(var(--border));
   box-shadow: var(--shadow-sm);
-  transition: all 0.3s ease;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
 }
 
 .modern-btn-secondary:hover {
-  border-color: var(--primary-blue);
-  color: var(--primary-blue);
-  transform: translateY(-1px);
+  border-color: hsl(var(--primary));
+  color: hsl(var(--primary));
+  transform: translateY(-1px) scale(1.01);
   box-shadow: var(--shadow-md);
+  background: hsl(var(--background));
+}
+
+.modern-btn-secondary:active {
+  transform: translateY(0) scale(0.99);
 }
 
 /* Modern Search Bar */
