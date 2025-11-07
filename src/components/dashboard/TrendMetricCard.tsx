@@ -108,8 +108,8 @@ export const TrendMetricCard = ({
 
               {/* Sparkline Chart */}
               {hasSparkline && (
-                <div className="h-12 mt-2 -mx-2">
-                  <ResponsiveContainer width="100%" height="100%">
+                <div className="mt-2 -mx-2">
+                  <ResponsiveContainer width="100%" height={48}>
                     <LineChart data={sparklineData}>
                       <Line
                         type="monotone"
@@ -185,8 +185,8 @@ export const TrendMetricCard = ({
 
               {/* Sparkline Chart */}
               {hasSparkline && (
-                <div className="h-12 mt-2 -mx-2">
-                  <ResponsiveContainer width="100%" height="100%">
+                <div className="mt-2 -mx-2">
+                  <ResponsiveContainer width="100%" height={48}>
                     <LineChart data={sparklineData}>
                       <Line
                         type="monotone"
