@@ -107,7 +107,7 @@ const ReferralCard = ({
 
   return (
     <Card className="modern-card group relative overflow-hidden">
-      <CardContent className="p-6">
+      <CardContent className="p-3 sm:p-4 md:p-6">
         {/* Gradient accent line */}
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-purple-500"></div>
         
@@ -117,7 +117,7 @@ const ReferralCard = ({
             to={`/referral/${referral.id}`}
             className="hover:text-primary transition-colors group-hover:underline"
           >
-            <h2 className="text-2xl font-bold text-gray-900 mb-3 leading-tight">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3 leading-tight">
               {referral.patient_name}
             </h2>
           </Link>
@@ -125,14 +125,14 @@ const ReferralCard = ({
           {/* Patient Contact Information */}
           <div className="space-y-2">
             {referral.patient_phone && (
-              <div className="flex items-center text-sm text-gray-600">
+              <div className="flex items-center text-xs sm:text-sm text-gray-600">
                 <Phone className="w-4 h-4 mr-2 flex-shrink-0 text-blue-500" />
                 <span className="font-medium">{referral.patient_phone}</span>
               </div>
             )}
             
             {(referral.patient_address || referral.patient_city || referral.patient_state) && (
-              <div className="flex items-start text-sm text-gray-600">
+              <div className="flex items-start text-xs sm:text-sm text-gray-600">
                 <MapPin className="w-4 h-4 mr-2 flex-shrink-0 text-blue-500 mt-0.5" />
                 <div className="min-w-0 flex-1">
                   {referral.patient_address && (
@@ -150,13 +150,13 @@ const ReferralCard = ({
           </div>
         </div>
 
-        {/* Action Buttons - Smaller Size */}
+        {/* Action Buttons - Accessible Touch Targets */}
         <div className="flex gap-2 mb-4">
           <Button 
             variant="outline" 
             size="sm" 
             onClick={() => onEdit(referral.id)} 
-            className="modern-btn-secondary h-7 px-2 text-xs flex-1"
+            className="modern-btn-secondary h-11 sm:h-10 md:h-9 px-3 text-sm sm:text-xs flex-1"
           >
             <Edit className="w-3 h-3 mr-1" />
             Edit
@@ -165,7 +165,7 @@ const ReferralCard = ({
             variant="outline" 
             size="sm" 
             onClick={handleSchedule} 
-            className="modern-btn-primary h-7 px-2 text-xs flex-1"
+            className="modern-btn-primary h-11 sm:h-10 md:h-9 px-3 text-sm sm:text-xs flex-1"
           >
             <Calendar className="w-3 h-3 mr-1" />
             Schedule
@@ -173,32 +173,32 @@ const ReferralCard = ({
         </div>
 
         {/* Organization Section */}
-        <div className="mb-4 p-4 rounded-xl bg-gradient-to-r from-gray-50 to-blue-50 border border-gray-100">
+        <div className="mb-3 sm:mb-4 p-3 sm:p-4 rounded-xl bg-gradient-to-r from-gray-50 to-blue-50 border border-gray-100">
           <div className="flex items-center">
             <Building2 className="w-5 h-5 text-blue-500 mr-3 flex-shrink-0" />
             <div className="min-w-0 flex-1">
               <div className="font-medium text-gray-900 truncate">{referral.organizations?.name || 'Unknown Organization'}</div>
-              <div className="text-sm text-gray-600">{referral.organizations?.type}</div>
+              <div className="text-xs sm:text-sm text-gray-600">{referral.organizations?.type}</div>
             </div>
           </div>
         </div>
 
         {/* Diagnosis */}
-        <div className="mb-4">
-          <div className="text-sm text-gray-600 mb-1">Diagnosis</div>
-          <div className="font-medium text-gray-900">{referral.diagnosis || 'Not specified'}</div>
+        <div className="mb-3 sm:mb-4">
+          <div className="text-xs sm:text-sm text-gray-600 mb-1">Diagnosis</div>
+          <div className="text-sm sm:text-base font-medium text-gray-900">{referral.diagnosis || 'Not specified'}</div>
         </div>
 
         {/* Status with Progress Bar */}
         <div className="mb-3">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-gray-600 font-medium">Status</span>
+            <span className="text-xs sm:text-sm text-gray-600 font-medium">Status</span>
             <Select
               value={referral.status || 'new_referral'}
               onValueChange={(value: string) => onStatusChange(referral.id, value)}
               disabled={isUpdatingStatus}
             >
-              <SelectTrigger className="w-48 modern-filter">
+              <SelectTrigger className="w-full sm:w-48 h-11 sm:h-10 modern-filter">
                 <Badge className={getStatusColor(referral.status || 'new_referral')}>
                   {getStatusLabel(referral.status || 'new_referral')}
                 </Badge>
@@ -231,13 +231,13 @@ const ReferralCard = ({
 
         {/* Priority Status - Below Main Status */}
         <div className="flex items-center justify-between mb-4">
-          <span className="text-sm text-gray-600 font-medium">Priority</span>
+          <span className="text-xs sm:text-sm text-gray-600 font-medium">Priority</span>
           <Select
             value={referral.priority || 'routine'}
             onValueChange={(value: string) => onPriorityChange(referral.id, value)}
             disabled={isUpdatingPriority}
           >
-            <SelectTrigger className="w-28 h-8 modern-filter">
+            <SelectTrigger className="w-full sm:w-28 h-11 sm:h-10 modern-filter">
               <Badge className={getPriorityColor(referral.priority || 'routine')}>
                 {getPriorityIcon(referral.priority || 'routine')}
                 <span className="ml-1 capitalize text-xs">{referral.priority || 'routine'}</span>
@@ -253,7 +253,7 @@ const ReferralCard = ({
 
         {/* Referral Date */}
         {referral.referral_date && (
-          <div className="text-sm text-gray-600 mb-4">
+          <div className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4">
             Referred: {format(new Date(referral.referral_date), 'MMM dd, yyyy')}
           </div>
         )}
@@ -273,7 +273,7 @@ const ReferralCard = ({
                 }}
                 disabled={isUpdatingMarketer}
               >
-                <SelectTrigger className="w-full h-8 border-none p-0 focus:ring-0 focus:ring-offset-0">
+                <SelectTrigger className="w-full h-10 sm:h-8 border-none p-0 focus:ring-0 focus:ring-offset-0">
                   <SelectValue>
                     <span className={cn(
                       "font-medium transition-colors text-sm",
