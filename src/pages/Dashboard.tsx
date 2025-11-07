@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Plus, Calendar, FileText, TrendingUp, Users, Phone, AlertCircle, Building, Target, Clock, Edit2 } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import QuickAddDialog from "@/components/crm/QuickAddDialog";
@@ -23,6 +24,7 @@ const Dashboard = () => {
   const [showQuickAdd, setShowQuickAdd] = useState(false);
   const [showCensusManager, setShowCensusManager] = useState(false);
   const { displayName } = useAuth();
+  const isMobile = useIsMobile();
 
   // Fetch real dashboard statistics
   const { data: dashboardStats, isLoading: statsLoading } = useQuery({
@@ -407,7 +409,7 @@ const Dashboard = () => {
         {/* Enhanced Key Performance Indicators */}
         <div className="mb-6">
           <h2 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-foreground">KEY METRICS - LAST 30 DAYS</h2>
-          <TooltipProvider>
+          {isMobile ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {!statsLoading ? (
                 <>
@@ -556,8 +558,160 @@ const Dashboard = () => {
                 </Card>
               </>
             )}
-          </div>
-          </TooltipProvider>
+            </div>
+          ) : (
+            <TooltipProvider>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {!statsLoading ? (
+                <>
+                {/* Census */}
+                <TrendMetricCard
+                  title="Census"
+                  value={stats.census}
+                  icon={TrendingUp}
+                  iconColor="text-green-700"
+                  iconBgColor="bg-green-100"
+                  gradientFrom="from-green-50"
+                  gradientTo="to-green-100"
+                  trend={stats.censusTrend}
+                  comparisonText="vs 30 days ago"
+                  sparklineData={stats.censusSparkline}
+                  tooltipData={{
+                    currentValue: `${stats.census} patients`,
+                    previousValue: `${stats.censusPrevious} patients`,
+                    exactChange: `${stats.censusTrend > 0 ? '+' : ''}${stats.census - stats.censusPrevious} patients`,
+                    dateRange: format(subDays(new Date(), 30), 'MMM d') + ' - ' + format(new Date(), 'MMM d, yyyy')
+                  }}
+                  editButton={
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-6 w-6 p-0"
+                      onClick={() => setShowCensusManager(true)}
+                    >
+                      <Edit2 className="h-3 w-3" />
+                    </Button>
+                  }
+                />
+
+                {/* Conversion Rate */}
+                <TrendMetricCard
+                  title="Conversion"
+                  value={`${stats.conversionRate}%`}
+                  icon={Target}
+                  iconColor="text-blue-700"
+                  iconBgColor="bg-blue-100"
+                  gradientFrom="from-blue-50"
+                  gradientTo="to-blue-100"
+                  trend={stats.conversionTrend}
+                  comparisonText="vs last 30 days"
+                  sparklineData={stats.conversionSparkline}
+                  tooltipData={{
+                    currentValue: `${stats.conversionRate}% conversion`,
+                    previousValue: `${stats.previousConversionRate}% conversion`,
+                    exactChange: `${stats.conversionTrend > 0 ? '+' : ''}${stats.conversionTrend}%`,
+                    dateRange: 'Last 30 days vs previous 30 days'
+                  }}
+                />
+
+                {/* Response Time */}
+                <TrendMetricCard
+                  title="Response Time"
+                  value={formatResponseTime(stats.responseTime)}
+                  icon={Clock}
+                  iconColor="text-purple-700"
+                  iconBgColor="bg-purple-100"
+                  gradientFrom="from-purple-50"
+                  gradientTo="to-purple-100"
+                  trend={-stats.responseTrend}
+                  comparisonText="vs last 30 days"
+                  sparklineData={stats.responseSparkline}
+                  tooltipData={{
+                    currentValue: formatResponseTime(stats.responseTime),
+                    previousValue: formatResponseTime(stats.previousAvgResponseHours),
+                    exactChange: `${stats.responseTrend > 0 ? '+' : ''}${stats.responseTrend}% ${stats.responseTrend < 0 ? 'faster' : 'slower'}`,
+                    dateRange: 'Last 30 days vs previous 30 days'
+                  }}
+                />
+
+                {/* Active Partners */}
+                <TrendMetricCard
+                  title="Active Partners"
+                  value={stats.activePartners}
+                  icon={Building}
+                  iconColor="text-orange-700"
+                  iconBgColor="bg-orange-100"
+                  gradientFrom="from-orange-50"
+                  gradientTo="to-orange-100"
+                  trend={0}
+                  comparisonText="prospect & active organizations"
+                  tooltipData={{
+                    currentValue: `${stats.activePartners} organizations`,
+                    previousValue: 'N/A',
+                    exactChange: 'N/A',
+                    dateRange: 'Current active partners'
+                  }}
+                />
+              </>
+            ) : (
+              <>
+                <Card className="relative overflow-hidden">
+                  <CardHeader className="relative pb-2 p-3 sm:p-5 md:p-6">
+                    <div className="flex items-center gap-2">
+                      <div className="p-2 bg-green-100 rounded-lg">
+                        <TrendingUp className="h-5 w-5 text-green-700" />
+                      </div>
+                      <CardTitle className="text-sm font-medium text-muted-foreground">Census</CardTitle>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="relative p-3 sm:p-5 md:p-6">
+                    <div className="text-3xl font-bold">...</div>
+                  </CardContent>
+                </Card>
+                <Card className="relative overflow-hidden">
+                  <CardHeader className="relative pb-2 p-3 sm:p-5 md:p-6">
+                    <div className="flex items-center gap-2">
+                      <div className="p-2 bg-blue-100 rounded-lg">
+                        <Target className="h-5 w-5 text-blue-700" />
+                      </div>
+                      <CardTitle className="text-sm font-medium text-muted-foreground">Conversion</CardTitle>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="relative p-3 sm:p-5 md:p-6">
+                    <div className="text-3xl font-bold">...</div>
+                  </CardContent>
+                </Card>
+                <Card className="relative overflow-hidden">
+                  <CardHeader className="relative pb-2 p-3 sm:p-5 md:p-6">
+                    <div className="flex items-center gap-2">
+                      <div className="p-2 bg-purple-100 rounded-lg">
+                        <Clock className="h-5 w-5 text-purple-700" />
+                      </div>
+                      <CardTitle className="text-sm font-medium text-muted-foreground">Response Time</CardTitle>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="relative p-3 sm:p-5 md:p-6">
+                    <div className="text-3xl font-bold">...</div>
+                  </CardContent>
+                </Card>
+                <Card className="relative overflow-hidden">
+                  <CardHeader className="relative pb-2 p-3 sm:p-5 md:p-6">
+                    <div className="flex items-center gap-2">
+                      <div className="p-2 bg-orange-100 rounded-lg">
+                        <Building className="h-5 w-5 text-orange-700" />
+                      </div>
+                      <CardTitle className="text-sm font-medium text-muted-foreground">Active Partners</CardTitle>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="relative p-3 sm:p-5 md:p-6">
+                    <div className="text-3xl font-bold">...</div>
+                  </CardContent>
+                </Card>
+              </>
+            )}
+              </div>
+            </TooltipProvider>
+          )}
         </div>
 
         {/* Secondary Metrics */}
