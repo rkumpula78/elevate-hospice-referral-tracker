@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
-import { Plus } from 'lucide-react';
+import { Plus, User, Phone, FileText, Briefcase, Building } from 'lucide-react';
 
 // Import patient edit sections
 import PatientOverviewSection from './patient-edit/PatientOverviewSection';
@@ -22,6 +22,9 @@ import MedicalHistorySection from './patient-edit/MedicalHistorySection';
 import AppointmentSection from './patient-edit/AppointmentSection';
 import NextStepsSection from './patient-edit/NextStepsSection';
 import DocumentsSection from './patient-edit/DocumentsSection';
+import { EnhancedInput } from '@/components/ui/enhanced-input';
+import { CharacterCounterTextarea } from '@/components/ui/character-counter-textarea';
+import { formatPhoneNumber } from '@/lib/formatters';
 
 interface EditReferralDialogProps {
   open: boolean;
@@ -42,6 +45,12 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
   const [uploading, setUploading] = useState(false);
   const [newComment, setNewComment] = useState('');
   const [comments, setComments] = useState<Comment[]>([]);
+  const [phoneValue, setPhoneValue] = useState('');
+  
+  // Refs for smart field focus
+  const patientNameRef = useRef<HTMLInputElement>(null);
+  const diagnosisRef = useRef<HTMLInputElement>(null);
+  
   const [openSections, setOpenSections] = useState({
     overview: true,
     responsibleParty: false,
@@ -51,6 +60,22 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
     nextSteps: false,
     documents: false
   });
+  
+  // Auto-focus first field when dialog opens
+  useEffect(() => {
+    if (open && patientNameRef.current) {
+      setTimeout(() => {
+        patientNameRef.current?.focus();
+      }, 100);
+    }
+  }, [open]);
+  
+  // Handle phone formatting
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatPhoneNumber(e.target.value);
+    setPhoneValue(formatted);
+    e.target.value = formatted;
+  };
 
   // Fetch referral data
   const { data: referralData, isLoading } = useQuery({
@@ -381,48 +406,64 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="patient_name" className="text-gray-700">Patient Name *</Label>
-                  <Input
+                  <EnhancedInput
                     id="patient_name"
                     name="patient_name"
+                    ref={patientNameRef}
+                    icon={<User className="w-4 h-4" />}
                     defaultValue={referralData?.patient_name || ''}
+                    onEnterPress={() => diagnosisRef.current?.focus()}
+                    placeholder="e.g., John Smith"
                     required
                     className="bg-white border-gray-300 text-gray-900"
                   />
                 </div>
                 <div>
                   <Label htmlFor="patient_phone" className="text-gray-700">Patient Phone</Label>
-                  <Input
-                    id="patient_phone"
-                    name="patient_phone"
-                    defaultValue={referralData?.patient_phone || ''}
-                    placeholder="XXX-XXX-XXXX"
-                    className="bg-white border-gray-300 text-gray-900"
-                  />
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none z-10" />
+                    <Input
+                      id="patient_phone"
+                      name="patient_phone"
+                      defaultValue={referralData?.patient_phone || ''}
+                      onChange={handlePhoneChange}
+                      placeholder="(555) 123-4567"
+                      className="bg-white border-gray-300 text-gray-900 pl-10"
+                      maxLength={14}
+                    />
+                  </div>
                 </div>
                 <div>
                   <Label htmlFor="diagnosis" className="text-gray-700">Diagnosis</Label>
-                  <Input
+                  <EnhancedInput
                     id="diagnosis"
                     name="diagnosis"
+                    ref={diagnosisRef}
+                    icon={<FileText className="w-4 h-4" />}
                     defaultValue={referralData?.diagnosis || ''}
+                    placeholder="e.g., End-stage CHF"
                     className="bg-white border-gray-300 text-gray-900"
                   />
                 </div>
                 <div>
                   <Label htmlFor="insurance" className="text-gray-700">Insurance</Label>
-                  <Input
+                  <EnhancedInput
                     id="insurance"
                     name="insurance"
+                    icon={<Briefcase className="w-4 h-4" />}
                     defaultValue={referralData?.insurance || ''}
+                    placeholder="e.g., Medicare Part A"
                     className="bg-white border-gray-300 text-gray-900"
                   />
                 </div>
                 <div>
                   <Label htmlFor="referring_physician" className="text-gray-700">Referring Physician</Label>
-                  <Input
+                  <EnhancedInput
                     id="referring_physician"
                     name="referring_physician"
+                    icon={<User className="w-4 h-4" />}
                     defaultValue={referralData?.referring_physician || ''}
+                    placeholder="e.g., Dr. Smith"
                     className="bg-white border-gray-300 text-gray-900"
                   />
                 </div>
@@ -602,11 +643,12 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
                 </div>
 
                 <div className="flex space-x-2">
-                  <Textarea
+                  <CharacterCounterTextarea
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)}
                     placeholder="Add a new comment..."
                     rows={2}
+                    maxLength={500}
                     className="flex-1 bg-white border-gray-300 text-gray-900"
                   />
                   <Button

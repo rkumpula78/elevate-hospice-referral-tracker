@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,11 +9,13 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { PhoneInput } from "@/components/ui/phone-input";
-import { Loader2, Plus } from "lucide-react";
+import { Loader2, Plus, User, Phone, FileText, Briefcase, Building } from "lucide-react";
 import ReferringContactSelector from "./ReferringContactSelector";
 import AddContactDialog from "./AddContactDialog";
 import { useTeamsIntegration } from "@/hooks/useTeamsIntegration";
 import type { Database } from "@/integrations/supabase/types";
+import { EnhancedInput } from "@/components/ui/enhanced-input";
+import { CharacterCounterTextarea } from "@/components/ui/character-counter-textarea";
 
 type ReferralStatus = Database['public']['Enums']['referral_status'];
 
@@ -31,6 +33,12 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
   const [newOrgType, setNewOrgType] = useState<'hospital' | 'physician_office' | 'snf' | 'home_health' | 'other'>('hospital');
   const [showAddContactDialog, setShowAddContactDialog] = useState(false);
   const [selectedOrgName, setSelectedOrgName] = useState<string>('');
+  
+  // Refs for smart field focus
+  const patientNameRef = useRef<HTMLInputElement>(null);
+  const diagnosisRef = useRef<HTMLInputElement>(null);
+  const insuranceRef = useRef<HTMLInputElement>(null);
+  
   const [formData, setFormData] = useState({
     patient_name: '',
     patient_phone: '',
@@ -48,6 +56,15 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
     notes: '',
     benefit_period_number: 1
   });
+  
+  // Auto-focus first empty required field when dialog opens
+  useEffect(() => {
+    if (open && patientNameRef.current) {
+      setTimeout(() => {
+        patientNameRef.current?.focus();
+      }, 100);
+    }
+  }, [open]);
 
   // Fetch organizations for the dropdown (include all organizations, active and inactive)
   const { data: organizations, isLoading: organizationsLoading } = useQuery({
@@ -248,38 +265,54 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div>
                 <Label htmlFor="patient_name">Patient Name *</Label>
-                <Input
+                <EnhancedInput
                   id="patient_name"
+                  ref={patientNameRef}
+                  icon={<User className="w-4 h-4" />}
                   value={formData.patient_name}
                   onChange={(e) => handleInputChange('patient_name', e.target.value)}
+                  onEnterPress={() => diagnosisRef.current?.focus()}
+                  placeholder="e.g., John Smith"
                   required
                   disabled={isSubmitting}
                 />
               </div>
               <div>
                 <Label htmlFor="patient_phone">Patient Phone</Label>
-                <PhoneInput
-                  id="patient_phone"
-                  value={formData.patient_phone}
-                  onChange={(value) => handleInputChange('patient_phone', value)}
-                  disabled={isSubmitting}
-                />
+                <div className="relative">
+                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                  <PhoneInput
+                    id="patient_phone"
+                    value={formData.patient_phone}
+                    onChange={(value) => handleInputChange('patient_phone', value)}
+                    disabled={isSubmitting}
+                    className="pl-10"
+                    placeholder="(555) 123-4567"
+                  />
+                </div>
               </div>
               <div>
                 <Label htmlFor="diagnosis">Diagnosis</Label>
-                <Input
+                <EnhancedInput
                   id="diagnosis"
+                  ref={diagnosisRef}
+                  icon={<FileText className="w-4 h-4" />}
                   value={formData.diagnosis}
                   onChange={(e) => handleInputChange('diagnosis', e.target.value)}
+                  onEnterPress={() => insuranceRef.current?.focus()}
+                  placeholder="e.g., End-stage CHF"
                   disabled={isSubmitting}
                 />
               </div>
               <div>
                 <Label htmlFor="insurance">Insurance</Label>
-                <Input
+                <EnhancedInput
                   id="insurance"
+                  ref={insuranceRef}
+                  icon={<Briefcase className="w-4 h-4" />}
                   value={formData.insurance}
                   onChange={(e) => handleInputChange('insurance', e.target.value)}
+                  placeholder="e.g., Medicare Part A"
                   disabled={isSubmitting}
                 />
               </div>
@@ -429,10 +462,12 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="referring_physician">Referring Physician</Label>
-                <Input
+                <EnhancedInput
                   id="referring_physician"
+                  icon={<User className="w-4 h-4" />}
                   value={formData.referring_physician}
                   onChange={(e) => handleInputChange('referring_physician', e.target.value)}
+                  placeholder="e.g., Dr. Smith"
                   disabled={isSubmitting}
                 />
               </div>
@@ -551,11 +586,13 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
           {/* Notes */}
           <div>
             <Label htmlFor="notes">Notes</Label>
-            <Textarea
+            <CharacterCounterTextarea
               id="notes"
               value={formData.notes}
               onChange={(e) => handleInputChange('notes', e.target.value)}
               rows={3}
+              maxLength={500}
+              placeholder="Add any additional notes about this referral..."
               disabled={isSubmitting}
             />
           </div>
