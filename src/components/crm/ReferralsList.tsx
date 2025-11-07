@@ -19,6 +19,7 @@ import ReferralCard from './ReferralCard';
 import { FloatingActionButton } from '@/components/ui/floating-action-button';
 import { useIsTabletOrMobile } from '@/hooks/use-responsive';
 import { ReferralCardsSkeleton } from '@/components/ui/card-skeleton';
+import { ReferralsFilterBar, ReferralFilters } from './ReferralsFilterBar';
 
 type ReferralStatus = 'new_referral' | 'contact_attempted' | 'information_gathering' | 'assessment_scheduled' | 'pending_admission' | 'admitted' | 'not_admitted_patient_choice' | 'not_admitted_not_appropriate' | 'not_admitted_lost_contact' | 'deceased_prior_admission';
 
@@ -44,21 +45,15 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
   const queryClient = useQueryClient();
   const isTabletOrMobile = useIsTabletOrMobile();
   
-  // Initialize filters based on initialFilter prop
-  const getInitialFilters = () => {
-    if (initialFilter === 'unassigned') {
-      return { statuses: [], priority: 'all', marketer: 'unassigned' };
-    } else if (initialFilter === 'urgent') {
-      return { statuses: [], priority: 'urgent', marketer: 'all' };
-    }
-    return { statuses: [], priority: 'all', marketer: 'all' };
-  };
-
-  const { statuses: initialStatuses, priority: initialPriority, marketer: initialMarketer } = getInitialFilters();
+  // New filter state
+  const [filters, setFilters] = useState<ReferralFilters>({
+    statuses: [],
+    priorities: [],
+    facilities: [],
+    insurances: [],
+    dateRange: undefined,
+  });
   
-  const [selectedStatuses, setSelectedStatuses] = useState<ReferralStatus[]>(initialStatuses);
-  const [selectedPriority, setSelectedPriority] = useState<string>(initialPriority);
-  const [selectedMarketer, setSelectedMarketer] = useState<string>(initialMarketer);
   const [view, setView] = useState<'card' | 'list'>('card');
   const [sortConfig, setSortConfig] = useState<{ field: string; direction: 'asc' | 'desc' } | null>(null);
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -68,30 +63,57 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
   const [schedulingReferralId, setSchedulingReferralId] = useState<string>('');
 
   const { data: referrals, isLoading } = useQuery({
-    queryKey: ['referrals', selectedStatuses, selectedPriority, selectedMarketer],
+    queryKey: ['referrals', filters],
     queryFn: async () => {
       let query = supabase
         .from('referrals')
         .select('*, organizations(name, type)')
         .order('referral_date', { ascending: false });
 
-      if (selectedStatuses.length > 0) {
-        query = query.in('status', selectedStatuses);
-      }
-      if (selectedPriority !== 'all') {
-        query = query.eq('priority', selectedPriority);
+      // Apply status filter (with proper type casting)
+      if (filters.statuses.length > 0) {
+        query = query.in('status', filters.statuses as any);
       }
       
-      // Handle marketer filter
-      if (selectedMarketer === 'unassigned') {
-        query = query.or('assigned_marketer.is.null,assigned_marketer.eq.');
-      } else if (selectedMarketer !== 'all') {
-        query = query.eq('assigned_marketer', selectedMarketer);
+      // Apply priority filter
+      if (filters.priorities.length > 0) {
+        query = query.in('priority', filters.priorities);
+      }
+      
+      // Apply facility filter
+      if (filters.facilities.length > 0) {
+        query = query.in('organization_id', filters.facilities);
+      }
+      
+      // Apply insurance filter
+      if (filters.insurances.length > 0) {
+        query = query.in('insurance', filters.insurances);
+      }
+      
+      // Apply date range filter
+      if (filters.dateRange?.from) {
+        query = query.gte('referral_date', filters.dateRange.from.toISOString());
+      }
+      if (filters.dateRange?.to) {
+        query = query.lte('referral_date', filters.dateRange.to.toISOString());
       }
 
       const { data, error } = await query;
       if (error) throw error;
       return data;
+    }
+  });
+  
+  // Get total count without filters
+  const { data: totalReferrals } = useQuery({
+    queryKey: ['referrals-total'],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from('referrals')
+        .select('*', { count: 'exact', head: true });
+      
+      if (error) throw error;
+      return count || 0;
     }
   });
 
@@ -232,31 +254,7 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
     updateMarketerMutation.mutate({ id: referralId, marketer });
   };
 
-  const handleStatusChange = (status: ReferralStatus, checked: boolean) => {
-    if (checked) {
-      setSelectedStatuses(prev => [...prev, status]);
-    } else {
-      setSelectedStatuses(prev => prev.filter(s => s !== status));
-    }
-  };
-
-  const resetFilters = () => {
-    setSelectedStatuses([]);
-    setSelectedPriority('all');
-    setSelectedMarketer('all');
-  };
-
-  const hasActiveFilters = selectedStatuses.length > 0 || selectedPriority !== 'all' || selectedMarketer !== 'all';
   const hasResults = referrals && referrals.length > 0;
-
-  const getStatusFilterLabel = () => {
-    if (selectedStatuses.length === 0) return 'All Status';
-    if (selectedStatuses.length === 1) {
-      const status = statusOptions.find(s => s.value === selectedStatuses[0]);
-      return status?.label || 'All Status';
-    }
-    return `${selectedStatuses.length} statuses selected`;
-  };
 
   if (isLoading) {
     return (
@@ -347,97 +345,28 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div className="flex space-x-3">
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" className="w-48 modern-filter justify-between">
-                <span>{getStatusFilterLabel()}</span>
-                <Filter className="w-4 h-4" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-80 modern-dropdown" align="start">
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <h4 className="font-medium">Filter by Status</h4>
-                  {selectedStatuses.length > 0 && (
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => setSelectedStatuses([])}
-                      className="h-auto p-1 text-xs"
-                    >
-                      Clear all
-                    </Button>
-                  )}
-                </div>
-                <div className="space-y-2 max-h-64 overflow-y-auto">
-                  {statusOptions.map((status) => (
-                    <div key={status.value} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={status.value}
-                        checked={selectedStatuses.includes(status.value as ReferralStatus)}
-                        onCheckedChange={(checked) => 
-                          handleStatusChange(status.value as ReferralStatus, checked as boolean)
-                        }
-                      />
-                      <label 
-                        htmlFor={status.value}
-                        className="text-sm cursor-pointer flex-1"
-                      >
-                        {status.label}
-                      </label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </PopoverContent>
-          </Popover>
+      {/* New Filter Bar */}
+      <ReferralsFilterBar
+        filters={filters}
+        onFiltersChange={setFilters}
+        totalCount={totalReferrals || 0}
+        filteredCount={referrals?.length || 0}
+      />
 
-          <Select value={selectedPriority} onValueChange={setSelectedPriority}>
-            <SelectTrigger className="w-40 modern-filter">
-              <SelectValue placeholder="Filter by priority" />
-            </SelectTrigger>
-            <SelectContent className="modern-dropdown">
-              <SelectItem value="all" className="modern-dropdown-item">All Priority</SelectItem>
-              <SelectItem value="urgent" className="modern-dropdown-item">Urgent</SelectItem>
-              <SelectItem value="routine" className="modern-dropdown-item">Routine</SelectItem>
-              <SelectItem value="low" className="modern-dropdown-item">Low</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Select value={selectedMarketer} onValueChange={setSelectedMarketer}>
-            <SelectTrigger className="w-48 modern-filter">
-              <SelectValue placeholder="Filter by marketer" />
-            </SelectTrigger>
-            <SelectContent className="modern-dropdown">
-              <SelectItem value="all" className="modern-dropdown-item">All Marketers</SelectItem>
-              <SelectItem value="unassigned" className="modern-dropdown-item">Unassigned</SelectItem>
-              {marketers?.map((marketer: string) => (
-                <SelectItem key={marketer} value={marketer} className="modern-dropdown-item">{marketer}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="flex gap-3">
-          <ViewToggle view={view} onViewChange={setView} />
-          {!isTabletOrMobile && (
-            <Button onClick={() => setShowAddDialog(true)} className="modern-btn-primary">
-              <Plus className="w-4 h-4 mr-2" />
-              Add Referral
-            </Button>
-          )}
-        </div>
+      <div className="flex justify-end gap-3">
+        <ViewToggle view={view} onViewChange={setView} />
+        {!isTabletOrMobile && (
+          <Button onClick={() => setShowAddDialog(true)} className="modern-btn-primary">
+            <Plus className="w-4 h-4 mr-2" />
+            Add Referral
+          </Button>
+        )}
       </div>
 
       {!hasResults ? (
         <EmptyState
-          title={hasActiveFilters ? "No referrals match your filters" : "No referrals yet"}
-          description={hasActiveFilters ? "Try adjusting your filters to see more results." : "Get started by adding your first referral to the system."}
-          actionLabel={hasActiveFilters ? undefined : "Add First Referral"}
-          onAction={hasActiveFilters ? undefined : () => setShowAddDialog(true)}
-          showResetFilters={hasActiveFilters}
-          onResetFilters={resetFilters}
+          title="No referrals match your filters"
+          description="Try adjusting your filters to see more results."
         />
       ) : (
         <>
