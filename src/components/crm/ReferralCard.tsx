@@ -144,6 +144,34 @@ const ReferralCard = ({
     return differenceInDays(new Date(), new Date(baseDate));
   };
 
+  const getPriorityBadge = (priority: string) => {
+    switch (priority) {
+      case 'urgent':
+        return {
+          text: '🔥 URGENT',
+          className: 'bg-red-500 text-white border-red-600'
+        };
+      case 'routine':
+        return {
+          text: 'ROUTINE',
+          className: 'bg-blue-500 text-white border-blue-600'
+        };
+      case 'low':
+        return {
+          text: 'LOW',
+          className: 'bg-gray-400 text-white border-gray-500'
+        };
+      default:
+        return {
+          text: 'ROUTINE',
+          className: 'bg-blue-500 text-white border-blue-600'
+        };
+    }
+  };
+
+  const isUrgent = referral.priority === 'urgent';
+  const priorityBadge = getPriorityBadge(referral.priority || 'routine');
+
   const progressPercentage = getStatusProgress(referral.status);
   const progressBarColor = getProgressBarColor(referral.status);
   const nextStage = getNextStage(referral.status);
@@ -156,7 +184,19 @@ const ReferralCard = ({
   };
 
   return (
-    <Card className="modern-card group relative overflow-hidden">
+    <Card className={cn(
+      "modern-card group relative overflow-visible",
+      isUrgent && "border-2 border-red-500 shadow-lg shadow-red-100"
+    )}>
+      {/* Pulsing Red Dot for Urgent Items */}
+      {isUrgent && (
+        <div className="absolute -top-1 -right-1 z-10">
+          <div className="relative">
+            <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
+            <div className="absolute top-0 left-0 w-3 h-3 bg-red-500 rounded-full animate-ping" />
+          </div>
+        </div>
+      )}
       <CardContent className="p-3 sm:p-4 md:p-6">
         {/* Gradient accent line */}
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-purple-500"></div>
@@ -239,10 +279,19 @@ const ReferralCard = ({
           <div className="text-sm sm:text-base font-medium text-gray-900">{referral.diagnosis || 'Not specified'}</div>
         </div>
 
-        {/* Status with Progress Bar */}
+        {/* Status with Priority Badge and Progress Bar */}
         <div className="mb-3">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs sm:text-sm text-gray-600 font-medium">Status</span>
+            <div className="flex items-center gap-2">
+              <span className="text-xs sm:text-sm text-gray-600 font-medium">Status</span>
+              {/* Priority Badge */}
+              <Badge className={cn(
+                "text-[10px] sm:text-xs font-bold px-2 py-0.5 border",
+                priorityBadge.className
+              )}>
+                {priorityBadge.text}
+              </Badge>
+            </div>
             <Select
               value={referral.status || 'new_referral'}
               onValueChange={(value: string) => onStatusChange(referral.id, value)}
