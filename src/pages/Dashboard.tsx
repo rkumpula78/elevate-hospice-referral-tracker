@@ -16,6 +16,7 @@ import AlertCenter from "@/components/dashboard/AlertCenter";
 import CensusManager from "@/components/dashboard/CensusManager";
 import ValuesReminder from "@/components/dashboard/ValuesReminder";
 import GrowthMetricsCard from "@/components/dashboard/GrowthMetricsCard";
+import { TrendMetricCard } from "@/components/dashboard/TrendMetricCard";
 
 const Dashboard = () => {
   const [showQuickAdd, setShowQuickAdd] = useState(false);
@@ -91,6 +92,20 @@ const Dashboard = () => {
         ? Math.round(((currentCensus - censusPrevious) / censusPrevious) * 100)
         : 0;
 
+      // Get 7-day sparkline data for census
+      const censusSparkline = [];
+      for (let i = 6; i >= 0; i--) {
+        const date = subDays(new Date(), i);
+        const dateKey = `census_${format(date, 'yyyy-MM-dd')}`;
+        const dayData = localStorage.getItem(dateKey);
+        
+        if (dayData) {
+          censusSparkline.push({ value: JSON.parse(dayData).patient_count });
+        } else {
+          censusSparkline.push({ value: currentCensus });
+        }
+      }
+
       // Get today's referrals count
       const { count: todayReferrals } = await supabase
         .from('referrals')
@@ -114,6 +129,22 @@ const Dashboard = () => {
       const monthlyTrend = lastMonthReferrals > 0
         ? Math.round(((monthlyReferrals - lastMonthReferrals) / lastMonthReferrals) * 100)
         : 0;
+
+      // Get 7-day sparkline data for referrals
+      const referralsSparkline = [];
+      for (let i = 6; i >= 0; i--) {
+        const date = subDays(new Date(), i);
+        const startOfDay = new Date(date.setHours(0, 0, 0, 0));
+        const endOfDay = new Date(date.setHours(23, 59, 59, 999));
+        
+        const { count } = await supabase
+          .from('referrals')
+          .select('*', { count: 'exact', head: true })
+          .gte('created_at', startOfDay.toISOString())
+          .lte('created_at', endOfDay.toISOString());
+        
+        referralsSparkline.push({ value: count || 0 });
+      }
 
       // Get pending follow-ups (activities with follow_up_required = true and not completed)
       const { count: pendingFollowUps } = await supabase
@@ -164,6 +195,28 @@ const Dashboard = () => {
         ? conversionRate - previousConversionRate
         : 0;
 
+      // Get 7-day sparkline data for conversion
+      const conversionSparkline = [];
+      for (let i = 6; i >= 0; i--) {
+        const date = subDays(new Date(), i);
+        const startOfDay = new Date(date.setHours(0, 0, 0, 0));
+        const endOfDay = new Date(date.setHours(23, 59, 59, 999));
+        
+        const { data: dayReferrals } = await supabase
+          .from('referrals')
+          .select('status')
+          .gte('created_at', startOfDay.toISOString())
+          .lte('created_at', endOfDay.toISOString());
+        
+        const dayTotal = dayReferrals?.length || 0;
+        const dayAdmitted = dayReferrals?.filter(r => 
+          r.status === 'admitted' || r.status === 'admitted_our_hospice'
+        ).length || 0;
+        
+        const dayConversion = dayTotal > 0 ? Math.round((dayAdmitted / dayTotal) * 100) : 0;
+        conversionSparkline.push({ value: dayConversion });
+      }
+
       // Calculate average response time (from referral_date to contact_date)
       const { data: responseTimeData } = await supabase
         .from('referrals')
@@ -205,18 +258,53 @@ const Dashboard = () => {
         ? Math.round(((avgResponseHours - previousAvgResponseHours) / previousAvgResponseHours) * 100)
         : 0;
 
+      // Get 7-day sparkline data for response time
+      const responseSparkline = [];
+      for (let i = 6; i >= 0; i--) {
+        const date = subDays(new Date(), i);
+        const startOfDay = new Date(date.setHours(0, 0, 0, 0));
+        const endOfDay = new Date(date.setHours(23, 59, 59, 999));
+        
+        const { data: dayResponseData } = await supabase
+          .from('referrals')
+          .select('referral_date, contact_date')
+          .not('contact_date', 'is', null)
+          .gte('created_at', startOfDay.toISOString())
+          .lte('created_at', endOfDay.toISOString());
+        
+        if (dayResponseData && dayResponseData.length > 0) {
+          const dayHours = dayResponseData.reduce((sum, ref) => {
+            const referralTime = new Date(ref.referral_date).getTime();
+            const contactTime = new Date(ref.contact_date).getTime();
+            const hours = (contactTime - referralTime) / (1000 * 60 * 60);
+            return sum + hours;
+          }, 0) / dayResponseData.length;
+          responseSparkline.push({ value: Math.round(dayHours) });
+        } else {
+          responseSparkline.push({ value: avgResponseHours });
+        }
+      }
+
       return {
         census: currentCensus || 0,
         censusTrend,
+        censusSparkline,
+        censusPrevious,
         conversionRate,
         conversionTrend,
+        conversionSparkline,
+        previousConversionRate,
         responseTime: avgResponseHours,
         responseTrend,
+        responseSparkline,
+        previousAvgResponseHours,
         activePartners: activeProspects || 0,
         todayReferrals: todayReferrals || 0,
         pendingFollowUps: pendingFollowUps || 0,
         monthlyReferrals: monthlyReferrals || 0,
-        monthlyTrend
+        monthlyTrend,
+        referralsSparkline,
+        lastMonthReferrals
       };
     }
   });
@@ -263,15 +351,23 @@ const Dashboard = () => {
   const stats = dashboardStats || {
     census: 0,
     censusTrend: 0,
+    censusSparkline: [],
+    censusPrevious: 0,
     conversionRate: 0,
     conversionTrend: 0,
+    conversionSparkline: [],
+    previousConversionRate: 0,
     responseTime: 0,
     responseTrend: 0,
+    responseSparkline: [],
+    previousAvgResponseHours: 0,
     activePartners: 0,
     todayReferrals: 0,
     pendingFollowUps: 0,
     monthlyReferrals: 0,
-    monthlyTrend: 0
+    monthlyTrend: 0,
+    referralsSparkline: [],
+    lastMonthReferrals: 0
   };
 
   const formatResponseTime = (hours: number) => {
@@ -311,137 +407,153 @@ const Dashboard = () => {
         <div className="mb-6">
           <h2 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-foreground">KEY METRICS - LAST 30 DAYS</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* Census */}
-            <Card className="relative overflow-hidden">
-              <div className="hidden sm:block absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-50 to-green-100 rounded-full -mr-16 -mt-16" />
-              <CardHeader className="relative pb-2 p-3 sm:p-5 md:p-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="p-2 bg-green-100 rounded-lg">
-                      <TrendingUp className="h-5 w-5 text-green-700" />
-                    </div>
-                    <CardTitle className="text-sm font-medium text-gray-600">Census</CardTitle>
-                  </div>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="h-6 w-6 p-0"
-                    onClick={() => setShowCensusManager(true)}
-                  >
-                    <Edit2 className="h-3 w-3" />
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="relative p-3 sm:p-5 md:p-6">
-                <div className="flex items-end justify-between">
-                  <div>
-                    <div className="text-3xl font-bold text-gray-900">
-                      {statsLoading ? '...' : stats.census}
-                    </div>
-                    <p className="text-sm text-gray-500 mt-1">patients</p>
-                  </div>
-                  {stats.censusTrend !== 0 && !statsLoading && (
-                    <div className={`flex items-center gap-1 text-sm font-medium ${
-                      stats.censusTrend > 0 ? 'text-green-600' : 'text-red-600'
-                    }`}>
-                      {stats.censusTrend > 0 ? '+' : ''}{stats.censusTrend}%
-                      {stats.censusTrend > 0 ? '↗️' : '↘️'}
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+            {!statsLoading ? (
+              <>
+                {/* Census */}
+                <TrendMetricCard
+                  title="Census"
+                  value={stats.census}
+                  icon={TrendingUp}
+                  iconColor="text-green-700"
+                  iconBgColor="bg-green-100"
+                  gradientFrom="from-green-50"
+                  gradientTo="to-green-100"
+                  trend={stats.censusTrend}
+                  comparisonText="vs 30 days ago"
+                  sparklineData={stats.censusSparkline}
+                  tooltipData={{
+                    currentValue: `${stats.census} patients`,
+                    previousValue: `${stats.censusPrevious} patients`,
+                    exactChange: `${stats.censusTrend > 0 ? '+' : ''}${stats.census - stats.censusPrevious} patients`,
+                    dateRange: format(subDays(new Date(), 30), 'MMM d') + ' - ' + format(new Date(), 'MMM d, yyyy')
+                  }}
+                  editButton={
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-6 w-6 p-0"
+                      onClick={() => setShowCensusManager(true)}
+                    >
+                      <Edit2 className="h-3 w-3" />
+                    </Button>
+                  }
+                />
 
-            {/* Conversion Rate */}
-            <Card className="relative overflow-hidden">
-              <div className="hidden sm:block absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-50 to-blue-100 rounded-full -mr-16 -mt-16" />
-              <CardHeader className="relative pb-2 p-3 sm:p-5 md:p-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="p-2 bg-blue-100 rounded-lg">
-                      <Target className="h-5 w-5 text-blue-700" />
-                    </div>
-                    <CardTitle className="text-sm font-medium text-gray-600">Conversion</CardTitle>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="relative p-3 sm:p-5 md:p-6">
-                <div className="flex items-end justify-between">
-                  <div>
-                    <div className="text-3xl font-bold text-gray-900">
-                      {statsLoading ? '...' : `${stats.conversionRate}%`}
-                    </div>
-                    <p className="text-sm text-gray-500 mt-1">rate</p>
-                  </div>
-                  {stats.conversionTrend !== 0 && !statsLoading && (
-                    <div className={`flex items-center gap-1 text-sm font-medium ${
-                      stats.conversionTrend > 0 ? 'text-green-600' : 'text-red-600'
-                    }`}>
-                      {stats.conversionTrend > 0 ? '+' : ''}{stats.conversionTrend}%
-                      {stats.conversionTrend > 0 ? '↗️' : '↘️'}
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+                {/* Conversion Rate */}
+                <TrendMetricCard
+                  title="Conversion"
+                  value={`${stats.conversionRate}%`}
+                  icon={Target}
+                  iconColor="text-blue-700"
+                  iconBgColor="bg-blue-100"
+                  gradientFrom="from-blue-50"
+                  gradientTo="to-blue-100"
+                  trend={stats.conversionTrend}
+                  comparisonText="vs last 30 days"
+                  sparklineData={stats.conversionSparkline}
+                  tooltipData={{
+                    currentValue: `${stats.conversionRate}% conversion`,
+                    previousValue: `${stats.previousConversionRate}% conversion`,
+                    exactChange: `${stats.conversionTrend > 0 ? '+' : ''}${stats.conversionTrend}%`,
+                    dateRange: 'Last 30 days vs previous 30 days'
+                  }}
+                />
 
-            {/* Response Time */}
-            <Card className="relative overflow-hidden">
-              <div className="hidden sm:block absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-50 to-purple-100 rounded-full -mr-16 -mt-16" />
-              <CardHeader className="relative pb-2 p-3 sm:p-5 md:p-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="p-2 bg-purple-100 rounded-lg">
-                      <Clock className="h-5 w-5 text-purple-700" />
-                    </div>
-                    <CardTitle className="text-sm font-medium text-gray-600">Response Time</CardTitle>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="relative p-3 sm:p-5 md:p-6">
-                <div className="flex items-end justify-between">
-                  <div>
-                    <div className="text-3xl font-bold text-gray-900">
-                      {statsLoading ? '...' : formatResponseTime(stats.responseTime)}
-                    </div>
-                    <p className="text-sm text-gray-500 mt-1">average</p>
-                  </div>
-                  {stats.responseTrend !== 0 && !statsLoading && (
-                    <div className={`flex items-center gap-1 text-sm font-medium ${
-                      stats.responseTrend < 0 ? 'text-green-600' : 'text-red-600'
-                    }`}>
-                      {stats.responseTrend > 0 ? '+' : ''}{Math.abs(stats.responseTrend)}%
-                      {stats.responseTrend < 0 ? '↗️' : '↘️'}
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+                {/* Response Time */}
+                <TrendMetricCard
+                  title="Response Time"
+                  value={formatResponseTime(stats.responseTime)}
+                  icon={Clock}
+                  iconColor="text-purple-700"
+                  iconBgColor="bg-purple-100"
+                  gradientFrom="from-purple-50"
+                  gradientTo="to-purple-100"
+                  trend={-stats.responseTrend}
+                  comparisonText="vs last 30 days"
+                  sparklineData={stats.responseSparkline}
+                  tooltipData={{
+                    currentValue: formatResponseTime(stats.responseTime),
+                    previousValue: formatResponseTime(stats.previousAvgResponseHours),
+                    exactChange: `${stats.responseTrend > 0 ? '+' : ''}${stats.responseTrend}% ${stats.responseTrend < 0 ? 'faster' : 'slower'}`,
+                    dateRange: 'Last 30 days vs previous 30 days'
+                  }}
+                />
 
-            {/* Active Partners */}
-            <Card className="relative overflow-hidden">
-              <div className="hidden sm:block absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-orange-50 to-orange-100 rounded-full -mr-16 -mt-16" />
-              <CardHeader className="relative pb-2 p-3 sm:p-5 md:p-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="p-2 bg-orange-100 rounded-lg">
-                      <Building className="h-5 w-5 text-orange-700" />
+                {/* Active Partners */}
+                <TrendMetricCard
+                  title="Active Partners"
+                  value={stats.activePartners}
+                  icon={Building}
+                  iconColor="text-orange-700"
+                  iconBgColor="bg-orange-100"
+                  gradientFrom="from-orange-50"
+                  gradientTo="to-orange-100"
+                  trend={0}
+                  comparisonText="prospect & active organizations"
+                  tooltipData={{
+                    currentValue: `${stats.activePartners} organizations`,
+                    previousValue: 'N/A',
+                    exactChange: 'N/A',
+                    dateRange: 'Current active partners'
+                  }}
+                />
+              </>
+            ) : (
+              <>
+                <Card className="relative overflow-hidden">
+                  <CardHeader className="relative pb-2 p-3 sm:p-5 md:p-6">
+                    <div className="flex items-center gap-2">
+                      <div className="p-2 bg-green-100 rounded-lg">
+                        <TrendingUp className="h-5 w-5 text-green-700" />
+                      </div>
+                      <CardTitle className="text-sm font-medium text-muted-foreground">Census</CardTitle>
                     </div>
-                    <CardTitle className="text-sm font-medium text-gray-600">Active Partners</CardTitle>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="relative p-3 sm:p-5 md:p-6">
-                <div className="flex items-end justify-between">
-                  <div>
-                    <div className="text-3xl font-bold text-gray-900">
-                      {statsLoading ? '...' : stats.activePartners}
+                  </CardHeader>
+                  <CardContent className="relative p-3 sm:p-5 md:p-6">
+                    <div className="text-3xl font-bold">...</div>
+                  </CardContent>
+                </Card>
+                <Card className="relative overflow-hidden">
+                  <CardHeader className="relative pb-2 p-3 sm:p-5 md:p-6">
+                    <div className="flex items-center gap-2">
+                      <div className="p-2 bg-blue-100 rounded-lg">
+                        <Target className="h-5 w-5 text-blue-700" />
+                      </div>
+                      <CardTitle className="text-sm font-medium text-muted-foreground">Conversion</CardTitle>
                     </div>
-                    <p className="text-sm text-gray-500 mt-1">organizations</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                  </CardHeader>
+                  <CardContent className="relative p-3 sm:p-5 md:p-6">
+                    <div className="text-3xl font-bold">...</div>
+                  </CardContent>
+                </Card>
+                <Card className="relative overflow-hidden">
+                  <CardHeader className="relative pb-2 p-3 sm:p-5 md:p-6">
+                    <div className="flex items-center gap-2">
+                      <div className="p-2 bg-purple-100 rounded-lg">
+                        <Clock className="h-5 w-5 text-purple-700" />
+                      </div>
+                      <CardTitle className="text-sm font-medium text-muted-foreground">Response Time</CardTitle>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="relative p-3 sm:p-5 md:p-6">
+                    <div className="text-3xl font-bold">...</div>
+                  </CardContent>
+                </Card>
+                <Card className="relative overflow-hidden">
+                  <CardHeader className="relative pb-2 p-3 sm:p-5 md:p-6">
+                    <div className="flex items-center gap-2">
+                      <div className="p-2 bg-orange-100 rounded-lg">
+                        <Building className="h-5 w-5 text-orange-700" />
+                      </div>
+                      <CardTitle className="text-sm font-medium text-muted-foreground">Active Partners</CardTitle>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="relative p-3 sm:p-5 md:p-6">
+                    <div className="text-3xl font-bold">...</div>
+                  </CardContent>
+                </Card>
+              </>
+            )}
           </div>
         </div>
 
