@@ -1,12 +1,14 @@
 
+
 import React, { useState } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Phone, Building2, User, Edit, Calendar, AlertCircle, Clock, CheckCircle, Plus, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
-import { format } from "date-fns";
+import { format, differenceInDays } from "date-fns";
 import { cn } from "@/lib/utils";
 
 interface ReferralCardProps {
@@ -85,19 +87,67 @@ const ReferralCard = ({
   };
 
   const getStatusProgress = (status: string) => {
-    const statusOrder = [
-      'new_referral',
-      'contact_attempted', 
-      'information_gathering',
-      'assessment_scheduled',
-      'pending_admission',
-      'admitted'
-    ];
-    const currentIndex = statusOrder.indexOf(status);
-    return currentIndex >= 0 ? ((currentIndex + 1) / statusOrder.length) * 100 : 0;
+    const statusMap: Record<string, number> = {
+      'new_referral': 10,
+      'contact_attempted': 30,
+      'information_gathering': 50,
+      'assessment_scheduled': 70,
+      'pending_admission': 85,
+      'admitted': 100,
+      'admitted_our_hospice': 100
+    };
+    
+    // Return 0 for "not_admitted" statuses
+    if (status?.startsWith('not_admitted') || status === 'deceased_prior_admission') {
+      return 0;
+    }
+    
+    return statusMap[status] || 0;
+  };
+
+  const getProgressBarColor = (status: string) => {
+    const colorMap: Record<string, string> = {
+      'new_referral': 'bg-gray-400',
+      'contact_attempted': 'bg-yellow-400',
+      'information_gathering': 'bg-blue-300',
+      'assessment_scheduled': 'bg-blue-500',
+      'pending_admission': 'bg-purple-500',
+      'admitted': 'bg-green-500',
+      'admitted_our_hospice': 'bg-green-500'
+    };
+    
+    // Red for not admitted statuses
+    if (status?.startsWith('not_admitted') || status === 'deceased_prior_admission') {
+      return 'bg-red-400';
+    }
+    
+    return colorMap[status] || 'bg-gray-400';
+  };
+
+  const getNextStage = (status: string) => {
+    const stageFlow: Record<string, string> = {
+      'new_referral': 'Contact Attempted',
+      'contact_attempted': 'Information Gathering',
+      'information_gathering': 'Assessment Scheduled',
+      'assessment_scheduled': 'Pending Admission',
+      'pending_admission': 'Admitted',
+      'admitted': 'Completed',
+      'admitted_our_hospice': 'Completed'
+    };
+    
+    return stageFlow[status] || 'N/A';
+  };
+
+  const getDaysInStage = () => {
+    if (!referral.updated_at && !referral.created_at) return 0;
+    const baseDate = referral.updated_at || referral.created_at;
+    return differenceInDays(new Date(), new Date(baseDate));
   };
 
   const progressPercentage = getStatusProgress(referral.status);
+  const progressBarColor = getProgressBarColor(referral.status);
+  const nextStage = getNextStage(referral.status);
+  const daysInStage = getDaysInStage();
 
   const handleSchedule = () => {
     if (onSchedule) {
@@ -218,14 +268,47 @@ const ReferralCard = ({
             </Select>
           </div>
           
-          {/* Modern Progress Bar */}
+          {/* Enhanced Progress Bar with Color Coding */}
           {progressPercentage > 0 && (
-            <div className="w-full bg-gray-200 rounded-full h-2 mb-3 overflow-hidden">
-              <div 
-                className="h-2 rounded-full transition-all duration-500 bg-gradient-to-r from-blue-500 to-blue-600"
-                style={{ width: `${progressPercentage}%` }}
-              />
-            </div>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs text-gray-500">Progress</span>
+                      <span className="text-xs font-semibold text-gray-700">{progressPercentage}%</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden cursor-help">
+                      <div 
+                        className={cn(
+                          "h-2.5 rounded-full transition-all duration-700 ease-in-out",
+                          progressBarColor
+                        )}
+                        style={{ width: `${progressPercentage}%` }}
+                      />
+                    </div>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent className="bg-gray-900 text-white p-3 max-w-xs">
+                  <div className="space-y-2">
+                    <div>
+                      <p className="text-xs text-gray-400 mb-0.5">Current Stage</p>
+                      <p className="text-sm font-semibold">{getStatusLabel(referral.status)}</p>
+                    </div>
+                    {nextStage !== 'Completed' && nextStage !== 'N/A' && (
+                      <div>
+                        <p className="text-xs text-gray-400 mb-0.5">Next Stage</p>
+                        <p className="text-sm">{nextStage}</p>
+                      </div>
+                    )}
+                    <div>
+                      <p className="text-xs text-gray-400 mb-0.5">Days in Current Stage</p>
+                      <p className="text-sm">{daysInStage} {daysInStage === 1 ? 'day' : 'days'}</p>
+                    </div>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           )}
         </div>
 
