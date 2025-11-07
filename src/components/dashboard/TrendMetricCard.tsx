@@ -45,167 +45,95 @@ export const TrendMetricCard = ({
   const hasSparkline = sparklineData && sparklineData.length > 0;
   const isMobile = useIsMobile();
 
-  // Disable tooltips on mobile to prevent overlay issues
-  const CardWrapper = isMobile ? 'div' : Tooltip;
-  const TriggerWrapper = isMobile ? 'div' : TooltipTrigger;
-
-  return (
-    <CardWrapper>
-      {!isMobile && <TriggerWrapper asChild>
-        <Card className={cn(
-          "relative overflow-hidden transition-all duration-200",
-          "hover:shadow-lg cursor-pointer"
-        )}>
-          {/* Background Gradient */}
-          <div className={cn(
-            "hidden sm:block absolute top-0 right-0 w-32 h-32 rounded-full -mr-16 -mt-16",
-            `bg-gradient-to-br ${gradientFrom} ${gradientTo}`
-          )} />
-          
-          <CardHeader className="relative pb-2 p-3 sm:p-5 md:p-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className={cn("p-2 rounded-lg", iconBgColor)}>
-                  <Icon className={cn("h-5 w-5", iconColor)} />
-                </div>
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  {title}
-                </CardTitle>
-              </div>
-              {editButton}
-            </div>
-          </CardHeader>
-
-          <CardContent className="relative p-3 sm:p-5 md:p-6 pt-0">
-            <div className="space-y-2">
-              {/* Value and Trend */}
-              <div className="flex items-end justify-between">
-                <div className="text-3xl font-bold text-foreground">
-                  {value}
-                </div>
-                {trend !== 0 && (
-                  <div className={cn(
-                    "flex items-center gap-1 text-sm font-semibold px-2 py-1 rounded-md",
-                    isPositiveTrend && "text-green-600 bg-green-50",
-                    isNegativeTrend && "text-red-600 bg-red-50"
-                  )}>
-                    {isPositiveTrend ? (
-                      <TrendingUp className="h-4 w-4" />
-                    ) : (
-                      <TrendingDown className="h-4 w-4" />
-                    )}
-                    <span>
-                      {isPositiveTrend ? '+' : ''}{trend}%
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              {/* Comparison Text */}
-              <p className="text-xs text-muted-foreground">
-                {comparisonText}
-              </p>
-
-              {/* Sparkline Chart */}
-              {hasSparkline && (
-                <div className="mt-2 -mx-2">
-                  <ResponsiveContainer width="100%" height={48}>
-                    <LineChart data={sparklineData}>
-                      <Line
-                        type="monotone"
-                        dataKey="value"
-                        stroke="hsl(var(--primary))"
-                        strokeWidth={2}
-                        dot={false}
-                        className="transition-opacity duration-200 opacity-40 hover:opacity-100"
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </TriggerWrapper>}
+  const cardContent = (
+    <Card className={cn(
+      "relative overflow-hidden transition-all duration-200",
+      !isMobile && "hover:shadow-lg cursor-pointer"
+    )}>
+      {/* Background Gradient */}
+      <div className={cn(
+        "hidden sm:block absolute top-0 right-0 w-32 h-32 rounded-full -mr-16 -mt-16",
+        `bg-gradient-to-br ${gradientFrom} ${gradientTo}`
+      )} />
       
-      {isMobile && (
-        <Card className={cn(
-          "relative overflow-hidden transition-all duration-200",
-          "hover:shadow-lg"
-        )}>
-          {/* Background Gradient */}
-          <div className={cn(
-            "hidden sm:block absolute top-0 right-0 w-32 h-32 rounded-full -mr-16 -mt-16",
-            `bg-gradient-to-br ${gradientFrom} ${gradientTo}`
-          )} />
-          
-          <CardHeader className="relative pb-2 p-3 sm:p-5 md:p-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className={cn("p-2 rounded-lg", iconBgColor)}>
-                  <Icon className={cn("h-5 w-5", iconColor)} />
-                </div>
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  {title}
-                </CardTitle>
-              </div>
-              {editButton}
+      <CardHeader className="relative pb-2 p-3 sm:p-5 md:p-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className={cn("p-2 rounded-lg", iconBgColor)}>
+              <Icon className={cn("h-5 w-5", iconColor)} />
             </div>
-          </CardHeader>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              {title}
+            </CardTitle>
+          </div>
+          {editButton}
+        </div>
+      </CardHeader>
 
-          <CardContent className="relative p-3 sm:p-5 md:p-6 pt-0">
-            <div className="space-y-2">
-              {/* Value and Trend */}
-              <div className="flex items-end justify-between">
-                <div className="text-3xl font-bold text-foreground">
-                  {value}
-                </div>
-                {trend !== 0 && (
-                  <div className={cn(
-                    "flex items-center gap-1 text-sm font-semibold px-2 py-1 rounded-md",
-                    isPositiveTrend && "text-green-600 bg-green-50",
-                    isNegativeTrend && "text-red-600 bg-red-50"
-                  )}>
-                    {isPositiveTrend ? (
-                      <TrendingUp className="h-4 w-4" />
-                    ) : (
-                      <TrendingDown className="h-4 w-4" />
-                    )}
-                    <span>
-                      {isPositiveTrend ? '+' : ''}{trend}%
-                    </span>
-                  </div>
+      <CardContent className="relative p-3 sm:p-5 md:p-6 pt-0">
+        <div className="space-y-2">
+          {/* Value and Trend */}
+          <div className="flex items-end justify-between">
+            <div className="text-3xl font-bold text-foreground">
+              {value}
+            </div>
+            {trend !== 0 && (
+              <div className={cn(
+                "flex items-center gap-1 text-sm font-semibold px-2 py-1 rounded-md",
+                isPositiveTrend && "text-green-600 bg-green-50",
+                isNegativeTrend && "text-red-600 bg-red-50"
+              )}>
+                {isPositiveTrend ? (
+                  <TrendingUp className="h-4 w-4" />
+                ) : (
+                  <TrendingDown className="h-4 w-4" />
                 )}
+                <span>
+                  {isPositiveTrend ? '+' : ''}{trend}%
+                </span>
               </div>
+            )}
+          </div>
 
-              {/* Comparison Text */}
-              <p className="text-xs text-muted-foreground">
-                {comparisonText}
-              </p>
+          {/* Comparison Text */}
+          <p className="text-xs text-muted-foreground">
+            {comparisonText}
+          </p>
 
-              {/* Sparkline Chart */}
-              {hasSparkline && (
-                <div className="mt-2 -mx-2">
-                  <ResponsiveContainer width="100%" height={48}>
-                    <LineChart data={sparklineData}>
-                      <Line
-                        type="monotone"
-                        dataKey="value"
-                        stroke="hsl(var(--primary))"
-                        strokeWidth={2}
-                        dot={false}
-                        className="transition-opacity duration-200 opacity-40 hover:opacity-100"
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              )}
+          {/* Sparkline Chart */}
+          {hasSparkline && (
+            <div className="mt-2 -mx-2">
+              <ResponsiveContainer width="100%" height={48}>
+                <LineChart data={sparklineData}>
+                  <Line
+                    type="monotone"
+                    dataKey="value"
+                    stroke="hsl(var(--primary))"
+                    strokeWidth={2}
+                    dot={false}
+                    className="transition-opacity duration-200 opacity-40 hover:opacity-100"
+                  />
+                </LineChart>
+              </ResponsiveContainer>
             </div>
-          </CardContent>
-        </Card>
-      )}
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
 
-      {!isMobile && tooltipData && (
+  // On mobile, return card without tooltip to prevent overlay issues
+  if (isMobile) {
+    return cardContent;
+  }
+
+  // On desktop, wrap with tooltip
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        {cardContent}
+      </TooltipTrigger>
+      {tooltipData && (
         <TooltipContent side="bottom" className="w-64 p-4">
           <div className="space-y-2">
             <div className="font-semibold text-sm border-b pb-2">
@@ -238,6 +166,6 @@ export const TrendMetricCard = ({
           </div>
         </TooltipContent>
       )}
-    </CardWrapper>
+    </Tooltip>
   );
 };
