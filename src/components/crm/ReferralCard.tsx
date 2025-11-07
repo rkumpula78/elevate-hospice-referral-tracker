@@ -364,7 +364,7 @@ const ReferralCard = ({
               onValueChange={(value: string) => onStatusChange(referral.id, value)}
               disabled={isUpdatingStatus}
             >
-              <SelectTrigger className="w-full sm:w-48 h-11 sm:h-10 modern-filter transition-all duration-200 max-w-full">
+              <SelectTrigger className="w-full sm:w-48 h-11 sm:h-10 bg-white hover:bg-gray-50 border-2 border-gray-300 hover:border-gray-400 transition-all duration-200 max-w-full shadow-sm">
                 <Badge className={cn(
                   getStatusColor(referral.status || 'new_referral'),
                   "animate-fade-in transition-all duration-300",
@@ -458,7 +458,7 @@ const ReferralCard = ({
             onValueChange={(value: string) => onPriorityChange(referral.id, value)}
             disabled={isUpdatingPriority}
           >
-            <SelectTrigger className="w-full sm:w-28 h-11 sm:h-10 modern-filter max-w-full">
+            <SelectTrigger className="w-full sm:w-28 h-11 sm:h-10 bg-white hover:bg-gray-50 border-2 border-gray-300 hover:border-gray-400 max-w-full shadow-sm transition-all">
               <Badge className={getPriorityColor(referral.priority || 'routine')}>
                 {getPriorityIcon(referral.priority || 'routine')}
                 <span className="ml-1 capitalize text-xs">{referral.priority || 'routine'}</span>
