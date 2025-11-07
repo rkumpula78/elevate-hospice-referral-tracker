@@ -9,13 +9,16 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { PhoneInput } from "@/components/ui/phone-input";
-import { Loader2, Plus, User, Phone, FileText, Briefcase, Building } from "lucide-react";
+import { Loader2, Plus, User, Phone, FileText, Briefcase, Building, AlertCircle } from "lucide-react";
 import ReferringContactSelector from "./ReferringContactSelector";
 import AddContactDialog from "./AddContactDialog";
 import { useTeamsIntegration } from "@/hooks/useTeamsIntegration";
 import type { Database } from "@/integrations/supabase/types";
 import { EnhancedInput } from "@/components/ui/enhanced-input";
 import { CharacterCounterTextarea } from "@/components/ui/character-counter-textarea";
+import { ValidationSummary } from "@/components/ui/validation-summary";
+import { RequiredFieldsIndicator } from "@/components/ui/required-fields-indicator";
+import { formatPhoneNumber } from "@/lib/formatters";
 
 type ReferralStatus = Database['public']['Enums']['referral_status'];
 
@@ -56,6 +59,12 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
     notes: '',
     benefit_period_number: 1
   });
+  
+  // Validation state
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [touchedFields, setTouchedFields] = useState<Record<string, boolean>>({});
+  const [validatedFields, setValidatedFields] = useState<Record<string, boolean>>({});
+  const errorSummaryRef = useRef<HTMLDivElement>(null);
   
   // Auto-focus first empty required field when dialog opens
   useEffect(() => {
@@ -169,7 +178,11 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['referrals'] });
       queryClient.invalidateQueries({ queryKey: ['organizations'] });
-      toast({ title: "Referral added successfully" });
+      toast({ 
+        title: "Referral added successfully",
+        description: "The referral has been created.",
+        className: "border-green-500"
+      });
       onOpenChange(false);
       setFormData({
         patient_name: '',
@@ -188,6 +201,9 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
         notes: '',
         benefit_period_number: 1
       });
+      setFieldErrors({});
+      setTouchedFields({});
+      setValidatedFields({});
       setShowNewOrgForm(false);
       setNewOrgName('');
       setNewOrgType('hospital');
@@ -197,18 +213,70 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
     }
   });
 
+  // Validation logic
+  const validateField = (field: string, value: any): string | null => {
+    switch (field) {
+      case 'patient_name':
+        if (!value || !value.trim()) return "Patient name is required";
+        return null;
+      case 'patient_phone':
+        if (value && value.trim()) {
+          const phoneRegex = /^\(\d{3}\) \d{3}-\d{4}$/;
+          if (!phoneRegex.test(value)) return "Phone number must be 10 digits";
+        }
+        return null;
+      case 'reason_for_non_admittance':
+        const notAdmittedStatuses = ['not_admitted_patient_choice', 'not_admitted_not_appropriate', 'not_admitted_lost_contact'];
+        if (notAdmittedStatuses.includes(formData.status) && (!value || !value.trim())) {
+          return "This field is required";
+        }
+        return null;
+      case 'notes':
+        if (value && value.length > 500) {
+          return "Notes must be less than 500 characters";
+        }
+        return null;
+      default:
+        return null;
+    }
+  };
+
+  const handleFieldBlur = (field: string) => {
+    setTouchedFields(prev => ({ ...prev, [field]: true }));
+    const error = validateField(field, formData[field as keyof typeof formData]);
+    setFieldErrors(prev => ({ ...prev, [field]: error || '' }));
+    setValidatedFields(prev => ({ ...prev, [field]: !error }));
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.patient_name.trim()) {
-      toast({ title: "Patient name is required", variant: "destructive" });
-      return;
-    }
+    // Validate all fields
+    const errors: Record<string, string> = {};
+    const requiredFields = ['patient_name'];
+    
+    requiredFields.forEach(field => {
+      const error = validateField(field, formData[field as keyof typeof formData]);
+      if (error) errors[field] = error;
+    });
 
-    // Validate that reason for non-admittance is provided if status indicates not admitted
-    const notAdmittedStatuses: ReferralStatus[] = ['not_admitted_patient_choice', 'not_admitted_not_appropriate', 'not_admitted_lost_contact'];
-    if (notAdmittedStatuses.includes(formData.status) && !formData.reason_for_non_admittance.trim()) {
-      toast({ title: "Reason for non-admittance is required for this status", variant: "destructive" });
+    // Validate conditional fields
+    ['patient_phone', 'reason_for_non_admittance', 'notes'].forEach(field => {
+      const error = validateField(field, formData[field as keyof typeof formData]);
+      if (error) errors[field] = error;
+    });
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      setTouchedFields(
+        requiredFields.reduce((acc, field) => ({ ...acc, [field]: true }), {})
+      );
+      
+      // Scroll to error summary
+      setTimeout(() => {
+        errorSummaryRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+      
       return;
     }
     
@@ -216,10 +284,24 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
   };
 
   const handleInputChange = (field: keyof typeof formData, value: string) => {
+    let processedValue = value;
+    
+    // Auto-format phone numbers
+    if (field === 'patient_phone') {
+      processedValue = formatPhoneNumber(value);
+    }
+    
     setFormData(prev => ({ 
       ...prev, 
-      [field]: field === 'benefit_period_number' ? parseInt(value) || 1 : value 
+      [field]: field === 'benefit_period_number' ? parseInt(processedValue) || 1 : processedValue 
     }));
+    
+    // Clear error when user starts typing
+    if (touchedFields[field] && fieldErrors[field]) {
+      const error = validateField(field, processedValue);
+      setFieldErrors(prev => ({ ...prev, [field]: error || '' }));
+      setValidatedFields(prev => ({ ...prev, [field]: !error }));
+    }
   };
 
   const handleReferringContactChange = (contactId: string | null, method: 'general' | 'specific_contact') => {
@@ -250,50 +332,98 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
 
   const isSubmitting = addReferralMutation.isPending;
   const showReasonField: boolean = ['not_admitted_patient_choice', 'not_admitted_not_appropriate', 'not_admitted_lost_contact'].includes(formData.status);
+  
+  // Calculate required fields completion
+  const requiredFieldValues = {
+    patient_name: formData.patient_name,
+  };
+  const completedRequired = Object.values(requiredFieldValues).filter(v => v && v.toString().trim()).length;
+  const totalRequired = Object.keys(requiredFieldValues).length;
+  
+  // Get all error messages for summary
+  const errorMessages = Object.entries(fieldErrors)
+    .filter(([_, error]) => error && touchedFields[_])
+    .map(([field, error]) => {
+      const fieldLabels: Record<string, string> = {
+        patient_name: 'Patient Name',
+        patient_phone: 'Patient Phone',
+        reason_for_non_admittance: 'Reason for Non-admittance',
+        notes: 'Notes',
+      };
+      return `${fieldLabels[field] || field}: ${error}`;
+    });
 
   return (
     <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-4xl max-h-[90vh] sm:max-h-[90vh] h-screen sm:h-auto w-full sm:w-auto overflow-y-auto p-0 animate-slide-up sm:animate-scale-in">
         <DialogHeader className="sticky top-0 z-10 bg-background border-b px-4 sm:px-6 py-4">
-          <DialogTitle className="text-lg sm:text-xl">Add New Referral</DialogTitle>
+          <div className="flex items-center justify-between">
+            <DialogTitle className="text-lg sm:text-xl">Add New Referral</DialogTitle>
+            <RequiredFieldsIndicator total={totalRequired} completed={completedRequired} />
+          </div>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex flex-col h-full">
           <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 space-y-6">
+          {/* Validation Summary */}
+          {errorMessages.length > 0 && (
+            <div ref={errorSummaryRef}>
+              <ValidationSummary errors={errorMessages} />
+            </div>
+          )}
+          
           {/* Patient Information */}
           <div className="space-y-4">
             <h3 className="text-base sm:text-lg font-semibold">Patient Information</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <div>
-                <Label htmlFor="patient_name" className="text-base">Patient Name *</Label>
+                <Label htmlFor="patient_name" className="text-base">
+                  Patient Name <span className="text-destructive">*</span>
+                </Label>
                 <EnhancedInput
                   id="patient_name"
                   ref={patientNameRef}
                   icon={<User className="w-4 h-4" />}
                   value={formData.patient_name}
                   onChange={(e) => handleInputChange('patient_name', e.target.value)}
+                  onBlur={() => handleFieldBlur('patient_name')}
                   onEnterPress={() => diagnosisRef.current?.focus()}
                   placeholder="e.g., John Smith"
                   required
                   disabled={isSubmitting}
                   className="h-12 text-base"
+                  isValid={touchedFields.patient_name && !fieldErrors.patient_name && !!formData.patient_name}
+                  isInvalid={touchedFields.patient_name && !!fieldErrors.patient_name}
                 />
+                {touchedFields.patient_name && fieldErrors.patient_name && (
+                  <p className="text-sm text-destructive mt-1 flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3" />
+                    {fieldErrors.patient_name}
+                  </p>
+                )}
               </div>
               <div>
                 <Label htmlFor="patient_phone" className="text-base">Patient Phone</Label>
-                <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                  <PhoneInput
-                    id="patient_phone"
-                    type="tel"
-                    inputMode="tel"
-                    value={formData.patient_phone}
-                    onChange={(value) => handleInputChange('patient_phone', value)}
-                    disabled={isSubmitting}
-                    className="pl-10 h-12 text-base"
-                    placeholder="(555) 123-4567"
-                  />
-                </div>
+                <EnhancedInput
+                  id="patient_phone"
+                  type="tel"
+                  inputMode="tel"
+                  icon={<Phone className="w-4 h-4" />}
+                  value={formData.patient_phone}
+                  onChange={(e) => handleInputChange('patient_phone', e.target.value)}
+                  onBlur={() => handleFieldBlur('patient_phone')}
+                  disabled={isSubmitting}
+                  className="h-12 text-base"
+                  placeholder="(555) 123-4567"
+                  isValid={touchedFields.patient_phone && !fieldErrors.patient_phone && !!formData.patient_phone}
+                  isInvalid={touchedFields.patient_phone && !!fieldErrors.patient_phone}
+                />
+                {touchedFields.patient_phone && fieldErrors.patient_phone && (
+                  <p className="text-sm text-destructive mt-1 flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3" />
+                    {fieldErrors.patient_phone}
+                  </p>
+                )}
               </div>
               <div>
                 <Label htmlFor="diagnosis" className="text-base">Diagnosis</Label>
@@ -567,13 +697,18 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
             {/* Conditional Reason for Non-Admittance */}
             {showReasonField && (
               <div>
-                <Label htmlFor="reason_for_non_admittance">Reason for Non-Admittance *</Label>
+                <Label htmlFor="reason_for_non_admittance">
+                  Reason for Non-Admittance <span className="text-destructive">*</span>
+                </Label>
                 <Select 
                   value={formData.reason_for_non_admittance} 
-                  onValueChange={(value) => handleInputChange('reason_for_non_admittance', value)}
+                  onValueChange={(value) => {
+                    handleInputChange('reason_for_non_admittance', value);
+                    handleFieldBlur('reason_for_non_admittance');
+                  }}
                   disabled={isSubmitting}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className={touchedFields.reason_for_non_admittance && fieldErrors.reason_for_non_admittance ? "border-destructive" : ""}>
                     <SelectValue placeholder="Select reason" />
                   </SelectTrigger>
                   <SelectContent>
@@ -585,6 +720,12 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
                     <SelectItem value="chose_curative_care">Chose curative care</SelectItem>
                   </SelectContent>
                 </Select>
+                {touchedFields.reason_for_non_admittance && fieldErrors.reason_for_non_admittance && (
+                  <p className="text-sm text-destructive mt-1 flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3" />
+                    {fieldErrors.reason_for_non_admittance}
+                  </p>
+                )}
               </div>
             )}
           </div>
@@ -596,12 +737,19 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
               id="notes"
               value={formData.notes}
               onChange={(e) => handleInputChange('notes', e.target.value)}
+              onBlur={() => handleFieldBlur('notes')}
               rows={3}
               maxLength={500}
               placeholder="Add any additional notes about this referral..."
               disabled={isSubmitting}
               className="text-base min-h-[100px]"
             />
+            {touchedFields.notes && fieldErrors.notes && (
+              <p className="text-sm text-destructive mt-1 flex items-center gap-1">
+                <AlertCircle className="w-3 h-3" />
+                {fieldErrors.notes}
+              </p>
+            )}
           </div>
           </div>
 
@@ -619,7 +767,7 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
               </Button>
               <Button 
                 type="submit" 
-                disabled={isSubmitting}
+                disabled={isSubmitting || completedRequired < totalRequired || Object.values(fieldErrors).some(e => e)}
                 className="w-full sm:w-auto h-12 sm:h-10 text-base sm:text-sm order-1 sm:order-2"
               >
                 {isSubmitting ? (
