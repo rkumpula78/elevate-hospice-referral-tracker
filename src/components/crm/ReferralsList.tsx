@@ -16,6 +16,8 @@ import ScheduleVisitDialog from './ScheduleVisitDialog';
 import { sendAdmissionNotification, formatEmailData } from '@/utils/emailNotifications';
 import { EmptyState } from '@/components/ui/empty-state';
 import ReferralCard from './ReferralCard';
+import { FloatingActionButton } from '@/components/ui/floating-action-button';
+import { useIsTabletOrMobile } from '@/hooks/use-responsive';
 
 type ReferralStatus = 'new_referral' | 'contact_attempted' | 'information_gathering' | 'assessment_scheduled' | 'pending_admission' | 'admitted' | 'not_admitted_patient_choice' | 'not_admitted_not_appropriate' | 'not_admitted_lost_contact' | 'deceased_prior_admission';
 
@@ -39,6 +41,7 @@ interface ReferralsListProps {
 const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const isTabletOrMobile = useIsTabletOrMobile();
   
   // Initialize filters based on initialFilter prop
   const getInitialFilters = () => {
@@ -421,10 +424,12 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
         </div>
         <div className="flex gap-3">
           <ViewToggle view={view} onViewChange={setView} />
-          <Button onClick={() => setShowAddDialog(true)} className="modern-btn-primary">
-            <Plus className="w-4 h-4 mr-2" />
-            Add Referral
-          </Button>
+          {!isTabletOrMobile && (
+            <Button onClick={() => setShowAddDialog(true)} className="modern-btn-primary">
+              <Plus className="w-4 h-4 mr-2" />
+              Add Referral
+            </Button>
+          )}
         </div>
       </div>
 
@@ -477,6 +482,14 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
         onOpenChange={setShowScheduleDialog}
         referralId={schedulingReferralId}
       />
+
+      {/* Floating Action Button for Mobile/Tablet */}
+      {isTabletOrMobile && (
+        <FloatingActionButton 
+          onClick={() => setShowAddDialog(true)}
+          label="Add Referral"
+        />
+      )}
     </div>
   );
 };

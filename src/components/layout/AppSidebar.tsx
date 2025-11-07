@@ -11,6 +11,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { 
   LayoutDashboard, 
@@ -32,6 +33,7 @@ import { Button } from "@/components/ui/button";
 import GlobalSearchBar from "@/components/search/GlobalSearchBar";
 import AIQuickHelp from "@/components/dashboard/AIQuickHelp";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsTabletOrMobile } from "@/hooks/use-responsive";
 
 const menuItems = [
   {
@@ -90,6 +92,8 @@ const AppSidebar = () => {
   const location = useLocation();
   const { signOut, displayName, user, isAdmin } = useAuth();
   const isMobile = useIsMobile();
+  const isTabletOrMobile = useIsTabletOrMobile();
+  const { setOpenMobile, isMobile: sidebarIsMobile, open } = useSidebar();
 
   const handleSignOut = async () => {
     await signOut();
@@ -99,8 +103,25 @@ const AppSidebar = () => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
+  const handleLinkClick = () => {
+    // Close sidebar on mobile/tablet when a menu item is clicked
+    if (isTabletOrMobile && sidebarIsMobile) {
+      setOpenMobile(false);
+    }
+  };
+
   return (
-    <Sidebar className="bg-sidebar-background text-sidebar-foreground border-r border-sidebar-border" collapsible="offcanvas">
+    <>
+      {/* Backdrop overlay for mobile/tablet */}
+      {isTabletOrMobile && open && sidebarIsMobile && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 transition-opacity duration-300 ease-in-out"
+          onClick={() => setOpenMobile(false)}
+          aria-hidden="true"
+        />
+      )}
+      
+      <Sidebar className="bg-sidebar-background text-sidebar-foreground border-r border-sidebar-border" collapsible="offcanvas">
       <SidebarHeader className={`border-b border-sidebar-border ${isMobile ? 'p-4' : 'p-6'}`}>
         <div className="flex items-center space-x-3">
           <img 
@@ -137,6 +158,7 @@ const AppSidebar = () => {
                     <SidebarMenuButton asChild isActive={isActive}>
                       <Link 
                         to={item.url}
+                        onClick={handleLinkClick}
                         className={`flex items-center gap-3 rounded-lg transition-all touch-manipulation ${
                           isMobile ? 'px-3 py-3 min-h-[44px]' : 'px-3 py-2'
                         } ${
@@ -157,6 +179,7 @@ const AppSidebar = () => {
                   <SidebarMenuButton asChild isActive={location.pathname === '/admin/users'}>
                     <Link 
                       to="/admin/users"
+                      onClick={handleLinkClick}
                       className={`flex items-center gap-3 rounded-lg transition-all touch-manipulation ${
                         isMobile ? 'px-3 py-3 min-h-[44px]' : 'px-3 py-2'
                       } ${
@@ -199,6 +222,7 @@ const AppSidebar = () => {
         </Button>
       </SidebarFooter>
     </Sidebar>
+    </>
   );
 };
 
