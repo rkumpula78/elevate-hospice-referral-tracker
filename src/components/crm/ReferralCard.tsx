@@ -185,8 +185,9 @@ const ReferralCard = ({
 
   return (
     <Card className={cn(
-      "modern-card group relative overflow-visible",
-      isUrgent && "border-2 border-red-500 shadow-lg shadow-red-100"
+      "modern-card group relative overflow-visible transition-all duration-300 ease-out cursor-pointer",
+      "hover:scale-[1.02] hover:shadow-lg hover:-translate-y-1",
+      isUrgent && "border-2 border-red-500 shadow-lg shadow-red-100 hover:shadow-red-200"
     )}>
       {/* Pulsing Red Dot for Urgent Items */}
       {isUrgent && (
@@ -242,24 +243,43 @@ const ReferralCard = ({
 
         {/* Action Buttons - Accessible Touch Targets */}
         <div className="flex gap-2 mb-4">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => onEdit(referral.id)} 
-            className="modern-btn-secondary h-11 sm:h-10 md:h-9 px-3 text-sm sm:text-xs flex-1"
-          >
-            <Edit className="w-3 h-3 mr-1" />
-            Edit
-          </Button>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={handleSchedule} 
-            className="modern-btn-primary h-11 sm:h-10 md:h-9 px-3 text-sm sm:text-xs flex-1"
-          >
-            <Calendar className="w-3 h-3 mr-1" />
-            Schedule
-          </Button>
+          <TooltipProvider>
+            <Tooltip delayDuration={300}>
+              <TooltipTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => onEdit(referral.id)} 
+                  className="modern-btn-secondary h-11 sm:h-10 md:h-9 px-3 text-sm sm:text-xs flex-1 transition-all duration-200 hover:scale-105 active:scale-95 group"
+                >
+                  <Edit className="w-3 h-3 mr-1 transition-transform duration-200 group-hover:rotate-12" />
+                  Edit
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Edit referral details</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          
+          <TooltipProvider>
+            <Tooltip delayDuration={300}>
+              <TooltipTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleSchedule} 
+                  className="modern-btn-primary h-11 sm:h-10 md:h-9 px-3 text-sm sm:text-xs flex-1 transition-all duration-200 hover:scale-105 hover:brightness-110 active:scale-95"
+                >
+                  <Calendar className="w-3 h-3 mr-1" />
+                  Schedule
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Schedule a visit</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
 
         {/* Organization Section */}
@@ -286,8 +306,9 @@ const ReferralCard = ({
               <span className="text-xs sm:text-sm text-gray-600 font-medium">Status</span>
               {/* Priority Badge */}
               <Badge className={cn(
-                "text-[10px] sm:text-xs font-bold px-2 py-0.5 border",
-                priorityBadge.className
+                "text-[10px] sm:text-xs font-bold px-2 py-0.5 border animate-fade-in transition-all duration-300",
+                priorityBadge.className,
+                isUpdatingStatus && "animate-pulse"
               )}>
                 {priorityBadge.text}
               </Badge>
@@ -297,8 +318,12 @@ const ReferralCard = ({
               onValueChange={(value: string) => onStatusChange(referral.id, value)}
               disabled={isUpdatingStatus}
             >
-              <SelectTrigger className="w-full sm:w-48 h-11 sm:h-10 modern-filter">
-                <Badge className={getStatusColor(referral.status || 'new_referral')}>
+              <SelectTrigger className="w-full sm:w-48 h-11 sm:h-10 modern-filter transition-all duration-200">
+                <Badge className={cn(
+                  getStatusColor(referral.status || 'new_referral'),
+                  "animate-fade-in transition-all duration-300",
+                  isUpdatingStatus && "animate-pulse"
+                )}>
                   {getStatusLabel(referral.status || 'new_referral')}
                 </Badge>
               </SelectTrigger>

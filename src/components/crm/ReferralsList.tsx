@@ -18,6 +18,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import ReferralCard from './ReferralCard';
 import { FloatingActionButton } from '@/components/ui/floating-action-button';
 import { useIsTabletOrMobile } from '@/hooks/use-responsive';
+import { ReferralCardsSkeleton } from '@/components/ui/card-skeleton';
 
 type ReferralStatus = 'new_referral' | 'contact_attempted' | 'information_gathering' | 'assessment_scheduled' | 'pending_admission' | 'admitted' | 'not_admitted_patient_choice' | 'not_admitted_not_appropriate' | 'not_admitted_lost_contact' | 'deceased_prior_admission';
 
@@ -259,7 +260,7 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
 
   if (isLoading) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-4 animate-fade-in">
         <div className="flex justify-between items-center">
           <div className="flex space-x-2">
             <div className="w-48 h-10 bg-gray-200 rounded animate-pulse" />
@@ -268,11 +269,7 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
           </div>
           <div className="w-32 h-10 bg-gray-200 rounded animate-pulse" />
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[...Array(6)].map((_, i) => (
-            <div key={i} className="h-64 bg-gray-200 rounded-lg animate-pulse" />
-          ))}
-        </div>
+        <ReferralCardsSkeleton count={6} />
       </div>
     );
   }
@@ -445,21 +442,26 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
       ) : (
         <>
           {view === 'list' ? renderListView() : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
-              {sortedReferrals?.map((referral) => (
-                <ReferralCard
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6 animate-fade-in">
+              {sortedReferrals?.map((referral, index) => (
+                <div 
                   key={referral.id}
-                  referral={referral}
-                  marketers={marketers || []}
-                  isUpdatingStatus={updateStatusMutation.isPending}
-                  isUpdatingPriority={updatePriorityMutation.isPending}
-                  isUpdatingMarketer={updateMarketerMutation.isPending}
-                  onStatusChange={(id, status) => updateStatusMutation.mutate({ id, status: status as ReferralStatus })}
-                  onPriorityChange={(id, priority) => updatePriorityMutation.mutate({ id, priority })}
-                  onMarketerChange={handleMarketerChange}
-                  onEdit={handleEditReferral}
-                  onSchedule={handleScheduleReferral}
-                />
+                  className="animate-fade-in"
+                  style={{ animationDelay: `${index * 50}ms` }}
+                >
+                  <ReferralCard
+                    referral={referral}
+                    marketers={marketers || []}
+                    isUpdatingStatus={updateStatusMutation.isPending}
+                    isUpdatingPriority={updatePriorityMutation.isPending}
+                    isUpdatingMarketer={updateMarketerMutation.isPending}
+                    onStatusChange={(id, status) => updateStatusMutation.mutate({ id, status: status as ReferralStatus })}
+                    onPriorityChange={(id, priority) => updatePriorityMutation.mutate({ id, priority })}
+                    onMarketerChange={handleMarketerChange}
+                    onEdit={handleEditReferral}
+                    onSchedule={handleScheduleReferral}
+                  />
+                </div>
               ))}
             </div>
           )}
