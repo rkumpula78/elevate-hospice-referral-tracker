@@ -310,11 +310,11 @@ const Dashboard = () => {
         {/* Enhanced Key Performance Indicators */}
         <div className="mb-6">
           <h2 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-foreground">KEY METRICS - LAST 30 DAYS</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Census */}
             <Card className="relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-50 to-green-100 rounded-full -mr-16 -mt-16" />
-              <CardHeader className="relative pb-2">
+              <div className="hidden sm:block absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-50 to-green-100 rounded-full -mr-16 -mt-16" />
+              <CardHeader className="relative pb-2 p-3 sm:p-5 md:p-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div className="p-2 bg-green-100 rounded-lg">
@@ -332,7 +332,7 @@ const Dashboard = () => {
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent className="relative">
+              <CardContent className="relative p-3 sm:p-5 md:p-6">
                 <div className="flex items-end justify-between">
                   <div>
                     <div className="text-3xl font-bold text-gray-900">
@@ -354,8 +354,8 @@ const Dashboard = () => {
 
             {/* Conversion Rate */}
             <Card className="relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-50 to-blue-100 rounded-full -mr-16 -mt-16" />
-              <CardHeader className="relative pb-2">
+              <div className="hidden sm:block absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-50 to-blue-100 rounded-full -mr-16 -mt-16" />
+              <CardHeader className="relative pb-2 p-3 sm:p-5 md:p-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div className="p-2 bg-blue-100 rounded-lg">
@@ -365,7 +365,7 @@ const Dashboard = () => {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="relative">
+              <CardContent className="relative p-3 sm:p-5 md:p-6">
                 <div className="flex items-end justify-between">
                   <div>
                     <div className="text-3xl font-bold text-gray-900">
@@ -387,8 +387,8 @@ const Dashboard = () => {
 
             {/* Response Time */}
             <Card className="relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-50 to-purple-100 rounded-full -mr-16 -mt-16" />
-              <CardHeader className="relative pb-2">
+              <div className="hidden sm:block absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-50 to-purple-100 rounded-full -mr-16 -mt-16" />
+              <CardHeader className="relative pb-2 p-3 sm:p-5 md:p-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div className="p-2 bg-purple-100 rounded-lg">
@@ -398,7 +398,7 @@ const Dashboard = () => {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="relative">
+              <CardContent className="relative p-3 sm:p-5 md:p-6">
                 <div className="flex items-end justify-between">
                   <div>
                     <div className="text-3xl font-bold text-gray-900">
@@ -420,8 +420,8 @@ const Dashboard = () => {
 
             {/* Active Partners */}
             <Card className="relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-orange-50 to-orange-100 rounded-full -mr-16 -mt-16" />
-              <CardHeader className="relative pb-2">
+              <div className="hidden sm:block absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-orange-50 to-orange-100 rounded-full -mr-16 -mt-16" />
+              <CardHeader className="relative pb-2 p-3 sm:p-5 md:p-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div className="p-2 bg-orange-100 rounded-lg">
@@ -431,7 +431,7 @@ const Dashboard = () => {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="relative">
+              <CardContent className="relative p-3 sm:p-5 md:p-6">
                 <div className="flex items-end justify-between">
                   <div>
                     <div className="text-3xl font-bold text-gray-900">
@@ -446,7 +446,7 @@ const Dashboard = () => {
         </div>
 
         {/* Secondary Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
           <Card className="bg-green-50 border-green-200">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-green-800">
