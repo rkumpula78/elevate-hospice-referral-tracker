@@ -77,10 +77,10 @@ const ReferralCard = ({
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'urgent': return 'modern-badge urgent';
-      case 'routine': return 'modern-badge routine';
-      case 'low': return 'modern-badge';
-      default: return 'modern-badge routine';
+      case 'urgent': return 'bg-red-600 text-white border-red-700';
+      case 'routine': return 'bg-blue-600 text-white border-blue-700';
+      case 'low': return 'bg-gray-600 text-white border-gray-700';
+      default: return 'bg-blue-600 text-white border-blue-700';
     }
   };
 
@@ -460,11 +460,11 @@ const ReferralCard = ({
             onValueChange={(value: string) => onPriorityChange(referral.id, value)}
             disabled={isUpdatingPriority}
           >
-            <SelectTrigger className="w-full sm:w-28 h-11 sm:h-10 bg-white hover:bg-gray-50 border-2 border-gray-300 hover:border-primary max-w-full shadow-sm transition-all">
+            <SelectTrigger className="w-full sm:w-32 h-11 sm:h-10 bg-white hover:bg-gray-50 border-2 border-gray-300 hover:border-primary max-w-full shadow-sm transition-all">
               <SelectValue>
-                <Badge className={cn(getPriorityColor(referral.priority || 'routine'), "font-semibold")}>
+                <Badge className={cn(getPriorityColor(referral.priority || 'routine'), "font-bold text-sm shadow-sm border")}>
                   {getPriorityIcon(referral.priority || 'routine')}
-                  <span className="ml-1 capitalize text-xs">{referral.priority || 'routine'}</span>
+                  <span className="ml-1.5 capitalize">{referral.priority || 'routine'}</span>
                 </Badge>
               </SelectValue>
             </SelectTrigger>

@@ -604,8 +604,12 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
         <div className="flex gap-3">
           <ViewToggle view={view} onViewChange={setView} />
           {!isTabletOrMobile && (
-            <Button onClick={() => setShowAddDialog(true)} className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-sm">
-              <Plus className="w-4 h-4 mr-2" />
+            <Button 
+              onClick={() => setShowAddDialog(true)} 
+              size="lg"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-md hover:shadow-lg transition-all"
+            >
+              <Plus className="w-5 h-5 mr-2" />
               Add Referral
             </Button>
           )}

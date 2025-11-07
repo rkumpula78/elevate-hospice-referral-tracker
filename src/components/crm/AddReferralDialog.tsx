@@ -157,6 +157,7 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
           priority: data.priority,
           organization_id: organizationId || null,
           referring_contact_id: data.referral_method === 'specific_contact' ? data.referring_contact_id : null,
+          referral_method: data.referral_method,
           referring_physician: data.referring_physician || null,
           assigned_marketer: data.assigned_marketer === 'unassigned' ? null : data.assigned_marketer || null,
           referral_intake_coordinator: data.referral_intake_coordinator || null,
