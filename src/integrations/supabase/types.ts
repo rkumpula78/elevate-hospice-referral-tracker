@@ -2039,6 +2039,7 @@ export type Database = {
           assessment_scheduled_date: string | null
           assigned_marketer: string | null
           attending_physician: string | null
+          benefit_period_number: number | null
           caregiver_contact: string | null
           caregiver_name: string | null
           contact_date: string | null
@@ -2099,6 +2100,7 @@ export type Database = {
           assessment_scheduled_date?: string | null
           assigned_marketer?: string | null
           attending_physician?: string | null
+          benefit_period_number?: number | null
           caregiver_contact?: string | null
           caregiver_name?: string | null
           contact_date?: string | null
@@ -2159,6 +2161,7 @@ export type Database = {
           assessment_scheduled_date?: string | null
           assigned_marketer?: string | null
           attending_physician?: string | null
+          benefit_period_number?: number | null
           caregiver_contact?: string | null
           caregiver_name?: string | null
           contact_date?: string | null
