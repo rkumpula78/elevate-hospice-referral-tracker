@@ -294,9 +294,9 @@ const ReferralCard = ({
                       variant="outline" 
                       size="sm" 
                       onClick={() => onEdit(referral.id)} 
-                      className="modern-btn-secondary h-9 px-3 text-xs flex-1 transition-all duration-200 hover:scale-105 active:scale-95 group"
+                      className="h-9 px-3 text-xs flex-1 bg-secondary/20 hover:bg-secondary/30 border-secondary/40 text-secondary-foreground font-medium shadow-sm active:scale-95 transition-all"
                     >
-                      <Edit className="w-3 h-3 mr-1 transition-transform duration-200 group-hover:rotate-12" />
+                      <Edit className="w-3 h-3 mr-1" />
                       Edit
                     </Button>
                   </TooltipTrigger>
@@ -310,10 +310,10 @@ const ReferralCard = ({
                 <Tooltip delayDuration={300}>
                   <TooltipTrigger asChild>
                     <Button 
-                      variant="outline" 
+                      variant="default" 
                       size="sm" 
                       onClick={handleSchedule} 
-                      className="modern-btn-primary h-9 px-3 text-xs flex-1 transition-all duration-200 hover:scale-105 hover:brightness-110 active:scale-95"
+                      className="h-9 px-3 text-xs flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-medium shadow-sm active:scale-95 transition-all"
                     >
                       <Calendar className="w-3 h-3 mr-1" />
                       Schedule
