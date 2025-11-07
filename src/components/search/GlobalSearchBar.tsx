@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, MessageCircle, User, Building2, FileText, ExternalLink, Plus } from 'lucide-react';
+import { Search, MessageCircle, User, Building2, FileText, ExternalLink, Plus, X, Filter } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,6 +11,9 @@ import AddReferralDialog from '@/components/crm/AddReferralDialog';
 import AddOrganizationDialog from '@/components/crm/AddOrganizationDialog';
 import ScheduleVisitDialog from '@/components/crm/ScheduleVisitDialog';
 import QuickAddDialog from '@/components/crm/QuickAddDialog';
+import { AdvancedSearchModal, SearchCriteria } from './AdvancedSearchModal';
+import { SearchHistoryDropdown } from './SearchHistoryDropdown';
+import { useDebounce } from '@/hooks/useDebounce';
 
 interface SearchResult {
   type: string;
@@ -31,13 +34,20 @@ interface SearchResult {
 const GlobalSearchBar = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showResults, setShowResults] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
   const [isAiQuery, setIsAiQuery] = useState(false);
   const [showAddReferral, setShowAddReferral] = useState(false);
   const [showAddOrganization, setShowAddOrganization] = useState(false);
   const [showScheduleVisit, setShowScheduleVisit] = useState(false);
   const [showQuickAdd, setShowQuickAdd] = useState(false);
+  const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
+  const [searchHistory, setSearchHistory] = useState<Array<{ query: string; timestamp: string }>>([]);
+  const [advancedCriteria, setAdvancedCriteria] = useState<SearchCriteria | null>(null);
   const searchRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  
+  // Debounce search query
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
   // Detect if this looks like an AI query
   const detectAiQuery = (query: string) => {
@@ -52,25 +62,63 @@ const GlobalSearchBar = () => {
     return aiPatterns.some(pattern => pattern.test(query));
   };
 
+  // Load search history from localStorage
+  useEffect(() => {
+    const history = localStorage.getItem('searchHistory');
+    if (history) {
+      setSearchHistory(JSON.parse(history));
+    }
+  }, []);
+  
+  // Save search to history
+  const saveToHistory = (query: string) => {
+    if (!query.trim()) return;
+    
+    const newHistory = [
+      { query, timestamp: new Date().toISOString() },
+      ...searchHistory.filter(h => h.query !== query)
+    ].slice(0, 5); // Keep only last 5 searches
+    
+    setSearchHistory(newHistory);
+    localStorage.setItem('searchHistory', JSON.stringify(newHistory));
+  };
+  
+  const clearHistory = () => {
+    setSearchHistory([]);
+    localStorage.removeItem('searchHistory');
+  };
+  
+  const removeHistoryItem = (index: number) => {
+    const newHistory = searchHistory.filter((_, i) => i !== index);
+    setSearchHistory(newHistory);
+    localStorage.setItem('searchHistory', JSON.stringify(newHistory));
+  };
+
   const { data: searchResults, isLoading } = useQuery({
-    queryKey: ['search', searchQuery],
+    queryKey: ['search', debouncedSearchQuery, advancedCriteria],
     queryFn: async () => {
-      if (!searchQuery.trim()) return null;
+      if (!debouncedSearchQuery.trim() && !advancedCriteria) return null;
       
-      const isAi = detectAiQuery(searchQuery);
+      const isAi = detectAiQuery(debouncedSearchQuery);
       setIsAiQuery(isAi);
+
+      // Save to history when search is performed
+      if (debouncedSearchQuery.trim()) {
+        saveToHistory(debouncedSearchQuery);
+      }
 
       const { data, error } = await supabase.functions.invoke('ai-search', {
         body: { 
-          query: searchQuery,
-          searchType: isAi ? 'ai' : 'search'
+          query: debouncedSearchQuery,
+          searchType: isAi ? 'ai' : 'search',
+          advancedCriteria
         }
       });
 
       if (error) throw error;
       return data as SearchResult;
     },
-    enabled: searchQuery.length > 2
+    enabled: debouncedSearchQuery.length > 2 || !!advancedCriteria
   });
 
   // Close results when clicking outside
@@ -88,6 +136,43 @@ const GlobalSearchBar = () => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
     setShowResults(e.target.value.length > 0);
+    setShowHistory(false);
+  };
+  
+  const handleClearSearch = () => {
+    setSearchQuery('');
+    setShowResults(false);
+    setAdvancedCriteria(null);
+  };
+  
+  const handleAdvancedSearch = (criteria: SearchCriteria) => {
+    setAdvancedCriteria(criteria);
+    setShowResults(true);
+  };
+  
+  const handleSelectHistory = (query: string) => {
+    setSearchQuery(query);
+    setShowHistory(false);
+    setShowResults(true);
+  };
+  
+  // Count total results
+  const totalResults = searchResults?.results 
+    ? (searchResults.results.referrals?.length || 0) + 
+      (searchResults.results.patients?.length || 0) + 
+      (searchResults.results.organizations?.length || 0)
+    : 0;
+  
+  // Highlight matched text in results
+  const highlightMatch = (text: string, query: string) => {
+    if (!query.trim()) return text;
+    
+    const parts = text.split(new RegExp(`(${query})`, 'gi'));
+    return parts.map((part, index) => 
+      part.toLowerCase() === query.toLowerCase() 
+        ? <mark key={index} className="bg-yellow-200 px-0.5">{part}</mark>
+        : part
+    );
   };
 
   const handleResultClick = (type: string, id: string) => {
@@ -136,27 +221,75 @@ const GlobalSearchBar = () => {
     <>
       <div ref={searchRef} className="relative w-full">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4 z-10" />
           <Input
             type="text"
-            placeholder="Search or ask AI..."
+            placeholder="Search referrals by name, MRN, facility..."
             value={searchQuery}
             onChange={handleInputChange}
-            className="pl-10 pr-4 py-2 w-full text-sm"
-            onFocus={() => searchQuery.length > 0 && setShowResults(true)}
+            className="pl-10 pr-20 py-2 w-full text-sm bg-background"
+            onFocus={() => {
+              if (searchQuery.length === 0) {
+                setShowHistory(true);
+                setShowResults(false);
+              } else if (searchQuery.length > 0) {
+                setShowResults(true);
+                setShowHistory(false);
+              }
+            }}
           />
-          {isAiQuery && (
-            <MessageCircle className="absolute right-3 top-1/2 transform -translate-y-1/2 text-blue-500 h-4 w-4" />
-          )}
+          <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
+            {searchQuery && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleClearSearch}
+                className="h-6 w-6 p-0 hover:bg-muted"
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            )}
+            {isAiQuery && (
+              <MessageCircle className="text-blue-500 h-4 w-4" />
+            )}
+          </div>
         </div>
+        
+        {/* Advanced Search Link */}
+        <button
+          onClick={() => setShowAdvancedSearch(true)}
+          className="text-xs text-primary hover:underline mt-1 flex items-center gap-1"
+        >
+          <Filter className="w-3 h-3" />
+          Advanced Search
+        </button>
 
-        {showResults && searchQuery.length > 2 && (
-          <Card className="absolute top-full left-0 right-0 mt-1 z-50 max-h-96 overflow-y-auto shadow-lg bg-white border border-gray-200">
+        {/* Search History Dropdown */}
+        {showHistory && searchHistory.length > 0 && (
+          <SearchHistoryDropdown
+            history={searchHistory}
+            onSelectHistory={handleSelectHistory}
+            onClearHistory={clearHistory}
+            onRemoveItem={removeHistoryItem}
+          />
+        )}
+
+        {showResults && debouncedSearchQuery.length > 2 && (
+          <Card className="absolute top-full left-0 right-0 mt-1 z-50 max-h-96 overflow-y-auto shadow-lg bg-background border">
             <CardContent className="p-0">
+              {/* Results count */}
+              {!isLoading && searchResults && totalResults > 0 && (
+                <div className="px-4 py-2 bg-muted/50 border-b">
+                  <p className="text-xs font-medium text-foreground">
+                    {totalResults} result{totalResults !== 1 ? 's' : ''} found
+                  </p>
+                </div>
+              )}
+              
               {isLoading ? (
-                <div className="p-4 text-center text-gray-500 bg-white">
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500 mx-auto"></div>
-                  <p className="mt-2 text-sm text-gray-600">Searching...</p>
+                <div className="p-4 text-center bg-background">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
+                  <p className="mt-2 text-sm text-muted-foreground">Searching...</p>
                 </div>
               ) : searchResults?.type === 'ai_response' ? (
                 <div className="p-4 border-l-4 border-blue-500 bg-blue-50">
@@ -195,15 +328,27 @@ const GlobalSearchBar = () => {
                       {searchResults.results.referrals.map((referral) => (
                         <div
                           key={referral.id}
-                          className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0 bg-white"
+                          className="px-4 py-3 hover:bg-muted/50 cursor-pointer border-b last:border-b-0 bg-background transition-colors"
                           onClick={() => handleResultClick('referral', referral.id)}
                         >
                           <div className="flex justify-between items-start">
-                            <div>
-                              <p className="font-medium text-sm text-gray-900">{referral.patient_name}</p>
-                              <p className="text-xs text-gray-600">
-                                {referral.organizations?.name} • Status: {referral.status}
+                            <div className="flex-1">
+                              <p className="font-medium text-sm text-foreground">
+                                {highlightMatch(referral.patient_name, debouncedSearchQuery)}
                               </p>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                <span className="font-medium">Facility:</span> {highlightMatch(referral.organizations?.name || 'N/A', debouncedSearchQuery)}
+                              </p>
+                              {referral.referring_physician && (
+                                <p className="text-xs text-muted-foreground">
+                                  <span className="font-medium">Physician:</span> {highlightMatch(referral.referring_physician, debouncedSearchQuery)}
+                                </p>
+                              )}
+                              {referral.diagnosis && (
+                                <p className="text-xs text-muted-foreground">
+                                  <span className="font-medium">Diagnosis:</span> {highlightMatch(referral.diagnosis, debouncedSearchQuery)}
+                                </p>
+                              )}
                             </div>
                             <span className={`px-2 py-1 text-xs rounded-full ${
                               referral.status === 'admitted' ? 'bg-green-100 text-green-800' :
@@ -228,13 +373,19 @@ const GlobalSearchBar = () => {
                       {searchResults.results.patients.map((patient) => (
                         <div
                           key={patient.id}
-                          className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0 bg-white"
+                          className="px-4 py-3 hover:bg-muted/50 cursor-pointer border-b last:border-b-0 bg-background transition-colors"
                           onClick={() => handleResultClick('patient', patient.id)}
                         >
                           <div className="flex justify-between items-start">
-                            <div>
-                              <p className="font-medium text-sm text-gray-900">{patient.first_name} {patient.last_name}</p>
-                              <p className="text-xs text-gray-600">{patient.diagnosis}</p>
+                            <div className="flex-1">
+                              <p className="font-medium text-sm text-foreground">
+                                {highlightMatch(`${patient.first_name} ${patient.last_name}`, debouncedSearchQuery)}
+                              </p>
+                              {patient.diagnosis && (
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  {highlightMatch(patient.diagnosis, debouncedSearchQuery)}
+                                </p>
+                              )}
                             </div>
                             <span className={`px-2 py-1 text-xs rounded-full ${
                               patient.status === 'active' ? 'bg-green-100 text-green-800' :
@@ -258,14 +409,16 @@ const GlobalSearchBar = () => {
                       {searchResults.results.organizations.map((org) => (
                         <div
                           key={org.id}
-                          className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0 bg-white"
+                          className="px-4 py-3 hover:bg-muted/50 cursor-pointer border-b last:border-b-0 bg-background transition-colors"
                           onClick={() => handleResultClick('organization', org.id)}
                         >
                           <div className="flex justify-between items-start">
-                            <div>
-                              <p className="font-medium text-sm text-gray-900">{org.name}</p>
-                              <p className="text-xs text-gray-600">
-                                {org.type} • Contact: {org.contact_person}
+                            <div className="flex-1">
+                              <p className="font-medium text-sm text-foreground">
+                                {highlightMatch(org.name, debouncedSearchQuery)}
+                              </p>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                {org.type} {org.contact_person && `• Contact: ${highlightMatch(org.contact_person, debouncedSearchQuery)}`}
                               </p>
                             </div>
                             {org.assigned_marketer && (
@@ -282,9 +435,9 @@ const GlobalSearchBar = () => {
                   {searchResults.results.referrals.length === 0 && 
                    searchResults.results.patients.length === 0 && 
                    searchResults.results.organizations.length === 0 && (
-                    <div className="p-4 text-center bg-white">
-                      <p className="text-sm text-gray-900">No results found for "{searchQuery}"</p>
-                      <p className="text-xs mt-1 text-gray-600">Try a different search term or ask the AI assistant</p>
+                    <div className="p-4 text-center bg-background">
+                      <p className="text-sm text-foreground">No results found for "{debouncedSearchQuery}"</p>
+                      <p className="text-xs mt-1 text-muted-foreground">Try a different search term or use Advanced Search</p>
                     </div>
                   )}
                 </div>
@@ -310,6 +463,11 @@ const GlobalSearchBar = () => {
       <QuickAddDialog 
         open={showQuickAdd} 
         onOpenChange={setShowQuickAdd} 
+      />
+      <AdvancedSearchModal
+        open={showAdvancedSearch}
+        onOpenChange={setShowAdvancedSearch}
+        onSearch={handleAdvancedSearch}
       />
     </>
   );
