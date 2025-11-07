@@ -281,13 +281,14 @@ const ReferralFamilyContacts = ({ referralId }: ReferralFamilyContactsProps) => 
                 </div>
                 
                 <div className="flex gap-1">
-                  <Button size="sm" variant="outline" onClick={() => startEdit(contact)}>
+                  <Button size="sm" variant="outline" onClick={() => startEdit(contact)} className="bg-gray-100 hover:bg-gray-200 border-gray-300 text-gray-900 font-semibold">
                     <Edit className="w-3 h-3" />
                   </Button>
                   <Button 
                     size="sm" 
                     variant="outline" 
                     onClick={() => deleteContactMutation.mutate(contact.id)}
+                    className="bg-red-50 hover:bg-red-100 border-red-300 text-red-700 font-semibold"
                   >
                     <Trash className="w-3 h-3" />
                   </Button>

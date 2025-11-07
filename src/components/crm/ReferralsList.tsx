@@ -548,6 +548,7 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
                     size="sm"
                     variant="outline"
                     onClick={() => handleEditReferral(referral.id)}
+                    className="bg-gray-100 hover:bg-gray-200 border-gray-300 text-gray-900 font-semibold"
                   >
                     Edit
                   </Button>
@@ -603,7 +604,7 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
         <div className="flex gap-3">
           <ViewToggle view={view} onViewChange={setView} />
           {!isTabletOrMobile && (
-            <Button onClick={() => setShowAddDialog(true)} className="modern-btn-primary">
+            <Button onClick={() => setShowAddDialog(true)} className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-sm">
               <Plus className="w-4 h-4 mr-2" />
               Add Referral
             </Button>

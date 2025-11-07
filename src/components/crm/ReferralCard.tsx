@@ -269,7 +269,7 @@ const ReferralCard = ({
                 variant="outline" 
                 size="sm" 
                 onClick={() => onEdit(referral.id)} 
-                className="h-11 px-4 text-sm flex-1 bg-secondary/10 hover:bg-secondary/20 border-secondary/30 text-secondary-foreground font-medium shadow-sm active:scale-95 transition-all"
+                className="h-11 px-4 text-sm flex-1 bg-gray-100 hover:bg-gray-200 border-gray-300 text-gray-900 font-semibold shadow-sm active:scale-95 transition-all"
               >
                 <Edit className="w-4 h-4 mr-2" />
                 Edit
@@ -279,7 +279,7 @@ const ReferralCard = ({
                 variant="default" 
                 size="sm" 
                 onClick={handleSchedule} 
-                className="h-11 px-4 text-sm flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-medium shadow-sm active:scale-95 transition-all"
+                className="h-11 px-4 text-sm flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-sm active:scale-95 transition-all"
               >
                 <Calendar className="w-4 h-4 mr-2" />
                 Schedule
@@ -294,7 +294,7 @@ const ReferralCard = ({
                       variant="outline" 
                       size="sm" 
                       onClick={() => onEdit(referral.id)} 
-                      className="h-9 px-3 text-xs flex-1 bg-secondary/20 hover:bg-secondary/30 border-secondary/40 text-secondary-foreground font-medium shadow-sm active:scale-95 transition-all"
+                      className="h-9 px-3 text-xs flex-1 bg-gray-100 hover:bg-gray-200 border-gray-300 text-gray-900 font-semibold shadow-sm active:scale-95 transition-all"
                     >
                       <Edit className="w-3 h-3 mr-1" />
                       Edit
@@ -313,7 +313,7 @@ const ReferralCard = ({
                       variant="default" 
                       size="sm" 
                       onClick={handleSchedule} 
-                      className="h-9 px-3 text-xs flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-medium shadow-sm active:scale-95 transition-all"
+                      className="h-9 px-3 text-xs flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-sm active:scale-95 transition-all"
                     >
                       <Calendar className="w-3 h-3 mr-1" />
                       Schedule
