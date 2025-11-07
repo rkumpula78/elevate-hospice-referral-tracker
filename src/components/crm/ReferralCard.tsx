@@ -11,6 +11,7 @@ import { Phone, Building2, User, Edit, Calendar, AlertCircle, Clock, CheckCircle
 import { Link } from "react-router-dom";
 import { format, differenceInDays } from "date-fns";
 import { cn } from "@/lib/utils";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ReferralCardProps {
   referral: any;
@@ -41,6 +42,7 @@ const ReferralCard = ({
   isSelected = false,
   onSelectChange,
 }: ReferralCardProps) => {
+  const isMobile = useIsMobile();
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'new_referral': return 'modern-badge pending';
@@ -190,7 +192,7 @@ const ReferralCard = ({
 
   return (
     <Card className={cn(
-      "modern-card group relative overflow-visible transition-all duration-300 ease-out cursor-pointer",
+      "modern-card group relative overflow-hidden transition-all duration-300 ease-out cursor-pointer max-w-full",
       "hover:scale-[1.02] hover:shadow-lg hover:-translate-y-1",
       isUrgent && "border-2 border-red-500 shadow-lg shadow-red-100 hover:shadow-red-200",
       isSelected && "border-2 border-primary shadow-lg shadow-primary/20"
@@ -216,7 +218,7 @@ const ReferralCard = ({
           </div>
         </div>
       )}
-      <CardContent className="p-3 sm:p-4 md:p-6 pl-12">
+      <CardContent className="p-3 sm:p-4 md:p-6 pl-12 max-w-full overflow-x-hidden">
         {/* Gradient accent line */}
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-purple-500"></div>
         
@@ -261,43 +263,69 @@ const ReferralCard = ({
 
         {/* Action Buttons - Accessible Touch Targets */}
         <div className="flex gap-2 mb-4">
-          <TooltipProvider>
-            <Tooltip delayDuration={300}>
-              <TooltipTrigger asChild>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => onEdit(referral.id)} 
-                  className="modern-btn-secondary h-11 sm:h-10 md:h-9 px-3 text-sm sm:text-xs flex-1 transition-all duration-200 hover:scale-105 active:scale-95 group"
-                >
-                  <Edit className="w-3 h-3 mr-1 transition-transform duration-200 group-hover:rotate-12" />
-                  Edit
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Edit referral details</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-          
-          <TooltipProvider>
-            <Tooltip delayDuration={300}>
-              <TooltipTrigger asChild>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={handleSchedule} 
-                  className="modern-btn-primary h-11 sm:h-10 md:h-9 px-3 text-sm sm:text-xs flex-1 transition-all duration-200 hover:scale-105 hover:brightness-110 active:scale-95"
-                >
-                  <Calendar className="w-3 h-3 mr-1" />
-                  Schedule
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Schedule a visit</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          {isMobile ? (
+            <>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => onEdit(referral.id)} 
+                className="h-11 px-4 text-sm flex-1 bg-secondary/10 hover:bg-secondary/20 border-secondary/30 text-secondary-foreground font-medium shadow-sm active:scale-95 transition-all"
+              >
+                <Edit className="w-4 h-4 mr-2" />
+                Edit
+              </Button>
+              
+              <Button 
+                variant="default" 
+                size="sm" 
+                onClick={handleSchedule} 
+                className="h-11 px-4 text-sm flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-medium shadow-sm active:scale-95 transition-all"
+              >
+                <Calendar className="w-4 h-4 mr-2" />
+                Schedule
+              </Button>
+            </>
+          ) : (
+            <>
+              <TooltipProvider>
+                <Tooltip delayDuration={300}>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => onEdit(referral.id)} 
+                      className="modern-btn-secondary h-9 px-3 text-xs flex-1 transition-all duration-200 hover:scale-105 active:scale-95 group"
+                    >
+                      <Edit className="w-3 h-3 mr-1 transition-transform duration-200 group-hover:rotate-12" />
+                      Edit
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Edit referral details</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              
+              <TooltipProvider>
+                <Tooltip delayDuration={300}>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={handleSchedule} 
+                      className="modern-btn-primary h-9 px-3 text-xs flex-1 transition-all duration-200 hover:scale-105 hover:brightness-110 active:scale-95"
+                    >
+                      <Calendar className="w-3 h-3 mr-1" />
+                      Schedule
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Schedule a visit</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </>
+          )}
         </div>
 
         {/* Organization Section */}
@@ -336,7 +364,7 @@ const ReferralCard = ({
               onValueChange={(value: string) => onStatusChange(referral.id, value)}
               disabled={isUpdatingStatus}
             >
-              <SelectTrigger className="w-full sm:w-48 h-11 sm:h-10 modern-filter transition-all duration-200">
+              <SelectTrigger className="w-full sm:w-48 h-11 sm:h-10 modern-filter transition-all duration-200 max-w-full">
                 <Badge className={cn(
                   getStatusColor(referral.status || 'new_referral'),
                   "animate-fade-in transition-all duration-300",
@@ -362,45 +390,63 @@ const ReferralCard = ({
           
           {/* Enhanced Progress Bar with Color Coding */}
           {progressPercentage > 0 && (
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="space-y-1">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs text-gray-500">Progress</span>
-                      <span className="text-xs font-semibold text-gray-700">{progressPercentage}%</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden cursor-help">
-                      <div 
-                        className={cn(
-                          "h-2.5 rounded-full transition-all duration-700 ease-in-out",
-                          progressBarColor
-                        )}
-                        style={{ width: `${progressPercentage}%` }}
-                      />
-                    </div>
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent className="bg-gray-900 text-white p-3 max-w-xs">
-                  <div className="space-y-2">
-                    <div>
-                      <p className="text-xs text-gray-400 mb-0.5">Current Stage</p>
-                      <p className="text-sm font-semibold">{getStatusLabel(referral.status)}</p>
-                    </div>
-                    {nextStage !== 'Completed' && nextStage !== 'N/A' && (
-                      <div>
-                        <p className="text-xs text-gray-400 mb-0.5">Next Stage</p>
-                        <p className="text-sm">{nextStage}</p>
-                      </div>
+            isMobile ? (
+              <div className="space-y-1">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs text-gray-500">Progress</span>
+                  <span className="text-xs font-semibold text-gray-700">{progressPercentage}%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
+                  <div 
+                    className={cn(
+                      "h-2.5 rounded-full transition-all duration-700 ease-in-out",
+                      progressBarColor
                     )}
-                    <div>
-                      <p className="text-xs text-gray-400 mb-0.5">Days in Current Stage</p>
-                      <p className="text-sm">{daysInStage} {daysInStage === 1 ? 'day' : 'days'}</p>
+                    style={{ width: `${progressPercentage}%` }}
+                  />
+                </div>
+              </div>
+            ) : (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs text-gray-500">Progress</span>
+                        <span className="text-xs font-semibold text-gray-700">{progressPercentage}%</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden cursor-help">
+                        <div 
+                          className={cn(
+                            "h-2.5 rounded-full transition-all duration-700 ease-in-out",
+                            progressBarColor
+                          )}
+                          style={{ width: `${progressPercentage}%` }}
+                        />
+                      </div>
                     </div>
-                  </div>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-gray-900 text-white p-3 max-w-xs">
+                    <div className="space-y-2">
+                      <div>
+                        <p className="text-xs text-gray-400 mb-0.5">Current Stage</p>
+                        <p className="text-sm font-semibold">{getStatusLabel(referral.status)}</p>
+                      </div>
+                      {nextStage !== 'Completed' && nextStage !== 'N/A' && (
+                        <div>
+                          <p className="text-xs text-gray-400 mb-0.5">Next Stage</p>
+                          <p className="text-sm">{nextStage}</p>
+                        </div>
+                      )}
+                      <div>
+                        <p className="text-xs text-gray-400 mb-0.5">Days in Current Stage</p>
+                        <p className="text-sm">{daysInStage} {daysInStage === 1 ? 'day' : 'days'}</p>
+                      </div>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )
           )}
         </div>
 
@@ -412,7 +458,7 @@ const ReferralCard = ({
             onValueChange={(value: string) => onPriorityChange(referral.id, value)}
             disabled={isUpdatingPriority}
           >
-            <SelectTrigger className="w-full sm:w-28 h-11 sm:h-10 modern-filter">
+            <SelectTrigger className="w-full sm:w-28 h-11 sm:h-10 modern-filter max-w-full">
               <Badge className={getPriorityColor(referral.priority || 'routine')}>
                 {getPriorityIcon(referral.priority || 'routine')}
                 <span className="ml-1 capitalize text-xs">{referral.priority || 'routine'}</span>
