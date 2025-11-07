@@ -254,17 +254,18 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
   return (
     <>
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Add New Referral</DialogTitle>
+      <DialogContent className="sm:max-w-4xl max-h-[90vh] sm:max-h-[90vh] h-screen sm:h-auto w-full sm:w-auto overflow-y-auto p-0 animate-slide-up sm:animate-scale-in">
+        <DialogHeader className="sticky top-0 z-10 bg-background border-b px-4 sm:px-6 py-4">
+          <DialogTitle className="text-lg sm:text-xl">Add New Referral</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="flex flex-col h-full">
+          <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 space-y-6">
           {/* Patient Information */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Patient Information</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <h3 className="text-base sm:text-lg font-semibold">Patient Information</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <div>
-                <Label htmlFor="patient_name">Patient Name *</Label>
+                <Label htmlFor="patient_name" className="text-base">Patient Name *</Label>
                 <EnhancedInput
                   id="patient_name"
                   ref={patientNameRef}
@@ -275,24 +276,27 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
                   placeholder="e.g., John Smith"
                   required
                   disabled={isSubmitting}
+                  className="h-12 text-base"
                 />
               </div>
               <div>
-                <Label htmlFor="patient_phone">Patient Phone</Label>
+                <Label htmlFor="patient_phone" className="text-base">Patient Phone</Label>
                 <div className="relative">
                   <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                   <PhoneInput
                     id="patient_phone"
+                    type="tel"
+                    inputMode="tel"
                     value={formData.patient_phone}
                     onChange={(value) => handleInputChange('patient_phone', value)}
                     disabled={isSubmitting}
-                    className="pl-10"
+                    className="pl-10 h-12 text-base"
                     placeholder="(555) 123-4567"
                   />
                 </div>
               </div>
               <div>
-                <Label htmlFor="diagnosis">Diagnosis</Label>
+                <Label htmlFor="diagnosis" className="text-base">Diagnosis</Label>
                 <EnhancedInput
                   id="diagnosis"
                   ref={diagnosisRef}
@@ -302,10 +306,11 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
                   onEnterPress={() => insuranceRef.current?.focus()}
                   placeholder="e.g., End-stage CHF"
                   disabled={isSubmitting}
+                  className="h-12 text-base"
                 />
               </div>
               <div>
-                <Label htmlFor="insurance">Insurance</Label>
+                <Label htmlFor="insurance" className="text-base">Insurance</Label>
                 <EnhancedInput
                   id="insurance"
                   ref={insuranceRef}
@@ -314,6 +319,7 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
                   onChange={(e) => handleInputChange('insurance', e.target.value)}
                   placeholder="e.g., Medicare Part A"
                   disabled={isSubmitting}
+                  className="h-12 text-base"
                 />
               </div>
               <div>
@@ -585,7 +591,7 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
 
           {/* Notes */}
           <div>
-            <Label htmlFor="notes">Notes</Label>
+            <Label htmlFor="notes" className="text-base">Notes</Label>
             <CharacterCounterTextarea
               id="notes"
               value={formData.notes}
@@ -594,23 +600,38 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
               maxLength={500}
               placeholder="Add any additional notes about this referral..."
               disabled={isSubmitting}
+              className="text-base min-h-[100px]"
             />
           </div>
+          </div>
 
-          <div className="flex justify-end space-x-2 pt-4">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Adding...
-                </>
-              ) : (
-                'Add Referral'
-              )}
-            </Button>
+          {/* Sticky Footer with Action Buttons */}
+          <div className="sticky bottom-0 bg-background border-t px-4 sm:px-6 py-4 shadow-lg sm:shadow-none mt-auto">
+            <div className="flex flex-col sm:flex-row justify-end gap-3 sm:gap-2">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => onOpenChange(false)} 
+                disabled={isSubmitting}
+                className="w-full sm:w-auto h-12 sm:h-10 text-base sm:text-sm order-2 sm:order-1"
+              >
+                Cancel
+              </Button>
+              <Button 
+                type="submit" 
+                disabled={isSubmitting}
+                className="w-full sm:w-auto h-12 sm:h-10 text-base sm:text-sm order-1 sm:order-2"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Adding...
+                  </>
+                ) : (
+                  'Add Referral'
+                )}
+              </Button>
+            </div>
           </div>
         </form>
       </DialogContent>

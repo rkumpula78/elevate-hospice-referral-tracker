@@ -394,13 +394,14 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
         </DialogHeader>
 
         <Tabs defaultValue="patient-info" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 bg-gray-100">
-            <TabsTrigger value="patient-info" className="text-gray-700 data-[state=active]:bg-white data-[state=active]:text-gray-900">Patient Info</TabsTrigger>
-            <TabsTrigger value="status-notes" className="text-gray-700 data-[state=active]:bg-white data-[state=active]:text-gray-900">Status & Notes</TabsTrigger>
-            <TabsTrigger value="referral-source" className="text-gray-700 data-[state=active]:bg-white data-[state=active]:text-gray-900">Referral Source</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3 mx-4 sm:mx-6 mt-4 bg-gray-100">
+            <TabsTrigger value="patient-info" className="text-sm sm:text-base text-gray-700 data-[state=active]:bg-white data-[state=active]:text-gray-900">Patient Info</TabsTrigger>
+            <TabsTrigger value="status-notes" className="text-sm sm:text-base text-gray-700 data-[state=active]:bg-white data-[state=active]:text-gray-900">Status & Notes</TabsTrigger>
+            <TabsTrigger value="referral-source" className="text-sm sm:text-base text-gray-700 data-[state=active]:bg-white data-[state=active]:text-gray-900">Referral Source</TabsTrigger>
           </TabsList>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="flex flex-col h-full">
+            <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4">
             <TabsContent value="patient-info" className="space-y-4 bg-white">
               {/* Basic patient information fields */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -733,14 +734,27 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
                 </div>
               </div>
             </TabsContent>
+            </div>
 
-            <div className="flex justify-end gap-2 bg-white pt-4">
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                Cancel
-              </Button>
-              <Button type="submit" disabled={updateReferralMutation.isPending}>
-                {updateReferralMutation.isPending ? 'Saving...' : 'Save Changes'}
-              </Button>
+            {/* Sticky Footer with Action Buttons */}
+            <div className="sticky bottom-0 bg-background border-t px-4 sm:px-6 py-4 shadow-lg sm:shadow-none mt-auto">
+              <div className="flex flex-col sm:flex-row justify-end gap-3 sm:gap-2">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => onOpenChange(false)}
+                  className="w-full sm:w-auto h-12 sm:h-10 text-base sm:text-sm order-2 sm:order-1"
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={updateReferralMutation.isPending}
+                  className="w-full sm:w-auto h-12 sm:h-10 text-base sm:text-sm order-1 sm:order-2"
+                >
+                  {updateReferralMutation.isPending ? 'Saving...' : 'Save Changes'}
+                </Button>
+              </div>
             </div>
           </form>
         </Tabs>
