@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Phone, Building2, User, Edit, Calendar, AlertCircle, Clock, CheckCircle, Plus, MapPin } from "lucide-react";
@@ -22,6 +23,8 @@ interface ReferralCardProps {
   onMarketerChange: (id: string, marketer: string) => void;
   onEdit: (id: string) => void;
   onSchedule?: (id: string) => void;
+  isSelected?: boolean;
+  onSelectChange?: (id: string, selected: boolean) => void;
 }
 
 const ReferralCard = ({ 
@@ -34,7 +37,9 @@ const ReferralCard = ({
   onPriorityChange,
   onMarketerChange,
   onEdit,
-  onSchedule
+  onSchedule,
+  isSelected = false,
+  onSelectChange,
 }: ReferralCardProps) => {
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -187,8 +192,21 @@ const ReferralCard = ({
     <Card className={cn(
       "modern-card group relative overflow-visible transition-all duration-300 ease-out cursor-pointer",
       "hover:scale-[1.02] hover:shadow-lg hover:-translate-y-1",
-      isUrgent && "border-2 border-red-500 shadow-lg shadow-red-100 hover:shadow-red-200"
+      isUrgent && "border-2 border-red-500 shadow-lg shadow-red-100 hover:shadow-red-200",
+      isSelected && "border-2 border-primary shadow-lg shadow-primary/20"
     )}>
+      {/* Selection Checkbox */}
+      {onSelectChange && (
+        <div className="absolute top-3 left-3 z-20">
+          <Checkbox
+            checked={isSelected}
+            onCheckedChange={(checked) => onSelectChange(referral.id, checked as boolean)}
+            className="h-5 w-5 border-2 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
+      
       {/* Pulsing Red Dot for Urgent Items */}
       {isUrgent && (
         <div className="absolute -top-1 -right-1 z-10">
@@ -198,7 +216,7 @@ const ReferralCard = ({
           </div>
         </div>
       )}
-      <CardContent className="p-3 sm:p-4 md:p-6">
+      <CardContent className="p-3 sm:p-4 md:p-6 pl-12">
         {/* Gradient accent line */}
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-purple-500"></div>
         
