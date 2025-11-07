@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { Plus, Calendar, FileText, TrendingUp, Users, Phone, AlertCircle, Building, Target, Clock, Edit2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -406,9 +407,10 @@ const Dashboard = () => {
         {/* Enhanced Key Performance Indicators */}
         <div className="mb-6">
           <h2 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-foreground">KEY METRICS - LAST 30 DAYS</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {!statsLoading ? (
-              <>
+          <TooltipProvider>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {!statsLoading ? (
+                <>
                 {/* Census */}
                 <TrendMetricCard
                   title="Census"
@@ -555,6 +557,7 @@ const Dashboard = () => {
               </>
             )}
           </div>
+          </TooltipProvider>
         </div>
 
         {/* Secondary Metrics */}
