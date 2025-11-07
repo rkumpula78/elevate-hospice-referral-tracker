@@ -364,14 +364,16 @@ const ReferralCard = ({
               onValueChange={(value: string) => onStatusChange(referral.id, value)}
               disabled={isUpdatingStatus}
             >
-              <SelectTrigger className="w-full sm:w-48 h-11 sm:h-10 bg-white hover:bg-gray-50 border-2 border-gray-300 hover:border-gray-400 transition-all duration-200 max-w-full shadow-sm">
-                <Badge className={cn(
-                  getStatusColor(referral.status || 'new_referral'),
-                  "animate-fade-in transition-all duration-300",
-                  isUpdatingStatus && "animate-pulse"
-                )}>
-                  {getStatusLabel(referral.status || 'new_referral')}
-                </Badge>
+              <SelectTrigger className="w-full sm:w-48 h-11 sm:h-10 bg-white hover:bg-gray-50 border-2 border-gray-300 hover:border-primary transition-all duration-200 max-w-full shadow-sm">
+                <SelectValue>
+                  <Badge className={cn(
+                    getStatusColor(referral.status || 'new_referral'),
+                    "animate-fade-in transition-all duration-300 font-semibold",
+                    isUpdatingStatus && "animate-pulse"
+                  )}>
+                    {getStatusLabel(referral.status || 'new_referral')}
+                  </Badge>
+                </SelectValue>
               </SelectTrigger>
               <SelectContent className="modern-dropdown">
                 <SelectItem value="new_referral" className="modern-dropdown-item">New Referral</SelectItem>
@@ -458,11 +460,13 @@ const ReferralCard = ({
             onValueChange={(value: string) => onPriorityChange(referral.id, value)}
             disabled={isUpdatingPriority}
           >
-            <SelectTrigger className="w-full sm:w-28 h-11 sm:h-10 bg-white hover:bg-gray-50 border-2 border-gray-300 hover:border-gray-400 max-w-full shadow-sm transition-all">
-              <Badge className={getPriorityColor(referral.priority || 'routine')}>
-                {getPriorityIcon(referral.priority || 'routine')}
-                <span className="ml-1 capitalize text-xs">{referral.priority || 'routine'}</span>
-              </Badge>
+            <SelectTrigger className="w-full sm:w-28 h-11 sm:h-10 bg-white hover:bg-gray-50 border-2 border-gray-300 hover:border-primary max-w-full shadow-sm transition-all">
+              <SelectValue>
+                <Badge className={cn(getPriorityColor(referral.priority || 'routine'), "font-semibold")}>
+                  {getPriorityIcon(referral.priority || 'routine')}
+                  <span className="ml-1 capitalize text-xs">{referral.priority || 'routine'}</span>
+                </Badge>
+              </SelectValue>
             </SelectTrigger>
             <SelectContent className="modern-dropdown">
               <SelectItem value="urgent" className="modern-dropdown-item">Urgent</SelectItem>
