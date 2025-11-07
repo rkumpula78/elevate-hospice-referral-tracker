@@ -10,12 +10,9 @@ export const CardSkeleton = ({ count = 1 }: CardSkeletonProps) => {
     <>
       {Array.from({ length: count }).map((_, index) => (
         <Card key={index} className="modern-card overflow-hidden relative">
-          {/* Shimmer effect */}
-          <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/60 to-transparent" />
-          
           <CardContent className="p-3 sm:p-4 md:p-6">
             {/* Gradient accent line */}
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-gray-200 to-gray-300" />
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-muted to-muted/50" />
             
             {/* Patient Name Skeleton */}
             <div className="mb-4">
@@ -35,7 +32,7 @@ export const CardSkeleton = ({ count = 1 }: CardSkeletonProps) => {
             </div>
 
             {/* Organization Skeleton */}
-            <div className="mb-4 p-3 sm:p-4 rounded-xl bg-gray-50">
+            <div className="mb-4 p-3 sm:p-4 rounded-xl bg-muted/30">
               <Skeleton className="h-4 w-1/3 mb-2" />
               <Skeleton className="h-5 w-2/3" />
             </div>
