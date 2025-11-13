@@ -21,6 +21,7 @@ import { useIsTabletOrMobile } from '@/hooks/use-responsive';
 import { ReferralCardsSkeleton } from '@/components/ui/card-skeleton';
 import { ReferralsFilterBar, ReferralFilters } from './ReferralsFilterBar';
 import { BulkActionsToolbar } from './BulkActionsToolbar';
+import PullToRefresh from 'react-simple-pull-to-refresh';
 
 type ReferralStatus = 'new_referral' | 'contact_attempted' | 'information_gathering' | 'assessment_scheduled' | 'pending_admission' | 'admitted' | 'not_admitted_patient_choice' | 'not_admitted_not_appropriate' | 'not_admitted_lost_contact' | 'deceased_prior_admission';
 
@@ -67,7 +68,7 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
   const [selectedReferralIds, setSelectedReferralIds] = useState<Set<string>>(new Set());
   const [undoState, setUndoState] = useState<{ referrals: any[], action: string } | null>(null);
 
-  const { data: referrals, isLoading } = useQuery({
+  const { data: referrals, isLoading, refetch } = useQuery({
     queryKey: ['referrals', filters],
     queryFn: async () => {
       let query = supabase
@@ -561,7 +562,11 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
     </div>
   );
 
-  return (
+  const handleRefresh = async () => {
+    await refetch();
+  };
+
+  const renderContent = () => (
     <div className="space-y-6">
       {/* Bulk Actions Toolbar */}
       {hasSelection && (
@@ -677,6 +682,29 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
         />
       )}
     </div>
+  );
+
+  return isTabletOrMobile ? (
+    <PullToRefresh
+      onRefresh={handleRefresh}
+      pullingContent={
+        <div className="flex justify-center py-4 text-muted-foreground">
+          <span className="text-sm">Pull down to refresh...</span>
+        </div>
+      }
+      refreshingContent={
+        <div className="flex justify-center py-4">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+        </div>
+      }
+      resistance={2}
+      maxPullDownDistance={80}
+      className="min-h-screen"
+    >
+      {renderContent()}
+    </PullToRefresh>
+  ) : (
+    renderContent()
   );
 };
 
