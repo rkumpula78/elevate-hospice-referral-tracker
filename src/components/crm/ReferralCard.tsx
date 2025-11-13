@@ -45,17 +45,17 @@ const ReferralCard = ({
   const isMobile = useIsMobile();
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'new_referral': return 'modern-badge pending';
-      case 'contact_attempted': return 'modern-badge routine';
-      case 'information_gathering': return 'modern-badge routine';
-      case 'assessment_scheduled': return 'modern-badge contacted';
-      case 'pending_admission': return 'modern-badge pending';
-      case 'admitted': return 'modern-badge contacted';
-      case 'not_admitted_patient_choice': return 'modern-badge';
-      case 'not_admitted_not_appropriate': return 'modern-badge';
-      case 'not_admitted_lost_contact': return 'modern-badge';
-      case 'deceased_prior_admission': return 'modern-badge';
-      default: return 'modern-badge';
+      case 'new_referral': return 'bg-blue-600 text-white border-blue-700';
+      case 'contact_attempted': return 'bg-yellow-600 text-white border-yellow-700';
+      case 'information_gathering': return 'bg-indigo-600 text-white border-indigo-700';
+      case 'assessment_scheduled': return 'bg-purple-600 text-white border-purple-700';
+      case 'pending_admission': return 'bg-orange-600 text-white border-orange-700';
+      case 'admitted': return 'bg-green-600 text-white border-green-700';
+      case 'not_admitted_patient_choice': return 'bg-gray-600 text-white border-gray-700';
+      case 'not_admitted_not_appropriate': return 'bg-red-600 text-white border-red-700';
+      case 'not_admitted_lost_contact': return 'bg-slate-600 text-white border-slate-700';
+      case 'deceased_prior_admission': return 'bg-black text-white border-gray-800';
+      default: return 'bg-gray-600 text-white border-gray-700';
     }
   };
 
@@ -368,7 +368,7 @@ const ReferralCard = ({
                 <SelectValue>
                   <Badge className={cn(
                     getStatusColor(referral.status || 'new_referral'),
-                    "animate-fade-in transition-all duration-300 font-semibold",
+                    "animate-fade-in transition-all duration-300 font-bold text-sm px-3 py-1 border-2",
                     isUpdatingStatus && "animate-pulse"
                   )}>
                     {getStatusLabel(referral.status || 'new_referral')}
