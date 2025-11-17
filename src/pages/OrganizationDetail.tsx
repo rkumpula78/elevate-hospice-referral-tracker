@@ -234,14 +234,25 @@ const OrganizationDetail = () => {
                      {organization.phone && (
                        <div className="flex items-center space-x-2">
                          <Phone className="w-3 h-3 text-gray-500 flex-shrink-0" />
-                         <span className="truncate">{organization.phone}</span>
+                         <a 
+                           href={`tel:${organization.phone}`}
+                           className="truncate hover:text-primary transition-colors hover:underline"
+                         >
+                           {organization.phone}
+                         </a>
                        </div>
                      )}
                      
                      {organization.contact_email && (
                        <div className="flex items-center space-x-2">
                          <Mail className="w-3 h-3 text-gray-500 flex-shrink-0" />
-                         <span className="truncate" title={organization.contact_email}>{organization.contact_email}</span>
+                         <a 
+                           href={`mailto:${organization.contact_email}`}
+                           className="truncate hover:text-primary transition-colors hover:underline" 
+                           title={organization.contact_email}
+                         >
+                           {organization.contact_email}
+                         </a>
                        </div>
                      )}
                     

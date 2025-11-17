@@ -196,7 +196,16 @@ const EnhancedOrganizationProfile = ({ organizationId }: EnhancedOrganizationPro
               ) : (
                 <div className="flex items-center gap-2">
                   <Phone className="w-4 h-4 text-gray-500" />
-                  <span>{organization?.phone || 'Not provided'}</span>
+                  {organization?.phone ? (
+                    <a 
+                      href={`tel:${organization.phone}`}
+                      className="hover:text-primary transition-colors hover:underline"
+                    >
+                      {organization.phone}
+                    </a>
+                  ) : (
+                    <span>Not provided</span>
+                  )}
                 </div>
               )}
             </div>
