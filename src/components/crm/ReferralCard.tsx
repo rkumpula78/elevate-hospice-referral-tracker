@@ -238,7 +238,13 @@ const ReferralCard = ({
             {referral.patient_phone && (
               <div className="flex items-center text-xs sm:text-sm text-gray-600">
                 <Phone className="w-4 h-4 mr-2 flex-shrink-0 text-blue-500" />
-                <span className="font-medium">{referral.patient_phone}</span>
+                <a 
+                  href={`tel:${referral.patient_phone}`} 
+                  className="font-medium hover:text-primary transition-colors hover:underline"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {referral.patient_phone}
+                </a>
               </div>
             )}
             
