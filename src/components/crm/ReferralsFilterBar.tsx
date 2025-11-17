@@ -1,5 +1,5 @@
 import React from 'react';
-import { Download, RotateCcw } from 'lucide-react';
+import { Download, RotateCcw, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { MultiSelect, MultiSelectOption } from '@/components/ui/multi-select';
@@ -10,6 +10,7 @@ import { DateRange } from 'react-day-picker';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { Badge } from '@/components/ui/badge';
 
 export interface ReferralFilters {
   statuses: string[];
@@ -159,8 +160,85 @@ export const ReferralsFilterBar = ({
     // Implement export logic here
   };
 
+  const quickPresets = [
+    {
+      label: 'New This Week',
+      icon: Zap,
+      apply: () => {
+        const today = new Date();
+        const weekAgo = new Date(today);
+        weekAgo.setDate(today.getDate() - 7);
+        onFiltersChange({
+          ...filters,
+          statuses: ['new_referral'],
+          dateRange: { from: weekAgo, to: today }
+        });
+      }
+    },
+    {
+      label: 'Urgent',
+      icon: Zap,
+      apply: () => {
+        onFiltersChange({
+          ...filters,
+          priorities: ['urgent']
+        });
+      }
+    },
+    {
+      label: 'Pending Admission',
+      icon: Zap,
+      apply: () => {
+        onFiltersChange({
+          ...filters,
+          statuses: ['pending']
+        });
+      }
+    },
+    {
+      label: 'Admitted Today',
+      icon: Zap,
+      apply: () => {
+        const today = new Date();
+        onFiltersChange({
+          ...filters,
+          statuses: ['admitted'],
+          dateRange: { from: today, to: today }
+        });
+      }
+    },
+    {
+      label: 'Not Admitted',
+      icon: Zap,
+      apply: () => {
+        onFiltersChange({
+          ...filters,
+          statuses: ['not_admitted_patient_choice', 'not_admitted_not_appropriate', 'not_admitted_lost_contact']
+        });
+      }
+    }
+  ];
+
   return (
     <div className="space-y-4 bg-muted/30 p-4 rounded-lg border">
+      {/* Quick Filter Presets */}
+      <div className="flex flex-wrap gap-2 pb-3 border-b">
+        <span className="text-xs font-medium text-muted-foreground flex items-center">
+          Quick Filters:
+        </span>
+        {quickPresets.map((preset) => (
+          <Badge
+            key={preset.label}
+            variant="outline"
+            className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors"
+            onClick={preset.apply}
+          >
+            <preset.icon className="w-3 h-3 mr-1" />
+            {preset.label}
+          </Badge>
+        ))}
+      </div>
+
       {/* Filter Controls */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
         <div>
