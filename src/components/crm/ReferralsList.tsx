@@ -22,6 +22,7 @@ import { ReferralCardsSkeleton } from '@/components/ui/card-skeleton';
 import { ReferralsFilterBar, ReferralFilters } from './ReferralsFilterBar';
 import { BulkActionsToolbar } from './BulkActionsToolbar';
 import PullToRefresh from 'react-simple-pull-to-refresh';
+import { Link } from 'react-router-dom';
 
 type ReferralStatus = 'new_referral' | 'contact_attempted' | 'information_gathering' | 'assessment_scheduled' | 'pending_admission' | 'admitted' | 'not_admitted_patient_choice' | 'not_admitted_not_appropriate' | 'not_admitted_lost_contact' | 'deceased_prior_admission';
 
@@ -519,7 +520,14 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
         <TableBody>
           {sortedReferrals?.map((referral) => (
             <TableRow key={referral.id}>
-              <TableCell className="font-medium">{referral.patient_name}</TableCell>
+              <TableCell className="font-medium">
+                <Link 
+                  to={`/referral/${referral.id}`}
+                  className="hover:text-primary hover:underline transition-colors"
+                >
+                  {referral.patient_name}
+                </Link>
+              </TableCell>
               <TableCell>{referral.organizations?.name || 'N/A'}</TableCell>
               <TableCell>
                 <span className={`px-2 py-1 text-xs rounded-full ${

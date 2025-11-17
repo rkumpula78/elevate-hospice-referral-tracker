@@ -226,9 +226,10 @@ const ReferralCard = ({
         <div className="mb-4">
           <Link 
             to={`/referral/${referral.id}`}
-            className="hover:text-primary transition-colors group-hover:underline"
+            className="hover:text-primary transition-all duration-200 group inline-block"
           >
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3 leading-tight">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3 leading-tight group-hover:underline cursor-pointer flex items-center gap-2">
+              <User className="w-5 h-5 text-primary opacity-70 group-hover:opacity-100 transition-opacity" />
               {referral.patient_name}
             </h2>
           </Link>
