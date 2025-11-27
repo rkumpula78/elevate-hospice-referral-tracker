@@ -30,14 +30,19 @@ const OrganizationsList = () => {
   const [editingOrganizationId, setEditingOrganizationId] = useState<string | null>(null);
   const [contactsOrganization, setContactsOrganization] = useState<{id: string, name: string} | null>(null);
   const [showScheduleDialog, setShowScheduleDialog] = useState(false);
+  
+  // Pagination state
+  const [page, setPage] = useState(0);
+  const [pageSize] = useState(50); // 50 items per page
 
-  const { data: organizations, isLoading } = useQuery({
-    queryKey: ['organizations', selectedType, selectedStatus, selectedRating, selectedMarketer],
+  const { data: organizationsData, isLoading, error: queryError } = useQuery({
+    queryKey: ['organizations', selectedType, selectedStatus, selectedRating, selectedMarketer, page, pageSize],
     queryFn: async () => {
       let query = supabase
         .from('organizations')
-        .select('*')
-        .order('name');
+        .select('*', { count: 'exact' })
+        .order('name')
+        .range(page * pageSize, (page + 1) * pageSize - 1);
 
       if (selectedType !== 'all') {
         query = query.eq('type', selectedType);
@@ -52,11 +57,20 @@ const OrganizationsList = () => {
         query = query.eq('assigned_marketer', selectedMarketer);
       }
 
-      const { data, error } = await query;
-      if (error) throw error;
-      return data;
-    }
+      const { data, error, count } = await query;
+      if (error) {
+        console.error('Error fetching organizations:', error);
+        throw new Error(error.message || 'Failed to load organizations');
+      }
+      return { organizations: data || [], totalCount: count || 0 };
+    },
+    retry: 2,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
+  
+  const organizations = organizationsData?.organizations || [];
+  const totalCount = organizationsData?.totalCount || 0;
+  const totalPages = Math.ceil(totalCount / pageSize);
 
   const { data: marketers = [] } = useQuery({
     queryKey: ['marketers'],
