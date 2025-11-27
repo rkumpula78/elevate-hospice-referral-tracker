@@ -386,8 +386,27 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
 
   const showReasonField = ['not_admitted_patient_choice', 'not_admitted_not_appropriate', 'not_admitted_lost_contact'].includes(referralData.status);
 
+  // Handle dialog close with unsaved changes check
+  const handleDialogClose = (shouldClose: boolean) => {
+    if (!shouldClose) return;
+    
+    if (hasUnsavedChanges) {
+      setShowUnsavedWarning(true);
+    } else {
+      onOpenChange(false);
+    }
+  };
+
+  // Track form changes
+  const handleFormChange = () => {
+    if (!hasUnsavedChanges) {
+      setHasUnsavedChanges(true);
+    }
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <>
+    <Dialog open={open} onOpenChange={handleDialogClose}>
       <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto bg-white text-gray-900">
         <DialogHeader className="bg-white">
           <DialogTitle className="text-xl font-semibold text-gray-900">
