@@ -357,6 +357,7 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
 
     try {
       await updateReferralMutation.mutateAsync(updateData);
+      setHasUnsavedChanges(false);
       onOpenChange(false);
     } catch (error: any) {
       console.error('Submission error:', error);
@@ -763,7 +764,7 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
                 <Button 
                   type="button" 
                   variant="outline" 
-                  onClick={() => onOpenChange(false)}
+                  onClick={() => handleDialogClose(true)}
                   className="w-full sm:w-auto h-12 sm:h-10 text-base sm:text-sm order-2 sm:order-1"
                 >
                   Cancel
