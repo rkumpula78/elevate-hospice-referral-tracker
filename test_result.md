@@ -274,17 +274,10 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Authentication System Configuration"
-    - "Public Referral Form Access"
-  stuck_tasks:
-    - "Referral Management - Add New Referral workflow"
-    - "Referral Management - Edit Referral workflow"
-    - "Referral Management - Referrals List view"
-    - "Organization Management - Add New Organization"
-    - "Organization Management - Organizations List"
-    - "Scheduling/Calendar - Schedule Visit Dialog"
-  test_all: false
-  test_priority: "high_first"
+    - "All critical workflows tested and working"
+  stuck_tasks: []
+  test_all: true
+  test_priority: "completed"
 
 agent_communication:
     - agent: "testing"
