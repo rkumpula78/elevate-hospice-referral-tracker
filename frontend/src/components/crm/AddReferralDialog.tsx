@@ -219,8 +219,10 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
         return null;
       case 'patient_phone':
         if (value && value.trim()) {
-          const phoneRegex = /^\(\d{3}\) \d{3}-\d{4}$/;
-          if (!phoneRegex.test(value)) return "Phone number must be 10 digits";
+          const digits = value.replace(/\D/g, '');
+          if (digits.length < 7 || digits.length > 15) {
+            return "Please enter a valid phone number (7-15 digits)";
+          }
         }
         return null;
       case 'reason_for_non_admittance':
