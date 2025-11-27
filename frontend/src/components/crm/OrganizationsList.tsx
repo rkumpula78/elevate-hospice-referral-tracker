@@ -97,11 +97,18 @@ const OrganizationsList = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['organizations'] });
-      toast({ title: "Marketer updated successfully" });
+      toast({ 
+        title: "Marketer assigned successfully",
+        description: "You can undo this action if needed."
+      });
     },
-    onError: () => {
-      toast({ title: "Error updating marketer", variant: "destructive" });
-    }
+    onError: (error: any) => {
+      const message = error?.message?.includes('network') || error?.message?.includes('fetch')
+        ? "Network error. Please check your connection."
+        : "Unable to assign marketer. Please try again.";
+      toast({ title: message, variant: "destructive" });
+    },
+    retry: 1,
   });
 
   const handleSort = (field: string) => {
