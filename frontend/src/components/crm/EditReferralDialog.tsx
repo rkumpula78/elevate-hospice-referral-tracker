@@ -782,6 +782,39 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
         </Tabs>
       </DialogContent>
     </Dialog>
+
+    {/* Unsaved Changes Warning Dialog */}
+    <Dialog open={showUnsavedWarning} onOpenChange={setShowUnsavedWarning}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Unsaved Changes</DialogTitle>
+        </DialogHeader>
+        <div className="py-4">
+          <p className="text-sm text-muted-foreground">
+            You have unsaved changes. Are you sure you want to close without saving?
+          </p>
+        </div>
+        <div className="flex justify-end gap-3">
+          <Button
+            variant="outline"
+            onClick={() => setShowUnsavedWarning(false)}
+          >
+            Continue Editing
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={() => {
+              setShowUnsavedWarning(false);
+              setHasUnsavedChanges(false);
+              onOpenChange(false);
+            }}
+          >
+            Discard Changes
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+    </>
   );
 };
 
