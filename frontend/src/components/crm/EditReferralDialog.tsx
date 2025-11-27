@@ -814,7 +814,7 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
         </div>
       </DialogContent>
     </Dialog>
-    </>
+  </>
   );
 };
 
