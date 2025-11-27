@@ -407,7 +407,7 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
 
   return (
     <>
-    <Dialog open={open} onOpenChange={handleDialogClose}>
+      <Dialog open={open} onOpenChange={handleDialogClose}>
       <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto bg-white text-gray-900">
         <DialogHeader className="bg-white">
           <DialogTitle className="text-xl font-semibold text-gray-900">
@@ -814,7 +814,7 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
         </div>
       </DialogContent>
     </Dialog>
-  </>
+    </>
   );
 };
 
