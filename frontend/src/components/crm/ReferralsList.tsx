@@ -192,9 +192,15 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
       queryClient.invalidateQueries({ queryKey: ['referrals'] });
       showToast({ title: "Status updated successfully" });
     },
-    onError: () => {
-      showToast({ title: "Error updating status", variant: "destructive" });
-    }
+    onError: (error: any) => {
+      const message = error?.message?.includes('duplicate') 
+        ? "This referral already has that status"
+        : error?.message?.includes('network') || error?.message?.includes('fetch')
+        ? "Network error. Please check your connection and try again."
+        : "Unable to update status. Please try again.";
+      showToast({ title: message, variant: "destructive" });
+    },
+    retry: 1, // Retry once on failure
   });
 
   const updatePriorityMutation = useMutation({
@@ -209,9 +215,13 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
       queryClient.invalidateQueries({ queryKey: ['referrals'] });
       showToast({ title: "Priority updated successfully" });
     },
-    onError: () => {
-      showToast({ title: "Error updating priority", variant: "destructive" });
-    }
+    onError: (error: any) => {
+      const message = error?.message?.includes('network') || error?.message?.includes('fetch')
+        ? "Network error. Please check your connection."
+        : "Unable to update priority. Please try again.";
+      showToast({ title: message, variant: "destructive" });
+    },
+    retry: 1,
   });
 
   const updateMarketerMutation = useMutation({
