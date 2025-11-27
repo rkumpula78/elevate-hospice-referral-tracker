@@ -101,3 +101,109 @@
 #====================================================================================================
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
+
+user_problem_statement: "CRM Pre-Deployment Testing - Critical Workflows for Hospice CRM application focusing on usability, robustness, and cross-device compatibility"
+
+frontend:
+  - task: "Referral Management - Add New Referral workflow"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/ReferralsPage.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "testing"
+          comment: "Initial testing setup - need to test add new referral workflow including field validation, phone formatting, conditional validation, organization selection, character limits, form submission and cancellation"
+
+  - task: "Referral Management - Edit Referral workflow"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/ReferralDetail.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "testing"
+          comment: "Initial testing setup - need to test edit referral workflow including navigation to detail page, opening edit dialog, field updates and persistence"
+
+  - task: "Referral Management - Referrals List view"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/ReferralsPage.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "testing"
+          comment: "Initial testing setup - need to test list/card view toggle, filtering, sorting, pull-to-refresh on mobile, pagination, bulk selection and actions"
+
+  - task: "Organization Management - Add New Organization"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/OrganizationsPage.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "testing"
+          comment: "Initial testing setup - need to test add new organization workflow including required fields, organization types, address/contact info, validation and error handling"
+
+  - task: "Organization Management - Organizations List"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/OrganizationsPage.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "testing"
+          comment: "Initial testing setup - need to test card/list view toggle, filtering by type/rating/marketer, marketer assignment, navigation to detail page, contacts management"
+
+  - task: "Scheduling/Calendar - Schedule Visit Dialog"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/SchedulePage.tsx"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "testing"
+          comment: "Initial testing setup - need to test scheduling visit for referral, visit type selection, date/time picker, staff assignment, notes and duration"
+
+  - task: "Responsive Design Testing"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/App.tsx"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "testing"
+          comment: "Initial testing setup - need to test on desktop (1920x1080), tablet (768x1024), mobile (375x667) for navigation, dialogs, forms, touch targets, text readability"
+
+metadata:
+  created_by: "testing_agent"
+  version: "1.0"
+  test_sequence: 1
+
+test_plan:
+  current_focus:
+    - "Referral Management - Add New Referral workflow"
+    - "Referral Management - Referrals List view"
+    - "Organization Management - Add New Organization"
+    - "Responsive Design Testing"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication:
+    - agent: "testing"
+      message: "Starting CRM pre-deployment testing. Created initial test structure focusing on critical workflows: Referral Management (highest priority), Organization Management, Scheduling, and Responsive Design. Will begin with comprehensive testing of referral workflows first."
