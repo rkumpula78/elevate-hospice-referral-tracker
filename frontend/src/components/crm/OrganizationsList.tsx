@@ -177,8 +177,37 @@ const OrganizationsList = () => {
     }
   };
 
+  // Show error state
+  if (queryError) {
+    return (
+      <div className="space-y-4">
+        <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-6 text-center">
+          <h3 className="text-lg font-semibold text-destructive mb-2">Error Loading Organizations</h3>
+          <p className="text-sm text-muted-foreground mb-4">
+            {queryError instanceof Error ? queryError.message : 'An unexpected error occurred'}
+          </p>
+          <Button onClick={() => queryClient.invalidateQueries({ queryKey: ['organizations'] })} variant="outline">
+            Try Again
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   if (isLoading) {
-    return <div>Loading organizations...</div>;
+    return (
+      <div className="space-y-4">
+        <div className="flex justify-between items-center animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-1/3"></div>
+          <div className="h-10 bg-gray-200 rounded w-40"></div>
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="h-64 bg-gray-200 rounded-lg animate-pulse"></div>
+          ))}
+        </div>
+      </div>
+    );
   }
 
   const renderListView = () => (
