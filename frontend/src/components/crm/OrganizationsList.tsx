@@ -581,7 +581,81 @@ const OrganizationsList = () => {
       </div>
 
       {/* Organizations Display */}
-      {view === 'list' ? renderListView() : renderCardView()}
+      {organizations.length === 0 ? (
+        <div className="text-center py-12 bg-white rounded-lg border">
+          <Building className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+          <h3 className="text-lg font-semibold mb-2">
+            {totalCount === 0 ? "No organizations yet" : "No organizations match your filters"}
+          </h3>
+          <p className="text-muted-foreground mb-4">
+            {totalCount === 0 
+              ? "Get started by adding your first referral partner" 
+              : "Try adjusting your filters to see more results"}
+          </p>
+          {totalCount === 0 && (
+            <Button onClick={() => setShowAddDialog(true)}>
+              <Plus className="w-4 h-4 mr-2" />
+              Add Organization
+            </Button>
+          )}
+        </div>
+      ) : (
+        <>
+          {view === 'list' ? renderListView() : renderCardView()}
+          
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between mt-6 pt-4 border-t bg-white rounded-lg p-4">
+              <div className="text-sm text-muted-foreground">
+                Showing {page * pageSize + 1} - {Math.min((page + 1) * pageSize, totalCount)} of {totalCount} organizations
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage(Math.max(0, page - 1))}
+                  disabled={page === 0}
+                >
+                  Previous
+                </Button>
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    let pageNum = i;
+                    if (totalPages > 5) {
+                      if (page < 3) {
+                        pageNum = i;
+                      } else if (page > totalPages - 4) {
+                        pageNum = totalPages - 5 + i;
+                      } else {
+                        pageNum = page - 2 + i;
+                      }
+                    }
+                    return (
+                      <Button
+                        key={pageNum}
+                        variant={page === pageNum ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setPage(pageNum)}
+                        className="w-10"
+                      >
+                        {pageNum + 1}
+                      </Button>
+                    );
+                  })}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage(Math.min(totalPages - 1, page + 1))}
+                  disabled={page >= totalPages - 1}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          )}
+        </>
+      )}
 
       <EnhancedAddOrganizationDialog 
         open={showAddDialog} 
