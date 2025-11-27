@@ -57,6 +57,10 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
     dateRange: undefined,
   });
   
+  // Pagination state
+  const [page, setPage] = useState(0);
+  const [pageSize] = useState(50); // 50 items per page
+  
   const [view, setView] = useState<'card' | 'list'>('card');
   const [sortConfig, setSortConfig] = useState<{ field: string; direction: 'asc' | 'desc' } | null>(null);
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -69,13 +73,14 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
   const [selectedReferralIds, setSelectedReferralIds] = useState<Set<string>>(new Set());
   const [undoState, setUndoState] = useState<{ referrals: any[], action: string } | null>(null);
 
-  const { data: referrals, isLoading, refetch } = useQuery({
-    queryKey: ['referrals', filters],
+  const { data: referralsData, isLoading, refetch, error: queryError } = useQuery({
+    queryKey: ['referrals', filters, page, pageSize],
     queryFn: async () => {
       let query = supabase
         .from('referrals')
-        .select('*, organizations(name, type)')
-        .order('referral_date', { ascending: false });
+        .select('*, organizations(name, type)', { count: 'exact' })
+        .order('referral_date', { ascending: false })
+        .range(page * pageSize, (page + 1) * pageSize - 1);
 
       // Apply status filter (with proper type casting)
       if (filters.statuses.length > 0) {
@@ -105,11 +110,20 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
         query = query.lte('referral_date', filters.dateRange.to.toISOString());
       }
 
-      const { data, error } = await query;
-      if (error) throw error;
-      return data;
-    }
+      const { data, error, count } = await query;
+      if (error) {
+        console.error('Error fetching referrals:', error);
+        throw new Error(error.message || 'Failed to load referrals');
+      }
+      return { referrals: data || [], totalCount: count || 0 };
+    },
+    retry: 2, // Retry failed requests twice
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
   });
+  
+  const referrals = referralsData?.referrals || [];
+  const totalCount = referralsData?.totalCount || 0;
+  const totalPages = Math.ceil(totalCount / pageSize);
   
   // Get total count without filters
   const { data: totalReferrals } = useQuery({
