@@ -359,7 +359,7 @@ const ReferralCard = ({
               <span className="text-xs sm:text-sm text-gray-600 font-medium">Status</span>
               {/* Priority Badge */}
               <Badge className={cn(
-                "text-[10px] sm:text-xs font-bold px-2 py-0.5 border animate-fade-in transition-all duration-300",
+                "text-[9px] sm:text-[10px] font-semibold px-1.5 py-0.5 border animate-fade-in transition-all duration-300",
                 priorityBadge.className,
                 isUpdatingStatus && "animate-pulse"
               )}>
