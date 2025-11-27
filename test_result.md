@@ -217,14 +217,20 @@ metadata:
 
 test_plan:
   current_focus:
+    - "Authentication System Configuration"
+    - "Public Referral Form Access"
+  stuck_tasks:
     - "Referral Management - Add New Referral workflow"
+    - "Referral Management - Edit Referral workflow"
     - "Referral Management - Referrals List view"
     - "Organization Management - Add New Organization"
-    - "Responsive Design Testing"
-  stuck_tasks: []
+    - "Organization Management - Organizations List"
+    - "Scheduling/Calendar - Schedule Visit Dialog"
   test_all: false
   test_priority: "high_first"
 
 agent_communication:
     - agent: "testing"
       message: "Starting CRM pre-deployment testing. Created initial test structure focusing on critical workflows: Referral Management (highest priority), Organization Management, Scheduling, and Responsive Design. Will begin with comprehensive testing of referral workflows first."
+    - agent: "testing"
+      message: "CRITICAL TESTING LIMITATION IDENTIFIED: Cannot test main CRM functionality due to authentication barrier. Application requires verified @elevatehospiceaz.com email accounts with email verification. Successfully tested: 1) Authentication flow (sign up/sign in working, email validation working), 2) Responsive design (excellent across all devices), 3) Form interactions. BLOCKED: All protected CRM routes require authenticated access. Public referral form exists but not accessible due to routing configuration. Recommend: 1) Provide test credentials with verified email, 2) Configure public access to referral form, or 3) Implement test/demo mode for pre-deployment testing."
