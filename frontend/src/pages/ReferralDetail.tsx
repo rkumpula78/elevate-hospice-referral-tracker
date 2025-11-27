@@ -137,7 +137,7 @@ const ReferralDetail = () => {
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
                 Patient Information
-                <Badge className={getStatusColor(referral.status)}>
+                <Badge className={cn(getStatusColor(referral.status), "text-xs px-2 py-0.5")}>
                   {referral.status}
                 </Badge>
               </CardTitle>
@@ -168,11 +168,12 @@ const ReferralDetail = () => {
               {referral.priority && (
                 <div>
                   <p className="text-sm text-gray-600">Priority</p>
-                  <Badge className={
+                  <Badge className={cn(
+                    "text-xs px-2 py-0.5",
                     referral.priority === 'urgent' ? 'bg-red-100 text-red-800' :
                     referral.priority === 'routine' ? 'bg-blue-100 text-blue-800' :
                     'bg-gray-100 text-gray-800'
-                  }>
+                  )}>
                     {referral.priority}
                   </Badge>
                 </div>
