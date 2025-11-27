@@ -489,6 +489,23 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
   const hasSelection = selectedReferralIds.size > 0;
   const allSelected = referrals && referrals.length > 0 && selectedReferralIds.size === referrals.length;
 
+  // Show error state
+  if (queryError) {
+    return (
+      <div className="space-y-4">
+        <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-6 text-center">
+          <h3 className="text-lg font-semibold text-destructive mb-2">Error Loading Referrals</h3>
+          <p className="text-sm text-muted-foreground mb-4">
+            {queryError instanceof Error ? queryError.message : 'An unexpected error occurred'}
+          </p>
+          <Button onClick={() => refetch()} variant="outline">
+            Try Again
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   if (isLoading) {
     return (
       <div className="space-y-4 animate-fade-in">
@@ -645,8 +662,8 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
 
       {!hasResults ? (
         <EmptyState
-          title="No referrals match your filters"
-          description="Try adjusting your filters to see more results."
+          title={totalCount === 0 ? "No referrals yet" : "No referrals match your filters"}
+          description={totalCount === 0 ? "Get started by adding your first referral." : "Try adjusting your filters to see more results."}
         />
       ) : (
         <>
@@ -674,6 +691,58 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
                   />
                 </div>
               ))}
+            </div>
+          )}
+          
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between mt-6 pt-4 border-t">
+              <div className="text-sm text-muted-foreground">
+                Showing {page * pageSize + 1} - {Math.min((page + 1) * pageSize, totalCount)} of {totalCount} referrals
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage(Math.max(0, page - 1))}
+                  disabled={page === 0}
+                >
+                  Previous
+                </Button>
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    let pageNum = i;
+                    if (totalPages > 5) {
+                      if (page < 3) {
+                        pageNum = i;
+                      } else if (page > totalPages - 4) {
+                        pageNum = totalPages - 5 + i;
+                      } else {
+                        pageNum = page - 2 + i;
+                      }
+                    }
+                    return (
+                      <Button
+                        key={pageNum}
+                        variant={page === pageNum ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setPage(pageNum)}
+                        className="w-10"
+                      >
+                        {pageNum + 1}
+                      </Button>
+                    );
+                  })}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage(Math.min(totalPages - 1, page + 1))}
+                  disabled={page >= totalPages - 1}
+                >
+                  Next
+                </Button>
+              </div>
             </div>
           )}
         </>
