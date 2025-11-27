@@ -375,7 +375,7 @@ const ReferralCard = ({
                 <SelectValue>
                   <Badge className={cn(
                     getStatusColor(referral.status || 'new_referral'),
-                    "animate-fade-in transition-all duration-300 font-bold text-sm px-3 py-1 border-2",
+                    "animate-fade-in transition-all duration-300 font-semibold text-xs px-2 py-0.5 border",
                     isUpdatingStatus && "animate-pulse"
                   )}>
                     {getStatusLabel(referral.status || 'new_referral')}
