@@ -1,0 +1,812 @@
+import React, { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Plus, Filter } from "lucide-react";
+import { useToast, toast } from "@/hooks/use-toast";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ViewToggle } from "@/components/ui/view-toggle";
+import { SortHeader } from "@/components/ui/sort-header";
+import AddReferralDialog from './AddReferralDialog';
+import EditReferralDialog from './EditReferralDialog';
+import ScheduleVisitDialog from './ScheduleVisitDialog';
+import { sendAdmissionNotification, formatEmailData } from '@/utils/emailNotifications';
+import { EmptyState } from '@/components/ui/empty-state';
+import ReferralCard from './ReferralCard';
+import { FloatingActionButton } from '@/components/ui/floating-action-button';
+import { useIsTabletOrMobile } from '@/hooks/use-responsive';
+import { ReferralCardsSkeleton } from '@/components/ui/card-skeleton';
+import { ReferralsFilterBar, ReferralFilters } from './ReferralsFilterBar';
+import { BulkActionsToolbar } from './BulkActionsToolbar';
+import PullToRefresh from 'react-simple-pull-to-refresh';
+import { Link } from 'react-router-dom';
+
+type ReferralStatus = 'new_referral' | 'contact_attempted' | 'information_gathering' | 'assessment_scheduled' | 'pending_admission' | 'admitted' | 'not_admitted_patient_choice' | 'not_admitted_not_appropriate' | 'not_admitted_lost_contact' | 'deceased_prior_admission';
+
+const statusOptions = [
+  { value: 'new_referral', label: 'New Referral' },
+  { value: 'contact_attempted', label: 'Contact Attempted' },
+  { value: 'information_gathering', label: 'Information Gathering' },
+  { value: 'assessment_scheduled', label: 'Assessment Scheduled' },
+  { value: 'pending_admission', label: 'Pending Admission' },
+  { value: 'admitted', label: 'Admitted' },
+  { value: 'not_admitted_patient_choice', label: 'Not Admitted - Patient Choice' },
+  { value: 'not_admitted_not_appropriate', label: 'Not Admitted - Not Appropriate' },
+  { value: 'not_admitted_lost_contact', label: 'Not Admitted - Lost Contact' },
+  { value: 'deceased_prior_admission', label: 'Deceased Prior to Admission' },
+];
+
+interface ReferralsListProps {
+  initialFilter?: string | null;
+}
+
+const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
+  const { toast: showToast } = useToast();
+  const queryClient = useQueryClient();
+  const isTabletOrMobile = useIsTabletOrMobile();
+  
+  // New filter state
+  const [filters, setFilters] = useState<ReferralFilters>({
+    statuses: [],
+    priorities: [],
+    facilities: [],
+    insurances: [],
+    dateRange: undefined,
+  });
+  
+  // Pagination state
+  const [page, setPage] = useState(0);
+  const [pageSize] = useState(50); // 50 items per page
+  
+  const [view, setView] = useState<'card' | 'list'>('card');
+  const [sortConfig, setSortConfig] = useState<{ field: string; direction: 'asc' | 'desc' } | null>(null);
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showScheduleDialog, setShowScheduleDialog] = useState(false);
+  const [editingReferralId, setEditingReferralId] = useState<string>('');
+  const [schedulingReferralId, setSchedulingReferralId] = useState<string>('');
+  
+  // Bulk selection state
+  const [selectedReferralIds, setSelectedReferralIds] = useState<Set<string>>(new Set());
+  const [undoState, setUndoState] = useState<{ referrals: any[], action: string } | null>(null);
+
+  const { data: referralsData, isLoading, refetch, error: queryError } = useQuery({
+    queryKey: ['referrals', filters, page, pageSize],
+    queryFn: async () => {
+      let query = supabase
+        .from('referrals')
+        .select('*, organizations(name, type)', { count: 'exact' })
+        .order('referral_date', { ascending: false })
+        .range(page * pageSize, (page + 1) * pageSize - 1);
+
+      // Apply status filter (with proper type casting)
+      if (filters.statuses.length > 0) {
+        query = query.in('status', filters.statuses as any);
+      }
+      
+      // Apply priority filter
+      if (filters.priorities.length > 0) {
+        query = query.in('priority', filters.priorities);
+      }
+      
+      // Apply facility filter
+      if (filters.facilities.length > 0) {
+        query = query.in('organization_id', filters.facilities);
+      }
+      
+      // Apply insurance filter
+      if (filters.insurances.length > 0) {
+        query = query.in('insurance', filters.insurances);
+      }
+      
+      // Apply date range filter
+      if (filters.dateRange?.from) {
+        query = query.gte('referral_date', filters.dateRange.from.toISOString());
+      }
+      if (filters.dateRange?.to) {
+        query = query.lte('referral_date', filters.dateRange.to.toISOString());
+      }
+
+      const { data, error, count } = await query;
+      if (error) {
+        console.error('Error fetching referrals:', error);
+        throw new Error(error.message || 'Failed to load referrals');
+      }
+      return { referrals: data || [], totalCount: count || 0 };
+    },
+    retry: 2, // Retry failed requests twice
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
+  });
+  
+  const referrals = referralsData?.referrals || [];
+  const totalCount = referralsData?.totalCount || 0;
+  const totalPages = Math.ceil(totalCount / pageSize);
+  
+  // Get total count without filters
+  const { data: totalReferrals } = useQuery({
+    queryKey: ['referrals-total'],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from('referrals')
+        .select('*', { count: 'exact', head: true });
+      
+      if (error) throw error;
+      return count || 0;
+    }
+  });
+
+  const { data: marketers = [] } = useQuery({
+    queryKey: ['marketers'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, first_name, last_name, email')
+        .not('first_name', 'is', null)
+        .not('last_name', 'is', null)
+        .order('first_name');
+      
+      if (error) throw error;
+      return data?.map(m => `${m.first_name} ${m.last_name}`) || [];
+    }
+  });
+
+  const updateStatusMutation = useMutation({
+    mutationFn: async ({ id, status }: { id: string, status: ReferralStatus }) => {
+      const { error } = await supabase
+        .from('referrals')
+        .update({ status })
+        .eq('id', id);
+      if (error) throw error;
+
+      // If status is admitted, send email notification
+      if (status === 'admitted') {
+        // Fetch referral and patient data for email
+        const { data: referralData } = await supabase
+          .from('referrals')
+          .select('*, organizations(name)')
+          .eq('id', id)
+          .single();
+
+        const { data: patientData } = await supabase
+          .from('patients')
+          .select('*')
+          .eq('referral_id', id)
+          .maybeSingle();
+
+        if (referralData) {
+          const emailData = formatEmailData(referralData, patientData);
+          const emailResult = await sendAdmissionNotification(emailData);
+          
+          if (emailResult.success) {
+            console.log('Admission notification email sent successfully');
+          } else {
+            console.error('Failed to send admission notification email:', emailResult.error);
+          }
+        }
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['referrals'] });
+      showToast({ title: "Status updated successfully" });
+    },
+    onError: (error: any) => {
+      const message = error?.message?.includes('duplicate') 
+        ? "This referral already has that status"
+        : error?.message?.includes('network') || error?.message?.includes('fetch')
+        ? "Network error. Please check your connection and try again."
+        : "Unable to update status. Please try again.";
+      showToast({ title: message, variant: "destructive" });
+    },
+    retry: 1, // Retry once on failure
+  });
+
+  const updatePriorityMutation = useMutation({
+    mutationFn: async ({ id, priority }: { id: string, priority: string }) => {
+      const { error } = await supabase
+        .from('referrals')
+        .update({ priority })
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['referrals'] });
+      showToast({ title: "Priority updated successfully" });
+    },
+    onError: (error: any) => {
+      const message = error?.message?.includes('network') || error?.message?.includes('fetch')
+        ? "Network error. Please check your connection."
+        : "Unable to update priority. Please try again.";
+      showToast({ title: message, variant: "destructive" });
+    },
+    retry: 1,
+  });
+
+  const updateMarketerMutation = useMutation({
+    mutationFn: async ({ id, marketer }: { id: string, marketer: string }) => {
+      const { error } = await supabase
+        .from('referrals')
+        .update({ assigned_marketer: marketer || null })
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['referrals'] });
+      showToast({ title: "Marketer updated successfully" });
+    },
+    onError: () => {
+      showToast({ title: "Error updating marketer", variant: "destructive" });
+    }
+  });
+
+  const handleSort = (field: string) => {
+    let direction: 'asc' | 'desc' = 'asc';
+    if (sortConfig?.field === field && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ field, direction });
+  };
+
+  const sortedReferrals = React.useMemo(() => {
+    if (!referrals || !sortConfig) return referrals;
+
+    return [...referrals].sort((a, b) => {
+      const aValue = a[sortConfig.field as keyof typeof a];
+      const bValue = b[sortConfig.field as keyof typeof b];
+      
+      if (aValue === null || aValue === undefined) return 1;
+      if (bValue === null || bValue === undefined) return -1;
+      
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        return sortConfig.direction === 'asc' 
+          ? aValue.localeCompare(bValue)
+          : bValue.localeCompare(aValue);
+      }
+      
+      return sortConfig.direction === 'asc' 
+        ? (aValue as any) - (bValue as any)
+        : (bValue as any) - (aValue as any);
+    });
+  }, [referrals, sortConfig]);
+
+  const handleEditReferral = (referralId: string) => {
+    setEditingReferralId(referralId);
+    setShowEditDialog(true);
+  };
+
+  const handleScheduleReferral = (referralId: string) => {
+    setSchedulingReferralId(referralId);
+    setShowScheduleDialog(true);
+  };
+
+  const handleMarketerChange = (referralId: string, marketer: string) => {
+    updateMarketerMutation.mutate({ id: referralId, marketer });
+  };
+
+  // Bulk selection handlers
+  const handleSelectAll = (checked: boolean) => {
+    if (checked && referrals) {
+      setSelectedReferralIds(new Set(referrals.map(r => r.id)));
+    } else {
+      setSelectedReferralIds(new Set());
+    }
+  };
+
+  const handleSelectReferral = (id: string, checked: boolean) => {
+    const newSelected = new Set(selectedReferralIds);
+    if (checked) {
+      newSelected.add(id);
+    } else {
+      newSelected.delete(id);
+    }
+    setSelectedReferralIds(newSelected);
+  };
+
+  const handleClearSelection = () => {
+    setSelectedReferralIds(new Set());
+  };
+
+  // Bulk operations
+  const handleBulkStatusUpdate = async (status: string) => {
+    const selectedReferrals = referrals?.filter(r => selectedReferralIds.has(r.id)) || [];
+    setUndoState({ referrals: selectedReferrals, action: 'status' });
+    
+    try {
+      for (const id of Array.from(selectedReferralIds)) {
+        await supabase.from('referrals').update({ status: status as any }).eq('id', id);
+      }
+      queryClient.invalidateQueries({ queryKey: ['referrals'] });
+      
+      const undoAction = () => handleUndo();
+      
+      toast({
+        title: `Updated ${selectedReferralIds.size} referrals`,
+        action: (
+          <Button variant="outline" size="sm" onClick={undoAction}>
+            Undo
+          </Button>
+        ),
+      });
+      
+      setSelectedReferralIds(new Set());
+      
+      // Clear undo state after 5 seconds
+      setTimeout(() => setUndoState(null), 5000);
+    } catch (error) {
+      showToast({ title: "Error updating referrals", variant: "destructive" });
+    }
+  };
+
+  const handleBulkPriorityUpdate = async (priority: string) => {
+    const selectedReferrals = referrals?.filter(r => selectedReferralIds.has(r.id)) || [];
+    setUndoState({ referrals: selectedReferrals, action: 'priority' });
+    
+    try {
+      for (const id of Array.from(selectedReferralIds)) {
+        await supabase.from('referrals').update({ priority }).eq('id', id);
+      }
+      queryClient.invalidateQueries({ queryKey: ['referrals'] });
+      
+      const undoAction = () => handleUndo();
+      
+      toast({
+        title: `Updated ${selectedReferralIds.size} referrals`,
+        action: (
+          <Button variant="outline" size="sm" onClick={undoAction}>
+            Undo
+          </Button>
+        ),
+      });
+      
+      setSelectedReferralIds(new Set());
+      setTimeout(() => setUndoState(null), 5000);
+    } catch (error) {
+      showToast({ title: "Error updating referrals", variant: "destructive" });
+    }
+  };
+
+  const handleBulkAssign = async (marketer: string) => {
+    const selectedReferrals = referrals?.filter(r => selectedReferralIds.has(r.id)) || [];
+    setUndoState({ referrals: selectedReferrals, action: 'assign' });
+    
+    try {
+      for (const id of Array.from(selectedReferralIds)) {
+        await supabase.from('referrals').update({ assigned_marketer: marketer }).eq('id', id);
+      }
+      queryClient.invalidateQueries({ queryKey: ['referrals'] });
+      
+      const undoAction = () => handleUndo();
+      
+      toast({
+        title: `Assigned ${selectedReferralIds.size} referrals to ${marketer}`,
+        action: (
+          <Button variant="outline" size="sm" onClick={undoAction}>
+            Undo
+          </Button>
+        ),
+      });
+      
+      setSelectedReferralIds(new Set());
+      setTimeout(() => setUndoState(null), 5000);
+    } catch (error) {
+      showToast({ title: "Error assigning referrals", variant: "destructive" });
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    const selectedReferrals = referrals?.filter(r => selectedReferralIds.has(r.id)) || [];
+    setUndoState({ referrals: selectedReferrals, action: 'delete' });
+    
+    try {
+      for (const id of Array.from(selectedReferralIds)) {
+        await supabase.from('referrals').delete().eq('id', id);
+      }
+      queryClient.invalidateQueries({ queryKey: ['referrals'] });
+      
+      const undoAction = () => handleUndo();
+      
+      toast({
+        title: `Deleted ${selectedReferralIds.size} referrals`,
+        description: "You can undo this action",
+        action: (
+          <Button variant="outline" size="sm" onClick={undoAction}>
+            Undo
+          </Button>
+        ),
+      });
+      
+      setSelectedReferralIds(new Set());
+      setTimeout(() => setUndoState(null), 5000);
+    } catch (error) {
+      showToast({ title: "Error deleting referrals", variant: "destructive" });
+    }
+  };
+
+  const handleBulkExport = () => {
+    const selectedReferrals = referrals?.filter(r => selectedReferralIds.has(r.id)) || [];
+    
+    if (selectedReferrals.length === 0) {
+      showToast({ title: "No referrals selected", variant: "destructive" });
+      return;
+    }
+
+    // Create CSV content
+    const headers = ['Patient Name', 'Status', 'Priority', 'Organization', 'Referral Date', 'Assigned Marketer', 'Diagnosis', 'Insurance'];
+    const rows = selectedReferrals.map(r => [
+      r.patient_name || '',
+      r.status || '',
+      r.priority || '',
+      r.organizations?.name || '',
+      r.referral_date || '',
+      r.assigned_marketer || '',
+      r.diagnosis || '',
+      r.insurance || '',
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\n');
+
+    // Create and download file
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    const date = new Date().toISOString().split('T')[0];
+    
+    link.setAttribute('href', url);
+    link.setAttribute('download', `referrals_export_${date}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    showToast({ title: `Exported ${selectedReferrals.length} referrals` });
+  };
+
+  const handleUndo = async () => {
+    if (!undoState) return;
+    
+    try {
+      if (undoState.action === 'delete') {
+        // Re-insert deleted referrals
+        for (const referral of undoState.referrals) {
+          await supabase.from('referrals').insert(referral);
+        }
+      } else {
+        // Restore previous values
+        for (const referral of undoState.referrals) {
+          const updates: any = {};
+          if (undoState.action === 'status') updates.status = referral.status;
+          if (undoState.action === 'priority') updates.priority = referral.priority;
+          if (undoState.action === 'assign') updates.assigned_marketer = referral.assigned_marketer;
+          
+          await supabase.from('referrals').update(updates).eq('id', referral.id);
+        }
+      }
+      
+      queryClient.invalidateQueries({ queryKey: ['referrals'] });
+      showToast({ title: "Action undone successfully" });
+      setUndoState(null);
+    } catch (error) {
+      showToast({ title: "Error undoing action", variant: "destructive" });
+    }
+  };
+
+  const hasResults = referrals && referrals.length > 0;
+  const hasSelection = selectedReferralIds.size > 0;
+  const allSelected = referrals && referrals.length > 0 && selectedReferralIds.size === referrals.length;
+
+  // Show error state
+  if (queryError) {
+    return (
+      <div className="space-y-4">
+        <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-6 text-center">
+          <h3 className="text-lg font-semibold text-destructive mb-2">Error Loading Referrals</h3>
+          <p className="text-sm text-muted-foreground mb-4">
+            {queryError instanceof Error ? queryError.message : 'An unexpected error occurred'}
+          </p>
+          <Button onClick={() => refetch()} variant="outline">
+            Try Again
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4 animate-fade-in">
+        <div className="flex justify-between items-center">
+          <div className="flex space-x-2">
+            <div className="w-48 h-10 bg-gray-200 rounded animate-pulse" />
+            <div className="w-40 h-10 bg-gray-200 rounded animate-pulse" />
+            <div className="w-48 h-10 bg-gray-200 rounded animate-pulse" />
+          </div>
+          <div className="w-32 h-10 bg-gray-200 rounded animate-pulse" />
+        </div>
+        <ReferralCardsSkeleton count={6} />
+      </div>
+    );
+  }
+
+  const renderListView = () => (
+    <div className="bg-white rounded-lg shadow-sm border">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>
+              <SortHeader label="Patient" field="patient_name" currentSort={sortConfig} onSort={handleSort} />
+            </TableHead>
+            <TableHead>
+              <SortHeader label="Organization" field="organizations.name" currentSort={sortConfig} onSort={handleSort} />
+            </TableHead>
+            <TableHead>
+              <SortHeader label="Status" field="status" currentSort={sortConfig} onSort={handleSort} />
+            </TableHead>
+            <TableHead>
+              <SortHeader label="Priority" field="priority" currentSort={sortConfig} onSort={handleSort} />
+            </TableHead>
+            <TableHead>
+              <SortHeader label="Marketer" field="assigned_marketer" currentSort={sortConfig} onSort={handleSort} />
+            </TableHead>
+            <TableHead>
+              <SortHeader label="Date" field="referral_date" currentSort={sortConfig} onSort={handleSort} />
+            </TableHead>
+            <TableHead>Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {sortedReferrals?.map((referral) => (
+            <TableRow key={referral.id}>
+              <TableCell className="font-medium">
+                <Link 
+                  to={`/referral/${referral.id}`}
+                  className="hover:text-primary hover:underline transition-colors"
+                >
+                  {referral.patient_name}
+                </Link>
+              </TableCell>
+              <TableCell>{referral.organizations?.name || 'N/A'}</TableCell>
+              <TableCell>
+                <span className={`px-2 py-1 text-xs rounded-full ${
+                  referral.status === 'admitted' ? 'bg-green-100 text-green-800' :
+                  referral.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                  'bg-blue-100 text-blue-800'
+                }`}>
+                  {referral.status}
+                </span>
+              </TableCell>
+              <TableCell>
+                <span className={`px-2 py-1 text-xs rounded-full ${
+                  referral.priority === 'urgent' ? 'bg-red-100 text-red-800' :
+                  referral.priority === 'routine' ? 'bg-blue-100 text-blue-800' :
+                  'bg-gray-100 text-gray-800'
+                }`}>
+                  {referral.priority}
+                </span>
+              </TableCell>
+              <TableCell>{referral.assigned_marketer || 'Unassigned'}</TableCell>
+              <TableCell>
+                {referral.referral_date ? new Date(referral.referral_date).toLocaleDateString() : 'N/A'}
+              </TableCell>
+              <TableCell>
+                <div className="flex space-x-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleEditReferral(referral.id)}
+                    className="bg-gray-100 hover:bg-gray-200 border-gray-300 text-gray-900 font-semibold"
+                  >
+                    Edit
+                  </Button>
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
+
+  const handleRefresh = async () => {
+    await refetch();
+  };
+
+  const renderContent = () => (
+    <div className="space-y-6">
+      {/* Bulk Actions Toolbar */}
+      {hasSelection && (
+        <BulkActionsToolbar
+          selectedCount={selectedReferralIds.size}
+          onClearSelection={handleClearSelection}
+          onBulkStatusUpdate={handleBulkStatusUpdate}
+          onBulkPriorityUpdate={handleBulkPriorityUpdate}
+          onBulkAssign={handleBulkAssign}
+          onBulkDelete={handleBulkDelete}
+          onBulkExport={handleBulkExport}
+          marketers={marketers}
+        />
+      )}
+
+      {/* New Filter Bar */}
+      <ReferralsFilterBar
+        filters={filters}
+        onFiltersChange={setFilters}
+        totalCount={totalReferrals || 0}
+        filteredCount={referrals?.length || 0}
+      />
+
+      <div className="flex justify-between items-center gap-3">
+        <div className="flex items-center gap-3">
+          {hasResults && (
+            <div className="flex items-center gap-2">
+              <Checkbox
+                checked={allSelected}
+                onCheckedChange={handleSelectAll}
+                className="h-5 w-5"
+              />
+              <span className="text-sm text-muted-foreground">
+                Select All
+              </span>
+            </div>
+          )}
+        </div>
+        
+        <div className="flex gap-3">
+          <ViewToggle view={view} onViewChange={setView} />
+          {!isTabletOrMobile && (
+            <Button 
+              onClick={() => setShowAddDialog(true)} 
+              size="lg"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-md hover:shadow-lg transition-all"
+            >
+              <Plus className="w-5 h-5 mr-2" />
+              Add Referral
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {!hasResults ? (
+        <EmptyState
+          title={totalCount === 0 ? "No referrals yet" : "No referrals match your filters"}
+          description={totalCount === 0 ? "Get started by adding your first referral." : "Try adjusting your filters to see more results."}
+        />
+      ) : (
+        <>
+          {view === 'list' ? renderListView() : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6 animate-fade-in">
+              {sortedReferrals?.map((referral, index) => (
+                <div 
+                  key={referral.id}
+                  className="animate-fade-in"
+                  style={{ animationDelay: `${index * 50}ms` }}
+                >
+                  <ReferralCard
+                    referral={referral}
+                    marketers={marketers || []}
+                    isUpdatingStatus={updateStatusMutation.isPending}
+                    isUpdatingPriority={updatePriorityMutation.isPending}
+                    isUpdatingMarketer={updateMarketerMutation.isPending}
+                    onStatusChange={(id, status) => updateStatusMutation.mutate({ id, status: status as ReferralStatus })}
+                    onPriorityChange={(id, priority) => updatePriorityMutation.mutate({ id, priority })}
+                    onMarketerChange={handleMarketerChange}
+                    onEdit={handleEditReferral}
+                    onSchedule={handleScheduleReferral}
+                    isSelected={selectedReferralIds.has(referral.id)}
+                    onSelectChange={handleSelectReferral}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+          
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between mt-6 pt-4 border-t">
+              <div className="text-sm text-muted-foreground">
+                Showing {page * pageSize + 1} - {Math.min((page + 1) * pageSize, totalCount)} of {totalCount} referrals
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage(Math.max(0, page - 1))}
+                  disabled={page === 0}
+                >
+                  Previous
+                </Button>
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    let pageNum = i;
+                    if (totalPages > 5) {
+                      if (page < 3) {
+                        pageNum = i;
+                      } else if (page > totalPages - 4) {
+                        pageNum = totalPages - 5 + i;
+                      } else {
+                        pageNum = page - 2 + i;
+                      }
+                    }
+                    return (
+                      <Button
+                        key={pageNum}
+                        variant={page === pageNum ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setPage(pageNum)}
+                        className="w-10"
+                      >
+                        {pageNum + 1}
+                      </Button>
+                    );
+                  })}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage(Math.min(totalPages - 1, page + 1))}
+                  disabled={page >= totalPages - 1}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          )}
+        </>
+      )}
+
+      <AddReferralDialog 
+        open={showAddDialog} 
+        onOpenChange={setShowAddDialog} 
+      />
+      
+      <EditReferralDialog 
+        open={showEditDialog} 
+        onOpenChange={setShowEditDialog} 
+        referralId={editingReferralId}
+      />
+
+      <ScheduleVisitDialog
+        open={showScheduleDialog}
+        onOpenChange={setShowScheduleDialog}
+        referralId={schedulingReferralId}
+      />
+
+      {/* Floating Action Button for Mobile/Tablet */}
+      {isTabletOrMobile && (
+        <FloatingActionButton 
+          onClick={() => setShowAddDialog(true)}
+          label="Add Referral"
+        />
+      )}
+    </div>
+  );
+
+  return isTabletOrMobile ? (
+    <PullToRefresh
+      onRefresh={handleRefresh}
+      pullingContent={
+        <div className="flex justify-center py-4 text-muted-foreground">
+          <span className="text-sm">Pull down to refresh...</span>
+        </div>
+      }
+      refreshingContent={
+        <div className="flex justify-center py-4">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+        </div>
+      }
+      resistance={2}
+      maxPullDownDistance={80}
+      className="min-h-screen"
+    >
+      {renderContent()}
+    </PullToRefresh>
+  ) : (
+    renderContent()
+  );
+};
+
+export default ReferralsList;
