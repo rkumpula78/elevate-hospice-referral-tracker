@@ -1,10 +1,11 @@
+
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
 
 const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!
-const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!
+const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -17,39 +18,10 @@ serve(async (req) => {
   }
 
   try {
-    // Validate authentication - require JWT token
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      console.error('No authorization header provided');
-      return new Response(JSON.stringify({ error: 'Unauthorized - No authorization header' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    // Create Supabase client with user's token to respect RLS
-    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-      global: {
-        headers: {
-          Authorization: authHeader,
-        },
-      },
-    });
-
-    // Verify the user is authenticated
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
-      console.error('Authentication failed:', authError?.message);
-      return new Response(JSON.stringify({ error: 'Unauthorized - Invalid token' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    console.log('Authenticated user:', user.id);
-
     const { query, searchType } = await req.json();
-    console.log('Search request:', { query, searchType, userId: user.id });
+    console.log('Search request:', { query, searchType });
+    
+    const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
     if (searchType === 'ai') {
       // Check if OpenAI API key is available
@@ -81,7 +53,7 @@ serve(async (req) => {
 
       // If it's a creation request, provide immediate action
       if (suggestedAction) {
-        const actionMessages: Record<string, string> = {
+        const actionMessages = {
           referral: "I can help you add a new referral! Click the button below to open the referral form.",
           visit: "I can help you schedule a new visit! Click the button below to open the visit scheduling form.",
           organization: "I can help you add a new organization! Click the button below to open the organization form.",
@@ -101,7 +73,7 @@ serve(async (req) => {
       let contextData = '';
       let navigationAction = null;
 
-      // Enhanced search for referrals - search ALL text fields (respects RLS)
+      // Enhanced search for referrals - search ALL text fields
       if (query.toLowerCase().includes('referral') || query.toLowerCase().includes('dnr') || query.toLowerCase().includes('patient')) {
         const { data: referrals, error } = await supabase
           .from('referrals')
@@ -127,7 +99,7 @@ serve(async (req) => {
 
           const totalReferrals = referrals.length;
           const matchingCount = matchingReferrals.length;
-          const statusCounts = referrals.reduce((acc: Record<string, number>, ref) => {
+          const statusCounts = referrals.reduce((acc, ref) => {
             acc[ref.status] = (acc[ref.status] || 0) + 1;
             return acc;
           }, {});
@@ -141,7 +113,7 @@ serve(async (req) => {
         }
       }
 
-      // Enhanced search for patients - search ALL text fields (respects RLS)
+      // Enhanced search for patients - search ALL text fields
       if (query.toLowerCase().includes('patient') || query.toLowerCase().includes('dnr')) {
         const { data: patients, error } = await supabase
           .from('patients')
@@ -179,7 +151,7 @@ serve(async (req) => {
 
           const totalPatients = patients.length;
           const matchingCount = matchingPatients.length;
-          const statusCounts = patients.reduce((acc: Record<string, number>, patient) => {
+          const statusCounts = patients.reduce((acc, patient) => {
             acc[patient.status] = (acc[patient.status] || 0) + 1;
             return acc;
           }, {});
@@ -208,7 +180,7 @@ serve(async (req) => {
         }
       }
 
-      // Check if query is about organizations/referral sources (respects RLS)
+      // Check if query is about organizations/referral sources
       if (query.toLowerCase().includes('organization') || query.toLowerCase().includes('facility') || query.toLowerCase().includes('referral source')) {
         const { data: organizations, error } = await supabase
           .from('organizations')
@@ -217,7 +189,7 @@ serve(async (req) => {
         
         if (!error && organizations) {
           const totalOrgs = organizations.length;
-          const typeBreakdown = organizations.reduce((acc: Record<string, number>, org) => {
+          const typeBreakdown = organizations.reduce((acc, org) => {
             acc[org.type] = (acc[org.type] || 0) + 1;
             return acc;
           }, {});
@@ -314,7 +286,7 @@ Available navigation paths:
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     } else {
-      // Handle regular search with enhanced field coverage (respects RLS)
+      // Handle regular search with enhanced field coverage
       const searchResults = await Promise.all([
         // Enhanced search referrals - search ALL text fields
         supabase
