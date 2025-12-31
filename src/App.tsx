@@ -10,7 +10,6 @@ import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import AdminRoute from "@/components/auth/AdminRoute";
 import AppSidebar from "@/components/layout/AppSidebar";
 import { useBreakpoint } from "@/hooks/use-responsive";
-import { OfflineIndicator } from "@/components/ui/offline-indicator";
 import Auth from "./pages/Auth";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
@@ -78,7 +77,6 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <OfflineIndicator />
         <BrowserRouter>
           <Routes>
             <Route path="/auth" element={<Auth />} />

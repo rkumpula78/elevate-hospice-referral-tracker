@@ -133,6 +133,7 @@ const AppSidebar = () => {
         <h2 className={`font-bold text-sidebar-foreground mt-2 ${isMobile ? 'text-lg' : 'text-xl'}`}>
           Elevate Hospice
         </h2>
+        <p className="text-sm text-muted-foreground">CRM Dashboard</p>
       </SidebarHeader>
       
       <SidebarContent>

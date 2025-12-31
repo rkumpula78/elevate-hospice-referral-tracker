@@ -3,7 +3,7 @@
  */
 
 /**
- * Format phone number - handles multiple formats
+ * Format phone number as (XXX) XXX-XXXX
  */
 export const formatPhoneNumber = (value: string): string => {
   // Remove all non-numeric characters
@@ -13,15 +13,7 @@ export const formatPhoneNumber = (value: string): string => {
   if (cleaned.length === 0) return '';
   if (cleaned.length <= 3) return `(${cleaned}`;
   if (cleaned.length <= 6) return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3)}`;
-  if (cleaned.length <= 10) {
-    return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6, 10)}`;
-  } else if (cleaned.length === 11 && cleaned[0] === '1') {
-    // US number with country code
-    return `1 (${cleaned.slice(1, 4)}) ${cleaned.slice(4, 7)}-${cleaned.slice(7, 11)}`;
-  } else {
-    // International or extension - limit to 15 digits
-    return cleaned.slice(0, 15);
-  }
+  return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6, 10)}`;
 };
 
 /**
@@ -71,15 +63,11 @@ export const parseDate = (value: string): string => {
 };
 
 /**
- * Validate phone number format - accepts multiple formats
+ * Validate phone number format
  */
 export const isValidPhoneNumber = (value: string): boolean => {
-  if (!value || !value.trim()) return true; // Empty is valid (not required)
-  
   const cleaned = value.replace(/\D/g, '');
-  
-  // Accept 10 digits (US), 11 digits (US with country code), or international (7-15 digits)
-  return cleaned.length >= 7 && cleaned.length <= 15;
+  return cleaned.length === 10;
 };
 
 /**
