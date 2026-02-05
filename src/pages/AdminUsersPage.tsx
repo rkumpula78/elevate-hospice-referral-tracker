@@ -101,34 +101,29 @@ export default function AdminUsersPage() {
     }
 
     try {
-      // Create user via edge function
+      // Create user via edge function (admin invite)
       const { data, error } = await supabase.functions.invoke('validate-signup', {
-        body: { 
-          email: newUserEmail, 
+        body: {
+          mode: 'admin-invite',
+          email: newUserEmail,
           password: newUserPassword,
           first_name: newUserFirstName,
-          last_name: newUserLastName
-        }
+          last_name: newUserLastName,
+        },
       });
 
       if (error) throw error;
-      if (data.error) throw new Error(data.error.message);
+      if (data?.error) throw new Error(data.error.message);
 
-      // Wait a moment for the user to be created
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      toast.success('Invitation sent to user email');
 
-      // Get the new user's ID from profiles
-      const { data: profileData } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('email', newUserEmail)
-        .single();
+      const newUserId: string | undefined = data?.user?.id;
 
-      if (profileData && newUserRole === 'admin') {
+      if (newUserId && newUserRole === 'admin') {
         // Assign admin role
         const { error: roleError } = await supabase
           .from('user_roles')
-          .insert({ user_id: profileData.id, role: 'admin', assigned_by: currentUser?.id });
+          .insert({ user_id: newUserId, role: 'admin', assigned_by: currentUser?.id });
 
         if (roleError) throw roleError;
 
@@ -136,12 +131,11 @@ export default function AdminUsersPage() {
         await supabase.from('admin_audit_log').insert({
           admin_user_id: currentUser?.id,
           action: 'assign_admin_role',
-          target_user_id: profileData.id,
+          target_user_id: newUserId,
           details: { email: newUserEmail }
         });
       }
 
-      toast.success('User created successfully');
       setShowAddDialog(false);
       setNewUserEmail('');
       setNewUserPassword('');
