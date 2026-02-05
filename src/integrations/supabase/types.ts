@@ -2407,6 +2407,8 @@ export type Database = {
         Args: { command: string }
         Returns: undefined
       }
+      get_dashboard_stats: { Args: never; Returns: Json }
+      get_kpi_metrics: { Args: never; Returns: Json }
       has_healthcare_access: { Args: never; Returns: boolean }
       has_role: {
         Args: {
