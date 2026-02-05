@@ -79,8 +79,9 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // Redirects
-    const origin = req.headers.get("origin") || "https://elevate-hospice-referral-tracker.lovable.app";
-    const emailRedirectTo = `${origin}/auth`;
+    // IMPORTANT: Use a stable, allow-listed redirect URL (NOT the caller origin), otherwise email links
+    // can bounce through incorrect hosts and immediately fail/expire.
+    const emailRedirectTo = `https://elevate-hospice-referral-tracker.lovable.app/auth`;
 
     if (mode === "admin-invite") {
       if (!serviceRoleKey) {
