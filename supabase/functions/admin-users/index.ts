@@ -113,6 +113,27 @@ const handler = async (req: Request): Promise<Response> => {
         );
       }
 
+      // Delete related records first to avoid FK constraint errors
+      const { error: rolesDeleteError } = await adminClient
+        .from("user_roles")
+        .delete()
+        .eq("user_id", userId);
+
+      if (rolesDeleteError) {
+        console.error("Error deleting user roles:", rolesDeleteError);
+        // Continue anyway - the role might not exist
+      }
+
+      const { error: auditDeleteError } = await adminClient
+        .from("admin_audit_log")
+        .delete()
+        .or(`admin_user_id.eq.${userId},target_user_id.eq.${userId}`);
+
+      if (auditDeleteError) {
+        console.error("Error deleting audit logs:", auditDeleteError);
+        // Continue anyway
+      }
+
       const { error: deleteError } = await adminClient.auth.admin.deleteUser(userId);
 
       if (deleteError) {
@@ -123,11 +144,12 @@ const handler = async (req: Request): Promise<Response> => {
         );
       }
 
-      // Log the action
+      // Log the action (with new user id since old one is deleted)
       await adminClient.from("admin_audit_log").insert({
         admin_user_id: userData.user.id,
         action: "delete_user",
-        target_user_id: userId,
+        target_user_id: null,
+        details: { deleted_user_id: userId },
       });
 
       return new Response(
