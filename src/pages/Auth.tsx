@@ -4,6 +4,12 @@ import { useNavigate } from 'react-router-dom';
 import LoginForm from '@/components/auth/LoginForm';
 import PasswordUpdateForm from '@/components/auth/PasswordUpdateForm';
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { toast } from '@/hooks/use-toast';
+import { Loader2, RefreshCw } from 'lucide-react';
 
 function parseAuthHash() {
   const raw = window.location.hash.startsWith('#')
@@ -15,10 +21,90 @@ function parseAuthHash() {
   const accessToken = params.get('access_token');
   const refreshToken = params.get('refresh_token');
   const error = params.get('error');
+  const errorCode = params.get('error_code');
   const errorDescription = params.get('error_description');
 
-  return { type, accessToken, refreshToken, error, errorDescription };
+  return { type, accessToken, refreshToken, error, errorCode, errorDescription };
 }
+
+const ExpiredLinkForm = ({ errorDescription }: { errorDescription: string }) => {
+  const [email, setEmail] = useState('');
+  const [sending, setSending] = useState(false);
+
+  const handleResend = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) {
+      toast({ title: 'Please enter your email', variant: 'destructive' });
+      return;
+    }
+
+    setSending(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth`,
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: 'New link sent!',
+        description: 'Check your inbox for a fresh password reset link.',
+      });
+
+      // Clear the error hash from URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } catch (err: any) {
+      toast({
+        title: 'Failed to send link',
+        description: err?.message || 'Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+        <p className="font-semibold">Your link has expired</p>
+        <p className="mt-1 text-amber-700">
+          {errorDescription || 'The verification link is no longer valid.'}
+        </p>
+      </div>
+
+      <form onSubmit={handleResend} className="space-y-4">
+        <p className="text-gray-600 text-center">
+          Enter your email below to receive a new link.
+        </p>
+        <div className="space-y-2">
+          <Label htmlFor="resend-email">Email address</Label>
+          <Input
+            id="resend-email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@elevatehospiceaz.com"
+            required
+            className="h-11"
+          />
+        </div>
+        <Button type="submit" className="w-full" disabled={sending}>
+          {sending ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <RefreshCw className="mr-2 h-4 w-4" />
+          )}
+          Send new link
+        </Button>
+      </form>
+
+      <p className="text-xs text-muted-foreground text-center">
+        Or contact an admin to resend your invitation.
+      </p>
+    </div>
+  );
+};
 
 const Auth = () => {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -29,15 +115,12 @@ const Auth = () => {
   const isRecoveryFlow = authHash.type === 'recovery' || authHash.type === 'invite';
   const isMagicLinkFlow = authHash.type === 'magiclink';
   const hasAuthTokens = !!authHash.accessToken || !!authHash.refreshToken;
+  const isExpiredLink = authHash.errorCode === 'otp_expired' || authHash.error === 'access_denied';
 
   useEffect(() => {
     // If Supabase redirected back with tokens, give the client a moment to hydrate the session.
-    // (Prevents confusing "check your email"/"verify" loops.)
     if (hasAuthTokens && !session && !loading) {
-      const t = window.setTimeout(() => {
-        // useAuth listens to auth changes; just re-check route a moment later
-        // and keep the UI in the "Completing sign-in" state.
-      }, 250);
+      const t = window.setTimeout(() => {}, 250);
       return () => window.clearTimeout(t);
     }
   }, [hasAuthTokens, session, loading]);
@@ -67,7 +150,7 @@ const Auth = () => {
     );
   }
 
-  const showCompleting = (isMagicLinkFlow || hasAuthTokens) && !user;
+  const showCompleting = (isMagicLinkFlow || hasAuthTokens) && !user && !isExpiredLink;
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900">
@@ -86,7 +169,9 @@ const Auth = () => {
             <div className="w-16 h-1 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full mx-auto mt-4"></div>
           </div>
 
-          {authHash.error ? (
+          {isExpiredLink ? (
+            <ExpiredLinkForm errorDescription={authHash.errorDescription || ''} />
+          ) : authHash.error ? (
             <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">
               <p className="font-semibold">Authentication error</p>
               <p className="mt-1 break-words">
