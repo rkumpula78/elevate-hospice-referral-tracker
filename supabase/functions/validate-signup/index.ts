@@ -149,6 +149,35 @@ const handler = async (req: Request): Promise<Response> => {
       });
 
       if (error) {
+        // If the user already exists, fall back to password reset email instead of failing.
+        // This avoids the "stuck" admin-invite flow when re-inviting an existing account.
+        if ((error as any)?.code === "email_exists") {
+          const resetClient = createClient(supabaseUrl, anonKey);
+          const { error: resetErr } = await resetClient.auth.resetPasswordForEmail(email, {
+            redirectTo: emailRedirectTo,
+          });
+
+          if (resetErr) {
+            console.error("Password reset fallback error:", resetErr);
+            return new Response(JSON.stringify({ error: resetErr }), {
+              status: resetErr.status ?? 400,
+              headers: { "Content-Type": "application/json", ...corsHeaders },
+            });
+          }
+
+          return new Response(
+            JSON.stringify({
+              message:
+                "User already exists. Sent a password reset email instead of an invitation.",
+              existing_user: true,
+            }),
+            {
+              status: 200,
+              headers: { "Content-Type": "application/json", ...corsHeaders },
+            },
+          );
+        }
+
         console.error("Invite error:", error);
         return new Response(JSON.stringify({ error }), {
           status: error.status ?? 400,
