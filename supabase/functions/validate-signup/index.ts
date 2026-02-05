@@ -46,15 +46,13 @@ const handler = async (req: Request): Promise<Response> => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Create user with email confirmation required
-    const redirectUrl = `${req.headers.get('origin') || 'http://localhost:3000'}/dashboard`;
+    // Use inviteUserByEmail which creates the user AND sends an invitation email
+    const redirectUrl = `${req.headers.get('origin') || 'https://elevate-hospice-referral-tracker.lovable.app'}/auth`;
     
-    const { data, error } = await supabase.auth.admin.createUser({
-      email,
-      password,
-      email_confirm: false, // Require email confirmation
-      user_metadata: {
-        email_confirmed: false
+    const { data, error } = await supabase.auth.admin.inviteUserByEmail(email, {
+      redirectTo: redirectUrl,
+      data: {
+        temp_password: password // Store temporarily so user can set it after accepting invite
       }
     });
 
@@ -70,19 +68,6 @@ const handler = async (req: Request): Promise<Response> => {
           },
         }
       );
-    }
-
-    // Send confirmation email
-    const { error: confirmError } = await supabase.auth.admin.generateLink({
-      type: 'signup',
-      email,
-      options: {
-        redirectTo: redirectUrl
-      }
-    });
-
-    if (confirmError) {
-      console.error('Confirmation email error:', confirmError);
     }
 
     return new Response(
