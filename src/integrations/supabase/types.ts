@@ -180,7 +180,7 @@ export type Database = {
       admin_audit_log: {
         Row: {
           action: string
-          admin_user_id: string
+          admin_user_id: string | null
           created_at: string | null
           details: Json | null
           id: string
@@ -188,7 +188,7 @@ export type Database = {
         }
         Insert: {
           action: string
-          admin_user_id: string
+          admin_user_id?: string | null
           created_at?: string | null
           details?: Json | null
           id?: string
@@ -196,7 +196,7 @@ export type Database = {
         }
         Update: {
           action?: string
-          admin_user_id?: string
+          admin_user_id?: string | null
           created_at?: string | null
           details?: Json | null
           id?: string

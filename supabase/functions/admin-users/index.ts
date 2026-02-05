@@ -113,7 +113,8 @@ const handler = async (req: Request): Promise<Response> => {
         );
       }
 
-      // Delete related records first to avoid FK constraint errors
+      // Delete related user_roles first (FK constraint blocks deletion)
+      // Note: admin_audit_log has ON DELETE SET NULL so it's handled by the DB
       const { error: rolesDeleteError } = await adminClient
         .from("user_roles")
         .delete()
@@ -122,16 +123,6 @@ const handler = async (req: Request): Promise<Response> => {
       if (rolesDeleteError) {
         console.error("Error deleting user roles:", rolesDeleteError);
         // Continue anyway - the role might not exist
-      }
-
-      const { error: auditDeleteError } = await adminClient
-        .from("admin_audit_log")
-        .delete()
-        .or(`admin_user_id.eq.${userId},target_user_id.eq.${userId}`);
-
-      if (auditDeleteError) {
-        console.error("Error deleting audit logs:", auditDeleteError);
-        // Continue anyway
       }
 
       const { error: deleteError } = await adminClient.auth.admin.deleteUser(userId);
