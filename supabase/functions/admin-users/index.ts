@@ -215,9 +215,20 @@ const handler = async (req: Request): Promise<Response> => {
 
       if (updateError) {
         console.error("Set password error:", updateError);
+        // Return 200 with error in body for weak_password to allow graceful client handling
+        const isWeakPassword = updateError.code === "weak_password" || 
+          (updateError as any).__isAuthError && (updateError as any).name === "AuthWeakPasswordError";
+        
         return new Response(
-          JSON.stringify({ error: updateError }),
-          { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+          JSON.stringify({ 
+            success: false, 
+            error: {
+              code: (updateError as any).code || "unknown",
+              message: updateError.message,
+              reasons: (updateError as any).reasons || []
+            }
+          }),
+          { status: isWeakPassword ? 200 : 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
         );
       }
 
