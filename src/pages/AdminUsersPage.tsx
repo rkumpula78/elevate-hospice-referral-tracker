@@ -251,21 +251,28 @@ export default function AdminUsersPage() {
         body: { action: 'set-password', userId: passwordDialogUser.id, password: newPassword },
       });
 
-      if (error) throw error;
-      if (data?.error) {
-        // Handle weak password error specifically
-        if (data.error.code === 'weak_password') {
-          const reasons = data.error.reasons || [];
-          let message = 'Password is too weak.';
+      // Handle edge function errors (returned as error or in data.error)
+      const errorObj = error || data?.error;
+      if (errorObj) {
+        // Parse weak password error
+        const code = errorObj.code || errorObj?.error?.code;
+        const reasons = errorObj.reasons || errorObj?.error?.reasons || [];
+        
+        if (code === 'weak_password') {
           if (reasons.includes('pwned')) {
-            message = 'This password has appeared in data breaches. Please choose a different password.';
-          } else if (reasons.includes('characters')) {
-            message = 'Password needs more complexity (mix of letters, numbers, symbols).';
+            toast.error('This password has appeared in data breaches. Please choose a different, unique password.');
+          } else {
+            toast.error('Password is too weak. Use a mix of letters, numbers, and symbols.');
           }
-          toast.error(message);
           return;
         }
-        throw new Error(data.error.message);
+        
+        // Try to parse error message from string if needed
+        const message = typeof errorObj === 'string' 
+          ? (errorObj.includes('weak_password') ? 'Password is too weak or has been compromised. Try a unique password.' : errorObj)
+          : errorObj.message || 'Failed to set password';
+        toast.error(message);
+        return;
       }
 
       toast.success('Password updated successfully');
@@ -273,7 +280,15 @@ export default function AdminUsersPage() {
       setNewPassword('');
     } catch (error: any) {
       console.error('Error setting password:', error);
-      toast.error(error.message || 'Failed to set password');
+      
+      // Try to extract weak password info from caught error
+      const errorStr = error?.message || String(error);
+      if (errorStr.includes('weak_password') || errorStr.includes('pwned')) {
+        toast.error('This password has appeared in data breaches. Please choose a different, unique password.');
+        return;
+      }
+      
+      toast.error('Failed to set password. Try a stronger, unique password.');
     } finally {
       setSettingPassword(false);
     }
