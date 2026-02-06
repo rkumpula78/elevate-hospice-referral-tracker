@@ -252,7 +252,21 @@ export default function AdminUsersPage() {
       });
 
       if (error) throw error;
-      if (data?.error) throw new Error(data.error.message);
+      if (data?.error) {
+        // Handle weak password error specifically
+        if (data.error.code === 'weak_password') {
+          const reasons = data.error.reasons || [];
+          let message = 'Password is too weak.';
+          if (reasons.includes('pwned')) {
+            message = 'This password has appeared in data breaches. Please choose a different password.';
+          } else if (reasons.includes('characters')) {
+            message = 'Password needs more complexity (mix of letters, numbers, symbols).';
+          }
+          toast.error(message);
+          return;
+        }
+        throw new Error(data.error.message);
+      }
 
       toast.success('Password updated successfully');
       setPasswordDialogUser(null);
@@ -506,6 +520,9 @@ export default function AdminUsersPage() {
                 onChange={(e) => setNewPassword(e.target.value)}
                 placeholder="Minimum 8 characters"
               />
+              <p className="text-xs text-muted-foreground">
+                Use a strong, unique password with letters, numbers, and symbols.
+              </p>
             </div>
             <Button onClick={handleSetPassword} className="w-full" disabled={settingPassword || newPassword.length < 8}>
               {settingPassword && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
