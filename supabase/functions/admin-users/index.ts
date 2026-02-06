@@ -8,9 +8,10 @@ const corsHeaders = {
 };
 
 interface AdminRequest {
-  action: "list" | "delete" | "resend-invite";
+  action: "list" | "delete" | "resend-invite" | "set-password";
   userId?: string;
   email?: string;
+  password?: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -60,7 +61,7 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    const { action, userId, email }: AdminRequest = await req.json();
+    const { action, userId, email, password }: AdminRequest = await req.json();
 
     // LIST: Get all auth users with status
     if (action === "list") {
@@ -188,6 +189,48 @@ const handler = async (req: Request): Promise<Response> => {
 
       return new Response(
         JSON.stringify({ message: "Invitation email sent" }),
+        { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    // SET-PASSWORD: Admin directly sets a user's password
+    if (action === "set-password") {
+      if (!userId || !password) {
+        return new Response(
+          JSON.stringify({ error: { message: "userId and password are required" } }),
+          { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        );
+      }
+
+      if (password.length < 8) {
+        return new Response(
+          JSON.stringify({ error: { message: "Password must be at least 8 characters" } }),
+          { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        );
+      }
+
+      const { error: updateError } = await adminClient.auth.admin.updateUserById(userId, {
+        password,
+      });
+
+      if (updateError) {
+        console.error("Set password error:", updateError);
+        return new Response(
+          JSON.stringify({ error: updateError }),
+          { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        );
+      }
+
+      // Log the action
+      await adminClient.from("admin_audit_log").insert({
+        admin_user_id: userData.user.id,
+        action: "set_password",
+        target_user_id: userId,
+        details: { note: "Password reset by admin" },
+      });
+
+      return new Response(
+        JSON.stringify({ message: "Password updated successfully" }),
         { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
