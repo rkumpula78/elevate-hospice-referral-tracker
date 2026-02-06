@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from 'sonner';
-import { UserPlus, Trash2, Shield, ShieldOff, Mail, RefreshCw, Loader2 } from 'lucide-react';
+import { UserPlus, Trash2, Shield, ShieldOff, Mail, RefreshCw, Loader2, KeyRound } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
 interface AuthUser {
@@ -37,6 +37,9 @@ export default function AdminUsersPage() {
   const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
   const [resendingEmail, setResendingEmail] = useState<string | null>(null);
   const [deletingUser, setDeletingUser] = useState(false);
+  const [passwordDialogUser, setPasswordDialogUser] = useState<UserWithRoles | null>(null);
+  const [newPassword, setNewPassword] = useState('');
+  const [settingPassword, setSettingPassword] = useState(false);
   
   const [newUserEmail, setNewUserEmail] = useState('');
   const [newUserPassword, setNewUserPassword] = useState('');
@@ -233,6 +236,35 @@ export default function AdminUsersPage() {
     }
   };
 
+  const handleSetPassword = async () => {
+    if (!passwordDialogUser || !newPassword) return;
+
+    if (newPassword.length < 8) {
+      toast.error('Password must be at least 8 characters');
+      return;
+    }
+
+    try {
+      setSettingPassword(true);
+
+      const { data, error } = await supabase.functions.invoke('admin-users', {
+        body: { action: 'set-password', userId: passwordDialogUser.id, password: newPassword },
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error.message);
+
+      toast.success('Password updated successfully');
+      setPasswordDialogUser(null);
+      setNewPassword('');
+    } catch (error: any) {
+      console.error('Error setting password:', error);
+      toast.error(error.message || 'Failed to set password');
+    } finally {
+      setSettingPassword(false);
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'active':
@@ -399,6 +431,15 @@ export default function AdminUsersPage() {
                         <Button
                           size="sm"
                           variant="ghost"
+                          onClick={() => setPasswordDialogUser(user)}
+                          disabled={user.id === currentUser?.id}
+                          title="Set password"
+                        >
+                          <KeyRound className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
                           onClick={() => resendInvite(user.email)}
                           disabled={resendingEmail === user.email}
                           title="Resend invite / password reset"
@@ -446,6 +487,33 @@ export default function AdminUsersPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog open={!!passwordDialogUser} onOpenChange={(open) => { if (!open) { setPasswordDialogUser(null); setNewPassword(''); } }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Set Password</DialogTitle>
+            <DialogDescription>
+              Set a new password for {passwordDialogUser?.email}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="set-password">New Password</Label>
+              <Input
+                id="set-password"
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Minimum 8 characters"
+              />
+            </div>
+            <Button onClick={handleSetPassword} className="w-full" disabled={settingPassword || newPassword.length < 8}>
+              {settingPassword && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              Set Password
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </PageLayout>
   );
 }
