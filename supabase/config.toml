@@ -2,3 +2,6 @@ project_id = "qpjdiargpivwtbakkfpo"
 
 [functions.ai-assist]
 verify_jwt = false
+
+[functions.get-mapbox-token]
+verify_jwt = false
