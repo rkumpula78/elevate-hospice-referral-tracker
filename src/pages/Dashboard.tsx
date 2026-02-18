@@ -51,14 +51,14 @@ const Dashboard = () => {
         } else {
           // Get latest census entry from database
           const { data: latestCensus } = await supabase
-            .from('census_entries' as any)
+            .from('census_entries')
             .select('*')
             .order('census_date', { ascending: false })
             .limit(1)
             .single();
 
           if (latestCensus) {
-            currentCensus = (latestCensus as any).patient_count;
+            currentCensus = latestCensus.patient_count;
           }
         }
 
@@ -71,13 +71,13 @@ const Dashboard = () => {
           censusPrevious = prevData.patient_count;
         } else {
           const { data: previousCensus } = await supabase
-            .from('census_entries' as any)
+            .from('census_entries')
             .select('*')
             .eq('census_date', format(thirtyDaysAgo, 'yyyy-MM-dd'))
             .maybeSingle();
 
           if (previousCensus) {
-            censusPrevious = (previousCensus as any).patient_count;
+            censusPrevious = previousCensus.patient_count;
           }
         }
       } catch (error) {

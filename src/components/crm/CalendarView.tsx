@@ -31,7 +31,7 @@ const CalendarView = () => {
         .from('visits')
         .select(`
           *, 
-          referrals!visits_patient_id_fkey(patient_name, referring_facility)
+          referrals!visits_referral_id_fkey(patient_name, referring_facility)
         `);
 
       if (selectedType !== 'all') {
