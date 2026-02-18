@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -189,11 +189,9 @@ const AddContactDialog: React.FC<AddContactDialogProps> = ({
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add New Contact</DialogTitle>
-          {organizationName && (
-            <p className="text-sm text-muted-foreground">
-              Adding contact for {organizationName}
-            </p>
-          )}
+          <DialogDescription>
+            {organizationName ? `Adding contact for ${organizationName}` : 'Add a new contact to the organization.'}
+          </DialogDescription>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">
