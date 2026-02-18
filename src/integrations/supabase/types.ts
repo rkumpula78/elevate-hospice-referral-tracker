@@ -947,6 +947,8 @@ export type Database = {
           hipaa_compliance: boolean | null
           id: string
           influence_level: string | null
+          is_primary_referrer: boolean | null
+          is_referring_contact: boolean | null
           last_contact_date: string | null
           last_name: string
           lead_source: string | null
@@ -968,11 +970,13 @@ export type Database = {
           referral_conversion_rate: number | null
           referral_history: Json | null
           referral_source_category: string | null
+          referral_volume_monthly: number | null
           relationship_notes: string | null
           relationship_strength: number | null
           relationship_to_patient: string | null
           role_in_referral: string | null
           role_in_referral_process: string | null
+          specialization: string | null
           specialty: string | null
           tags_categories: string[] | null
           title: string | null
@@ -1000,6 +1004,8 @@ export type Database = {
           hipaa_compliance?: boolean | null
           id?: string
           influence_level?: string | null
+          is_primary_referrer?: boolean | null
+          is_referring_contact?: boolean | null
           last_contact_date?: string | null
           last_name: string
           lead_source?: string | null
@@ -1021,11 +1027,13 @@ export type Database = {
           referral_conversion_rate?: number | null
           referral_history?: Json | null
           referral_source_category?: string | null
+          referral_volume_monthly?: number | null
           relationship_notes?: string | null
           relationship_strength?: number | null
           relationship_to_patient?: string | null
           role_in_referral?: string | null
           role_in_referral_process?: string | null
+          specialization?: string | null
           specialty?: string | null
           tags_categories?: string[] | null
           title?: string | null
@@ -1053,6 +1061,8 @@ export type Database = {
           hipaa_compliance?: boolean | null
           id?: string
           influence_level?: string | null
+          is_primary_referrer?: boolean | null
+          is_referring_contact?: boolean | null
           last_contact_date?: string | null
           last_name?: string
           lead_source?: string | null
@@ -1074,11 +1084,13 @@ export type Database = {
           referral_conversion_rate?: number | null
           referral_history?: Json | null
           referral_source_category?: string | null
+          referral_volume_monthly?: number | null
           relationship_notes?: string | null
           relationship_strength?: number | null
           relationship_to_patient?: string | null
           role_in_referral?: string | null
           role_in_referral_process?: string | null
+          specialization?: string | null
           specialty?: string | null
           tags_categories?: string[] | null
           title?: string | null

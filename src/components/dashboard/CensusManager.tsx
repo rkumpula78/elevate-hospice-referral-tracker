@@ -45,7 +45,7 @@ const CensusManager = ({ open, onOpenChange }: CensusManagerProps) => {
 
       // Future: Use Supabase
       const { data, error } = await supabase
-        .from('census_entries' as any)
+        .from('census_entries')
         .select('*')
         .eq('census_date', format(date, 'yyyy-MM-dd'))
         .maybeSingle();
@@ -97,7 +97,7 @@ const CensusManager = ({ open, onOpenChange }: CensusManagerProps) => {
       if (existingCensus) {
         // Update existing entry
         const { error } = await supabase
-          .from('census_entries' as any)
+          .from('census_entries')
           .update({
             patient_count: count,
             notes: notes || null,
@@ -109,7 +109,7 @@ const CensusManager = ({ open, onOpenChange }: CensusManagerProps) => {
       } else {
         // Create new entry
         const { error } = await supabase
-          .from('census_entries' as any)
+          .from('census_entries')
           .insert({
             census_date: censusDate,
             patient_count: count,
