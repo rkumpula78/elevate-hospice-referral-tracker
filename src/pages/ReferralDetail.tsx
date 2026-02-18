@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Calendar, Phone, Mail, User, Building2, Edit, Plus } from 'lucide-react';
+import ReferralEligibility from '@/components/crm/ReferralEligibility';
 import { Badge } from '@/components/ui/badge';
 import EditReferralDialog from '@/components/crm/EditReferralDialog';
 import ScheduleVisitDialog from '@/components/crm/ScheduleVisitDialog';
@@ -247,6 +248,11 @@ const ReferralDetail = () => {
               )}
             </CardContent>
           </Card>
+
+          {/* Medicare Eligibility Section */}
+          <div className="lg:col-span-2">
+            <ReferralEligibility referralId={id!} />
+          </div>
 
           {/* Family Contacts Section */}
           <Card className="lg:col-span-2">

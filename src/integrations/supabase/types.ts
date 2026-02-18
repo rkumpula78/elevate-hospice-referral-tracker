@@ -1996,6 +1996,140 @@ export type Database = {
           },
         ]
       }
+      referral_eligibility: {
+        Row: {
+          beneficiary_address: string | null
+          beneficiary_city: string | null
+          beneficiary_state: string | null
+          beneficiary_zip: string | null
+          copay_inpatient_days: number | null
+          copay_snf_days: number | null
+          created_at: string
+          date_of_birth: string | null
+          date_of_death: string | null
+          eligibility_span_end: string | null
+          eligibility_span_start: string | null
+          eligibility_verified_by: string | null
+          eligibility_verified_date: string | null
+          full_inpatient_days: number | null
+          full_snf_days: number | null
+          hospice_election_exists: boolean | null
+          hospice_election_notes: string | null
+          id: string
+          inpatient_blood_ded_units_remain: number | null
+          inpatient_ded_amt_remaining: number | null
+          lifetime_psychiatric_days_remain: number | null
+          lifetime_reserve_days_remain: number | null
+          mbi_term_date: string | null
+          medicare_advantage_active: boolean | null
+          medicare_advantage_notes: string | null
+          medicare_number: string | null
+          msp_active: boolean | null
+          msp_notes: string | null
+          notes: string | null
+          part_a_entitlement_date: string | null
+          part_a_entitlement_reason: string | null
+          part_a_termination_date: string | null
+          part_b_entitlement_date: string | null
+          part_b_entitlement_reason: string | null
+          part_b_termination_date: string | null
+          referral_id: string
+          sex: string | null
+          updated_at: string
+          verification_source: string | null
+        }
+        Insert: {
+          beneficiary_address?: string | null
+          beneficiary_city?: string | null
+          beneficiary_state?: string | null
+          beneficiary_zip?: string | null
+          copay_inpatient_days?: number | null
+          copay_snf_days?: number | null
+          created_at?: string
+          date_of_birth?: string | null
+          date_of_death?: string | null
+          eligibility_span_end?: string | null
+          eligibility_span_start?: string | null
+          eligibility_verified_by?: string | null
+          eligibility_verified_date?: string | null
+          full_inpatient_days?: number | null
+          full_snf_days?: number | null
+          hospice_election_exists?: boolean | null
+          hospice_election_notes?: string | null
+          id?: string
+          inpatient_blood_ded_units_remain?: number | null
+          inpatient_ded_amt_remaining?: number | null
+          lifetime_psychiatric_days_remain?: number | null
+          lifetime_reserve_days_remain?: number | null
+          mbi_term_date?: string | null
+          medicare_advantage_active?: boolean | null
+          medicare_advantage_notes?: string | null
+          medicare_number?: string | null
+          msp_active?: boolean | null
+          msp_notes?: string | null
+          notes?: string | null
+          part_a_entitlement_date?: string | null
+          part_a_entitlement_reason?: string | null
+          part_a_termination_date?: string | null
+          part_b_entitlement_date?: string | null
+          part_b_entitlement_reason?: string | null
+          part_b_termination_date?: string | null
+          referral_id: string
+          sex?: string | null
+          updated_at?: string
+          verification_source?: string | null
+        }
+        Update: {
+          beneficiary_address?: string | null
+          beneficiary_city?: string | null
+          beneficiary_state?: string | null
+          beneficiary_zip?: string | null
+          copay_inpatient_days?: number | null
+          copay_snf_days?: number | null
+          created_at?: string
+          date_of_birth?: string | null
+          date_of_death?: string | null
+          eligibility_span_end?: string | null
+          eligibility_span_start?: string | null
+          eligibility_verified_by?: string | null
+          eligibility_verified_date?: string | null
+          full_inpatient_days?: number | null
+          full_snf_days?: number | null
+          hospice_election_exists?: boolean | null
+          hospice_election_notes?: string | null
+          id?: string
+          inpatient_blood_ded_units_remain?: number | null
+          inpatient_ded_amt_remaining?: number | null
+          lifetime_psychiatric_days_remain?: number | null
+          lifetime_reserve_days_remain?: number | null
+          mbi_term_date?: string | null
+          medicare_advantage_active?: boolean | null
+          medicare_advantage_notes?: string | null
+          medicare_number?: string | null
+          msp_active?: boolean | null
+          msp_notes?: string | null
+          notes?: string | null
+          part_a_entitlement_date?: string | null
+          part_a_entitlement_reason?: string | null
+          part_a_termination_date?: string | null
+          part_b_entitlement_date?: string | null
+          part_b_entitlement_reason?: string | null
+          part_b_termination_date?: string | null
+          referral_id?: string
+          sex?: string | null
+          updated_at?: string
+          verification_source?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_eligibility_referral_id_fkey"
+            columns: ["referral_id"]
+            isOneToOne: false
+            referencedRelation: "referrals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       referral_family_contacts: {
         Row: {
           contact_name: string

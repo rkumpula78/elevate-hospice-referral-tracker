@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import EnhancedOrganizationProfile from './EnhancedOrganizationProfile';
 import OrganizationContactsTab from './OrganizationContactsTab';
@@ -19,6 +19,7 @@ const EnhancedEditOrganizationDialog = ({ open, onOpenChange, organizationId }: 
       <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden">
         <DialogHeader>
           <DialogTitle>Organization Management</DialogTitle>
+          <DialogDescription>View and manage organization details, contacts, and communications.</DialogDescription>
         </DialogHeader>
         
         <Tabs defaultValue="profile" className="h-full">

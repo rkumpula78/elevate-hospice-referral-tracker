@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -360,6 +360,7 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
             <DialogTitle className="text-lg sm:text-xl">Add New Referral</DialogTitle>
             <RequiredFieldsIndicator total={totalRequired} completed={completedRequired} />
           </div>
+          <DialogDescription className="sr-only">Fill out the form to create a new patient referral.</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex flex-col h-full">
           <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 space-y-6">

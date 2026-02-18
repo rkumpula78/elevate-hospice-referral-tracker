@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -130,6 +130,7 @@ const EnhancedAddOrganizationDialog = ({ open, onOpenChange }: EnhancedAddOrgani
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add New Organization</DialogTitle>
+          <DialogDescription>Enter organization details across the tabs below.</DialogDescription>
         </DialogHeader>
         
         <form onSubmit={handleSubmit}>
