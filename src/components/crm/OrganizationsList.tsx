@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { EmptyState } from '@/components/ui/empty-state';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -642,7 +643,17 @@ const OrganizationsList = () => {
       </div>
 
       {/* Organizations Display */}
-      {view === 'list' ? renderListView() : renderCardView()}
+      {(!sortedOrganizations || sortedOrganizations.length === 0) ? (
+        <EmptyState
+          icon={Building}
+          title="No organizations yet"
+          description="Add referral sources to build your territory"
+          actionLabel="Add Organization"
+          onAction={() => setShowAddDialog(true)}
+        />
+      ) : (
+        view === 'list' ? renderListView() : renderCardView()
+      )}
 
       <EnhancedAddOrganizationDialog 
         open={showAddDialog} 

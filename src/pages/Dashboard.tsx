@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { Plus, Calendar, FileText, TrendingUp, Users, Phone, AlertCircle, Building, Target, Clock, Edit2 } from "lucide-react";
+import { Plus, Calendar, FileText, TrendingUp, Users, Phone, AlertCircle, Building, Target, Clock, Edit2, CheckCircle, Activity } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,6 +17,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { format, startOfDay, startOfMonth, subDays } from "date-fns";
 import AlertCenter from "@/components/dashboard/AlertCenter";
+import { EmptyState } from "@/components/ui/empty-state";
 import CensusManager from "@/components/dashboard/CensusManager";
 import ValuesReminder from "@/components/dashboard/ValuesReminder";
 import GrowthMetricsCard from "@/components/dashboard/GrowthMetricsCard";
@@ -716,9 +717,11 @@ const Dashboard = () => {
                     </div>
                   ))
                 ) : (
-                  <div className="text-center py-4 text-gray-500">
-                    No overdue follow-ups
-                  </div>
+                  <EmptyState
+                    icon={CheckCircle}
+                    title="All caught up!"
+                    description="No overdue follow-ups"
+                  />
                 )}
               </div>
             </CardContent>
@@ -745,9 +748,13 @@ const Dashboard = () => {
                     </div>
                   ))
                 ) : (
-                  <div className="text-center py-4 text-gray-500">
-                    No recent activities
-                  </div>
+                  <EmptyState
+                    icon={Activity}
+                    title="No recent activity"
+                    description="Log a visit or call to get started"
+                    actionLabel="Log Activity"
+                    onAction={() => navigate('/schedule')}
+                  />
                 )}
               </div>
             </CardContent>
