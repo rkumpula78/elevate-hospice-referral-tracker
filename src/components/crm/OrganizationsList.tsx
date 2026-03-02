@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, MapPin, User, Edit, ExternalLink, Users, Building, Calendar, Phone } from "lucide-react";
+import { Plus, MapPin, User, Edit, ExternalLink, Users, Building, Calendar, Phone, AlertTriangle, CheckCircle, Clock } from "lucide-react";
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -16,7 +16,8 @@ import EditOrganizationDialog from './EditOrganizationDialog';
 import OrganizationContactsDialog from './OrganizationContactsDialog';
 import ScheduleVisitDialog from './ScheduleVisitDialog';
 import EnhancedEditOrganizationDialog from './EnhancedEditOrganizationDialog';
-import { format, startOfYear } from 'date-fns';
+import { format, startOfYear, formatDistanceToNow, differenceInDays } from 'date-fns';
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 const OrganizationsList = () => {
   const { toast } = useToast();
@@ -366,6 +367,53 @@ const OrganizationsList = () => {
           </CardHeader>
           
           <CardContent className="space-y-4">
+            {/* Last Contact Indicator — high priority visibility */}
+            {(() => {
+              const lastDate = lastContactMap?.[org.id];
+              if (!lastDate) {
+                return (
+                  <div className="flex items-center gap-2 p-2 rounded-md bg-red-50 border border-red-200">
+                    <AlertTriangle className="w-4 h-4 text-red-600 flex-shrink-0" />
+                    <span className="text-sm font-medium text-red-700">No contact on record — overdue</span>
+                  </div>
+                );
+              }
+              const date = new Date(lastDate);
+              const daysAgo = differenceInDays(new Date(), date);
+              const relativeTime = formatDistanceToNow(date, { addSuffix: true });
+              const exactDate = format(date, 'MMM dd, yyyy');
+
+              let colorClasses: string;
+              let Icon: typeof AlertTriangle;
+              let label: string;
+
+              if (daysAgo > 14) {
+                colorClasses = 'bg-red-50 border-red-200 text-red-700';
+                Icon = AlertTriangle;
+                label = `${relativeTime} — overdue`;
+              } else if (daysAgo >= 7) {
+                colorClasses = 'bg-amber-50 border-amber-200 text-amber-700';
+                Icon = Clock;
+                label = relativeTime;
+              } else {
+                colorClasses = 'bg-green-50 border-green-200 text-green-700';
+                Icon = CheckCircle;
+                label = relativeTime;
+              }
+
+              return (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className={`flex items-center gap-2 p-2 rounded-md border ${colorClasses}`}>
+                      <Icon className="w-4 h-4 flex-shrink-0" />
+                      <span className="text-sm font-medium">Last contact: {label}</span>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>{exactDate}</TooltipContent>
+                </Tooltip>
+              );
+            })()}
+
             {/* Marketer Assignment */}
             <div>
               <label className="text-sm font-medium text-gray-700 mb-2 block">Assigned Marketer</label>
@@ -429,17 +477,9 @@ const OrganizationsList = () => {
               )}
             </div>
 
-            {/* Last Contact & Next Steps */}
+            {/* Next Scheduled */}
             <div className="bg-muted/50 p-3 rounded-lg">
               <div className="flex justify-between items-center text-sm">
-                <span className="text-muted-foreground">Last Contact:</span>
-                <span className="font-medium">
-                  {lastContactMap?.[org.id]
-                    ? format(new Date(lastContactMap[org.id]), 'MMM dd, yyyy')
-                    : 'N/A'}
-                </span>
-              </div>
-              <div className="flex justify-between items-center text-sm mt-1">
                 <span className="text-muted-foreground">Next Scheduled:</span>
                 <span className={`font-medium ${nextScheduledMap?.[org.id] ? 'text-green-600' : ''}`}>
                   {nextScheduledMap?.[org.id]
