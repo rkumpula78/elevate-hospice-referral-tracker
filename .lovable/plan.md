@@ -1,55 +1,83 @@
 
 
-## Plan: Refactor AddReferralDialog into Multi-Step Wizard
+## Plan: Offline Support for Elevate Hospice CRM
 
-### Approach
-Split the 795-line monolith into a parent wizard controller + 4 step components + a review step. The parent keeps all form state and the mutation logic; each step receives only its relevant fields via props.
+Given the complexity, this will be split into two phases as the user suggested. Here is Phase A (basic service worker + offline indicator) and Phase B (offline queue + sync).
+
+---
+
+### Phase A: PWA Setup + Offline Indicator
+
+**1. Install `vite-plugin-pwa` and configure `vite.config.ts`**
+- Add `vite-plugin-pwa` dependency
+- Configure with `generateSW` strategy:
+  - Cache-first for static assets (JS, CSS, images, fonts)
+  - Network-first (`NetworkFirst`) for Supabase API calls (`qpjdiargpivwtbakkfpo.supabase.co`)
+  - `navigateFallbackDenylist: [/^\/~oauth/]` to protect auth redirects
+- Register the service worker in `src/main.tsx` using `registerSW` from `virtual:pwa-register`
+
+**2. Create `public/manifest.json`**
+- App name: "Elevate Hospice CRM", short_name: "Elevate CRM"
+- `theme_color: #0d9488`, `background_color: #ffffff`
+- Icons at 192px and 512px (reuse existing logo or generate simple ones)
+- `display: standalone`, `start_url: /`
+
+**3. Add PWA meta tags to `index.html`**
+- `<link rel="manifest" href="/manifest.json">`
+- `<meta name="theme-color" content="#0d9488">`
+- Apple touch icon link
+
+**4. Create `src/components/offline/OfflineBanner.tsx`**
+- Uses `useState` + `useEffect` listening to `window.addEventListener('online'/'offline')`
+- When offline: renders a fixed yellow banner at top: "You are offline. Changes will sync when reconnected."
+- When back online: briefly show green "Back online" then auto-dismiss
+- Place in `App.tsx` inside the `TooltipProvider`, above the router
+
+---
+
+### Phase B: Offline Queue + Sync
+
+**5. Create `src/lib/offlineQueue.ts`**
+- A utility managing a localStorage queue (`elevate-offline-queue`)
+- Functions: `addToQueue(action)`, `getQueue()`, `clearQueue()`, `getQueueLength()`
+- Each queued item stores: `{ id, table, payload, timestamp, type: 'insert' }`
+
+**6. Modify `QuickNoteSheet.tsx` for offline-aware saving**
+- In `saveMutation.onError`, check if `!navigator.onLine`
+- If offline, save to offline queue via `addToQueue()` and show toast: "Saved offline. Will sync when reconnected."
+- Close the sheet as if successful
+
+**7. Create `src/hooks/useOfflineSync.ts`**
+- Listens for `online` event
+- When connection returns, reads the queue and replays each insert to Supabase
+- On completion, shows toast: "Synced N pending updates"
+- Clears processed items from queue
+- Called once in `App.tsx`
+
+**8. Add pending sync badge to sidebar**
+- In `AppSidebar.tsx`, read queue length from a shared state/context or poll localStorage
+- Show a small badge on a "Sync" indicator or near the footer: "3 pending"
+
+**9. Configure TanStack Query for offline caching**
+- In `App.tsx` QueryClient config, set default `staleTime` and `gcTime` to longer values
+- For organizations list query specifically, set `staleTime: Infinity` when offline (via `networkMode: 'offlineFirst'`)
+
+---
 
 ### Files to Create
+- `public/manifest.json`
+- `src/components/offline/OfflineBanner.tsx`
+- `src/lib/offlineQueue.ts`
+- `src/hooks/useOfflineSync.ts`
 
-1. **`src/components/crm/referral-wizard/ReferralWizardStepper.tsx`** (~40 lines)
-   - Horizontal progress bar showing steps 1-4 with labels: Patient Info, Source, Clinical, Review
-   - Active/completed/upcoming dot states with connecting lines
+### Files to Modify
+- `vite.config.ts` — add vite-plugin-pwa
+- `index.html` — manifest link + meta tags
+- `src/main.tsx` — register SW
+- `src/App.tsx` — add OfflineBanner, useOfflineSync, QueryClient config
+- `src/components/mobile/QuickNoteSheet.tsx` — offline-aware save
+- `src/components/layout/AppSidebar.tsx` — pending sync badge
 
-2. **`src/components/crm/referral-wizard/StepPatientInfo.tsx`** (~80 lines)
-   - Fields: Patient Name (required), Date of Birth, Phone Number
-   - Validates patient_name is non-empty before allowing Next
-
-3. **`src/components/crm/referral-wizard/StepSourceAssignment.tsx`** (~120 lines)
-   - Fields: Source Organization (existing searchable Select + "Create New" inline form), Referring Contact (existing `ReferringContactSelector`), Referring Physician, Assigned Marketer, Intake Coordinator
-   - No required fields -- Next always allowed
-
-4. **`src/components/crm/referral-wizard/StepClinicalDetails.tsx`** (~80 lines)
-   - Fields: Diagnosis, Insurance, Priority, Benefit Period, Status, conditional Close Reason
-   - Validates close reason if status is "closed"
-
-5. **`src/components/crm/referral-wizard/StepReview.tsx`** (~100 lines)
-   - Read-only summary cards for each section with an "Edit" button per section (jumps to that step)
-   - Notes textarea (optional, with CharacterCounterTextarea)
-   - Shows all entered data; redacts empty optional fields as "Not provided"
-
-### File to Modify
-
-6. **`src/components/crm/AddReferralDialog.tsx`** (rewrite ~300 lines, down from 795)
-   - `useState` step counter (1-4)
-   - All form state stays here (current `formData`, validation, mutation)
-   - On mobile (`useIsMobile`): render as `Sheet` (full-screen slide-up). On desktop: render as `Dialog`
-   - Sticky footer with Back / Next / Submit buttons
-   - `ReferralWizardStepper` at top of content area
-   - Each step component rendered conditionally based on `currentStep`
-   - Form state preserved across steps (no reset on Back)
-   - Step-level validation: `validateStep(step)` returns boolean; Next button disabled if invalid
-   - Final submit on Step 4 uses existing `addReferralMutation`
-
-### Key Implementation Details
-
-- **State preservation**: Single `formData` object lives in parent -- stepping back/forward never resets it
-- **Step validation**: Only Step 1 (patient_name required) and Step 3 (close reason if status=closed) block progression. Other steps are all-optional.
-- **Mobile**: Uses `Sheet` component (already exists) with `side="bottom"` and full height for mobile. Desktop keeps centered `Dialog`.
-- **Progress indicator**: 4 circles connected by lines. Completed = green fill, current = blue ring + pulse, future = gray outline.
-- **Review step "Edit" buttons**: Call `setCurrentStep(n)` to jump directly to that section.
-
-### No Database Changes Required
-
-All fields already exist in the `referrals` table and `formData` object. This is purely a UI refactor.
+### Dependencies to Add
+- `vite-plugin-pwa`
 
