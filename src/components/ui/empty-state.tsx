@@ -25,8 +25,8 @@ export const EmptyState = ({
     if (!icon) {
       return <FileX className="w-12 h-12 text-muted-foreground" />;
     }
-    // If it's a Lucide icon component (function), render it
-    if (typeof icon === 'function') {
+    // If it's a Lucide icon component (function or forwardRef object), render it
+    if (typeof icon === 'function' || (typeof icon === 'object' && icon !== null && '$$typeof' in icon && 'render' in icon)) {
       const IconComponent = icon as LucideIcon;
       return <IconComponent className="w-12 h-12 text-muted-foreground" />;
     }
