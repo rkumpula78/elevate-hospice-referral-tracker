@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Building2, Phone, Mail, MapPin, User, Edit, Globe, FileText, DollarSign, Target, Users, Bed } from 'lucide-react';
+import { Building2, Phone, Mail, MapPin, User, Edit, Globe, FileText, DollarSign, Target, Users, Bed, MoreHorizontal } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import PageLayout from '@/components/layout/PageLayout';
 import EditOrganizationDialog from '@/components/crm/EditOrganizationDialog';
@@ -22,6 +24,27 @@ const OrganizationDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [showEditDialog, setShowEditDialog] = useState(false);
+  const [moreTabValue, setMoreTabValue] = useState<string | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [showLeftFade, setShowLeftFade] = useState(false);
+  const [showRightFade, setShowRightFade] = useState(false);
+  const isMobile = useIsMobile();
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const update = () => {
+      setShowLeftFade(el.scrollLeft > 8);
+      setShowRightFade(el.scrollLeft + el.clientWidth < el.scrollWidth - 8);
+    };
+    update();
+    el.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    return () => {
+      el.removeEventListener('scroll', update);
+      window.removeEventListener('resize', update);
+    };
+  }, []);
 
   const { data: organization, isLoading } = useQuery({
     queryKey: ['organization', id],
@@ -127,57 +150,101 @@ const OrganizationDetail = () => {
       showBack
       actions={headerActions}
     >
-      <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-2 bg-transparent h-auto p-1">
-          <TabsTrigger 
-            value="overview" 
-            className="data-[state=active]:bg-blue-600 data-[state=active]:text-white bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 h-10 md:h-12 text-sm md:text-base font-medium rounded-lg shadow-sm transition-all px-2 md:px-4"
-          >
-            <span className="truncate">Overview</span>
-          </TabsTrigger>
-          <TabsTrigger 
-            value="contacts"
-            className="data-[state=active]:bg-blue-600 data-[state=active]:text-white bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 h-10 md:h-12 text-sm md:text-base font-medium rounded-lg shadow-sm transition-all px-2 md:px-4"
-          >
-            <span className="truncate">Contacts</span>
-          </TabsTrigger>
-          <TabsTrigger 
-            value="partnership"
-            className="data-[state=active]:bg-blue-600 data-[state=active]:text-white bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 h-10 md:h-12 text-sm md:text-base font-medium rounded-lg shadow-sm transition-all px-2 md:px-4"
-          >
-            <span className="truncate">Partnership</span>
-          </TabsTrigger>
-          <TabsTrigger 
-            value="training"
-            className="data-[state=active]:bg-blue-600 data-[state=active]:text-white bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 h-10 md:h-12 text-sm md:text-base font-medium rounded-lg shadow-sm transition-all px-2 md:px-4"
-          >
-            <span className="truncate">Resources</span>
-          </TabsTrigger>
-          <TabsTrigger 
-            value="kpis"
-            className="data-[state=active]:bg-blue-600 data-[state=active]:text-white bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 h-10 md:h-12 text-sm md:text-base font-medium rounded-lg shadow-sm transition-all px-2 md:px-4"
-          >
-            <span className="truncate">KPIs & Metrics</span>
-          </TabsTrigger>
-          <TabsTrigger 
-            value="growth"
-            className="data-[state=active]:bg-blue-600 data-[state=active]:text-white bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 h-10 md:h-12 text-sm md:text-base font-medium rounded-lg shadow-sm transition-all px-2 md:px-4"
-          >
-            <span className="truncate">Growth Goals</span>
-          </TabsTrigger>
-          <TabsTrigger 
-            value="actions"
-            className="data-[state=active]:bg-blue-600 data-[state=active]:text-white bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 h-10 md:h-12 text-sm md:text-base font-medium rounded-lg shadow-sm transition-all px-2 md:px-4"
-          >
-            <span className="truncate">Strategic Actions</span>
-          </TabsTrigger>
-          <TabsTrigger 
-            value="referrals"
-            className="data-[state=active]:bg-blue-600 data-[state=active]:text-white bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 h-10 md:h-12 text-sm md:text-base font-medium rounded-lg shadow-sm transition-all px-2 md:px-4"
-          >
-            <span className="truncate">Referrals</span>
-          </TabsTrigger>
-        </TabsList>
+      <Tabs value={moreTabValue || undefined} defaultValue="overview" onValueChange={(v) => setMoreTabValue(v)} className="space-y-4">
+        <div className="relative">
+          {/* Left fade indicator */}
+          {showLeftFade && (
+            <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none md:hidden" />
+          )}
+          {/* Right fade indicator */}
+          {showRightFade && (
+            <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none md:hidden" />
+          )}
+          <div ref={scrollRef} className="overflow-x-auto scrollbar-hide">
+            <TabsList className="inline-flex md:grid md:grid-cols-4 lg:grid-cols-8 gap-2 bg-transparent h-auto p-1 w-max md:w-full">
+              {/* Primary tabs - always visible */}
+              <TabsTrigger 
+                value="overview" 
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:font-bold data-[state=active]:border-b-[3px] data-[state=active]:border-primary bg-background border border-border text-foreground hover:bg-muted h-12 text-sm md:text-base font-medium rounded-lg shadow-sm transition-all px-4 min-w-[44px] whitespace-nowrap"
+              >
+                Overview
+              </TabsTrigger>
+              <TabsTrigger 
+                value="contacts"
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:font-bold data-[state=active]:border-b-[3px] data-[state=active]:border-primary bg-background border border-border text-foreground hover:bg-muted h-12 text-sm md:text-base font-medium rounded-lg shadow-sm transition-all px-4 min-w-[44px] whitespace-nowrap"
+              >
+                Contacts
+              </TabsTrigger>
+              <TabsTrigger 
+                value="partnership"
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:font-bold data-[state=active]:border-b-[3px] data-[state=active]:border-primary bg-background border border-border text-foreground hover:bg-muted h-12 text-sm md:text-base font-medium rounded-lg shadow-sm transition-all px-4 min-w-[44px] whitespace-nowrap"
+              >
+                Partnership
+              </TabsTrigger>
+              <TabsTrigger 
+                value="kpis"
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:font-bold data-[state=active]:border-b-[3px] data-[state=active]:border-primary bg-background border border-border text-foreground hover:bg-muted h-12 text-sm md:text-base font-medium rounded-lg shadow-sm transition-all px-4 min-w-[44px] whitespace-nowrap"
+              >
+                KPIs
+              </TabsTrigger>
+              <TabsTrigger 
+                value="referrals"
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:font-bold data-[state=active]:border-b-[3px] data-[state=active]:border-primary bg-background border border-border text-foreground hover:bg-muted h-12 text-sm md:text-base font-medium rounded-lg shadow-sm transition-all px-4 min-w-[44px] whitespace-nowrap"
+              >
+                Referrals
+              </TabsTrigger>
+
+              {/* Secondary tabs - visible on desktop, grouped in "More" on mobile */}
+              {!isMobile && (
+                <>
+                  <TabsTrigger 
+                    value="training"
+                    className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:font-bold data-[state=active]:border-b-[3px] data-[state=active]:border-primary bg-background border border-border text-foreground hover:bg-muted h-12 text-sm md:text-base font-medium rounded-lg shadow-sm transition-all px-4 min-w-[44px] whitespace-nowrap"
+                  >
+                    Resources
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="growth"
+                    className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:font-bold data-[state=active]:border-b-[3px] data-[state=active]:border-primary bg-background border border-border text-foreground hover:bg-muted h-12 text-sm md:text-base font-medium rounded-lg shadow-sm transition-all px-4 min-w-[44px] whitespace-nowrap"
+                  >
+                    Growth Goals
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="actions"
+                    className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:font-bold data-[state=active]:border-b-[3px] data-[state=active]:border-primary bg-background border border-border text-foreground hover:bg-muted h-12 text-sm md:text-base font-medium rounded-lg shadow-sm transition-all px-4 min-w-[44px] whitespace-nowrap"
+                  >
+                    Strategic Actions
+                  </TabsTrigger>
+                </>
+              )}
+            </TabsList>
+          </div>
+
+          {/* Mobile "More" dropdown */}
+          {isMobile && (
+            <div className="mt-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="h-12 px-4 w-full flex items-center justify-center gap-2 text-sm font-medium">
+                    <MoreHorizontal className="w-4 h-4" />
+                    {moreTabValue === 'training' ? 'Resources' : moreTabValue === 'growth' ? 'Growth Goals' : moreTabValue === 'actions' ? 'Strategic Actions' : 'More'}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="center" className="w-48">
+                  <DropdownMenuItem onSelect={() => setMoreTabValue('training')}>
+                    Resources
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => setMoreTabValue('growth')}>
+                    Growth Goals
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => setMoreTabValue('actions')}>
+                    Strategic Actions
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          )}
+        </div>
 
         <TabsContent value="overview" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
