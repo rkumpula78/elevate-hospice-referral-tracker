@@ -26,7 +26,7 @@ const Dashboard = () => {
   const { displayName } = useAuth();
   const isMobile = useIsMobile();
 
-  // Fetch real dashboard statistics
+  // Fetch dashboard statistics using batched queries
   const { data: dashboardStats, isLoading: statsLoading } = useQuery({
     queryKey: ['dashboard-stats'],
     queryFn: async () => {
@@ -34,262 +34,154 @@ const Dashboard = () => {
       const thisMonth = startOfMonth(new Date());
       const thirtyDaysAgo = subDays(new Date(), 30);
       const sixtyDaysAgo = subDays(new Date(), 60);
-      const lastMonth = subDays(thisMonth, 1);
-      const lastMonthStart = startOfMonth(lastMonth);
+      const sevenDaysAgo = subDays(new Date(), 7);
+      const lastMonthStart = startOfMonth(subDays(thisMonth, 1));
 
-      // Get current census from manual entries
-      // NOTE: This will work after you apply the migration
-      let currentCensus = 0;
-      let censusPrevious = 0;
-      
-      try {
-        // Try localStorage first (temporary solution)
-        const latestCensusLocal = localStorage.getItem('latest_census');
-        if (latestCensusLocal) {
-          const censusData = JSON.parse(latestCensusLocal);
-          currentCensus = censusData.count;
-        } else {
-          // Get latest census entry from database
-          const { data: latestCensus } = await supabase
-            .from('census_entries')
-            .select('*')
-            .order('census_date', { ascending: false })
-            .limit(1)
-            .single();
+      // Batch all independent queries in parallel
+      const [
+        rpcResult,
+        todayReferralsResult,
+        monthlyReferralsResult,
+        lastMonthReferralsResult,
+        pendingFollowUpsResult,
+        activeProspectsResult,
+        recentReferralsResult,
+        previousReferralsResult,
+        responseTimeResult,
+        previousResponseTimeResult,
+        censusSparklineResult,
+        weekReferralsResult,
+      ] = await Promise.all([
+        // Use existing RPC function for core stats
+        supabase.rpc('get_dashboard_stats'),
+        // Today's referrals
+        supabase.from('referrals').select('*', { count: 'exact', head: true }).gte('created_at', today.toISOString()),
+        // Monthly referrals
+        supabase.from('referrals').select('*', { count: 'exact', head: true }).gte('created_at', thisMonth.toISOString()),
+        // Last month referrals
+        supabase.from('referrals').select('*', { count: 'exact', head: true }).gte('created_at', lastMonthStart.toISOString()).lt('created_at', thisMonth.toISOString()),
+        // Pending follow-ups
+        supabase.from('activity_communications').select('*', { count: 'exact', head: true }).eq('follow_up_required', true).eq('follow_up_completed', false),
+        // Active prospects
+        supabase.from('organizations').select('*', { count: 'exact', head: true }).in('partnership_stage', ['prospect', 'active']).eq('is_active', true),
+        // Recent referrals for conversion calc
+        supabase.from('referrals').select('status').gte('created_at', thirtyDaysAgo.toISOString()),
+        // Previous referrals for conversion trend
+        supabase.from('referrals').select('status').gte('created_at', sixtyDaysAgo.toISOString()).lt('created_at', thirtyDaysAgo.toISOString()),
+        // Response time data
+        supabase.from('referrals').select('referral_date, contact_date').not('contact_date', 'is', null).gte('created_at', thirtyDaysAgo.toISOString()),
+        // Previous response time
+        supabase.from('referrals').select('referral_date, contact_date').not('contact_date', 'is', null).gte('created_at', sixtyDaysAgo.toISOString()).lt('created_at', thirtyDaysAgo.toISOString()),
+        // Census sparkline (last 7 days)
+        supabase.from('census_entries').select('census_date, patient_count').gte('census_date', format(sevenDaysAgo, 'yyyy-MM-dd')).order('census_date', { ascending: true }),
+        // All referrals from last 7 days for sparkline (single query instead of 7)
+        supabase.from('referrals').select('created_at, status').gte('created_at', sevenDaysAgo.toISOString()),
+      ]);
 
-          if (latestCensus) {
-            currentCensus = latestCensus.patient_count;
-          }
-        }
+      // Parse RPC result for census
+      const rpcData = rpcResult.data as any;
+      const currentCensus = rpcData?.census?.value || 0;
+      const censusPrevious = 0; // RPC doesn't return previous census directly
 
-        // Get census from 30 days ago
-        const thirtyDaysKey = `census_${format(thirtyDaysAgo, 'yyyy-MM-dd')}`;
-        const previousCensusLocal = localStorage.getItem(thirtyDaysKey);
-        
-        if (previousCensusLocal) {
-          const prevData = JSON.parse(previousCensusLocal);
-          censusPrevious = prevData.patient_count;
-        } else {
-          const { data: previousCensus } = await supabase
-            .from('census_entries')
-            .select('*')
-            .eq('census_date', format(thirtyDaysAgo, 'yyyy-MM-dd'))
-            .maybeSingle();
-
-          if (previousCensus) {
-            censusPrevious = previousCensus.patient_count;
-          }
-        }
-      } catch (error) {
-        // Fallback to counting admitted referrals if census_entries doesn't exist yet
-        const { count: admittedCount } = await supabase
-          .from('referrals')
-          .select('*', { count: 'exact', head: true })
-          .in('status', ['admitted', 'admitted_our_hospice']);
-        
-        currentCensus = admittedCount || 0;
-      }
-
-      // Calculate census trend
-      const censusTrend = censusPrevious > 0 
-        ? Math.round(((currentCensus - censusPrevious) / censusPrevious) * 100)
-        : 0;
-
-      // Get 7-day sparkline data for census
-      const censusSparkline = [];
+      // Census sparkline from DB
+      const censusEntries = censusSparklineResult.data || [];
+      const censusSparkline: { value: number }[] = [];
       for (let i = 6; i >= 0; i--) {
-        const date = subDays(new Date(), i);
-        const dateKey = `census_${format(date, 'yyyy-MM-dd')}`;
-        const dayData = localStorage.getItem(dateKey);
-        
-        if (dayData) {
-          censusSparkline.push({ value: JSON.parse(dayData).patient_count });
-        } else {
-          censusSparkline.push({ value: currentCensus });
-        }
+        const dateStr = format(subDays(new Date(), i), 'yyyy-MM-dd');
+        const entry = censusEntries.find((e: any) => e.census_date === dateStr);
+        censusSparkline.push({ value: entry?.patient_count || currentCensus });
       }
 
-      // Get today's referrals count
-      const { count: todayReferrals } = await supabase
-        .from('referrals')
-        .select('*', { count: 'exact', head: true })
-        .gte('created_at', today.toISOString());
-
-      // Get monthly referrals count
-      const { count: monthlyReferrals } = await supabase
-        .from('referrals')
-        .select('*', { count: 'exact', head: true })
-        .gte('created_at', thisMonth.toISOString());
-
-      // Get last month's referrals for trend
-      const { count: lastMonthReferrals } = await supabase
-        .from('referrals')
-        .select('*', { count: 'exact', head: true })
-        .gte('created_at', lastMonthStart.toISOString())
-        .lt('created_at', thisMonth.toISOString());
-
-      // Calculate monthly trend
+      // Monthly trend
+      const monthlyReferrals = monthlyReferralsResult.count || 0;
+      const lastMonthReferrals = lastMonthReferralsResult.count || 0;
       const monthlyTrend = lastMonthReferrals > 0
         ? Math.round(((monthlyReferrals - lastMonthReferrals) / lastMonthReferrals) * 100)
         : 0;
 
-      // Get 7-day sparkline data for referrals
-      const referralsSparkline = [];
+      // Referrals sparkline - group by day client-side from single query
+      const weekReferrals = weekReferralsResult.data || [];
+      const referralsSparkline: { value: number }[] = [];
       for (let i = 6; i >= 0; i--) {
         const date = subDays(new Date(), i);
-        const startOfDay = new Date(date.setHours(0, 0, 0, 0));
-        const endOfDay = new Date(date.setHours(23, 59, 59, 999));
-        
-        const { count } = await supabase
-          .from('referrals')
-          .select('*', { count: 'exact', head: true })
-          .gte('created_at', startOfDay.toISOString())
-          .lte('created_at', endOfDay.toISOString());
-        
-        referralsSparkline.push({ value: count || 0 });
+        const dayStart = startOfDay(date);
+        const dayEnd = new Date(dayStart);
+        dayEnd.setHours(23, 59, 59, 999);
+        const count = weekReferrals.filter((r: any) => {
+          const t = new Date(r.created_at).getTime();
+          return t >= dayStart.getTime() && t <= dayEnd.getTime();
+        }).length;
+        referralsSparkline.push({ value: count });
       }
 
-      // Get pending follow-ups (activities with follow_up_required = true and not completed)
-      const { count: pendingFollowUps } = await supabase
-        .from('activity_communications')
-        .select('*', { count: 'exact', head: true })
-        .eq('follow_up_required', true)
-        .eq('follow_up_completed', false);
-
-      // Get active prospects (organizations with partnership_stage = 'prospect' or 'active')
-      const { count: activeProspects } = await supabase
-        .from('organizations')
-        .select('*', { count: 'exact', head: true })
-        .in('partnership_stage', ['prospect', 'active'])
-        .eq('is_active', true);
-
-      // Calculate conversion rate (admitted referrals vs total referrals in last 30 days)
-      const { data: recentReferrals } = await supabase
-        .from('referrals')
-        .select('status')
-        .gte('created_at', thirtyDaysAgo.toISOString());
-
-      const { data: previousReferrals } = await supabase
-        .from('referrals')
-        .select('status')
-        .gte('created_at', sixtyDaysAgo.toISOString())
-        .lt('created_at', thirtyDaysAgo.toISOString());
-
-      const totalRecentReferrals = recentReferrals?.length || 0;
-      const admittedReferrals = recentReferrals?.filter(r => 
+      // Conversion rate
+      const recentReferrals = recentReferralsResult.data || [];
+      const totalRecentReferrals = recentReferrals.length;
+      const admittedReferrals = recentReferrals.filter((r: any) =>
         r.status === 'admitted' || r.status === 'admitted_our_hospice'
-      ).length || 0;
-      
-      const conversionRate = totalRecentReferrals > 0 
-        ? Math.round((admittedReferrals / totalRecentReferrals) * 100) 
-        : 0;
+      ).length;
+      const conversionRate = totalRecentReferrals > 0
+        ? Math.round((admittedReferrals / totalRecentReferrals) * 100) : 0;
 
-      // Previous period conversion rate
-      const totalPreviousReferrals = previousReferrals?.length || 0;
-      const admittedPreviousReferrals = previousReferrals?.filter(r => 
+      const previousReferrals = previousReferralsResult.data || [];
+      const totalPreviousReferrals = previousReferrals.length;
+      const admittedPreviousReferrals = previousReferrals.filter((r: any) =>
         r.status === 'admitted' || r.status === 'admitted_our_hospice'
-      ).length || 0;
-      
-      const previousConversionRate = totalPreviousReferrals > 0 
-        ? Math.round((admittedPreviousReferrals / totalPreviousReferrals) * 100) 
-        : 0;
-
+      ).length;
+      const previousConversionRate = totalPreviousReferrals > 0
+        ? Math.round((admittedPreviousReferrals / totalPreviousReferrals) * 100) : 0;
       const conversionTrend = previousConversionRate > 0
-        ? conversionRate - previousConversionRate
-        : 0;
+        ? conversionRate - previousConversionRate : 0;
 
-      // Get 7-day sparkline data for conversion
-      const conversionSparkline = [];
+      // Conversion sparkline from same weekReferrals data
+      const conversionSparkline: { value: number }[] = [];
       for (let i = 6; i >= 0; i--) {
         const date = subDays(new Date(), i);
-        const startOfDay = new Date(date.setHours(0, 0, 0, 0));
-        const endOfDay = new Date(date.setHours(23, 59, 59, 999));
-        
-        const { data: dayReferrals } = await supabase
-          .from('referrals')
-          .select('status')
-          .gte('created_at', startOfDay.toISOString())
-          .lte('created_at', endOfDay.toISOString());
-        
-        const dayTotal = dayReferrals?.length || 0;
-        const dayAdmitted = dayReferrals?.filter(r => 
+        const dayStart = startOfDay(date);
+        const dayEnd = new Date(dayStart);
+        dayEnd.setHours(23, 59, 59, 999);
+        const dayRefs = weekReferrals.filter((r: any) => {
+          const t = new Date(r.created_at).getTime();
+          return t >= dayStart.getTime() && t <= dayEnd.getTime();
+        });
+        const dayTotal = dayRefs.length;
+        const dayAdmitted = dayRefs.filter((r: any) =>
           r.status === 'admitted' || r.status === 'admitted_our_hospice'
-        ).length || 0;
-        
-        const dayConversion = dayTotal > 0 ? Math.round((dayAdmitted / dayTotal) * 100) : 0;
-        conversionSparkline.push({ value: dayConversion });
+        ).length;
+        conversionSparkline.push({ value: dayTotal > 0 ? Math.round((dayAdmitted / dayTotal) * 100) : 0 });
       }
 
-      // Calculate average response time (from referral_date to contact_date)
-      const { data: responseTimeData } = await supabase
-        .from('referrals')
-        .select('referral_date, contact_date')
-        .not('contact_date', 'is', null)
-        .gte('created_at', thirtyDaysAgo.toISOString());
-
+      // Response time
+      const responseTimeData = responseTimeResult.data || [];
       let avgResponseHours = 0;
-      if (responseTimeData && responseTimeData.length > 0) {
-        const totalHours = responseTimeData.reduce((sum, ref) => {
-          const referralTime = new Date(ref.referral_date).getTime();
-          const contactTime = new Date(ref.contact_date).getTime();
-          const hours = (contactTime - referralTime) / (1000 * 60 * 60);
+      if (responseTimeData.length > 0) {
+        const totalHours = responseTimeData.reduce((sum: number, ref: any) => {
+          const hours = (new Date(ref.contact_date).getTime() - new Date(ref.referral_date).getTime()) / (1000 * 60 * 60);
           return sum + hours;
         }, 0);
         avgResponseHours = totalHours / responseTimeData.length;
       }
 
-      // Previous period response time
-      const { data: previousResponseTimeData } = await supabase
-        .from('referrals')
-        .select('referral_date, contact_date')
-        .not('contact_date', 'is', null)
-        .gte('created_at', sixtyDaysAgo.toISOString())
-        .lt('created_at', thirtyDaysAgo.toISOString());
-
+      const previousResponseTimeData = previousResponseTimeResult.data || [];
       let previousAvgResponseHours = 0;
-      if (previousResponseTimeData && previousResponseTimeData.length > 0) {
-        const totalHours = previousResponseTimeData.reduce((sum, ref) => {
-          const referralTime = new Date(ref.referral_date).getTime();
-          const contactTime = new Date(ref.contact_date).getTime();
-          const hours = (contactTime - referralTime) / (1000 * 60 * 60);
+      if (previousResponseTimeData.length > 0) {
+        const totalHours = previousResponseTimeData.reduce((sum: number, ref: any) => {
+          const hours = (new Date(ref.contact_date).getTime() - new Date(ref.referral_date).getTime()) / (1000 * 60 * 60);
           return sum + hours;
         }, 0);
         previousAvgResponseHours = totalHours / previousResponseTimeData.length;
       }
 
       const responseTrend = previousAvgResponseHours > 0
-        ? Math.round(((avgResponseHours - previousAvgResponseHours) / previousAvgResponseHours) * 100)
-        : 0;
+        ? Math.round(((avgResponseHours - previousAvgResponseHours) / previousAvgResponseHours) * 100) : 0;
 
-      // Get 7-day sparkline data for response time
-      const responseSparkline = [];
-      for (let i = 6; i >= 0; i--) {
-        const date = subDays(new Date(), i);
-        const startOfDay = new Date(date.setHours(0, 0, 0, 0));
-        const endOfDay = new Date(date.setHours(23, 59, 59, 999));
-        
-        const { data: dayResponseData } = await supabase
-          .from('referrals')
-          .select('referral_date, contact_date')
-          .not('contact_date', 'is', null)
-          .gte('created_at', startOfDay.toISOString())
-          .lte('created_at', endOfDay.toISOString());
-        
-        if (dayResponseData && dayResponseData.length > 0) {
-          const dayHours = dayResponseData.reduce((sum, ref) => {
-            const referralTime = new Date(ref.referral_date).getTime();
-            const contactTime = new Date(ref.contact_date).getTime();
-            const hours = (contactTime - referralTime) / (1000 * 60 * 60);
-            return sum + hours;
-          }, 0) / dayResponseData.length;
-          responseSparkline.push({ value: Math.round(dayHours) });
-        } else {
-          responseSparkline.push({ value: avgResponseHours });
-        }
-      }
+      // Simple response sparkline (use average as baseline)
+      const responseSparkline = referralsSparkline.map(() => ({ value: Math.round(avgResponseHours) }));
+
+      const censusTrend = rpcData?.census?.change || 0;
 
       return {
-        census: currentCensus || 0,
+        census: currentCensus,
         censusTrend,
         censusSparkline,
         censusPrevious,
@@ -301,13 +193,13 @@ const Dashboard = () => {
         responseTrend,
         responseSparkline,
         previousAvgResponseHours,
-        activePartners: activeProspects || 0,
-        todayReferrals: todayReferrals || 0,
-        pendingFollowUps: pendingFollowUps || 0,
-        monthlyReferrals: monthlyReferrals || 0,
+        activePartners: activeProspectsResult.count || 0,
+        todayReferrals: todayReferralsResult.count || 0,
+        pendingFollowUps: pendingFollowUpsResult.count || 0,
+        monthlyReferrals,
         monthlyTrend,
         referralsSparkline,
-        lastMonthReferrals
+        lastMonthReferrals,
       };
     }
   });

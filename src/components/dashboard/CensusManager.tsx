@@ -24,26 +24,10 @@ const CensusManager = ({ open, onOpenChange }: CensusManagerProps) => {
   const [date, setDate] = useState<Date>(new Date());
   const [patientCount, setPatientCount] = useState<string>('');
   const [notes, setNotes] = useState<string>('');
-  const [useLocalStorage, setUseLocalStorage] = useState(true); // Temporary flag
-
-  // Temporary: Use localStorage until migration is applied
-  const getCensusKey = (date: Date) => `census_${format(date, 'yyyy-MM-dd')}`;
-
   // Fetch existing census for selected date
   const { data: existingCensus } = useQuery({
     queryKey: ['census-entry', format(date, 'yyyy-MM-dd')],
     queryFn: async () => {
-      if (useLocalStorage) {
-        // Temporary: Use localStorage
-        const key = getCensusKey(date);
-        const stored = localStorage.getItem(key);
-        if (stored) {
-          return JSON.parse(stored);
-        }
-        return null;
-      }
-
-      // Future: Use Supabase
       const { data, error } = await supabase
         .from('census_entries')
         .select('*')
@@ -72,30 +56,7 @@ const CensusManager = ({ open, onOpenChange }: CensusManagerProps) => {
       const censusDate = format(date, 'yyyy-MM-dd');
       const count = parseInt(patientCount);
 
-      if (useLocalStorage) {
-        // Temporary: Save to localStorage
-        const censusData = {
-          id: crypto.randomUUID(),
-          census_date: censusDate,
-          patient_count: count,
-          notes: notes || null,
-          updated_at: new Date().toISOString()
-        };
-        
-        localStorage.setItem(getCensusKey(date), JSON.stringify(censusData));
-        
-        // Also save latest census
-        localStorage.setItem('latest_census', JSON.stringify({
-          date: censusDate,
-          count: count
-        }));
-        
-        return;
-      }
-
-      // Future: Use Supabase
       if (existingCensus) {
-        // Update existing entry
         const { error } = await supabase
           .from('census_entries')
           .update({
@@ -107,7 +68,6 @@ const CensusManager = ({ open, onOpenChange }: CensusManagerProps) => {
 
         if (error) throw error;
       } else {
-        // Create new entry
         const { error } = await supabase
           .from('census_entries')
           .insert({
@@ -156,11 +116,6 @@ const CensusManager = ({ open, onOpenChange }: CensusManagerProps) => {
           <DialogTitle>Update Census</DialogTitle>
           <DialogDescription>
             Manually enter the patient census for a specific date. This will be used for dashboard metrics.
-            {useLocalStorage && (
-              <p className="mt-2 text-yellow-600 text-sm">
-                Note: Currently using local storage. Data will sync to database after migration is applied.
-              </p>
-            )}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
