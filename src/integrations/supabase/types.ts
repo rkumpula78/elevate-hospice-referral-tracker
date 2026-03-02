@@ -102,81 +102,6 @@ export type Database = {
           },
         ]
       }
-      activity_log: {
-        Row: {
-          activity_date: string
-          activity_type: string
-          contact_id: string | null
-          created_at: string | null
-          discussion_points: string | null
-          duration_minutes: number | null
-          follow_up_completed: boolean | null
-          follow_up_date: string | null
-          id: string
-          marketer_name: string | null
-          materials_left: string[] | null
-          next_steps: string | null
-          notes: string | null
-          organization_id: string | null
-          participants: string[] | null
-          purpose: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          activity_date?: string
-          activity_type: string
-          contact_id?: string | null
-          created_at?: string | null
-          discussion_points?: string | null
-          duration_minutes?: number | null
-          follow_up_completed?: boolean | null
-          follow_up_date?: string | null
-          id?: string
-          marketer_name?: string | null
-          materials_left?: string[] | null
-          next_steps?: string | null
-          notes?: string | null
-          organization_id?: string | null
-          participants?: string[] | null
-          purpose?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          activity_date?: string
-          activity_type?: string
-          contact_id?: string | null
-          created_at?: string | null
-          discussion_points?: string | null
-          duration_minutes?: number | null
-          follow_up_completed?: boolean | null
-          follow_up_date?: string | null
-          id?: string
-          marketer_name?: string | null
-          materials_left?: string[] | null
-          next_steps?: string | null
-          notes?: string | null
-          organization_id?: string | null
-          participants?: string[] | null
-          purpose?: string | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "activity_log_contact_id_fkey"
-            columns: ["contact_id"]
-            isOneToOne: false
-            referencedRelation: "organization_contacts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "activity_log_organization_id_fkey"
-            columns: ["organization_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       admin_audit_log: {
         Row: {
           action: string
@@ -547,21 +472,6 @@ export type Database = {
           period?: string
           target_value?: number | null
           unit?: string | null
-        }
-        Relationships: []
-      }
-      "Elevate CRM": {
-        Row: {
-          created_at: string
-          id: number
-        }
-        Insert: {
-          created_at?: string
-          id?: number
-        }
-        Update: {
-          created_at?: string
-          id?: number
         }
         Relationships: []
       }
