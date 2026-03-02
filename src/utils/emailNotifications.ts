@@ -1,5 +1,4 @@
-
-import emailjs from '@emailjs/browser';
+import { supabase } from "@/integrations/supabase/client";
 
 interface AdmissionEmailData {
   patient_first_name: string;
@@ -19,21 +18,17 @@ interface AdmissionEmailData {
 
 export const sendAdmissionNotification = async (emailData: AdmissionEmailData) => {
   try {
-    const templateParams = {
-      ...emailData,
-      to_email: emailData.intake_specialist_email,
-      intake_specialist_name: 'Intake Specialist', // You can customize this
-    };
+    const { data, error } = await supabase.functions.invoke('send-admission-email', {
+      body: { emailData }
+    });
 
-    const result = await emailjs.send(
-      'service_6rfreoj', // Your service ID
-      'template_9mo8nme', // Your template ID
-      templateParams,
-      '8RNUuoiff1EDGAsc3' // Your public key
-    );
+    if (error) {
+      console.error('Failed to send admission email:', error);
+      return { success: false, error };
+    }
 
-    console.log('Admission email sent successfully:', result);
-    return { success: true, result };
+    console.log('Admission email sent successfully');
+    return { success: true, result: data };
   } catch (error) {
     console.error('Failed to send admission email:', error);
     return { success: false, error };
@@ -54,6 +49,6 @@ export const formatEmailData = (referralData: any, patientData: any): AdmissionE
     advanced_directive: patientData?.advanced_directive ? 'Yes' : 'No',
     dnr_status: patientData?.dnr_status ? 'Yes' : 'No',
     next_steps: patientData?.next_steps || 'N/A',
-    intake_specialist_email: 'intake@elevatehospice.com' // You can make this configurable
+    intake_specialist_email: 'intake@elevatehospice.com'
   };
 };
