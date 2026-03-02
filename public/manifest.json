@@ -1,0 +1,21 @@
+{
+  "name": "Elevate Hospice CRM",
+  "short_name": "Elevate CRM",
+  "description": "Hospice referral tracking and CRM dashboard",
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#0d9488",
+  "background_color": "#ffffff",
+  "icons": [
+    {
+      "src": "/lovable-uploads/69cccced-0ccf-4626-b1ab-7712c36cfd7f.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/lovable-uploads/69cccced-0ccf-4626-b1ab-7712c36cfd7f.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

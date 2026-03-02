@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { getQueueLength } from '@/lib/offlineQueue';
 import {
   Sidebar,
   SidebarContent,
@@ -69,6 +70,17 @@ const AppSidebar = () => {
   const insightsActive = insightsItems.some(i => location.pathname === i.url);
   const [insightsOpen, setInsightsOpen] = useState(insightsActive);
 
+  // Offline queue badge
+  const [pendingCount, setPendingCount] = useState(getQueueLength());
+  useEffect(() => {
+    const update = () => setPendingCount(getQueueLength());
+    window.addEventListener('offline-queue-changed', update);
+    window.addEventListener('online', update);
+    return () => {
+      window.removeEventListener('offline-queue-changed', update);
+      window.removeEventListener('online', update);
+    };
+  }, []);
   // Badge: new referrals count
   const { data: newReferralCount = 0 } = useQuery({
     queryKey: ['sidebar-new-referrals'],
@@ -244,6 +256,14 @@ const AppSidebar = () => {
         </SidebarContent>
 
         <SidebarFooter className={`border-t border-sidebar-border ${isMobile ? 'p-3' : 'p-4'}`}>
+          {pendingCount > 0 && (
+            <div className="flex items-center gap-2 px-3 py-2 mb-2 rounded-lg bg-yellow-100 text-yellow-800 text-xs font-medium">
+              <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-yellow-500 text-white text-[10px] font-bold">
+                {pendingCount}
+              </span>
+              pending sync{pendingCount > 1 ? 's' : ''}
+            </div>
+          )}
           <div className="flex items-center gap-3 mb-3">
             <div className="w-9 h-9 bg-sidebar-primary rounded-full flex items-center justify-center flex-shrink-0 shadow-sm">
               <span className="text-sm font-semibold text-sidebar-primary-foreground">{getInitials(displayName)}</span>

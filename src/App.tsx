@@ -11,6 +11,8 @@ import AdminRoute from "@/components/auth/AdminRoute";
 import AppSidebar from "@/components/layout/AppSidebar";
 import { useBreakpoint } from "@/hooks/use-responsive";
 import { MobileFAB } from "@/components/mobile/MobileFAB";
+import OfflineBanner from "@/components/offline/OfflineBanner";
+import { useOfflineSync } from "@/hooks/useOfflineSync";
 import Auth from "./pages/Auth";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
@@ -31,7 +33,20 @@ import ReportsPage from "./pages/ReportsPage";
 import MarketingPage from "./pages/MarketingPage";
 import KPIPage from "./pages/KPIPage";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      gcTime: 30 * 60 * 1000, // 30 minutes
+      networkMode: 'offlineFirst',
+    },
+  },
+});
+
+const OfflineSyncProvider = ({ children }: { children: React.ReactNode }) => {
+  useOfflineSync();
+  return <>{children}</>;
+};
 
 const ProtectedLayout = () => {
   const breakpoint = useBreakpoint();
@@ -77,17 +92,20 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
       <TooltipProvider>
+        <OfflineBanner />
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <Routes>
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/*" element={
-              <ProtectedRoute>
-                <ProtectedLayout />
-              </ProtectedRoute>
-            } />
-          </Routes>
+          <OfflineSyncProvider>
+            <Routes>
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/*" element={
+                <ProtectedRoute>
+                  <ProtectedLayout />
+                </ProtectedRoute>
+              } />
+            </Routes>
+          </OfflineSyncProvider>
         </BrowserRouter>
       </TooltipProvider>
     </AuthProvider>
