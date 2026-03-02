@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Plus, Calendar, FileText, TrendingUp, Users, Phone, AlertCircle, Building, Target, Clock, Edit2, CheckCircle, Activity } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -562,7 +563,7 @@ const Dashboard = () => {
                     </div>
                   </CardHeader>
                   <CardContent className="relative p-3 sm:p-5 md:p-6">
-                    <div className="text-3xl font-bold">...</div>
+                    <Skeleton className="h-9 w-16" />
                   </CardContent>
                 </Card>
                 <Card className="relative overflow-hidden">
@@ -575,7 +576,7 @@ const Dashboard = () => {
                     </div>
                   </CardHeader>
                   <CardContent className="relative p-3 sm:p-5 md:p-6">
-                    <div className="text-3xl font-bold">...</div>
+                    <Skeleton className="h-9 w-16" />
                   </CardContent>
                 </Card>
                 <Card className="relative overflow-hidden">
@@ -588,7 +589,7 @@ const Dashboard = () => {
                     </div>
                   </CardHeader>
                   <CardContent className="relative p-3 sm:p-5 md:p-6">
-                    <div className="text-3xl font-bold">...</div>
+                    <Skeleton className="h-9 w-20" />
                   </CardContent>
                 </Card>
                 <Card className="relative overflow-hidden">
@@ -601,7 +602,7 @@ const Dashboard = () => {
                     </div>
                   </CardHeader>
                   <CardContent className="relative p-3 sm:p-5 md:p-6">
-                    <div className="text-3xl font-bold">...</div>
+                    <Skeleton className="h-9 w-16" />
                   </CardContent>
                 </Card>
               </>
@@ -622,7 +623,7 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-green-900">
-                {statsLoading ? '...' : stats.todayReferrals}
+                {statsLoading ? <Skeleton className="h-8 w-12" /> : stats.todayReferrals}
               </div>
               <p className="text-xs text-green-600">New referrals today</p>
             </CardContent>
@@ -637,7 +638,7 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-orange-900">
-                {statsLoading ? '...' : stats.monthlyReferrals}
+                {statsLoading ? <Skeleton className="h-8 w-12" /> : stats.monthlyReferrals}
               </div>
               <div className="flex items-center gap-2">
                 <p className="text-xs text-orange-600">This month</p>
@@ -661,7 +662,7 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-red-900">
-                {statsLoading ? '...' : stats.pendingFollowUps}
+                {statsLoading ? <Skeleton className="h-8 w-12" /> : stats.pendingFollowUps}
               </div>
               <p className="text-xs text-red-600">
                 {overdueFollowUps?.length || 0} overdue
