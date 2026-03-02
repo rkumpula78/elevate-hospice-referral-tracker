@@ -104,8 +104,8 @@ const PatientDetail = () => {
               )}
               {((patient as any).phone || patient.patient_phone) && (
                 <div className="flex items-center space-x-2">
-                  <Phone className="w-4 h-4 text-gray-500" />
-                  <span>{(patient as any).phone || patient.patient_phone}</span>
+                  <Phone className="w-4 h-4 text-muted-foreground" />
+                  <a href={`tel:${(patient as any).phone || patient.patient_phone}`} className="text-blue-600 hover:underline">{(patient as any).phone || patient.patient_phone}</a>
                 </div>
               )}
               {(patient as any).address && (
@@ -163,8 +163,8 @@ const PatientDetail = () => {
                 <p className="font-medium">{(patient as any).emergency_contact}</p>
                 {(patient as any).emergency_phone && (
                   <div className="flex items-center space-x-2">
-                    <Phone className="w-4 h-4 text-gray-500" />
-                    <span>{(patient as any).emergency_phone}</span>
+                    <Phone className="w-4 h-4 text-muted-foreground" />
+                    <a href={`tel:${(patient as any).emergency_phone}`} className="text-blue-600 hover:underline">{(patient as any).emergency_phone}</a>
                   </div>
                 )}
               </CardContent>

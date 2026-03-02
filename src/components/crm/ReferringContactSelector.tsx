@@ -138,8 +138,8 @@ const ReferringContactSelector: React.FC<ReferringContactSelectorProps> = ({
             <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
               {contact.direct_phone && (
                 <div className="flex items-center gap-1">
-                  <Phone className="h-3 w-3" />
-                  <span>{contact.direct_phone}</span>
+                  <Phone className="h-3 w-3 text-muted-foreground" />
+                  <a href={`tel:${contact.direct_phone}`} className="text-blue-600 hover:underline">{contact.direct_phone}</a>
                 </div>
               )}
               {contact.email && (

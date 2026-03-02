@@ -267,8 +267,8 @@ const ReferralFamilyContacts = ({ referralId }: ReferralFamilyContactsProps) => 
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     {contact.phone && (
                       <div className="flex items-center gap-1">
-                        <Phone className="w-3 h-3" />
-                        <span>{contact.phone}</span>
+                        <Phone className="w-3 h-3 text-muted-foreground" />
+                        <a href={`tel:${contact.phone}`} className="text-blue-600 hover:underline">{contact.phone}</a>
                       </div>
                     )}
                     {contact.email && (

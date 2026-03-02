@@ -284,7 +284,7 @@ const OrganizationsList = () => {
               <TableCell>
                 <div className="text-sm">
                   <div>{org.contact_person || 'N/A'}</div>
-                  {org.phone && <div className="text-gray-500">{org.phone}</div>}
+                  {org.phone && <div><a href={`tel:${org.phone}`} className="text-blue-600 hover:underline">{org.phone}</a></div>}
                 </div>
               </TableCell>
               <TableCell>
@@ -416,9 +416,9 @@ const OrganizationsList = () => {
                 </div>
               )}
               {org.phone && (
-                <div className="flex items-center space-x-2 text-sm text-gray-600">
-                  <Phone className="w-4 h-4" />
-                  <span>{org.phone}</span>
+                <div className="flex items-center space-x-2 text-sm">
+                  <Phone className="w-4 h-4 text-muted-foreground" />
+                  <a href={`tel:${org.phone}`} className="text-blue-600 hover:underline">{org.phone}</a>
                 </div>
               )}
               {org.contact_person && (

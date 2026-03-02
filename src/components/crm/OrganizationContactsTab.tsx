@@ -889,8 +889,8 @@ const OrganizationContactsTab = ({ organizationId, organizationName }: Organizat
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
                     {organization.phone && (
                       <div className="flex items-center gap-1">
-                        <Phone className="w-3 h-3 flex-shrink-0" />
-                        <span className="truncate">{organization.phone}</span>
+                        <Phone className="w-3 h-3 flex-shrink-0 text-muted-foreground" />
+                        <a href={`tel:${organization.phone}`} className="text-blue-600 hover:underline truncate">{organization.phone}</a>
                       </div>
                     )}
                     {organization.contact_email && (
@@ -970,8 +970,8 @@ const OrganizationContactsTab = ({ organizationId, organizationName }: Organizat
                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
                      {contact.direct_phone && (
                        <div className="flex items-center gap-1">
-                         <Phone className="w-3 h-3 flex-shrink-0" />
-                         <span className="truncate">{contact.direct_phone}</span>
+                         <Phone className="w-3 h-3 flex-shrink-0 text-muted-foreground" />
+                         <a href={`tel:${contact.direct_phone}`} className="text-blue-600 hover:underline truncate">{contact.direct_phone}</a>
                        </div>
                      )}
                      {contact.email && (

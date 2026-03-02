@@ -150,8 +150,8 @@ const ReferralDetail = () => {
               </div>
               {referral.patient_phone && (
                 <div className="flex items-center space-x-2">
-                  <Phone className="w-4 h-4 text-gray-500" />
-                  <span>{referral.patient_phone}</span>
+                  <Phone className="w-4 h-4 text-muted-foreground" />
+                  <a href={`tel:${referral.patient_phone}`} className="text-blue-600 hover:underline">{referral.patient_phone}</a>
                 </div>
               )}
               {referral.diagnosis && (
@@ -202,8 +202,8 @@ const ReferralDetail = () => {
                 )}
                 {referral.organizations.phone && (
                   <div className="flex items-center space-x-2">
-                    <Phone className="w-4 h-4 text-gray-500" />
-                    <span>{referral.organizations.phone}</span>
+                    <Phone className="w-4 h-4 text-muted-foreground" />
+                    <a href={`tel:${referral.organizations.phone}`} className="text-blue-600 hover:underline">{referral.organizations.phone}</a>
                   </div>
                 )}
               </CardContent>
