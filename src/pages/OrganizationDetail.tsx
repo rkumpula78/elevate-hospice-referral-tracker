@@ -8,6 +8,7 @@ import { ArrowLeft, Building2, Phone, Mail, MapPin, User, Edit, Globe, FileText,
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import EditOrganizationDialog from '@/components/crm/EditOrganizationDialog';
+import { AccountRatingBadge } from '@/components/crm/AccountRatingBadge';
 import OrganizationKPIs from '@/components/crm/OrganizationKPIs';
 import PartnershipStageManager from '@/components/crm/PartnershipStageManager';
 import OrganizationContactsTab from '@/components/crm/OrganizationContactsTab';
@@ -82,16 +83,7 @@ const OrganizationDetail = () => {
     }
   };
 
-  const getRatingColor = (rating: string | null) => {
-    switch (rating) {
-      case 'A': return 'bg-red-100 text-red-800';
-      case 'B': return 'bg-orange-100 text-orange-800';
-      case 'C': return 'bg-yellow-100 text-yellow-800';
-      case 'P': return 'bg-blue-100 text-blue-800';
-      case 'D': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
+  // getRatingColor imported from AccountRatingBadge
 
   const getContractColor = (status: string | null) => {
     switch (status) {
@@ -300,9 +292,7 @@ const OrganizationDetail = () => {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <p className="text-sm text-gray-600">Account Rating</p>
-                      <Badge className={getRatingColor(organization.account_rating)}>
-                        {organization.account_rating || 'C'}
-                      </Badge>
+                      <AccountRatingBadge rating={organization.account_rating} showInfo />
                     </div>
                     
                     <div>

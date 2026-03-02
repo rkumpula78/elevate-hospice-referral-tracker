@@ -5,7 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, MapPin, User, Edit, ExternalLink, Users, Building, Calendar, Phone, AlertTriangle, CheckCircle, Clock } from "lucide-react";
+import { Plus, MapPin, User, Edit, ExternalLink, Users, Building, Calendar, Phone, AlertTriangle, CheckCircle, Clock, ArrowUpDown } from "lucide-react";
+import { AccountRatingBadge, getRatingColor } from './AccountRatingBadge';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -189,15 +190,7 @@ const OrganizationsList = () => {
     });
   }, [organizations, sortConfig]);
 
-  const getRatingColor = (rating: string | null) => {
-    switch (rating) {
-      case 'A': return 'bg-green-100 text-green-800 border-green-300';
-      case 'B': return 'bg-yellow-100 text-yellow-800 border-yellow-300';
-      case 'C': return 'bg-orange-100 text-orange-800 border-orange-300';
-      case 'P': return 'bg-blue-100 text-blue-800 border-blue-300';
-      default: return 'bg-gray-100 text-gray-800 border-gray-300';
-    }
-  };
+  // getRatingColor imported from AccountRatingBadge
 
   const getStatusColor = (stage: string | null) => {
     switch (stage) {
@@ -273,9 +266,7 @@ const OrganizationsList = () => {
                 </Badge>
               </TableCell>
               <TableCell>
-                <Badge className={`font-bold ${getRatingColor(org.account_rating)}`}>
-                  {org.account_rating || 'C'}
-                </Badge>
+                <AccountRatingBadge rating={org.account_rating} showInfo />
               </TableCell>
               <TableCell>
                 <Badge className={getStatusColor(org.partnership_stage)}>
@@ -356,9 +347,7 @@ const OrganizationsList = () => {
                 )}
               </div>
               <div className="flex flex-col items-end space-y-2">
-                <Badge className={`font-bold ${getRatingColor(org.account_rating)}`}>
-                  {org.account_rating || 'C'}
-                </Badge>
+                <AccountRatingBadge rating={org.account_rating} showInfo />
                 <Badge className={getStatusColor(org.partnership_stage)}>
                   {(org.partnership_stage || 'prospect').charAt(0).toUpperCase() + 
                    (org.partnership_stage || 'prospect').slice(1)}
@@ -639,7 +628,18 @@ const OrganizationsList = () => {
           </Select>
         </div>
 
-        <ViewToggle view={view} onViewChange={setView} />
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleSort('account_rating')}
+            className={sortConfig?.field === 'account_rating' ? 'border-primary' : ''}
+          >
+            <ArrowUpDown className="w-3.5 h-3.5 mr-1" />
+            Sort by Rating
+          </Button>
+          <ViewToggle view={view} onViewChange={setView} />
+        </div>
       </div>
 
       {/* Organizations Display */}
