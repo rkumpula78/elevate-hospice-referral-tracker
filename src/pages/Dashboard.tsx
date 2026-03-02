@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import MyDayView from "@/components/dashboard/MyDayView";
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -286,17 +288,28 @@ const Dashboard = () => {
       title="CRM Dashboard" 
       subtitle="Elevate Hospice & Palliative Care"
     >
-      <div className="space-y-6">
-        {/* Header with Quick Actions - Mobile optimized */}
-        <div className="flex justify-end">
-          <Button 
-            onClick={() => setShowQuickAdd(true)}
-            className="shadow-lg touch-manipulation w-full sm:w-auto"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add Referral
-          </Button>
-        </div>
+      <Tabs defaultValue="my-day" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="my-day">My Day</TabsTrigger>
+          <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="my-day">
+          <MyDayView />
+        </TabsContent>
+
+        <TabsContent value="dashboard">
+        <div className="space-y-6">
+          {/* Header with Quick Actions - Mobile optimized */}
+          <div className="flex justify-end">
+            <Button 
+              onClick={() => setShowQuickAdd(true)}
+              className="shadow-lg touch-manipulation w-full sm:w-auto"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Referral
+            </Button>
+          </div>
 
         {/* Values Reminder */}
         <ValuesReminder />
@@ -785,6 +798,8 @@ const Dashboard = () => {
           onOpenChange={setShowCensusManager}
         />
       </div>
+        </TabsContent>
+      </Tabs>
     </PageLayout>
   );
 };
