@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -13,6 +14,7 @@ import MarketerPerformance from "@/components/charts/MarketerPerformance";
 import TrainingMetrics from "@/components/charts/TrainingMetrics";
 import PageLayout from "@/components/layout/PageLayout";
 import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 import { format, startOfDay, startOfMonth, subDays } from "date-fns";
 import AlertCenter from "@/components/dashboard/AlertCenter";
 import CensusManager from "@/components/dashboard/CensusManager";
@@ -25,6 +27,8 @@ const Dashboard = () => {
   const [showCensusManager, setShowCensusManager] = useState(false);
   const { displayName } = useAuth();
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
   // Fetch dashboard statistics using batched queries
   const { data: dashboardStats, isLoading: statsLoading } = useQuery({
@@ -231,7 +235,7 @@ const Dashboard = () => {
         .from('activity_communications')
         .select(`
           *,
-          organizations(name)
+          organizations(name, phone)
         `)
         .eq('follow_up_required', true)
         .eq('follow_up_completed', false)
@@ -684,7 +688,31 @@ const Dashboard = () => {
                           Due: {activity.follow_up_date ? format(new Date(activity.follow_up_date), 'MMM dd, yyyy') : 'No date'}
                         </p>
                       </div>
-                      <Button size="sm" variant="outline">Follow Up</Button>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            if (activity.organization_id) {
+                              navigate(`/organizations/${activity.organization_id}`);
+                            } else {
+                              toast({ title: 'Organization not linked to this follow-up', variant: 'destructive' });
+                            }
+                          }}
+                        >
+                          Follow Up
+                        </Button>
+                        {activity.organizations?.phone && (
+                          <Button
+                            size="icon"
+                            variant="outline"
+                            className="h-8 w-8"
+                            onClick={() => window.open(`tel:${activity.organizations.phone}`)}
+                          >
+                            <Phone className="h-3 w-3" />
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   ))
                 ) : (
