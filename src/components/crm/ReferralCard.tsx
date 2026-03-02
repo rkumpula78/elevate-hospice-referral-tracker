@@ -1,13 +1,13 @@
 
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Phone, Building2, User, Edit, Calendar, AlertCircle, Clock, CheckCircle, Plus, MapPin } from "lucide-react";
+import { Phone, Building2, User, Edit, Calendar, AlertCircle, Clock, CheckCircle, Plus, MapPin, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { format, differenceInDays } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -43,6 +43,17 @@ const ReferralCard = ({
   onSelectChange,
 }: ReferralCardProps) => {
   const isMobile = useIsMobile();
+  const [justUpdatedStatus, setJustUpdatedStatus] = useState(false);
+  const prevStatusRef = React.useRef(referral.status);
+
+  useEffect(() => {
+    if (prevStatusRef.current !== referral.status) {
+      setJustUpdatedStatus(true);
+      prevStatusRef.current = referral.status;
+      const timer = setTimeout(() => setJustUpdatedStatus(false), 1200);
+      return () => clearTimeout(timer);
+    }
+  }, [referral.status]);
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'new_referral': return 'bg-blue-600 text-white border-blue-700';
@@ -351,13 +362,15 @@ const ReferralCard = ({
               onValueChange={(value: string) => onStatusChange(referral.id, value)}
               disabled={isUpdatingStatus}
             >
-              <SelectTrigger className="w-full sm:w-48 h-11 sm:h-10 bg-white hover:bg-gray-50 border-2 border-gray-300 hover:border-primary transition-all duration-200 max-w-full shadow-sm">
+              <SelectTrigger className="w-full sm:w-48 h-11 sm:h-10 bg-background hover:bg-muted border-2 border-border hover:border-primary transition-all duration-200 max-w-full shadow-sm">
                 <SelectValue>
                   <Badge className={cn(
                     getStatusColor(referral.status || 'new_referral'),
-                    "animate-fade-in transition-all duration-300 font-bold text-sm px-3 py-1 border-2",
-                    isUpdatingStatus && "animate-pulse"
+                    "transition-all duration-300 font-bold text-sm px-3 py-1 border-2",
+                    isUpdatingStatus && "animate-pulse",
+                    justUpdatedStatus && "animate-status-flash"
                   )}>
+                    {isUpdatingStatus && <Loader2 className="w-3 h-3 mr-1 animate-spin inline" />}
                     {getStatusLabel(referral.status || 'new_referral')}
                   </Badge>
                 </SelectValue>

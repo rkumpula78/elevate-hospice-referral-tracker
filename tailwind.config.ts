@@ -128,6 +128,11 @@ export default {
 				'confetti': {
 					'0%': { transform: 'scale(0) rotate(0deg)', opacity: '1' },
 					'100%': { transform: 'scale(1) rotate(360deg)', opacity: '0' }
+				},
+				'status-flash': {
+					'0%': { boxShadow: '0 0 0 0 hsl(142 76% 73% / 0.7)', filter: 'brightness(1.3)' },
+					'50%': { boxShadow: '0 0 12px 4px hsl(142 76% 73% / 0.4)', filter: 'brightness(1.15)' },
+					'100%': { boxShadow: '0 0 0 0 transparent', filter: 'brightness(1)' }
 				}
 			},
 			animation: {
@@ -137,7 +142,8 @@ export default {
 				'slide-up': 'slide-up 0.8s ease-out',
 				'slide-up-mobile': 'slide-up-mobile 0.3s ease-out',
 				'shimmer': 'shimmer 2s infinite',
-				'confetti': 'confetti 3s ease-out forwards'
+				'confetti': 'confetti 3s ease-out forwards',
+				'status-flash': 'status-flash 1.2s ease-out'
 			}
 		}
 	},
