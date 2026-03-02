@@ -2098,6 +2098,7 @@ export type Database = {
           benefit_period_number: number | null
           caregiver_contact: string | null
           caregiver_name: string | null
+          closed_reason: string | null
           contact_date: string | null
           created_at: string | null
           date_of_birth: string | null
@@ -2159,6 +2160,7 @@ export type Database = {
           benefit_period_number?: number | null
           caregiver_contact?: string | null
           caregiver_name?: string | null
+          closed_reason?: string | null
           contact_date?: string | null
           created_at?: string | null
           date_of_birth?: string | null
@@ -2220,6 +2222,7 @@ export type Database = {
           benefit_period_number?: number | null
           caregiver_contact?: string | null
           caregiver_name?: string | null
+          closed_reason?: string | null
           contact_date?: string | null
           created_at?: string | null
           date_of_birth?: string | null
@@ -2505,6 +2508,9 @@ export type Database = {
         | "not_admitted_not_appropriate"
         | "not_admitted_lost_contact"
         | "deceased_prior_admission"
+        | "in_progress"
+        | "assessment"
+        | "closed"
       visit_type: "admission" | "routine" | "urgent" | "discharge"
     }
     CompositeTypes: {
@@ -2663,6 +2669,9 @@ export const Constants = {
         "not_admitted_not_appropriate",
         "not_admitted_lost_contact",
         "deceased_prior_admission",
+        "in_progress",
+        "assessment",
+        "closed",
       ],
       visit_type: ["admission", "routine", "urgent", "discharge"],
     },
