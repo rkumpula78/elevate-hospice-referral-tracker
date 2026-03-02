@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ import EditOrganizationDialog from './EditOrganizationDialog';
 import OrganizationContactsDialog from './OrganizationContactsDialog';
 import ScheduleVisitDialog from './ScheduleVisitDialog';
 import EnhancedEditOrganizationDialog from './EnhancedEditOrganizationDialog';
+import { format, startOfYear } from 'date-fns';
 
 const OrganizationsList = () => {
   const { toast } = useToast();
@@ -55,6 +56,68 @@ const OrganizationsList = () => {
       const { data, error } = await query;
       if (error) throw error;
       return data;
+    }
+  });
+
+  // Batch query: YTD referrals per organization
+  const ytdStart = useMemo(() => startOfYear(new Date()).toISOString(), []);
+  const { data: ytdReferralCounts } = useQuery({
+    queryKey: ['org-ytd-referrals', ytdStart],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('referrals')
+        .select('organization_id')
+        .gte('referral_date', ytdStart.split('T')[0])
+        .not('organization_id', 'is', null);
+      if (error) throw error;
+      const counts: Record<string, number> = {};
+      (data || []).forEach((r: any) => {
+        counts[r.organization_id] = (counts[r.organization_id] || 0) + 1;
+      });
+      return counts;
+    }
+  });
+
+  // Batch query: last contact date per organization
+  const { data: lastContactMap } = useQuery({
+    queryKey: ['org-last-contacts'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('activity_communications')
+        .select('organization_id, activity_date')
+        .not('organization_id', 'is', null)
+        .order('activity_date', { ascending: false });
+      if (error) throw error;
+      const map: Record<string, string> = {};
+      (data || []).forEach((a: any) => {
+        if (!map[a.organization_id]) {
+          map[a.organization_id] = a.activity_date;
+        }
+      });
+      return map;
+    }
+  });
+
+  // Batch query: next scheduled visit/meeting per organization
+  const { data: nextScheduledMap } = useQuery({
+    queryKey: ['org-next-scheduled'],
+    queryFn: async () => {
+      const now = new Date().toISOString();
+      const { data, error } = await supabase
+        .from('activity_communications')
+        .select('organization_id, activity_date')
+        .not('organization_id', 'is', null)
+        .gt('activity_date', now)
+        .in('interaction_type', ['Visit', 'Meeting', 'visit', 'meeting', 'In-Person Visit', 'Scheduled Visit'])
+        .order('activity_date', { ascending: true });
+      if (error) throw error;
+      const map: Record<string, string> = {};
+      (data || []).forEach((a: any) => {
+        if (!map[a.organization_id]) {
+          map[a.organization_id] = a.activity_date;
+        }
+      });
+      return map;
     }
   });
 
@@ -331,7 +394,7 @@ const OrganizationsList = () => {
                   <Users className="w-4 h-4 text-blue-600" />
                   <span className="text-sm text-blue-800">YTD Referrals</span>
                 </div>
-                <p className="text-xl font-bold text-blue-900">0</p>
+                <p className="text-xl font-bold text-blue-900">{ytdReferralCounts?.[org.id] || 0}</p>
               </div>
               {org.bed_count && org.bed_count > 0 && (
                 <div className="bg-purple-50 p-3 rounded-lg">
@@ -367,14 +430,22 @@ const OrganizationsList = () => {
             </div>
 
             {/* Last Contact & Next Steps */}
-            <div className="bg-gray-50 p-3 rounded-lg">
+            <div className="bg-muted/50 p-3 rounded-lg">
               <div className="flex justify-between items-center text-sm">
-                <span className="text-gray-600">Last Contact:</span>
-                <span className="font-medium">N/A</span>
+                <span className="text-muted-foreground">Last Contact:</span>
+                <span className="font-medium">
+                  {lastContactMap?.[org.id]
+                    ? format(new Date(lastContactMap[org.id]), 'MMM dd, yyyy')
+                    : 'N/A'}
+                </span>
               </div>
               <div className="flex justify-between items-center text-sm mt-1">
-                <span className="text-gray-600">Next Scheduled:</span>
-                <span className="font-medium text-green-600">Not scheduled</span>
+                <span className="text-muted-foreground">Next Scheduled:</span>
+                <span className={`font-medium ${nextScheduledMap?.[org.id] ? 'text-green-600' : ''}`}>
+                  {nextScheduledMap?.[org.id]
+                    ? format(new Date(nextScheduledMap[org.id]), 'MMM dd, yyyy')
+                    : 'Not scheduled'}
+                </span>
               </div>
             </div>
 
