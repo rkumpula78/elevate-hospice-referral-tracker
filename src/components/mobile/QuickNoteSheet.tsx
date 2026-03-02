@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { addToQueue } from '@/lib/offlineQueue';
 
 interface QuickNoteSheetProps {
   open: boolean;
@@ -51,23 +52,49 @@ export function QuickNoteSheet({ open, onOpenChange, prefilledOrgId }: QuickNote
 
   const saveMutation = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from('activity_communications').insert({
+      const payload = {
         organization_id: orgId || null,
         discussion_points: note,
         interaction_type: activityType,
         completed_by: 'Current User',
         activity_date: new Date().toISOString(),
-      });
+      };
+
+      if (!navigator.onLine) {
+        addToQueue({ table: 'activity_communications', payload, type: 'insert' });
+        return { offline: true };
+      }
+
+      const { error } = await supabase.from('activity_communications').insert(payload);
       if (error) throw error;
+      return { offline: false };
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['activities'] });
-      queryClient.invalidateQueries({ queryKey: ['activity_communications'] });
-      toast({ title: 'Note saved', description: 'Your quick note has been logged.', className: 'border-green-500' });
+    onSuccess: (result) => {
+      if (result?.offline) {
+        toast({ title: 'Saved offline', description: 'Will sync when reconnected.', className: 'border-yellow-500' });
+      } else {
+        queryClient.invalidateQueries({ queryKey: ['activities'] });
+        queryClient.invalidateQueries({ queryKey: ['activity_communications'] });
+        toast({ title: 'Note saved', description: 'Your quick note has been logged.', className: 'border-green-500' });
+      }
       onOpenChange(false);
     },
     onError: () => {
-      toast({ title: 'Error saving note', variant: 'destructive' });
+      // If network error, try offline queue
+      if (!navigator.onLine) {
+        const payload = {
+          organization_id: orgId || null,
+          discussion_points: note,
+          interaction_type: activityType,
+          completed_by: 'Current User',
+          activity_date: new Date().toISOString(),
+        };
+        addToQueue({ table: 'activity_communications', payload, type: 'insert' });
+        toast({ title: 'Saved offline', description: 'Will sync when reconnected.', className: 'border-yellow-500' });
+        onOpenChange(false);
+      } else {
+        toast({ title: 'Error saving note', variant: 'destructive' });
+      }
     },
   });
 
