@@ -135,6 +135,11 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
     }
   });
 
+  const getStatusLabel = (status: string) => {
+    const found = statusOptions.find(s => s.value === status);
+    return found?.label || status;
+  };
+
   const updateStatusMutation = useMutation({
     mutationFn: async ({ id, status }: { id: string, status: ReferralStatus }) => {
       const { error } = await supabase
@@ -145,7 +150,6 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
 
       // If status is admitted, send email notification
       if (status === 'admitted') {
-        // Fetch referral and patient data for email
         const { data: referralData } = await supabase
           .from('referrals')
           .select('*, organizations(name)')
@@ -169,13 +173,15 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
           }
         }
       }
+      return { status };
     },
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['referrals'] });
-      showToast({ title: "Status updated successfully" });
+      showToast({ title: `✅ Status updated to ${getStatusLabel(variables.status)}` });
     },
     onError: () => {
-      showToast({ title: "Error updating status", variant: "destructive" });
+      queryClient.invalidateQueries({ queryKey: ['referrals'] });
+      showToast({ title: "Failed to update status. Please try again.", variant: "destructive" });
     }
   });
 
@@ -186,13 +192,15 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
         .update({ priority })
         .eq('id', id);
       if (error) throw error;
+      return { priority };
     },
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['referrals'] });
-      showToast({ title: "Priority updated successfully" });
+      showToast({ title: `✅ Priority updated to ${variables.priority.charAt(0).toUpperCase() + variables.priority.slice(1)}` });
     },
     onError: () => {
-      showToast({ title: "Error updating priority", variant: "destructive" });
+      queryClient.invalidateQueries({ queryKey: ['referrals'] });
+      showToast({ title: "Failed to update priority. Please try again.", variant: "destructive" });
     }
   });
 
@@ -206,10 +214,11 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['referrals'] });
-      showToast({ title: "Marketer updated successfully" });
+      showToast({ title: "✅ Marketer updated successfully" });
     },
     onError: () => {
-      showToast({ title: "Error updating marketer", variant: "destructive" });
+      queryClient.invalidateQueries({ queryKey: ['referrals'] });
+      showToast({ title: "Failed to update marketer. Please try again.", variant: "destructive" });
     }
   });
 

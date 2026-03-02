@@ -83,11 +83,20 @@ const PartnershipStageManager: React.FC<PartnershipStageManagerProps> = ({
 
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['organization', organizationId] });
+      const stageLabel = variables.stage 
+        ? PARTNERSHIP_STAGES.find(s => s.value === variables.stage)?.label 
+        : null;
       toast({
-        title: "Partnership updated",
+        title: stageLabel ? `✅ Partnership stage updated to ${stageLabel}` : "✅ Partnership updated",
         description: "Partnership details have been saved."
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Failed to update partnership. Please try again.",
+        variant: "destructive"
       });
     }
   });
