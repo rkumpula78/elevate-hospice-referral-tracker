@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import {
   Sidebar,
   SidebarContent,
@@ -35,6 +37,15 @@ import AIQuickHelp from "@/components/dashboard/AIQuickHelp";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useIsTabletOrMobile } from "@/hooks/use-responsive";
 
+const NotificationBadge = ({ count }: { count: number }) => {
+  if (count <= 0) return null;
+  return (
+    <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold leading-none">
+      {count > 99 ? '99+' : count}
+    </span>
+  );
+};
+
 const primaryItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
   { title: "Referrals", url: "/referrals", icon: Phone },
@@ -57,6 +68,37 @@ const AppSidebar = () => {
 
   const insightsActive = insightsItems.some(i => location.pathname === i.url);
   const [insightsOpen, setInsightsOpen] = useState(insightsActive);
+
+  // Badge: new referrals count
+  const { data: newReferralCount = 0 } = useQuery({
+    queryKey: ['sidebar-new-referrals'],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from('referrals')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'new_referral');
+      if (error) throw error;
+      return count || 0;
+    },
+    refetchInterval: 60000,
+  });
+
+  // Badge: overdue follow-ups count
+  const { data: overdueCount = 0 } = useQuery({
+    queryKey: ['sidebar-overdue-followups'],
+    queryFn: async () => {
+      const today = new Date().toISOString().split('T')[0];
+      const { count, error } = await supabase
+        .from('activity_communications')
+        .select('*', { count: 'exact', head: true })
+        .eq('follow_up_required', true)
+        .eq('follow_up_completed', false)
+        .lt('follow_up_date', today);
+      if (error) throw error;
+      return count || 0;
+    },
+    refetchInterval: 60000,
+  });
 
   const handleSignOut = async () => {
     await signOut();
@@ -128,7 +170,11 @@ const AppSidebar = () => {
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton asChild isActive={isActive}>
                         <Link to={item.url} onClick={handleLinkClick} className={linkClass(isActive)}>
-                          <item.icon className="w-5 h-5" />
+                          <span className="relative">
+                            <item.icon className="w-5 h-5" />
+                            {item.url === '/referrals' && <NotificationBadge count={newReferralCount} />}
+                            {item.url === '/dashboard' && <NotificationBadge count={overdueCount} />}
+                          </span>
                           <span className={isMobile ? 'text-base' : ''}>{item.title}</span>
                         </Link>
                       </SidebarMenuButton>
