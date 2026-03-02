@@ -13,6 +13,7 @@ import ReferralFamilyContacts from '@/components/crm/ReferralFamilyContacts';
 import PageLayout from '@/components/layout/PageLayout';
 import { format } from 'date-fns';
 import AIQuickHelp from '@/components/dashboard/AIQuickHelp';
+import StatusTimeline from '@/components/referrals/StatusTimeline';
 
 const ReferralDetail = () => {
   const { id } = useParams();
@@ -262,6 +263,11 @@ const ReferralDetail = () => {
               )}
             </CardContent>
           </Card>
+
+          {/* Status Timeline */}
+          <div className="lg:col-span-2">
+            <StatusTimeline referralId={id!} currentStatus={referral.status} />
+          </div>
 
           {/* Medicare Eligibility Section */}
           <div className="lg:col-span-2">
