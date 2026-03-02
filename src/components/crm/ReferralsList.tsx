@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Filter } from "lucide-react";
+import { Plus, Filter, Phone } from "lucide-react";
 import { useToast, toast } from "@/hooks/use-toast";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ViewToggle } from "@/components/ui/view-toggle";
@@ -631,8 +631,11 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
 
       {!hasResults ? (
         <EmptyState
-          title="No referrals match your filters"
-          description="Try adjusting your filters to see more results."
+          icon={Phone}
+          title="No referrals yet"
+          description="Add your first referral to start tracking"
+          actionLabel="Add Referral"
+          onAction={() => setShowAddDialog(true)}
         />
       ) : (
         <>
