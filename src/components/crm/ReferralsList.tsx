@@ -24,19 +24,15 @@ import { BulkActionsToolbar } from './BulkActionsToolbar';
 import PullToRefresh from 'react-simple-pull-to-refresh';
 import { Link } from 'react-router-dom';
 
-type ReferralStatus = 'new_referral' | 'contact_attempted' | 'information_gathering' | 'assessment_scheduled' | 'pending_admission' | 'admitted' | 'not_admitted_patient_choice' | 'not_admitted_not_appropriate' | 'not_admitted_lost_contact' | 'deceased_prior_admission';
+type ReferralStatus = 'new_referral' | 'in_progress' | 'assessment' | 'pending' | 'admitted' | 'closed';
 
 const statusOptions = [
-  { value: 'new_referral', label: 'New Referral' },
-  { value: 'contact_attempted', label: 'Contact Attempted' },
-  { value: 'information_gathering', label: 'Information Gathering' },
-  { value: 'assessment_scheduled', label: 'Assessment Scheduled' },
-  { value: 'pending_admission', label: 'Pending Admission' },
+  { value: 'new_referral', label: 'New' },
+  { value: 'in_progress', label: 'In Progress' },
+  { value: 'assessment', label: 'Assessment' },
+  { value: 'pending', label: 'Pending' },
   { value: 'admitted', label: 'Admitted' },
-  { value: 'not_admitted_patient_choice', label: 'Not Admitted - Patient Choice' },
-  { value: 'not_admitted_not_appropriate', label: 'Not Admitted - Not Appropriate' },
-  { value: 'not_admitted_lost_contact', label: 'Not Admitted - Lost Contact' },
-  { value: 'deceased_prior_admission', label: 'Deceased Prior to Admission' },
+  { value: 'closed', label: 'Closed' },
 ];
 
 interface ReferralsListProps {
@@ -530,12 +526,16 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
               </TableCell>
               <TableCell>{referral.organizations?.name || 'N/A'}</TableCell>
               <TableCell>
-                <span className={`px-2 py-1 text-xs rounded-full ${
+              <span className={`px-2 py-1 text-xs rounded-full ${
+                  referral.status === 'new_referral' ? 'bg-blue-100 text-blue-800' :
+                  referral.status === 'in_progress' ? 'bg-yellow-100 text-yellow-800' :
+                  referral.status === 'assessment' ? 'bg-purple-100 text-purple-800' :
+                  referral.status === 'pending' ? 'bg-orange-100 text-orange-800' :
                   referral.status === 'admitted' ? 'bg-green-100 text-green-800' :
-                  referral.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                  referral.status === 'closed' ? 'bg-gray-100 text-gray-800' :
                   'bg-blue-100 text-blue-800'
                 }`}>
-                  {referral.status}
+                  {statusOptions.find(s => s.value === referral.status)?.label || referral.status}
                 </span>
               </TableCell>
               <TableCell>

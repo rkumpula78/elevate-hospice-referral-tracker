@@ -46,31 +46,23 @@ const ReferralCard = ({
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'new_referral': return 'bg-blue-600 text-white border-blue-700';
-      case 'contact_attempted': return 'bg-yellow-600 text-white border-yellow-700';
-      case 'information_gathering': return 'bg-indigo-600 text-white border-indigo-700';
-      case 'assessment_scheduled': return 'bg-purple-600 text-white border-purple-700';
-      case 'pending_admission': return 'bg-orange-600 text-white border-orange-700';
+      case 'in_progress': return 'bg-yellow-600 text-white border-yellow-700';
+      case 'assessment': return 'bg-purple-600 text-white border-purple-700';
+      case 'pending': return 'bg-orange-600 text-white border-orange-700';
       case 'admitted': return 'bg-green-600 text-white border-green-700';
-      case 'not_admitted_patient_choice': return 'bg-gray-600 text-white border-gray-700';
-      case 'not_admitted_not_appropriate': return 'bg-red-600 text-white border-red-700';
-      case 'not_admitted_lost_contact': return 'bg-slate-600 text-white border-slate-700';
-      case 'deceased_prior_admission': return 'bg-black text-white border-gray-800';
+      case 'closed': return 'bg-gray-600 text-white border-gray-700';
       default: return 'bg-gray-600 text-white border-gray-700';
     }
   };
 
   const getStatusLabel = (status: string) => {
     switch (status) {
-      case 'new_referral': return 'New Referral';
-      case 'contact_attempted': return 'Contact Attempted';
-      case 'information_gathering': return 'Information Gathering';
-      case 'assessment_scheduled': return 'Assessment Scheduled';
-      case 'pending_admission': return 'Pending Admission';
+      case 'new_referral': return 'New';
+      case 'in_progress': return 'In Progress';
+      case 'assessment': return 'Assessment';
+      case 'pending': return 'Pending';
       case 'admitted': return 'Admitted';
-      case 'not_admitted_patient_choice': return 'Not Admitted - Patient Choice';
-      case 'not_admitted_not_appropriate': return 'Not Admitted - Not Appropriate';
-      case 'not_admitted_lost_contact': return 'Not Admitted - Lost Contact';
-      case 'deceased_prior_admission': return 'Deceased Prior to Admission';
+      case 'closed': return 'Closed';
       default: return status;
     }
   };
@@ -95,51 +87,39 @@ const ReferralCard = ({
 
   const getStatusProgress = (status: string) => {
     const statusMap: Record<string, number> = {
-      'new_referral': 10,
-      'contact_attempted': 30,
-      'information_gathering': 50,
-      'assessment_scheduled': 70,
-      'pending_admission': 85,
+      'new_referral': 15,
+      'in_progress': 35,
+      'assessment': 55,
+      'pending': 75,
       'admitted': 100,
-      'admitted_our_hospice': 100
     };
     
-    // Return 0 for "not_admitted" statuses
-    if (status?.startsWith('not_admitted') || status === 'deceased_prior_admission') {
-      return 0;
-    }
+    if (status === 'closed') return 0;
     
     return statusMap[status] || 0;
   };
 
   const getProgressBarColor = (status: string) => {
     const colorMap: Record<string, string> = {
-      'new_referral': 'bg-gray-400',
-      'contact_attempted': 'bg-yellow-400',
-      'information_gathering': 'bg-blue-300',
-      'assessment_scheduled': 'bg-blue-500',
-      'pending_admission': 'bg-purple-500',
+      'new_referral': 'bg-blue-400',
+      'in_progress': 'bg-yellow-400',
+      'assessment': 'bg-purple-500',
+      'pending': 'bg-orange-500',
       'admitted': 'bg-green-500',
-      'admitted_our_hospice': 'bg-green-500'
     };
     
-    // Red for not admitted statuses
-    if (status?.startsWith('not_admitted') || status === 'deceased_prior_admission') {
-      return 'bg-red-400';
-    }
+    if (status === 'closed') return 'bg-gray-400';
     
     return colorMap[status] || 'bg-gray-400';
   };
 
   const getNextStage = (status: string) => {
     const stageFlow: Record<string, string> = {
-      'new_referral': 'Contact Attempted',
-      'contact_attempted': 'Information Gathering',
-      'information_gathering': 'Assessment Scheduled',
-      'assessment_scheduled': 'Pending Admission',
-      'pending_admission': 'Admitted',
+      'new_referral': 'In Progress',
+      'in_progress': 'Assessment',
+      'assessment': 'Pending',
+      'pending': 'Admitted',
       'admitted': 'Completed',
-      'admitted_our_hospice': 'Completed'
     };
     
     return stageFlow[status] || 'N/A';
@@ -383,16 +363,12 @@ const ReferralCard = ({
                 </SelectValue>
               </SelectTrigger>
               <SelectContent className="modern-dropdown">
-                <SelectItem value="new_referral" className="modern-dropdown-item">New Referral</SelectItem>
-                <SelectItem value="contact_attempted" className="modern-dropdown-item">Contact Attempted</SelectItem>
-                <SelectItem value="information_gathering" className="modern-dropdown-item">Information Gathering</SelectItem>
-                <SelectItem value="assessment_scheduled" className="modern-dropdown-item">Assessment Scheduled</SelectItem>
-                <SelectItem value="pending_admission" className="modern-dropdown-item">Pending Admission</SelectItem>
+                <SelectItem value="new_referral" className="modern-dropdown-item">New</SelectItem>
+                <SelectItem value="in_progress" className="modern-dropdown-item">In Progress</SelectItem>
+                <SelectItem value="assessment" className="modern-dropdown-item">Assessment</SelectItem>
+                <SelectItem value="pending" className="modern-dropdown-item">Pending</SelectItem>
                 <SelectItem value="admitted" className="modern-dropdown-item">Admitted</SelectItem>
-                <SelectItem value="not_admitted_patient_choice" className="modern-dropdown-item">Not Admitted - Patient Choice</SelectItem>
-                <SelectItem value="not_admitted_not_appropriate" className="modern-dropdown-item">Not Admitted - Not Appropriate</SelectItem>
-                <SelectItem value="not_admitted_lost_contact" className="modern-dropdown-item">Not Admitted - Lost Contact</SelectItem>
-                <SelectItem value="deceased_prior_admission" className="modern-dropdown-item">Deceased Prior to Admission</SelectItem>
+                <SelectItem value="closed" className="modern-dropdown-item">Closed</SelectItem>
               </SelectContent>
             </Select>
           </div>

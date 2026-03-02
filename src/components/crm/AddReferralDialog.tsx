@@ -224,9 +224,8 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
         }
         return null;
       case 'reason_for_non_admittance':
-        const notAdmittedStatuses = ['not_admitted_patient_choice', 'not_admitted_not_appropriate', 'not_admitted_lost_contact'];
-        if (notAdmittedStatuses.includes(formData.status) && (!value || !value.trim())) {
-          return "This field is required";
+        if (formData.status === 'closed' && (!value || !value.trim())) {
+          return "Close reason is required";
         }
         return null;
       case 'notes':
@@ -329,7 +328,7 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
   };
 
   const isSubmitting = addReferralMutation.isPending;
-  const showReasonField: boolean = ['not_admitted_patient_choice', 'not_admitted_not_appropriate', 'not_admitted_lost_contact'].includes(formData.status);
+  const showReasonField: boolean = formData.status === 'closed';
   
   // Calculate required fields completion
   const requiredFieldValues = {
@@ -661,16 +660,12 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="new_referral">New Referral</SelectItem>
-                    <SelectItem value="contact_attempted">Contact Attempted</SelectItem>
-                    <SelectItem value="information_gathering">Information Gathering</SelectItem>
-                    <SelectItem value="assessment_scheduled">Assessment Scheduled</SelectItem>
-                    <SelectItem value="pending_admission">Pending Admission</SelectItem>
+                    <SelectItem value="new_referral">New</SelectItem>
+                    <SelectItem value="in_progress">In Progress</SelectItem>
+                    <SelectItem value="assessment">Assessment</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
                     <SelectItem value="admitted">Admitted</SelectItem>
-                    <SelectItem value="not_admitted_patient_choice">Not Admitted - Patient Choice</SelectItem>
-                    <SelectItem value="not_admitted_not_appropriate">Not Admitted - Not Yet Appropriate</SelectItem>
-                    <SelectItem value="not_admitted_lost_contact">Not Admitted - Lost Contact</SelectItem>
-                    <SelectItem value="deceased_prior_admission">Deceased Prior to Admission</SelectItem>
+                    <SelectItem value="closed">Closed</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -693,11 +688,11 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
               </div>
             </div>
 
-            {/* Conditional Reason for Non-Admittance */}
+            {/* Conditional Close Reason */}
             {showReasonField && (
               <div>
                 <Label htmlFor="reason_for_non_admittance">
-                  Reason for Non-Admittance <span className="text-destructive">*</span>
+                  Close Reason <span className="text-destructive">*</span>
                 </Label>
                 <Select 
                   value={formData.reason_for_non_admittance} 
@@ -711,12 +706,10 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
                     <SelectValue placeholder="Select reason" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="patient_family_chose_competitor">Patient/Family chose competitor</SelectItem>
-                    <SelectItem value="patient_stabilized_improved">Patient stabilized/improved</SelectItem>
-                    <SelectItem value="family_not_ready">Family not ready</SelectItem>
-                    <SelectItem value="financial_insurance_issues">Financial/Insurance issues</SelectItem>
-                    <SelectItem value="unable_to_contact">Unable to contact</SelectItem>
-                    <SelectItem value="chose_curative_care">Chose curative care</SelectItem>
+                    <SelectItem value="patient_choice">Patient Choice</SelectItem>
+                    <SelectItem value="not_appropriate">Not Appropriate</SelectItem>
+                    <SelectItem value="lost_contact">Lost Contact</SelectItem>
+                    <SelectItem value="deceased">Deceased</SelectItem>
                   </SelectContent>
                 </Select>
                 {touchedFields.reason_for_non_admittance && fieldErrors.reason_for_non_admittance && (

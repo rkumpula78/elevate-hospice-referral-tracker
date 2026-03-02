@@ -66,12 +66,12 @@ export const ReferralsFilterBar = ({
   });
 
   const statusOptions: MultiSelectOption[] = [
-    { label: 'New Referral', value: 'new_referral' },
+    { label: 'New', value: 'new_referral' },
+    { label: 'In Progress', value: 'in_progress' },
+    { label: 'Assessment', value: 'assessment' },
     { label: 'Pending', value: 'pending' },
     { label: 'Admitted', value: 'admitted' },
-    { label: 'Not Admitted - Patient Choice', value: 'not_admitted_patient_choice' },
-    { label: 'Not Admitted - Not Appropriate', value: 'not_admitted_not_appropriate' },
-    { label: 'Not Admitted - Lost Contact', value: 'not_admitted_lost_contact' },
+    { label: 'Closed', value: 'closed' },
   ];
 
   const priorityOptions: MultiSelectOption[] = [
@@ -186,7 +186,17 @@ export const ReferralsFilterBar = ({
       }
     },
     {
-      label: 'Pending Admission',
+      label: 'In Progress',
+      icon: Zap,
+      apply: () => {
+        onFiltersChange({
+          ...filters,
+          statuses: ['in_progress']
+        });
+      }
+    },
+    {
+      label: 'Pending',
       icon: Zap,
       apply: () => {
         onFiltersChange({
@@ -196,24 +206,12 @@ export const ReferralsFilterBar = ({
       }
     },
     {
-      label: 'Admitted Today',
-      icon: Zap,
-      apply: () => {
-        const today = new Date();
-        onFiltersChange({
-          ...filters,
-          statuses: ['admitted'],
-          dateRange: { from: today, to: today }
-        });
-      }
-    },
-    {
-      label: 'Not Admitted',
+      label: 'Closed',
       icon: Zap,
       apply: () => {
         onFiltersChange({
           ...filters,
-          statuses: ['not_admitted_patient_choice', 'not_admitted_not_appropriate', 'not_admitted_lost_contact']
+          statuses: ['closed']
         });
       }
     }

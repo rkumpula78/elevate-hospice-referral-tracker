@@ -346,10 +346,9 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
     // Add comments to notes
     updateData.notes = JSON.stringify(comments);
 
-    // Validate reason for non-admittance
-    const notAdmittedStatuses = ['not_admitted_patient_choice', 'not_admitted_not_appropriate', 'not_admitted_lost_contact'];
-    if (notAdmittedStatuses.includes(updateData.status) && !updateData.reason_for_non_admittance?.trim()) {
-      toast({ title: 'Reason for non-admittance is required for this status', variant: 'destructive' });
+    // Validate closed reason
+    if (updateData.status === 'closed' && !updateData.closed_reason?.trim()) {
+      toast({ title: 'Close reason is required for Closed status', variant: 'destructive' });
       return;
     }
 
@@ -382,7 +381,7 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
     ? `${(referralData as any).first_name} ${(referralData as any).last_name}` 
     : referralData?.patient_name || 'N/A';
 
-  const showReasonField = ['not_admitted_patient_choice', 'not_admitted_not_appropriate', 'not_admitted_lost_contact'].includes(referralData.status);
+  const showReasonField = referralData.status === 'closed';
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -574,16 +573,12 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-white border border-gray-300 z-[100]">
-                      <SelectItem value="new_referral">New Referral</SelectItem>
-                      <SelectItem value="contact_attempted">Contact Attempted</SelectItem>
-                      <SelectItem value="information_gathering">Information Gathering</SelectItem>
-                      <SelectItem value="assessment_scheduled">Assessment Scheduled</SelectItem>
-                      <SelectItem value="pending_admission">Pending Admission</SelectItem>
+                      <SelectItem value="new_referral">New</SelectItem>
+                      <SelectItem value="in_progress">In Progress</SelectItem>
+                      <SelectItem value="assessment">Assessment</SelectItem>
+                      <SelectItem value="pending">Pending</SelectItem>
                       <SelectItem value="admitted">Admitted</SelectItem>
-                      <SelectItem value="not_admitted_patient_choice">Not Admitted - Patient Choice</SelectItem>
-                      <SelectItem value="not_admitted_not_appropriate">Not Admitted - Not Yet Appropriate</SelectItem>
-                      <SelectItem value="not_admitted_lost_contact">Not Admitted - Lost Contact</SelectItem>
-                      <SelectItem value="deceased_prior_admission">Deceased Prior to Admission</SelectItem>
+                      <SelectItem value="closed">Closed</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -603,21 +598,19 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
                 </div>
               </div>
 
-              {/* Conditional Reason for Non-Admittance */}
+              {/* Conditional Close Reason */}
               {showReasonField && (
                 <div>
-                  <Label htmlFor="reason_for_non_admittance" className="text-gray-700">Reason for Non-Admittance *</Label>
-                  <Select name="reason_for_non_admittance" defaultValue={referralData?.reason_for_non_admittance || ''}>
+                  <Label htmlFor="closed_reason" className="text-gray-700">Close Reason *</Label>
+                  <Select name="closed_reason" defaultValue={referralData?.closed_reason || ''}>
                     <SelectTrigger className="bg-white border-gray-300 text-gray-900">
                       <SelectValue placeholder="Select reason" />
                     </SelectTrigger>
                     <SelectContent className="bg-white border border-gray-300 z-[100]">
-                      <SelectItem value="patient_family_chose_competitor">Patient/Family chose competitor</SelectItem>
-                      <SelectItem value="patient_stabilized_improved">Patient stabilized/improved</SelectItem>
-                      <SelectItem value="family_not_ready">Family not ready</SelectItem>
-                      <SelectItem value="financial_insurance_issues">Financial/Insurance issues</SelectItem>
-                      <SelectItem value="unable_to_contact">Unable to contact</SelectItem>
-                      <SelectItem value="chose_curative_care">Chose curative care</SelectItem>
+                      <SelectItem value="patient_choice">Patient Choice</SelectItem>
+                      <SelectItem value="not_appropriate">Not Appropriate</SelectItem>
+                      <SelectItem value="lost_contact">Lost Contact</SelectItem>
+                      <SelectItem value="deceased">Deceased</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
