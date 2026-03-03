@@ -51,13 +51,21 @@ const AddOrganizationDialog = ({ open, onOpenChange }: AddOrganizationDialogProp
 
   const addOrganizationMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      const { error } = await supabase
+      const { data: inserted, error } = await supabase
         .from('organizations')
         .insert([{
           ...data,
           assigned_marketer: data.assigned_marketer === 'unassigned' ? null : data.assigned_marketer
-        }]);
+        }])
+        .select('id')
+        .single();
       if (error) throw error;
+      // Auto-geocode in background
+      if (data.address && inserted?.id) {
+        import('@/lib/geocode').then(({ geocodeOrganizationAddress }) => {
+          geocodeOrganizationAddress(data.address, inserted.id);
+        });
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['organizations'] });

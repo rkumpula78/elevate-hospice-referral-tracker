@@ -99,6 +99,12 @@ const EditOrganizationDialog = ({ open, onOpenChange, organizationId }: EditOrga
         .eq('id', organizationId);
       
       if (error) throw error;
+      // Auto-geocode if address changed
+      if (cleanData.address) {
+        import('@/lib/geocode').then(({ geocodeOrganizationAddress }) => {
+          geocodeOrganizationAddress(cleanData.address as string, organizationId);
+        });
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['organizations'] });
