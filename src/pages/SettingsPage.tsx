@@ -1,5 +1,4 @@
 
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,8 +9,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import PageLayout from "@/components/layout/PageLayout";
 import { useToast } from "@/hooks/use-toast";
-import { Eye, EyeOff, MapPin, Phone, Printer, Mail, Globe } from "lucide-react";
+import { Eye, EyeOff, MapPin, Phone, Printer, Mail, Globe, RotateCcw } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { ONBOARDING_KEY } from "@/components/onboarding/OnboardingTour";
 
 const SettingsPage = () => {
   const { user } = useAuth();
@@ -268,6 +268,31 @@ const SettingsPage = () => {
                 </Button>
               </div>
             </form>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className={isMobile ? "p-4" : ""}>
+            <CardTitle className={isMobile ? "text-lg" : ""}>Onboarding Tour</CardTitle>
+            {!isMobile && <CardDescription>Restart the guided walkthrough of the CRM</CardDescription>}
+          </CardHeader>
+          <CardContent className={isMobile ? "p-4 pt-0" : ""}>
+            <p className="text-sm text-muted-foreground mb-4">
+              Re-run the interactive tour to learn about key features of the Elevate CRM dashboard.
+            </p>
+            <Button
+              variant="outline"
+              onClick={() => {
+                localStorage.removeItem(ONBOARDING_KEY);
+                toast({
+                  title: "Tour Reset",
+                  description: "Navigate to the Dashboard to start the onboarding tour.",
+                });
+              }}
+            >
+              <RotateCcw className="h-4 w-4 mr-2" />
+              Restart Tour
+            </Button>
           </CardContent>
         </Card>
       </div>
