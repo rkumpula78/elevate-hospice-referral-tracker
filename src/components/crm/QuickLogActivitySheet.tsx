@@ -10,10 +10,12 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { Zap, Clock, FileText, Loader2, Pencil } from 'lucide-react';
 import { format, addDays } from 'date-fns';
+import { getFollowUpDays } from '@/lib/followUpLogic';
 
 interface QuickLogActivitySheetProps {
   organizationId: string;
   organizationName: string;
+  accountRating?: string | null;
   trigger?: React.ReactNode;
 }
 
@@ -33,7 +35,7 @@ const TYPE_ICON_MAP: Record<string, string> = {
   'Meeting': '🤝',
 };
 
-const QuickLogActivitySheet = ({ organizationId, organizationName, trigger }: QuickLogActivitySheetProps) => {
+const QuickLogActivitySheet = ({ organizationId, organizationName, accountRating, trigger }: QuickLogActivitySheetProps) => {
   const { toast } = useToast();
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -56,7 +58,8 @@ const QuickLogActivitySheet = ({ organizationId, organizationName, trigger }: Qu
 
   const logMutation = useMutation({
     mutationFn: async (template: ActivityTemplate) => {
-      const followUpDate = format(addDays(new Date(), 7), 'yyyy-MM-dd');
+      const days = getFollowUpDays(accountRating);
+      const followUpDate = format(addDays(new Date(), days), 'yyyy-MM-dd');
       const notes = additionalNotes
         ? `${template.default_notes || ''}\n\n${additionalNotes}`.trim()
         : template.default_notes || '';

@@ -132,6 +132,7 @@ const OrganizationDetail = () => {
       <QuickLogActivitySheet
         organizationId={id!}
         organizationName={organization.name}
+        accountRating={organization.account_rating}
       />
       <AIQuickHelp 
         organizationName={organization.name}

@@ -13,6 +13,7 @@ import { Eye, EyeOff, MapPin, Phone, Printer, Mail, Globe, RotateCcw } from "luc
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ONBOARDING_KEY } from "@/components/onboarding/OnboardingTour";
 import MyTemplatesSettings from "@/components/settings/MyTemplatesSettings";
+import ReminderSettings from "@/components/settings/ReminderSettings";
 
 const SettingsPage = () => {
   const { user } = useAuth();
@@ -296,6 +297,8 @@ const SettingsPage = () => {
             </Button>
           </CardContent>
         </Card>
+
+        <ReminderSettings />
 
         <MyTemplatesSettings />
       </div>
