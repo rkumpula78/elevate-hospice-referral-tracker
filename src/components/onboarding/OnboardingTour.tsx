@@ -7,7 +7,7 @@ const ONBOARDING_KEY = 'onboarding_completed';
 const tourSteps: Step[] = [
   {
     target: '[data-tour="dashboard-overview"]',
-    content: "Welcome to Elevate CRM! This is your dashboard showing today's key metrics and activity overview.",
+    content: "Welcome to Elevate Hospice! This is your dashboard showing today's key metrics and activity overview.",
     title: 'Dashboard Overview',
     placement: 'bottom',
     disableBeacon: true,

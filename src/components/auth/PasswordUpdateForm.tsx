@@ -68,7 +68,7 @@ export default function PasswordUpdateForm() {
     <form onSubmit={handleUpdatePassword} className="space-y-4">
       <div className="text-center">
         <h2 className="text-2xl font-semibold text-foreground mb-2">Set your password</h2>
-        <p className="text-muted-foreground">Finish setup to access the CRM.</p>
+        <p className="text-muted-foreground">Finish setup to access the Referral Dashboard.</p>
       </div>
 
       <div className="space-y-2">

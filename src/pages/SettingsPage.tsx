@@ -276,11 +276,11 @@ const SettingsPage = () => {
         <Card>
           <CardHeader className={isMobile ? "p-4" : ""}>
             <CardTitle className={isMobile ? "text-lg" : ""}>Onboarding Tour</CardTitle>
-            {!isMobile && <CardDescription>Restart the guided walkthrough of the CRM</CardDescription>}
+            {!isMobile && <CardDescription>Restart the guided walkthrough of the Referral Dashboard</CardDescription>}
           </CardHeader>
           <CardContent className={isMobile ? "p-4 pt-0" : ""}>
             <p className="text-sm text-muted-foreground mb-4">
-              Re-run the interactive tour to learn about key features of the Elevate CRM dashboard.
+              Re-run the interactive tour to learn about key features of the Elevate Referral dashboard.
             </p>
             <Button
               variant="outline"

@@ -88,7 +88,7 @@ const LoginForm = ({ onToggleMode, isSignUp }: LoginFormProps) => {
         <p className="text-gray-600">
           {isSignUp 
             ? 'Create a new account with your @elevatehospiceaz.com email'
-            : 'Enter your @elevatehospiceaz.com credentials to access the CRM Dashboard'
+            : 'Enter your @elevatehospiceaz.com credentials to access the Referral Dashboard'
           }
         </p>
       </div>
