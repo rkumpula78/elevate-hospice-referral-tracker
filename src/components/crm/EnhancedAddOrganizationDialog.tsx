@@ -69,15 +69,25 @@ const EnhancedAddOrganizationDialog = ({ open, onOpenChange }: EnhancedAddOrgani
       referral_potential: parseInt(formData.referral_potential)
     };
 
-    const { error } = await supabase
+    const { data: inserted, error } = await supabase
       .from('organizations')
-      .insert([dataToSubmit]);
+      .insert([dataToSubmit])
+      .select('id')
+      .single();
 
     if (error) {
       toast.error('Failed to create organization');
       console.error('Error creating organization:', error);
     } else {
       toast.success('Organization created successfully');
+      // Auto-geocode address in background
+      if (dataToSubmit.address && inserted?.id) {
+        import('@/lib/geocode').then(({ geocodeOrganizationAddress }) => {
+          geocodeOrganizationAddress(dataToSubmit.address, inserted.id).then(() => {
+            queryClient.invalidateQueries({ queryKey: ['map-organizations'] });
+          });
+        });
+      }
       queryClient.invalidateQueries({ queryKey: ['organizations'] });
       onOpenChange(false);
       setFormData({

@@ -55,6 +55,12 @@ const EnhancedOrganizationProfile = ({ organizationId }: EnhancedOrganizationPro
         .eq('id', organizationId);
       
       if (error) throw error;
+      // Auto-geocode if address changed
+      if (updatedData.address) {
+        import('@/lib/geocode').then(({ geocodeOrganizationAddress }) => {
+          geocodeOrganizationAddress(updatedData.address, organizationId);
+        });
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['organization-profile', organizationId] });
