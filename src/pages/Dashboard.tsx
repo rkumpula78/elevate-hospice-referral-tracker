@@ -25,6 +25,7 @@ import CensusManager from "@/components/dashboard/CensusManager";
 import ValuesReminder from "@/components/dashboard/ValuesReminder";
 import GrowthMetricsCard from "@/components/dashboard/GrowthMetricsCard";
 import { TrendMetricCard } from "@/components/dashboard/TrendMetricCard";
+import OnboardingTour from "@/components/onboarding/OnboardingTour";
 
 const Dashboard = () => {
   const [showQuickAdd, setShowQuickAdd] = useState(false);
@@ -288,7 +289,8 @@ const Dashboard = () => {
       title="CRM Dashboard" 
       subtitle="Elevate Hospice & Palliative Care"
     >
-      <Tabs defaultValue="my-day" className="space-y-4">
+      <OnboardingTour />
+      <Tabs defaultValue="my-day" className="space-y-4" data-tour="dashboard-overview">
         <TabsList>
           <TabsTrigger value="my-day">My Day</TabsTrigger>
           <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
@@ -305,6 +307,7 @@ const Dashboard = () => {
             <Button 
               onClick={() => setShowQuickAdd(true)}
               className="shadow-lg touch-manipulation w-full sm:w-auto"
+              data-tour="quick-add"
             >
               <Plus className="w-4 h-4 mr-2" />
               Add Referral
@@ -319,7 +322,7 @@ const Dashboard = () => {
 
         {/* Enhanced Key Performance Indicators */}
         <div className="mb-6">
-          <h2 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-foreground">KEY METRICS - LAST 30 DAYS</h2>
+          <h2 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-foreground" data-tour="census-card">KEY METRICS - LAST 30 DAYS</h2>
           {isMobile ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {!statsLoading ? (
@@ -686,7 +689,7 @@ const Dashboard = () => {
 
         {/* Today's Priority Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card>
+           <Card data-tour="overdue-followups">
             <CardHeader>
               <CardTitle className="text-lg font-semibold">Overdue Follow-ups</CardTitle>
             </CardHeader>
