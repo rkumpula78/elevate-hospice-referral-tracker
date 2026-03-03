@@ -5,6 +5,7 @@ import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import GlobalSearchBar from "@/components/search/GlobalSearchBar";
+import NotificationCenter from "@/components/notifications/NotificationCenter";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -52,6 +53,8 @@ const PageLayout = ({ title, subtitle, children, showBack, actions }: PageLayout
               {actions}
             </div>
           )}
+
+          <NotificationCenter />
           
           {/* Hide search on mobile - accessible via global search button */}
           {!isMobile && (
