@@ -34,18 +34,43 @@ serve(async (req) => {
       )
     }
 
-    const mapboxToken = Deno.env.get('MAPBOX_PUBLIC_TOKEN')
-    
-    if (!mapboxToken || !mapboxToken.startsWith('pk.')) {
-      console.error('Mapbox token not configured or invalid format');
+    const { coordinates } = await req.json();
+
+    if (!Array.isArray(coordinates) || coordinates.length < 2 || coordinates.length > 25) {
+      return new Response(
+        JSON.stringify({ error: 'Provide 2-25 coordinate pairs' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    const mapboxToken = Deno.env.get('MAPBOX_PUBLIC_TOKEN');
+    if (!mapboxToken) {
       return new Response(
         JSON.stringify({ error: 'Map service not configured' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
+    const coordString = coordinates.map((c: number[]) => `${c[0]},${c[1]}`).join(';');
+    const url = `https://api.mapbox.com/directions/v5/mapbox/driving/${coordString}?overview=full&geometries=geojson&steps=false&access_token=${mapboxToken}`;
+
+    const response = await fetch(url);
+    const data = await response.json();
+
+    if (data.code !== 'Ok') {
+      return new Response(
+        JSON.stringify({ error: 'Could not calculate route' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    const route = data.routes[0];
     return new Response(
-      JSON.stringify({ token: mapboxToken }),
+      JSON.stringify({
+        geometry: route.geometry,
+        duration: route.duration,
+        distance: route.distance,
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   } catch (error) {
