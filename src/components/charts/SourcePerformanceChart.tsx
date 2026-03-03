@@ -5,6 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from "recharts";
+import ChartExportButton from "@/components/ui/chart-export-button";
+import { exportChartData } from "@/lib/exportUtils";
 
 const SourcePerformanceChart = () => {
   const { data: sourceData, isLoading } = useQuery({
@@ -73,8 +75,20 @@ const SourcePerformanceChart = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg font-semibold">Top Referral Sources</CardTitle>
-        <CardDescription>Performance by referring organization (Top 10)</CardDescription>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="text-lg font-semibold">Top Referral Sources</CardTitle>
+            <CardDescription>Performance by referring organization (Top 10)</CardDescription>
+          </div>
+          <ChartExportButton onClick={() => {
+            if (sourceData) exportChartData(sourceData, 'referral-sources', [
+              { key: 'name', label: 'Organization' },
+              { key: 'total', label: 'Total' },
+              { key: 'admitted', label: 'Admitted' },
+              { key: 'conversionRate', label: 'Conversion Rate (%)' },
+            ]);
+          }} />
+        </div>
       </CardHeader>
       <CardContent>
         {isLoading ? (

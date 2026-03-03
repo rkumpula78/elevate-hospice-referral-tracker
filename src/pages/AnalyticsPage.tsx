@@ -8,6 +8,9 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { startOfMonth, subMonths, format } from "date-fns";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import ExportDropdown from "@/components/ui/export-dropdown";
+import ChartExportButton from "@/components/ui/chart-export-button";
+import { exportToCSV, exportToPDF } from "@/lib/exportUtils";
 
 const AnalyticsPage = () => {
   const isMobile = useIsMobile();
@@ -149,8 +152,28 @@ const AnalyticsPage = () => {
     </div>
   );
 
+  const handleExportCSV = () => {
+    const rows: Record<string, any>[] = [];
+    if (data) {
+      rows.push({ metric: 'Total Referrals', value: data.totalReferrals, change: `${data.referralChange}%` });
+      rows.push({ metric: 'Conversion Rate', value: `${data.conversionRate}%`, change: `${data.conversionChange}%` });
+      rows.push({ metric: 'Active Partners', value: data.activePartners, change: `${data.newPartners} new` });
+      rows.push({ metric: 'Avg Response Time', value: formatResponseTime(data.avgResponseHours), change: `${data.responseChange}h` });
+      data.topOrgs?.forEach(org => {
+        rows.push({ metric: `Org: ${org.name}`, value: org.count, change: '' });
+      });
+    }
+    exportToCSV(rows, 'analytics', [
+      { key: 'metric', label: 'Metric' },
+      { key: 'value', label: 'Value' },
+      { key: 'change', label: 'Change' },
+    ]);
+  };
+
   return (
-    <PageLayout title="Analytics" subtitle="Performance insights and trends">
+    <PageLayout title="Analytics" subtitle="Performance insights and trends" actions={
+      <ExportDropdown onExportCSV={handleExportCSV} onExportPDF={exportToPDF} disabled={isLoading} />
+    }>
       <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 ${isMobile ? 'gap-3 mb-6' : 'gap-6 mb-8'}`}>
         {isLoading ? (
           <>
@@ -242,8 +265,17 @@ const AnalyticsPage = () => {
         {/* Referral Trends Chart */}
         <Card>
           <CardHeader>
-            <CardTitle>Referral Trends</CardTitle>
-            <CardDescription>Monthly referral volume — last 6 months</CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Referral Trends</CardTitle>
+                <CardDescription>Monthly referral volume — last 6 months</CardDescription>
+              </div>
+              <ChartExportButton onClick={() => {
+                if (data?.monthlyTrends) exportToCSV(data.monthlyTrends, 'referral-trends', [
+                  { key: 'month', label: 'Month' }, { key: 'referrals', label: 'Referrals' }
+                ]);
+              }} />
+            </div>
           </CardHeader>
           <CardContent>
             {isLoading ? (
@@ -269,8 +301,17 @@ const AnalyticsPage = () => {
         {/* Top Performing Organizations */}
         <Card>
           <CardHeader>
-            <CardTitle>Top Performing Organizations</CardTitle>
-            <CardDescription>Organizations by referral volume</CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Top Performing Organizations</CardTitle>
+                <CardDescription>Organizations by referral volume</CardDescription>
+              </div>
+              <ChartExportButton onClick={() => {
+                if (data?.topOrgs) exportToCSV(data.topOrgs, 'top-organizations', [
+                  { key: 'name', label: 'Organization' }, { key: 'count', label: 'Referrals' }
+                ]);
+              }} />
+            </div>
           </CardHeader>
           <CardContent>
             {isLoading ? (
