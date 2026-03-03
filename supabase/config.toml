@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.send-admission-email]
 verify_jwt = false
+
+[functions.mapbox-directions]
+verify_jwt = false
