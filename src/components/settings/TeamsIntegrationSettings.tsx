@@ -148,12 +148,12 @@ export const TeamsIntegrationSettings: React.FC = () => {
         referralId: 'test-referral-id',
         payload: {
           title: '🧪 Test Notification',
-          text: 'This is a test notification from your Hospice CRM',
+          text: 'This is a test notification from your Hospice Referral Dashboard',
           summary: 'Test notification',
           sections: [{
             activityTitle: 'Test Message',
             facts: [
-              { name: 'Sender', value: 'Hospice CRM System' },
+              { name: 'Sender', value: 'Hospice Referral System' },
               { name: 'Time', value: new Date().toLocaleString() },
               { name: 'Purpose', value: 'n8n Integration Test' }
             ]

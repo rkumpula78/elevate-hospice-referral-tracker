@@ -286,7 +286,7 @@ const Dashboard = () => {
 
   return (
     <PageLayout 
-      title="CRM Dashboard" 
+      title="Referral Dashboard" 
       subtitle="Elevate Hospice & Palliative Care"
     >
       <OnboardingTour />
