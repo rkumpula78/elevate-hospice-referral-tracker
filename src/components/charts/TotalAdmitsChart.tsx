@@ -7,6 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from "recharts";
 import { format, startOfWeek, startOfMonth, startOfYear, eachWeekOfInterval, eachMonthOfInterval, subDays, subMonths, subYears } from "date-fns";
+import ChartExportButton from "@/components/ui/chart-export-button";
+import { exportChartData } from "@/lib/exportUtils";
 
 type TimePeriod = 'week' | 'month' | 'ytd';
 
@@ -95,20 +97,25 @@ const TotalAdmitsChart = () => {
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <div>
           <CardTitle className="text-base font-medium">Total Admits</CardTitle>
-          <CardDescription>
-            Patient admissions over time
-          </CardDescription>
+          <CardDescription>Patient admissions over time</CardDescription>
         </div>
-        <Select value={selectedPeriod} onValueChange={(value: TimePeriod) => setSelectedPeriod(value)}>
-          <SelectTrigger className="w-32">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="week">Last 4 Weeks</SelectItem>
-            <SelectItem value="month">Last 12 Months</SelectItem>
-            <SelectItem value="ytd">Year to Date</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-2">
+          <ChartExportButton onClick={() => {
+            if (admitsData) exportChartData(admitsData, 'total-admits', [
+              { key: 'period', label: 'Period' }, { key: 'admits', label: 'Admits' }
+            ]);
+          }} />
+          <Select value={selectedPeriod} onValueChange={(value: TimePeriod) => setSelectedPeriod(value)}>
+            <SelectTrigger className="w-32">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="week">Last 4 Weeks</SelectItem>
+              <SelectItem value="month">Last 12 Months</SelectItem>
+              <SelectItem value="ytd">Year to Date</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </CardHeader>
       <CardContent>
         {isLoading ? (

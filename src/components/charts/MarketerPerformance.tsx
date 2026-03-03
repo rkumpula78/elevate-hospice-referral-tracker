@@ -5,6 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Users, FileText, Calendar } from "lucide-react";
+import ChartExportButton from "@/components/ui/chart-export-button";
+import { exportChartData } from "@/lib/exportUtils";
 
 const MarketerPerformance = () => {
   const { data: marketerData, isLoading } = useQuery({
@@ -92,8 +94,22 @@ const MarketerPerformance = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg font-semibold">Marketer Performance (Last 30 Days)</CardTitle>
-        <CardDescription>Key metrics by assigned marketer</CardDescription>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="text-lg font-semibold">Marketer Performance (Last 30 Days)</CardTitle>
+            <CardDescription>Key metrics by assigned marketer</CardDescription>
+          </div>
+          <ChartExportButton onClick={() => {
+            if (marketerData) exportChartData(marketerData, 'marketer-performance', [
+              { key: 'name', label: 'Marketer' },
+              { key: 'totalReferrals', label: 'Total Referrals' },
+              { key: 'admittedReferrals', label: 'Admitted' },
+              { key: 'conversionRate', label: 'Conversion Rate (%)' },
+              { key: 'completedVisits', label: 'Completed Visits' },
+              { key: 'scheduledVisits', label: 'Scheduled Visits' },
+            ]);
+          }} />
+        </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">

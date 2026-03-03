@@ -5,6 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell } from "recharts";
+import ChartExportButton from "@/components/ui/chart-export-button";
+import { exportChartData } from "@/lib/exportUtils";
 
 const ConversionFunnelChart = () => {
   const { data: funnelData, isLoading } = useQuery({
@@ -62,8 +64,20 @@ const ConversionFunnelChart = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg font-semibold">Referral Conversion Funnel</CardTitle>
-        <CardDescription>Track referral progression through pipeline stages</CardDescription>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="text-lg font-semibold">Referral Conversion Funnel</CardTitle>
+            <CardDescription>Track referral progression through pipeline stages</CardDescription>
+          </div>
+          <ChartExportButton onClick={() => {
+            if (funnelData) exportChartData(funnelData, 'conversion-funnel', [
+              { key: 'stage', label: 'Stage' },
+              { key: 'count', label: 'Count' },
+              { key: 'percentage', label: '% of Total' },
+              { key: 'conversionRate', label: 'Conversion Rate (%)' },
+            ]);
+          }} />
+        </div>
       </CardHeader>
       <CardContent>
         {isLoading ? (

@@ -9,6 +9,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Download, FileText, Calendar, TrendingUp, Users, Building, Phone, Target } from "lucide-react";
 import { format, startOfMonth, endOfMonth, subMonths } from 'date-fns';
 import { useIsMobile } from "@/hooks/use-mobile";
+import ExportDropdown from "@/components/ui/export-dropdown";
+import ChartExportButton from "@/components/ui/chart-export-button";
+import { exportToCSV, exportToPDF } from "@/lib/exportUtils";
 
 const ReportsPage = () => {
   const isMobile = useIsMobile();
@@ -32,7 +35,6 @@ const ReportsPage = () => {
 
   const { start, end } = getDateRange(selectedPeriod);
 
-  // Fetch referral summary data
   const { data: referralSummary, isLoading: referralLoading } = useQuery({
     queryKey: ['referral-summary', selectedPeriod],
     queryFn: async () => {
@@ -44,7 +46,7 @@ const ReportsPage = () => {
 
       if (error) throw error;
 
-      const summary = {
+      return {
         total: data.length,
         admitted: data.filter(r => r.status === 'admitted' || r.status === 'admitted_our_hospice').length,
         pending: data.filter(r => r.status === 'pending').length,
@@ -52,53 +54,35 @@ const ReportsPage = () => {
         scheduled: data.filter(r => r.status === 'scheduled').length,
         conversionRate: data.length > 0 ? Math.round((data.filter(r => r.status === 'admitted' || r.status === 'admitted_our_hospice').length / data.length) * 100) : 0
       };
-
-      return summary;
     }
   });
 
-  // Fetch organization performance
   const { data: orgPerformance, isLoading: orgLoading } = useQuery({
     queryKey: ['org-performance', selectedPeriod],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('referrals')
-        .select(`
-          organization_id,
-          status,
-          organizations!inner(name)
-        `)
+        .select(`organization_id, status, organizations!inner(name)`)
         .gte('created_at', start.toISOString())
         .lte('created_at', end.toISOString());
 
       if (error) throw error;
 
       const orgMetrics: Record<string, any> = {};
-      
       data.forEach(referral => {
         const orgName = referral.organizations?.name || 'Unknown';
-        
-        if (!orgMetrics[orgName]) {
-          orgMetrics[orgName] = { name: orgName, total: 0, admitted: 0 };
-        }
-        
+        if (!orgMetrics[orgName]) orgMetrics[orgName] = { name: orgName, total: 0, admitted: 0 };
         orgMetrics[orgName].total++;
-        if (referral.status === 'admitted' || referral.status === 'admitted_our_hospice') {
-          orgMetrics[orgName].admitted++;
-        }
+        if (referral.status === 'admitted' || referral.status === 'admitted_our_hospice') orgMetrics[orgName].admitted++;
       });
 
       return Object.values(orgMetrics)
-        .map((org: any) => ({
-          ...org,
-          conversionRate: org.total > 0 ? Math.round((org.admitted / org.total) * 100) : 0
-        }))
+        .map((org: any) => ({ ...org, conversionRate: org.total > 0 ? Math.round((org.admitted / org.total) * 100) : 0 }))
         .sort((a: any, b: any) => b.total - a.total)
         .slice(0, 10);
     }
   });
 
-  // Fetch marketer performance
   const { data: marketerPerformance, isLoading: marketerLoading } = useQuery({
     queryKey: ['marketer-performance', selectedPeriod],
     queryFn: async () => {
@@ -112,51 +96,72 @@ const ReportsPage = () => {
       if (error) throw error;
 
       const marketerMetrics: Record<string, any> = {};
-      
       data.forEach(referral => {
         const marketer = referral.assigned_marketer;
-        if (!marketerMetrics[marketer]) {
-          marketerMetrics[marketer] = { name: marketer, total: 0, admitted: 0 };
-        }
-        
+        if (!marketerMetrics[marketer]) marketerMetrics[marketer] = { name: marketer, total: 0, admitted: 0 };
         marketerMetrics[marketer].total++;
-        if (referral.status === 'admitted' || referral.status === 'admitted_our_hospice') {
-          marketerMetrics[marketer].admitted++;
-        }
+        if (referral.status === 'admitted' || referral.status === 'admitted_our_hospice') marketerMetrics[marketer].admitted++;
       });
 
       return Object.values(marketerMetrics)
-        .map((marketer: any) => ({
-          ...marketer,
-          conversionRate: marketer.total > 0 ? Math.round((marketer.admitted / marketer.total) * 100) : 0
-        }))
+        .map((m: any) => ({ ...m, conversionRate: m.total > 0 ? Math.round((m.admitted / m.total) * 100) : 0 }))
         .sort((a: any, b: any) => b.total - a.total);
     }
   });
 
-  const generateReport = (reportType: string) => {
-    // In a real implementation, this would generate and download a report
-    console.log(`Generating ${reportType} report for period: ${selectedPeriod}`);
-    alert(`${reportType} report generation started. You will be notified when it's ready for download.`);
+  const handleExportCSV = () => {
+    const rows: Record<string, any>[] = [];
+
+    if (referralSummary) {
+      rows.push({
+        section: 'Summary', metric: 'Total Referrals', value: referralSummary.total
+      });
+      rows.push({ section: 'Summary', metric: 'Admitted', value: referralSummary.admitted });
+      rows.push({ section: 'Summary', metric: 'Pending', value: referralSummary.pending });
+      rows.push({ section: 'Summary', metric: 'Contacted', value: referralSummary.contacted });
+      rows.push({ section: 'Summary', metric: 'Conversion Rate', value: `${referralSummary.conversionRate}%` });
+    }
+
+    orgPerformance?.forEach(org => {
+      rows.push({ section: 'Organization', metric: org.name, value: org.total, conversionRate: `${org.conversionRate}%` });
+    });
+
+    marketerPerformance?.forEach(m => {
+      rows.push({ section: 'Marketer', metric: m.name, value: m.total, conversionRate: `${m.conversionRate}%` });
+    });
+
+    exportToCSV(rows, 'full-report', [
+      { key: 'section', label: 'Section' },
+      { key: 'metric', label: 'Metric' },
+      { key: 'value', label: 'Value' },
+      { key: 'conversionRate', label: 'Conversion Rate' },
+    ]);
   };
 
   return (
     <PageLayout title="Reports" subtitle="Generate and download comprehensive reports">
       <div className={isMobile ? "space-y-4" : "space-y-6"}>
-        {/* Period Selection */}
+        {/* Header with period selector and export */}
         <div className={`flex items-center ${isMobile ? 'flex-col gap-3' : 'justify-between'}`}>
           <h3 className={`font-semibold ${isMobile ? 'text-base w-full' : 'text-lg'}`}>Report Period</h3>
-          <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
-            <SelectTrigger className={isMobile ? "w-full" : "w-48"}>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="current-month">Current Month</SelectItem>
-              <SelectItem value="last-month">Last Month</SelectItem>
-              <SelectItem value="last-3-months">Last 3 Months</SelectItem>
-              <SelectItem value="last-6-months">Last 6 Months</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex items-center gap-2">
+            <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
+              <SelectTrigger className={isMobile ? "w-full" : "w-48"}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="current-month">Current Month</SelectItem>
+                <SelectItem value="last-month">Last Month</SelectItem>
+                <SelectItem value="last-3-months">Last 3 Months</SelectItem>
+                <SelectItem value="last-6-months">Last 6 Months</SelectItem>
+              </SelectContent>
+            </Select>
+            <ExportDropdown
+              onExportCSV={handleExportCSV}
+              onExportPDF={exportToPDF}
+              disabled={referralLoading}
+            />
+          </div>
         </div>
 
         {/* Summary Cards */}
@@ -172,7 +177,6 @@ const ReportsPage = () => {
               </div>
             </CardContent>
           </Card>
-
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center space-x-2">
@@ -184,7 +188,6 @@ const ReportsPage = () => {
               </div>
             </CardContent>
           </Card>
-
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center space-x-2">
@@ -196,7 +199,6 @@ const ReportsPage = () => {
               </div>
             </CardContent>
           </Card>
-
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center space-x-2">
@@ -210,57 +212,60 @@ const ReportsPage = () => {
           </Card>
         </div>
 
-        {/* Report Generation Cards */}
+        {/* Report Cards with individual export buttons */}
         <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 ${isMobile ? 'gap-3' : 'gap-6'}`}>
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <FileText className="h-5 w-5" />
-                <span>Referral Summary</span>
-              </CardTitle>
-              <CardDescription>
-                Detailed referral activity and conversion metrics
-              </CardDescription>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center space-x-2">
+                  <FileText className="h-5 w-5" />
+                  <span>Referral Summary</span>
+                </CardTitle>
+                <ChartExportButton onClick={() => {
+                  if (!referralSummary) return;
+                  exportToCSV([
+                    { metric: 'Total', value: referralSummary.total },
+                    { metric: 'Pending', value: referralSummary.pending },
+                    { metric: 'Contacted', value: referralSummary.contacted },
+                    { metric: 'Scheduled', value: referralSummary.scheduled },
+                    { metric: 'Admitted', value: referralSummary.admitted },
+                    { metric: 'Conversion Rate', value: `${referralSummary.conversionRate}%` },
+                  ], 'referral-summary', [
+                    { key: 'metric', label: 'Metric' },
+                    { key: 'value', label: 'Value' },
+                  ]);
+                }} />
+              </div>
+              <CardDescription>Detailed referral activity and conversion metrics</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-2 mb-4">
-                <div className="flex justify-between text-sm">
-                  <span>Total Referrals:</span>
-                  <span className="font-medium">{referralSummary?.total || 0}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span>Pending:</span>
-                  <span className="font-medium">{referralSummary?.pending || 0}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span>Contacted:</span>
-                  <span className="font-medium">{referralSummary?.contacted || 0}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span>Admitted:</span>
-                  <span className="font-medium">{referralSummary?.admitted || 0}</span>
-                </div>
+                <div className="flex justify-between text-sm"><span>Total Referrals:</span><span className="font-medium">{referralSummary?.total || 0}</span></div>
+                <div className="flex justify-between text-sm"><span>Pending:</span><span className="font-medium">{referralSummary?.pending || 0}</span></div>
+                <div className="flex justify-between text-sm"><span>Contacted:</span><span className="font-medium">{referralSummary?.contacted || 0}</span></div>
+                <div className="flex justify-between text-sm"><span>Admitted:</span><span className="font-medium">{referralSummary?.admitted || 0}</span></div>
               </div>
-              <Button 
-                className="w-full" 
-                onClick={() => generateReport('Referral Summary')}
-                disabled={referralLoading}
-              >
-                <Download className="w-4 h-4 mr-2" />
-                Generate Report
-              </Button>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Building className="h-5 w-5" />
-                <span>Organization Performance</span>
-              </CardTitle>
-              <CardDescription>
-                Top performing referral sources and conversion rates
-              </CardDescription>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center space-x-2">
+                  <Building className="h-5 w-5" />
+                  <span>Organization Performance</span>
+                </CardTitle>
+                <ChartExportButton onClick={() => {
+                  if (!orgPerformance) return;
+                  exportToCSV(orgPerformance, 'org-performance', [
+                    { key: 'name', label: 'Organization' },
+                    { key: 'total', label: 'Total Referrals' },
+                    { key: 'admitted', label: 'Admitted' },
+                    { key: 'conversionRate', label: 'Conversion Rate (%)' },
+                  ]);
+                }} />
+              </div>
+              <CardDescription>Top performing referral sources and conversion rates</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-2 mb-4">
@@ -274,26 +279,27 @@ const ReportsPage = () => {
                   <p className="text-sm text-muted-foreground">No data available</p>
                 )}
               </div>
-              <Button 
-                className="w-full" 
-                onClick={() => generateReport('Organization Performance')}
-                disabled={orgLoading}
-              >
-                <Download className="w-4 h-4 mr-2" />
-                Generate Report
-              </Button>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Users className="h-5 w-5" />
-                <span>Marketer Performance</span>
-              </CardTitle>
-              <CardDescription>
-                Individual marketer metrics and conversion rates
-              </CardDescription>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center space-x-2">
+                  <Users className="h-5 w-5" />
+                  <span>Marketer Performance</span>
+                </CardTitle>
+                <ChartExportButton onClick={() => {
+                  if (!marketerPerformance) return;
+                  exportToCSV(marketerPerformance, 'marketer-performance', [
+                    { key: 'name', label: 'Marketer' },
+                    { key: 'total', label: 'Total Referrals' },
+                    { key: 'admitted', label: 'Admitted' },
+                    { key: 'conversionRate', label: 'Conversion Rate (%)' },
+                  ]);
+                }} />
+              </div>
+              <CardDescription>Individual marketer metrics and conversion rates</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-2 mb-4">
@@ -307,14 +313,6 @@ const ReportsPage = () => {
                   <p className="text-sm text-muted-foreground">No data available</p>
                 )}
               </div>
-              <Button 
-                className="w-full" 
-                onClick={() => generateReport('Marketer Performance')}
-                disabled={marketerLoading}
-              >
-                <Download className="w-4 h-4 mr-2" />
-                Generate Report
-              </Button>
             </CardContent>
           </Card>
 
@@ -324,26 +322,15 @@ const ReportsPage = () => {
                 <TrendingUp className="h-5 w-5" />
                 <span>Conversion Funnel</span>
               </CardTitle>
-              <CardDescription>
-                Referral to admission conversion analysis
-              </CardDescription>
+              <CardDescription>Referral to admission conversion analysis</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-2 mb-4">
                 <div className="flex justify-between text-sm">
                   <span>Pending → Contacted:</span>
                   <span className="font-medium">
-                    {referralSummary?.pending && referralSummary?.contacted 
-                      ? Math.round((referralSummary.contacted / (referralSummary.pending + referralSummary.contacted)) * 100) 
-                      : 0}%
-                  </span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span>Contacted → Scheduled:</span>
-                  <span className="font-medium">
-                    {referralSummary?.contacted && referralSummary?.scheduled 
-                      ? Math.round((referralSummary.scheduled / referralSummary.contacted) * 100) 
-                      : 0}%
+                    {referralSummary?.pending && referralSummary?.contacted
+                      ? Math.round((referralSummary.contacted / (referralSummary.pending + referralSummary.contacted)) * 100) : 0}%
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
@@ -351,14 +338,6 @@ const ReportsPage = () => {
                   <span className="font-medium">{referralSummary?.conversionRate || 0}%</span>
                 </div>
               </div>
-              <Button 
-                className="w-full" 
-                onClick={() => generateReport('Conversion Funnel')}
-                disabled={referralLoading}
-              >
-                <Download className="w-4 h-4 mr-2" />
-                Generate Report
-              </Button>
             </CardContent>
           </Card>
 
@@ -368,15 +347,10 @@ const ReportsPage = () => {
                 <Calendar className="h-5 w-5" />
                 <span>Activity Report</span>
               </CardTitle>
-              <CardDescription>
-                Detailed activity log and follow-up tracking
-              </CardDescription>
+              <CardDescription>Detailed activity log and follow-up tracking</CardDescription>
             </CardHeader>
             <CardContent>
-              <Button 
-                className="w-full" 
-                onClick={() => generateReport('Activity Report')}
-              >
+              <Button className="w-full" onClick={() => exportToPDF()}>
                 <Download className="w-4 h-4 mr-2" />
                 Generate Report
               </Button>
@@ -389,59 +363,12 @@ const ReportsPage = () => {
                 <Target className="h-5 w-5" />
                 <span>Growth Goals Report</span>
               </CardTitle>
-              <CardDescription>
-                Account growth targets vs actual performance
-              </CardDescription>
+              <CardDescription>Account growth targets vs actual performance</CardDescription>
             </CardHeader>
             <CardContent>
-              <Button 
-                className="w-full" 
-                onClick={() => generateReport('Growth Goals')}
-              >
+              <Button className="w-full" onClick={() => exportToPDF()}>
                 <Download className="w-4 h-4 mr-2" />
                 Generate Report
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <FileText className="h-5 w-5" />
-                <span>Strategic Actions</span>
-              </CardTitle>
-              <CardDescription>
-                Action items and completion tracking
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button 
-                className="w-full" 
-                onClick={() => generateReport('Strategic Actions')}
-              >
-                <Download className="w-4 h-4 mr-2" />
-                Generate Report
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <FileText className="h-5 w-5" />
-                <span>Custom Date Range</span>
-              </CardTitle>
-              <CardDescription>
-                Generate reports for specific time periods
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button 
-                className="w-full" 
-                onClick={() => generateReport('Custom Date Range')}
-              >
-                <Download className="w-4 h-4 mr-2" />
-                Custom Report
               </Button>
             </CardContent>
           </Card>

@@ -14,6 +14,8 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { startOfWeek } from "date-fns";
+import ExportDropdown from "@/components/ui/export-dropdown";
+import { exportToCSV, exportToPDF } from "@/lib/exportUtils";
 
 const KPIPage = () => {
   const { user } = useAuth();
@@ -73,10 +75,25 @@ const KPIPage = () => {
 
   const tiers = kpiData?.accountTiers;
 
+  const handleExportCSV = () => {
+    if (!kpiData) return;
+    exportToCSV([
+      { metric: 'Weekly Events', value: kpiData.weeklyEvents, target: kpiData.weeklyEventsTarget },
+      { metric: 'Referrals Generated', value: kpiData.referralsGenerated, target: '' },
+      { metric: 'Accounts Visited', value: kpiData.accountsVisited, target: '' },
+      { metric: 'Visit Compliance', value: `${kpiData.visitCompliance}%`, target: '' },
+    ], 'kpi-dashboard', [
+      { key: 'metric', label: 'Metric' },
+      { key: 'value', label: 'Value' },
+      { key: 'target', label: 'Target' },
+    ]);
+  };
+
   return (
     <PageLayout 
       title="KPI Dashboard" 
       subtitle="Track leading and lagging indicators for referral growth"
+      actions={<ExportDropdown onExportCSV={handleExportCSV} onExportPDF={exportToPDF} disabled={isLoading} />}
     >
       <div className={isMobile ? "space-y-4" : "space-y-6"}>
         {/* Header with Key Metrics Overview */}
