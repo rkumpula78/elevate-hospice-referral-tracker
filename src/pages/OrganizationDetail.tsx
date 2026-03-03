@@ -19,6 +19,7 @@ import OrganizationValueProps from '@/components/value-props/OrganizationValuePr
 import AIQuickHelp from '@/components/dashboard/AIQuickHelp';
 import AccountGrowthCard from '@/components/crm/AccountGrowthCard';
 import StrategicActionsManager from '@/components/crm/StrategicActionsManager';
+import QuickLogActivitySheet from '@/components/crm/QuickLogActivitySheet';
 
 const OrganizationDetail = () => {
   const { id } = useParams();
@@ -128,6 +129,10 @@ const OrganizationDetail = () => {
 
   const headerActions = (
     <>
+      <QuickLogActivitySheet
+        organizationId={id!}
+        organizationName={organization.name}
+      />
       <AIQuickHelp 
         organizationName={organization.name}
         contextData={{

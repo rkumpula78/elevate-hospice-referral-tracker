@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Eye, EyeOff, MapPin, Phone, Printer, Mail, Globe, RotateCcw } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ONBOARDING_KEY } from "@/components/onboarding/OnboardingTour";
+import MyTemplatesSettings from "@/components/settings/MyTemplatesSettings";
 
 const SettingsPage = () => {
   const { user } = useAuth();
@@ -295,6 +296,8 @@ const SettingsPage = () => {
             </Button>
           </CardContent>
         </Card>
+
+        <MyTemplatesSettings />
       </div>
     </PageLayout>
   );
