@@ -39,6 +39,7 @@ const OrganizationContactsTab = ({ organizationId, organizationName }: Organizat
     npi_number: '',
     email: '',
     direct_phone: '',
+    cell_phone: '',
     fax_number: '',
     mailing_address: '',
     preferred_contact_method: 'email',
@@ -204,6 +205,7 @@ const OrganizationContactsTab = ({ organizationId, organizationName }: Organizat
       npi_number: '',
       email: '',
       direct_phone: '',
+      cell_phone: '',
       fax_number: '',
       mailing_address: '',
       preferred_contact_method: 'email',
@@ -273,6 +275,7 @@ const OrganizationContactsTab = ({ organizationId, organizationName }: Organizat
       npi_number: contact.npi_number || '',
       email: contact.email || '',
       direct_phone: contact.direct_phone || '',
+      cell_phone: (contact as any).cell_phone || '',
       fax_number: contact.fax_number || '',
       mailing_address: contact.mailing_address || '',
       preferred_contact_method: contact.preferred_contact_method || 'email',
@@ -459,6 +462,18 @@ const OrganizationContactsTab = ({ organizationId, organizationName }: Organizat
                         id="direct_phone"
                         value={formData.direct_phone}
                         onChange={(e) => setFormData(prev => ({ ...prev, direct_phone: e.target.value }))}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="cell_phone">Cell Phone</Label>
+                      <Input
+                        id="cell_phone"
+                        value={formData.cell_phone}
+                        onChange={(e) => setFormData(prev => ({ ...prev, cell_phone: e.target.value }))}
+                        placeholder="(XXX) XXX-XXXX"
                       />
                     </div>
                   </div>
@@ -972,6 +987,12 @@ const OrganizationContactsTab = ({ organizationId, organizationName }: Organizat
                        <div className="flex items-center gap-1">
                          <Phone className="w-3 h-3 flex-shrink-0 text-muted-foreground" />
                          <a href={`tel:${contact.direct_phone}`} className="text-blue-600 hover:underline truncate">{contact.direct_phone}</a>
+                       </div>
+                     )}
+                     {(contact as any).cell_phone && (
+                       <div className="flex items-center gap-1">
+                         <Phone className="w-3 h-3 flex-shrink-0 text-green-600" />
+                         <a href={`tel:${(contact as any).cell_phone}`} className="text-blue-600 hover:underline truncate">{(contact as any).cell_phone} (cell)</a>
                        </div>
                      )}
                      {contact.email && (

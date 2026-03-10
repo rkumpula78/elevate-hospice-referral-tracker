@@ -37,6 +37,7 @@ const AddContactDialog: React.FC<AddContactDialogProps> = ({
     last_name: '',
     title: '',
     direct_phone: '',
+    cell_phone: '',
     mobile_phone: '',
     email: '',
     specialization: '',
@@ -63,6 +64,7 @@ const AddContactDialog: React.FC<AddContactDialogProps> = ({
           last_name: data.last_name.trim(),
           title: data.title.trim() || null,
           direct_phone: data.direct_phone.trim() || null,
+          cell_phone: data.cell_phone.trim() || null,
           mobile_phone: data.mobile_phone.trim() || null,
           email: data.email.trim() || null,
           specialization: data.specialization.trim() || null,
@@ -145,7 +147,7 @@ const AddContactDialog: React.FC<AddContactDialogProps> = ({
     }
 
     // Validate that at least one contact method is provided
-    if (!formData.direct_phone.trim() && !formData.mobile_phone.trim() && !formData.email.trim()) {
+    if (!formData.direct_phone.trim() && !formData.cell_phone.trim() && !formData.mobile_phone.trim() && !formData.email.trim()) {
       toast({ 
         title: "Please provide at least one contact method (phone or email)", 
         variant: "destructive" 
@@ -167,6 +169,7 @@ const AddContactDialog: React.FC<AddContactDialogProps> = ({
       last_name: '',
       title: '',
       direct_phone: '',
+      cell_phone: '',
       mobile_phone: '',
       email: '',
       specialization: '',
@@ -251,11 +254,11 @@ const AddContactDialog: React.FC<AddContactDialogProps> = ({
               />
             </div>
             <div>
-              <Label htmlFor="mobile_phone">Mobile Phone</Label>
+              <Label htmlFor="cell_phone">Cell Phone</Label>
               <PhoneInput
-                id="mobile_phone"
-                value={formData.mobile_phone}
-                onChange={(value) => handleInputChange('mobile_phone', value)}
+                id="cell_phone"
+                value={formData.cell_phone}
+                onChange={(value) => handleInputChange('cell_phone', value)}
                 disabled={isSubmitting}
               />
             </div>

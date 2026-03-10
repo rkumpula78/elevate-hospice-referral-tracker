@@ -1,0 +1,1 @@
+ALTER TABLE public.organization_contacts ADD COLUMN cell_phone text;

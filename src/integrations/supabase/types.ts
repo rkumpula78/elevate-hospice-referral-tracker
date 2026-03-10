@@ -875,6 +875,7 @@ export type Database = {
           areas_of_service: string | null
           assigned_owner: string | null
           best_contact_times: string | null
+          cell_phone: string | null
           communication_log: Json | null
           communication_preferences: string[] | null
           consent_status: string | null
@@ -932,6 +933,7 @@ export type Database = {
           areas_of_service?: string | null
           assigned_owner?: string | null
           best_contact_times?: string | null
+          cell_phone?: string | null
           communication_log?: Json | null
           communication_preferences?: string[] | null
           consent_status?: string | null
@@ -989,6 +991,7 @@ export type Database = {
           areas_of_service?: string | null
           assigned_owner?: string | null
           best_contact_times?: string | null
+          cell_phone?: string | null
           communication_log?: Json | null
           communication_preferences?: string[] | null
           consent_status?: string | null
