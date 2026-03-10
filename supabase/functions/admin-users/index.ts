@@ -8,10 +8,12 @@ const corsHeaders = {
 };
 
 interface AdminRequest {
-  action: "list" | "delete" | "resend-invite" | "set-password";
+  action: "list" | "delete" | "resend-invite" | "set-password" | "update-user";
   userId?: string;
   email?: string;
   password?: string;
+  first_name?: string;
+  last_name?: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
