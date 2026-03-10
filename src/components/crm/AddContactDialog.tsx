@@ -64,6 +64,7 @@ const AddContactDialog: React.FC<AddContactDialogProps> = ({
           last_name: data.last_name.trim(),
           title: data.title.trim() || null,
           direct_phone: data.direct_phone.trim() || null,
+          cell_phone: data.cell_phone.trim() || null,
           mobile_phone: data.mobile_phone.trim() || null,
           email: data.email.trim() || null,
           specialization: data.specialization.trim() || null,
