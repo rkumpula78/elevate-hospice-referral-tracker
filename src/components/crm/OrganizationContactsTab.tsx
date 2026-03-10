@@ -205,6 +205,7 @@ const OrganizationContactsTab = ({ organizationId, organizationName }: Organizat
       npi_number: '',
       email: '',
       direct_phone: '',
+      cell_phone: '',
       fax_number: '',
       mailing_address: '',
       preferred_contact_method: 'email',
