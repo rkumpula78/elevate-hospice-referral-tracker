@@ -299,6 +299,43 @@ export default function AdminUsersPage() {
     }
   };
 
+  const openEditDialog = (user: UserWithRoles) => {
+    setEditUser(user);
+    setEditFirstName(user.first_name || '');
+    setEditLastName(user.last_name || '');
+    setEditEmail(user.email || '');
+  };
+
+  const handleEditUser = async () => {
+    if (!editUser) return;
+
+    try {
+      setSavingEdit(true);
+
+      const { data, error } = await supabase.functions.invoke('admin-users', {
+        body: {
+          action: 'update-user',
+          userId: editUser.id,
+          first_name: editFirstName,
+          last_name: editLastName,
+          ...(editEmail !== editUser.email ? { email: editEmail } : {}),
+        },
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error.message);
+
+      toast.success('User updated successfully');
+      setEditUser(null);
+      loadUsers();
+    } catch (error: any) {
+      console.error('Error updating user:', error);
+      toast.error(error.message || 'Failed to update user');
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'active':
