@@ -275,6 +275,7 @@ const OrganizationContactsTab = ({ organizationId, organizationName }: Organizat
       npi_number: contact.npi_number || '',
       email: contact.email || '',
       direct_phone: contact.direct_phone || '',
+      cell_phone: (contact as any).cell_phone || '',
       fax_number: contact.fax_number || '',
       mailing_address: contact.mailing_address || '',
       preferred_contact_method: contact.preferred_contact_method || 'email',
