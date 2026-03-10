@@ -169,6 +169,7 @@ const AddContactDialog: React.FC<AddContactDialogProps> = ({
       last_name: '',
       title: '',
       direct_phone: '',
+      cell_phone: '',
       mobile_phone: '',
       email: '',
       specialization: '',
