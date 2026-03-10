@@ -248,7 +248,7 @@ const MyDayView = () => {
       </Card>
 
       {/* Today's Schedule */}
-      <Card>
+      <Card data-tour="my-day-schedule">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
             <Clock className="h-4 w-4 text-primary" />
