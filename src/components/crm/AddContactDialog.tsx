@@ -147,7 +147,7 @@ const AddContactDialog: React.FC<AddContactDialogProps> = ({
     }
 
     // Validate that at least one contact method is provided
-    if (!formData.direct_phone.trim() && !formData.mobile_phone.trim() && !formData.email.trim()) {
+    if (!formData.direct_phone.trim() && !formData.cell_phone.trim() && !formData.mobile_phone.trim() && !formData.email.trim()) {
       toast({ 
         title: "Please provide at least one contact method (phone or email)", 
         variant: "destructive" 
