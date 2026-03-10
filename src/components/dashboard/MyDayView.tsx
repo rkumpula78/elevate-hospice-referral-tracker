@@ -196,7 +196,7 @@ const MyDayView = () => {
       </div>
 
       {/* Overdue Follow-ups (priority) */}
-      <Card className="border-destructive/30">
+      <Card className="border-destructive/30" data-tour="my-day-overdue">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
             <AlertTriangle className="h-4 w-4 text-destructive" />
