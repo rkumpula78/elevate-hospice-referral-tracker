@@ -40,6 +40,11 @@ export default function AdminUsersPage() {
   const [passwordDialogUser, setPasswordDialogUser] = useState<UserWithRoles | null>(null);
   const [newPassword, setNewPassword] = useState('');
   const [settingPassword, setSettingPassword] = useState(false);
+  const [editUser, setEditUser] = useState<UserWithRoles | null>(null);
+  const [editFirstName, setEditFirstName] = useState('');
+  const [editLastName, setEditLastName] = useState('');
+  const [editEmail, setEditEmail] = useState('');
+  const [savingEdit, setSavingEdit] = useState(false);
   
   const [newUserEmail, setNewUserEmail] = useState('');
   const [newUserPassword, setNewUserPassword] = useState('');
