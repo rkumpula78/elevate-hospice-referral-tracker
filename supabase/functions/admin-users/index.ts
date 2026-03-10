@@ -63,7 +63,7 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    const { action, userId, email, password }: AdminRequest = await req.json();
+    const { action, userId, email, password, first_name, last_name }: AdminRequest = await req.json();
 
     // LIST: Get all auth users with status
     if (action === "list") {
