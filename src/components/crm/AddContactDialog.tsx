@@ -254,11 +254,11 @@ const AddContactDialog: React.FC<AddContactDialogProps> = ({
               />
             </div>
             <div>
-              <Label htmlFor="mobile_phone">Mobile Phone</Label>
+              <Label htmlFor="cell_phone">Cell Phone</Label>
               <PhoneInput
-                id="mobile_phone"
-                value={formData.mobile_phone}
-                onChange={(value) => handleInputChange('mobile_phone', value)}
+                id="cell_phone"
+                value={formData.cell_phone}
+                onChange={(value) => handleInputChange('cell_phone', value)}
                 disabled={isSubmitting}
               />
             </div>

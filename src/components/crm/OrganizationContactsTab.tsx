@@ -989,6 +989,12 @@ const OrganizationContactsTab = ({ organizationId, organizationName }: Organizat
                          <a href={`tel:${contact.direct_phone}`} className="text-blue-600 hover:underline truncate">{contact.direct_phone}</a>
                        </div>
                      )}
+                     {(contact as any).cell_phone && (
+                       <div className="flex items-center gap-1">
+                         <Phone className="w-3 h-3 flex-shrink-0 text-green-600" />
+                         <a href={`tel:${(contact as any).cell_phone}`} className="text-blue-600 hover:underline truncate">{(contact as any).cell_phone} (cell)</a>
+                       </div>
+                     )}
                      {contact.email && (
                        <div className="flex items-center gap-1">
                          <Mail className="w-3 h-3 flex-shrink-0" />
