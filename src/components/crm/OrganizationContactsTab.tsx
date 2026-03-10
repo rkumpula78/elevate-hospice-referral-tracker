@@ -468,6 +468,18 @@ const OrganizationContactsTab = ({ organizationId, organizationName }: Organizat
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
+                      <Label htmlFor="cell_phone">Cell Phone</Label>
+                      <Input
+                        id="cell_phone"
+                        value={formData.cell_phone}
+                        onChange={(e) => setFormData(prev => ({ ...prev, cell_phone: e.target.value }))}
+                        placeholder="(XXX) XXX-XXXX"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
                       <Label htmlFor="fax_number">Fax Number</Label>
                       <Input
                         id="fax_number"
