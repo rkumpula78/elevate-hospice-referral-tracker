@@ -248,6 +248,59 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
+    // UPDATE-USER: Update user metadata (name, email)
+    if (action === "update-user") {
+      if (!userId) {
+        return new Response(
+          JSON.stringify({ error: { message: "userId is required" } }),
+          { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        );
+      }
+
+      const updatePayload: any = {};
+      if (first_name !== undefined || last_name !== undefined) {
+        updatePayload.user_metadata = {};
+        if (first_name !== undefined) updatePayload.user_metadata.first_name = first_name;
+        if (last_name !== undefined) updatePayload.user_metadata.last_name = last_name;
+      }
+      if (email) {
+        updatePayload.email = email;
+      }
+
+      const { error: updateError } = await adminClient.auth.admin.updateUserById(userId, updatePayload);
+
+      if (updateError) {
+        console.error("Update user error:", updateError);
+        return new Response(
+          JSON.stringify({ error: updateError }),
+          { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        );
+      }
+
+      // Also update profiles table
+      const profileUpdate: any = {};
+      if (first_name !== undefined) profileUpdate.first_name = first_name;
+      if (last_name !== undefined) profileUpdate.last_name = last_name;
+      if (email) profileUpdate.email = email;
+
+      if (Object.keys(profileUpdate).length > 0) {
+        await adminClient.from("profiles").update(profileUpdate).eq("id", userId);
+      }
+
+      // Log the action
+      await adminClient.from("admin_audit_log").insert({
+        admin_user_id: userData.user.id,
+        action: "update_user",
+        target_user_id: userId,
+        details: { first_name, last_name, email },
+      });
+
+      return new Response(
+        JSON.stringify({ message: "User updated successfully" }),
+        { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
     return new Response(
       JSON.stringify({ error: { message: "Invalid action" } }),
       { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
