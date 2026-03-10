@@ -489,6 +489,14 @@ export default function AdminUsersPage() {
                         <Button
                           size="sm"
                           variant="ghost"
+                          onClick={() => openEditDialog(user)}
+                          title="Edit user"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
                           onClick={() => toggleAdminRole(user.id, user.roles.includes('admin'))}
                           disabled={user.id === currentUser?.id}
                           title={user.roles.includes('admin') ? 'Remove admin role' : 'Make admin'}
