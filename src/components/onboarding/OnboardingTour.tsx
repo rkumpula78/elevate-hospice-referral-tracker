@@ -13,27 +13,27 @@ const tourSteps: Step[] = [
     disableBeacon: true,
   },
   {
-    target: '[data-tour="census-card"]',
-    content: 'Track your current patient census here. You can update counts and see trends over time.',
-    title: 'Census Tracking',
-    placement: 'bottom',
-  },
-  {
-    target: '[data-tour="quick-add"]',
-    content: 'Tap here to quickly add referrals, notes, or activities — even while on the go.',
-    title: 'Quick Add',
-    placement: 'bottom',
-  },
-  {
     target: '[data-tour="sidebar-nav"]',
     content: 'Navigate between Referrals, Organizations, Schedule, Training, and more from here.',
     title: 'Navigation',
     placement: 'right',
   },
   {
-    target: '[data-tour="overdue-followups"]',
-    content: 'Never miss a follow-up. Overdue items appear here highlighted in red so you can act fast.',
+    target: '[data-tour="my-day-schedule"]',
+    content: "See your scheduled visits and activities for today at a glance.",
+    title: "Today's Schedule",
+    placement: 'bottom',
+  },
+  {
+    target: '[data-tour="my-day-overdue"]',
+    content: 'Never miss a follow-up. Overdue items appear here highlighted so you can act fast.',
     title: 'Overdue Follow-ups',
+    placement: 'bottom',
+  },
+  {
+    target: '[data-tour="my-day-stats"]',
+    content: 'Track your weekly progress — visits, referrals, and follow-ups all in one place.',
+    title: 'Weekly Stats',
     placement: 'top',
   },
 ];

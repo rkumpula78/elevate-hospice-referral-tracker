@@ -172,7 +172,7 @@ const MyDayView = () => {
   const content = (
     <div className="space-y-5">
       {/* Quick Stats Bar */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-3 gap-3" data-tour="my-day-stats">
         {statsLoading ? (
           Array.from({ length: 3 }).map((_, i) => (
             <Skeleton key={i} className="h-16 rounded-lg" />
@@ -196,7 +196,7 @@ const MyDayView = () => {
       </div>
 
       {/* Overdue Follow-ups (priority) */}
-      <Card className="border-destructive/30">
+      <Card className="border-destructive/30" data-tour="my-day-overdue">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
             <AlertTriangle className="h-4 w-4 text-destructive" />
@@ -248,7 +248,7 @@ const MyDayView = () => {
       </Card>
 
       {/* Today's Schedule */}
-      <Card>
+      <Card data-tour="my-day-schedule">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
             <Clock className="h-4 w-4 text-primary" />

@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from 'sonner';
-import { UserPlus, Trash2, Shield, ShieldOff, Mail, RefreshCw, Loader2, KeyRound } from 'lucide-react';
+import { UserPlus, Trash2, Shield, ShieldOff, Mail, RefreshCw, Loader2, KeyRound, Pencil } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
 interface AuthUser {
@@ -40,6 +40,11 @@ export default function AdminUsersPage() {
   const [passwordDialogUser, setPasswordDialogUser] = useState<UserWithRoles | null>(null);
   const [newPassword, setNewPassword] = useState('');
   const [settingPassword, setSettingPassword] = useState(false);
+  const [editUser, setEditUser] = useState<UserWithRoles | null>(null);
+  const [editFirstName, setEditFirstName] = useState('');
+  const [editLastName, setEditLastName] = useState('');
+  const [editEmail, setEditEmail] = useState('');
+  const [savingEdit, setSavingEdit] = useState(false);
   
   const [newUserEmail, setNewUserEmail] = useState('');
   const [newUserPassword, setNewUserPassword] = useState('');
@@ -294,6 +299,43 @@ export default function AdminUsersPage() {
     }
   };
 
+  const openEditDialog = (user: UserWithRoles) => {
+    setEditUser(user);
+    setEditFirstName(user.first_name || '');
+    setEditLastName(user.last_name || '');
+    setEditEmail(user.email || '');
+  };
+
+  const handleEditUser = async () => {
+    if (!editUser) return;
+
+    try {
+      setSavingEdit(true);
+
+      const { data, error } = await supabase.functions.invoke('admin-users', {
+        body: {
+          action: 'update-user',
+          userId: editUser.id,
+          first_name: editFirstName,
+          last_name: editLastName,
+          ...(editEmail !== editUser.email ? { email: editEmail } : {}),
+        },
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error.message);
+
+      toast.success('User updated successfully');
+      setEditUser(null);
+      loadUsers();
+    } catch (error: any) {
+      console.error('Error updating user:', error);
+      toast.error(error.message || 'Failed to update user');
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'active':
@@ -447,6 +489,14 @@ export default function AdminUsersPage() {
                         <Button
                           size="sm"
                           variant="ghost"
+                          onClick={() => openEditDialog(user)}
+                          title="Edit user"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
                           onClick={() => toggleAdminRole(user.id, user.roles.includes('admin'))}
                           disabled={user.id === currentUser?.id}
                           title={user.roles.includes('admin') ? 'Remove admin role' : 'Make admin'}
@@ -516,6 +566,50 @@ export default function AdminUsersPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog open={!!editUser} onOpenChange={(open) => { if (!open) setEditUser(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit User</DialogTitle>
+            <DialogDescription>
+              Update user details for {editUser?.email}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-firstName">First Name</Label>
+                <Input
+                  id="edit-firstName"
+                  value={editFirstName}
+                  onChange={(e) => setEditFirstName(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-lastName">Last Name</Label>
+                <Input
+                  id="edit-lastName"
+                  value={editLastName}
+                  onChange={(e) => setEditLastName(e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-email">Email</Label>
+              <Input
+                id="edit-email"
+                type="email"
+                value={editEmail}
+                onChange={(e) => setEditEmail(e.target.value)}
+              />
+            </div>
+            <Button onClick={handleEditUser} className="w-full" disabled={savingEdit}>
+              {savingEdit && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              Save Changes
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={!!passwordDialogUser} onOpenChange={(open) => { if (!open) { setPasswordDialogUser(null); setNewPassword(''); } }}>
         <DialogContent>
