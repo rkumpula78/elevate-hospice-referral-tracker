@@ -157,6 +157,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const signOut = async () => {
+    clearQueue(); // Remove any queued data from localStorage on logout
     await supabase.auth.signOut();
   };
 
