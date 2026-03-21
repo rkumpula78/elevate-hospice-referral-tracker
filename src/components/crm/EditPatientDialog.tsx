@@ -66,7 +66,7 @@ const EditPatientDialog = ({ open, onOpenChange, patientId }: EditPatientDialogP
         .order('created_at', { ascending: false });
       
       if (error) {
-        console.error('Error fetching documents:', error);
+        console.error('Error fetching documents:', error.message);
         throw error;
       }
       console.log('Documents fetched:', data);
