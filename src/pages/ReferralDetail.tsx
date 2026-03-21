@@ -205,6 +205,14 @@ const ReferralDetail = () => {
             </Card>
           )}
 
+          {referral.admission_date && (
+            <BenefitPeriodTracker
+              admissionDate={new Date(referral.admission_date)}
+              patientName={referral.patient_name}
+              compact
+            />
+          )}
+
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
