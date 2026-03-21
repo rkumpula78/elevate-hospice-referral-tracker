@@ -45,7 +45,7 @@ export function MobileFAB() {
       )}
 
       {/* Speed dial options */}
-      <div className="fixed bottom-20 right-4 z-50 flex flex-col-reverse items-end gap-3">
+      <div className={cn("fixed bottom-20 right-4 z-50 flex flex-col-reverse items-end gap-3", !isOpen && "pointer-events-none")}>
         {isOpen && speedDialItems.map((item, i) => (
           <button
             key={item.key}
