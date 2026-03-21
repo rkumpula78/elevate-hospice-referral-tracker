@@ -48,6 +48,11 @@ const OnboardingTour: React.FC<OnboardingTourProps> = ({ run: runProp, onComplet
   const isMobile = useIsMobile();
 
   useEffect(() => {
+    // Disable onboarding tour on mobile — the overlay blocks interaction
+    if (isMobile) {
+      setRun(false);
+      return;
+    }
     if (runProp !== undefined) {
       setRun(runProp);
       return;
@@ -58,7 +63,7 @@ const OnboardingTour: React.FC<OnboardingTourProps> = ({ run: runProp, onComplet
       const timer = setTimeout(() => setRun(true), 1000);
       return () => clearTimeout(timer);
     }
-  }, [runProp]);
+  }, [runProp, isMobile]);
 
   const handleCallback = (data: CallBackProps) => {
     const { status } = data;
