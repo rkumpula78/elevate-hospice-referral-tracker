@@ -18,7 +18,7 @@ export async function geocodeOrganizationAddress(
     if (error || !data?.latitude) return null;
     return { latitude: data.latitude, longitude: data.longitude };
   } catch {
-    console.error('Geocoding failed for address:', address);
+    console.error('Geocoding failed');
     return null;
   }
 }

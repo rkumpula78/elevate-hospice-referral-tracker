@@ -37,7 +37,7 @@ const EditPatientDialog = ({ open, onOpenChange, patientId }: EditPatientDialogP
   const { data: patient, isLoading } = useQuery({
     queryKey: ['patient', patientId],
     queryFn: async () => {
-      console.log('Fetching patient data for ID:', patientId);
+      // PHI-safe: only log record ID
       const { data, error } = await supabase
         .from('patients')
         .select('*')
@@ -45,10 +45,10 @@ const EditPatientDialog = ({ open, onOpenChange, patientId }: EditPatientDialogP
         .single();
       
       if (error) {
-        console.error('Error fetching patient:', error);
+        console.error('Error fetching patient:', error.message);
         throw error;
       }
-      console.log('Patient data fetched:', data);
+      console.log('Patient data fetched for ID:', data?.id);
       return data;
     },
     enabled: open && !!patientId
@@ -58,7 +58,7 @@ const EditPatientDialog = ({ open, onOpenChange, patientId }: EditPatientDialogP
   const { data: documents } = useQuery({
     queryKey: ['patient-documents', patientId],
     queryFn: async () => {
-      console.log('Fetching documents for patient ID:', patientId);
+      // PHI-safe: only log patient ID
       const { data, error } = await supabase
         .from('patient_documents')
         .select('*')
@@ -66,10 +66,10 @@ const EditPatientDialog = ({ open, onOpenChange, patientId }: EditPatientDialogP
         .order('created_at', { ascending: false });
       
       if (error) {
-        console.error('Error fetching documents:', error);
+        console.error('Error fetching documents:', error.message);
         throw error;
       }
-      console.log('Documents fetched:', data);
+      console.log('Documents fetched:', data?.length, 'records');
       return data;
     },
     enabled: open && !!patientId
@@ -78,14 +78,14 @@ const EditPatientDialog = ({ open, onOpenChange, patientId }: EditPatientDialogP
   // Update patient mutation
   const updatePatientMutation = useMutation({
     mutationFn: async (data: any) => {
-      console.log('Updating patient with data:', data);
+      console.log('Updating patient ID:', patientId);
       const { error } = await supabase
         .from('patients')
         .update(data)
         .eq('id', patientId);
       
       if (error) {
-        console.error('Error updating patient:', error);
+        console.error('Error updating patient:', error.message);
         throw error;
       }
     },
@@ -96,7 +96,7 @@ const EditPatientDialog = ({ open, onOpenChange, patientId }: EditPatientDialogP
       onOpenChange(false); // Close dialog on successful update
     },
     onError: (error) => {
-      console.error('Update patient mutation error:', error);
+      console.error('Update patient mutation error:', error.message);
       toast({ title: 'Error updating patient', description: error.message, variant: 'destructive' });
     }
   });
@@ -122,7 +122,7 @@ const EditPatientDialog = ({ open, onOpenChange, patientId }: EditPatientDialogP
         throw uploadError;
       }
 
-      console.log('File uploaded successfully:', uploadData);
+      console.log('File uploaded successfully');
 
       // Create document record
       const { data: docData, error: dbError } = await supabase
@@ -143,7 +143,7 @@ const EditPatientDialog = ({ open, onOpenChange, patientId }: EditPatientDialogP
         throw dbError;
       }
 
-      console.log('Document record created:', docData);
+      console.log('Document record created:', docData?.id);
       return docData;
     },
     onSuccess: () => {
@@ -214,7 +214,7 @@ const EditPatientDialog = ({ open, onOpenChange, patientId }: EditPatientDialogP
       }
     }
 
-    console.log('Submitting patient update:', updateData);
+    console.log('Submitting patient update for ID:', patientId);
     updatePatientMutation.mutate(updateData);
   };
 

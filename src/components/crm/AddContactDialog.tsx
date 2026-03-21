@@ -49,7 +49,7 @@ const AddContactDialog: React.FC<AddContactDialogProps> = ({
 
   const addContactMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      console.log('Adding contact with data:', { organizationId, ...data });
+      console.log('Adding contact for organization:', organizationId);
       
       // Validate organizationId exists
       if (!organizationId) {
@@ -155,7 +155,7 @@ const AddContactDialog: React.FC<AddContactDialogProps> = ({
       return;
     }
     
-    console.log('Submitting contact form with data:', formData);
+    console.log('Submitting contact form for organization:', organizationId);
     addContactMutation.mutate(formData);
   };
 
