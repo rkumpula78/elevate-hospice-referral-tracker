@@ -9,7 +9,7 @@ export interface BenefitPeriod {
   totalDays: number;
   f2fRequired: boolean;
   f2fDeadline?: Date;
-  certificationDays: number; // 60, 90, or subsequent 60-day periods
+  certificationDays: number; // 90 (periods 1-2) or 60 (period 3+)
   isActive: boolean;
   status: 'current' | 'upcoming' | 'completed';
 }
