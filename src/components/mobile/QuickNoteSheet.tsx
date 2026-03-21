@@ -163,7 +163,7 @@ export function QuickNoteSheet({ open, onOpenChange, prefilledOrgId }: QuickNote
           {/* Save */}
           <Button
             onClick={() => saveMutation.mutate()}
-            disabled={!note.trim() || saveMutation.isPending}
+            disabled={!note.trim() || !orgId || saveMutation.isPending}
             className="w-full h-12 text-base"
           >
             {saveMutation.isPending ? (
