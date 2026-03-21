@@ -647,7 +647,7 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
                     isUpdatingStatus={updateStatusMutation.isPending}
                     isUpdatingPriority={updatePriorityMutation.isPending}
                     isUpdatingMarketer={updateMarketerMutation.isPending}
-                    onStatusChange={(id, status) => updateStatusMutation.mutate({ id, status: status as ReferralStatus })}
+                    onStatusChange={(id, status) => updateStatusMutation.mutate({ id, status: status as ReferralStatusValue })}
                     onPriorityChange={(id, priority) => updatePriorityMutation.mutate({ id, priority })}
                     onMarketerChange={handleMarketerChange}
                     onEdit={handleEditReferral}
