@@ -74,6 +74,8 @@ const OnboardingTour: React.FC<OnboardingTourProps> = ({ run: runProp, onComplet
     }
   };
 
+  if (isMobile) return null;
+
   return (
     <Joyride
       steps={tourSteps}
