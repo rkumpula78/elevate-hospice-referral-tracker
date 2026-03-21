@@ -338,7 +338,7 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
             Next<ArrowRight className="w-4 h-4 ml-1" />
           </Button>
         ) : (
-          <Button type="button" onClick={handleSubmit} disabled={isSubmitting || !formData.patient_name.trim()} className="h-12 sm:h-10">
+          <Button type="button" onClick={handleSubmit} disabled={isSubmitting || requiredFieldsCompleted < REQUIRED_FIELDS.length} className="h-12 sm:h-10">
             {isSubmitting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Adding...</> : 'Add Referral'}
           </Button>
         )}
