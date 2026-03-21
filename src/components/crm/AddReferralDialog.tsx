@@ -69,6 +69,43 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
   const [showDuplicateWarning, setShowDuplicateWarning] = useState(false);
   const [duplicateCheckDone, setDuplicateCheckDone] = useState(false);
 
+  // Duplicate detection
+  const checkForDuplicates = useCallback(async (name: string, phone?: string) => {
+    if (!name || name.trim().length < 2) return;
+    const trimmed = name.trim().toLowerCase();
+    
+    let query = supabase
+      .from('referrals')
+      .select('id, patient_name, status, created_at, organizations(name)')
+      .ilike('patient_name', `%${trimmed}%`)
+      .limit(5);
+
+    const { data: nameMatches } = await query;
+    let allMatches = nameMatches || [];
+
+    // Also check phone if provided
+    if (phone && phone.trim().length >= 10) {
+      const { data: phoneMatches } = await supabase
+        .from('referrals')
+        .select('id, patient_name, status, created_at, organizations(name)')
+        .eq('patient_phone', phone)
+        .limit(5);
+      
+      if (phoneMatches) {
+        const existingIds = new Set(allMatches.map(m => m.id));
+        for (const pm of phoneMatches) {
+          if (!existingIds.has(pm.id)) allMatches.push(pm);
+        }
+      }
+    }
+
+    setDuplicates(allMatches);
+    setDuplicateCheckDone(true);
+    if (allMatches.length > 0) {
+      setShowDuplicateWarning(true);
+    }
+  }, []);
+
   // Reset when dialog closes
   useEffect(() => {
     if (!open) {
@@ -78,6 +115,9 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
       setTouchedFields({});
       setShowNewOrgForm(false);
       setNewOrgName('');
+      setDuplicates([]);
+      setShowDuplicateWarning(false);
+      setDuplicateCheckDone(false);
     }
   }, [open]);
 
