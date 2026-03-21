@@ -46,7 +46,7 @@ interface OnboardingTourProps {
 const OnboardingTour: React.FC<OnboardingTourProps> = ({ run: runProp, onComplete }) => {
   const [run, setRun] = useState(false);
   const isMobile = useIsMobile();
-
+  const isMobileImmediate = typeof window !== 'undefined' && window.innerWidth < 768;
   useEffect(() => {
     // Disable onboarding tour on mobile — the overlay blocks interaction
     if (isMobile) {
@@ -73,6 +73,8 @@ const OnboardingTour: React.FC<OnboardingTourProps> = ({ run: runProp, onComplet
       onComplete?.();
     }
   };
+
+  if (isMobile || isMobileImmediate) return null;
 
   return (
     <Joyride
