@@ -211,8 +211,13 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
 
   // Step validation
   const validateStep = (step: number): boolean => {
-    if (step === 1) return !!formData.patient_name.trim();
-    if (step === 3 && formData.status === 'closed') return !!formData.reason_for_non_admittance.trim();
+    if (step === 1) return !!formData.patient_name.trim() && !!formData.patient_phone.trim() && !!formData.patient_address.trim();
+    if (step === 2) return !!formData.organization_id || showNewOrgForm;
+    if (step === 3) {
+      if (!formData.diagnosis.trim() || !formData.insurance.trim()) return false;
+      if (formData.status === 'closed' && !formData.reason_for_non_admittance.trim()) return false;
+      return true;
+    }
     return true;
   };
 
