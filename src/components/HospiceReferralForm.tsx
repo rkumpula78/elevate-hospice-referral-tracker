@@ -208,7 +208,7 @@ const HospiceReferralForm = () => {
         throw error;
       }
 
-      console.log('Referral saved successfully:', data);
+      console.log('Referral saved successfully:', data?.id);
 
       createConfetti();
       setShowSuccess(true);

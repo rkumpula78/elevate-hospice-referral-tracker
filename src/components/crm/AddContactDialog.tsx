@@ -155,7 +155,7 @@ const AddContactDialog: React.FC<AddContactDialogProps> = ({
       return;
     }
     
-    console.log('Submitting contact form with data:', formData);
+    console.log('Submitting contact form for organization:', organizationId);
     addContactMutation.mutate(formData);
   };
 

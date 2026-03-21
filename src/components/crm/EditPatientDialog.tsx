@@ -214,7 +214,7 @@ const EditPatientDialog = ({ open, onOpenChange, patientId }: EditPatientDialogP
       }
     }
 
-    console.log('Submitting patient update:', updateData);
+    console.log('Submitting patient update for ID:', patientId);
     updatePatientMutation.mutate(updateData);
   };
 
