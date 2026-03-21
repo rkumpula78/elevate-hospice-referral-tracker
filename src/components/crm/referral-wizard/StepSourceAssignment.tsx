@@ -28,6 +28,9 @@ interface StepSourceAssignmentProps {
   setNewOrgName: (v: string) => void;
   newOrgType: string;
   setNewOrgType: (v: any) => void;
+  fieldErrors?: Record<string, string>;
+  touchedFields?: Record<string, boolean>;
+  onFieldBlur?: (field: string) => void;
   disabled: boolean;
 }
 
