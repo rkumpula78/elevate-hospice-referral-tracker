@@ -11,6 +11,8 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { FloatingActionButton } from '@/components/ui/floating-action-button';
 import QuickAddDialog from '@/components/crm/QuickAddDialog';
 import { AccountRatingBadge } from '@/components/crm/AccountRatingBadge';
+import MyRouteThisWeek from '@/components/dashboard/MyRouteThisWeek';
+import GoalProgressWidget from '@/components/dashboard/GoalProgressWidget';
 import PullToRefresh from 'react-simple-pull-to-refresh';
 import {
   format, startOfDay, startOfWeek, startOfMonth, differenceInDays, parseISO,
