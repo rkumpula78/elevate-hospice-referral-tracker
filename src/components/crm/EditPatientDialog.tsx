@@ -69,7 +69,7 @@ const EditPatientDialog = ({ open, onOpenChange, patientId }: EditPatientDialogP
         console.error('Error fetching documents:', error.message);
         throw error;
       }
-      console.log('Documents fetched:', data);
+      console.log('Documents fetched:', data?.length, 'records');
       return data;
     },
     enabled: open && !!patientId
