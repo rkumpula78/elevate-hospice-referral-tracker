@@ -348,8 +348,9 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
 
   const content = (
     <div className="flex flex-col h-full">
-      <div className="px-4 sm:px-6 py-3 border-b">
+      <div className="px-4 sm:px-6 py-3 border-b space-y-2">
         <ReferralWizardStepper currentStep={currentStep} />
+        <RequiredFieldsIndicator total={REQUIRED_FIELDS.length} completed={requiredFieldsCompleted} />
       </div>
       <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4">
         {renderStep()}
