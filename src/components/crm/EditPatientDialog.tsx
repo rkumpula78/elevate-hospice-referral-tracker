@@ -85,7 +85,7 @@ const EditPatientDialog = ({ open, onOpenChange, patientId }: EditPatientDialogP
         .eq('id', patientId);
       
       if (error) {
-        console.error('Error updating patient:', error);
+        console.error('Error updating patient:', error.message);
         throw error;
       }
     },
