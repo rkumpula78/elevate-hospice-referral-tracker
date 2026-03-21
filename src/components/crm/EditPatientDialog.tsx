@@ -96,7 +96,7 @@ const EditPatientDialog = ({ open, onOpenChange, patientId }: EditPatientDialogP
       onOpenChange(false); // Close dialog on successful update
     },
     onError: (error) => {
-      console.error('Update patient mutation error:', error);
+      console.error('Update patient mutation error:', error.message);
       toast({ title: 'Error updating patient', description: error.message, variant: 'destructive' });
     }
   });
