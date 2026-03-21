@@ -382,6 +382,35 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
       return;
     }
 
+    // Admission gate-check: require key fields before admitting
+    if (updateData.status === 'admitted' && referralData?.status !== 'admitted') {
+      const admissionRequiredFields = [
+        { key: 'patient_name', label: 'Patient Name' },
+        { key: 'address', label: 'Address' },
+        { key: 'date_of_birth', label: 'Date of Birth' },
+        { key: 'diagnosis', label: 'Primary Diagnosis' },
+        { key: 'insurance', label: 'Insurance', alt: 'primary_insurance' },
+        { key: 'physician', label: 'Physician', alt: 'referring_physician' },
+        { key: 'emergency_contact', label: 'Emergency Contact' },
+        { key: 'emergency_phone', label: 'Emergency Phone' },
+        { key: 'responsible_party_name', label: 'Responsible Party' },
+      ];
+
+      const missing = admissionRequiredFields.filter(f => {
+        const val = updateData[f.key] || (f.alt ? updateData[f.alt] : null);
+        return !val || (typeof val === 'string' && !val.trim());
+      });
+
+      if (missing.length > 0) {
+        toast({
+          title: 'Cannot admit: missing required fields',
+          description: missing.map(f => f.label).join(', '),
+          variant: 'destructive',
+        });
+        return;
+      }
+    }
+
     try {
       await updateReferralMutation.mutateAsync(updateData);
       onOpenChange(false);
