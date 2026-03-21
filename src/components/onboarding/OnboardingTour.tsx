@@ -74,7 +74,7 @@ const OnboardingTour: React.FC<OnboardingTourProps> = ({ run: runProp, onComplet
     }
   };
 
-  if (isMobile) return null;
+  if (isMobile || isMobileImmediate) return null;
 
   return (
     <Joyride
