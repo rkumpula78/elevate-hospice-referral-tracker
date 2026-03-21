@@ -6,36 +6,72 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const VALID_TYPES = ['new_referral', 'f2f_deadline', 'status_change'] as const;
+
 interface TeamsWebhookPayload {
-  type: 'new_referral' | 'f2f_deadline' | 'status_change';
+  type: typeof VALID_TYPES[number];
   referral_id: string;
   data?: any;
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
-    // Initialize Supabase client
+    // Authentication check
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
       {
         global: {
-          headers: { Authorization: req.headers.get('Authorization')! },
+          headers: { Authorization: authHeader },
         },
       }
     )
 
-    const { type, referral_id, data } = await req.json() as TeamsWebhookPayload
-
-    // Validate the request
-    if (!type || !referral_id) {
+    const token = authHeader.replace('Bearer ', '');
+    const { data: claimsData, error: claimsError } = await supabaseClient.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims) {
       return new Response(
-        JSON.stringify({ error: 'Missing required fields: type, referral_id' }),
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Input validation
+    let body: any;
+    try {
+      body = await req.json();
+    } catch {
+      return new Response(
+        JSON.stringify({ error: 'Invalid JSON body' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { type, referral_id, data } = body as TeamsWebhookPayload;
+
+    if (!type || !VALID_TYPES.includes(type as any)) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid type. Must be one of: ' + VALID_TYPES.join(', ') }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    if (!referral_id || typeof referral_id !== 'string' || !UUID_REGEX.test(referral_id)) {
+      return new Response(
+        JSON.stringify({ error: 'referral_id is required and must be a valid UUID' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
@@ -57,7 +93,6 @@ serve(async (req) => {
       )
     }
 
-    // Process the webhook based on type
     let notificationPayload: any = {}
     
     switch (type) {
@@ -77,7 +112,6 @@ serve(async (req) => {
         )
     }
 
-    // Send to Teams webhook
     const teamsWebhookUrl = Deno.env.get('TEAMS_WEBHOOK_URL')
     if (!teamsWebhookUrl) {
       console.error('Teams webhook URL not configured')
@@ -96,10 +130,9 @@ serve(async (req) => {
     })
 
     if (!teamsResponse.ok) {
-      throw new Error(`Teams webhook failed: ${teamsResponse.statusText}`)
+      throw new Error('Teams webhook delivery failed')
     }
 
-    // Log the notification
     await supabaseClient
       .from('teams_notifications')
       .insert({
@@ -116,7 +149,7 @@ serve(async (req) => {
     )
 
   } catch (error) {
-    console.error('Teams webhook error:', error)
+    console.error('Teams webhook error');
     
     return new Response(
       JSON.stringify({ error: 'An error occurred processing your request' }),
@@ -126,7 +159,7 @@ serve(async (req) => {
 })
 
 function buildNewReferralPayload(referral: any, data: any) {
-  const priorityColor = {
+  const priorityColor: Record<string, string> = {
     urgent: '#FF4B4B',
     routine: '#4A90E2',
     low: '#7ED321'
@@ -252,7 +285,7 @@ function buildStatusChangePayload(referral: any, data: any) {
   const oldStatus = data?.oldStatus || 'unknown'
   const newStatus = referral.status
 
-  const statusColors = {
+  const statusColors: Record<string, string> = {
     admitted: '#7ED321',
     not_admitted_patient_choice: '#FF4B4B',
     not_admitted_not_appropriate: '#FF8C00',
@@ -263,7 +296,7 @@ function buildStatusChangePayload(referral: any, data: any) {
   return {
     "@type": "MessageCard",
     "@context": "http://schema.org/extensions",
-    "themeColor": statusColors[newStatus as keyof typeof statusColors] || '#4A90E2',
+    "themeColor": statusColors[newStatus] || '#4A90E2',
     "summary": `Status: ${formatStatus(oldStatus)} → ${formatStatus(newStatus)}`,
     "sections": [
       {

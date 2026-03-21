@@ -356,9 +356,9 @@ const handler = async (req: Request): Promise<Response> => {
       { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
   } catch (error: any) {
-    console.error("Admin users error:", error);
+    console.error("Admin users error");
     return new Response(
-      JSON.stringify({ error: { message: error.message } }),
+      JSON.stringify({ error: { message: "An internal error occurred" } }),
       { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
   }

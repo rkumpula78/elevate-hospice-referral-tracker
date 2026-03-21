@@ -102,7 +102,54 @@ serve(async (req) => {
       );
     }
 
-    const { context, situation, notes, contactName, organizationName } = await req.json();
+    let body: any;
+    try {
+      body = await req.json();
+    } catch {
+      return new Response(
+        JSON.stringify({ message: 'Invalid request body', success: false }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const { context, situation, notes, contactName, organizationName } = body;
+
+    // Validate required fields
+    if (!context || !['family', 'referral'].includes(context)) {
+      return new Response(
+        JSON.stringify({ message: 'Invalid context. Must be "family" or "referral".', success: false }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (!situation || typeof situation !== 'string' || situation.length > 200) {
+      return new Response(
+        JSON.stringify({ message: 'Invalid situation.', success: false }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Validate optional string fields
+    if (notes && (typeof notes !== 'string' || notes.length > 2000)) {
+      return new Response(
+        JSON.stringify({ message: 'Notes must be a string under 2000 characters.', success: false }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (contactName && (typeof contactName !== 'string' || contactName.length > 200)) {
+      return new Response(
+        JSON.stringify({ message: 'Contact name too long.', success: false }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (organizationName && (typeof organizationName !== 'string' || organizationName.length > 200)) {
+      return new Response(
+        JSON.stringify({ message: 'Organization name too long.', success: false }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     // Get the appropriate template or use freeform
     let template;
