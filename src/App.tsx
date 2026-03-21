@@ -51,6 +51,7 @@ const OfflineSyncProvider = ({ children }: { children: React.ReactNode }) => {
 const ProtectedLayout = () => {
   const breakpoint = useBreakpoint();
   const isDesktop = breakpoint === 'desktop';
+  useSessionTimeout();
 
   return (
     <SidebarProvider defaultOpen={isDesktop}>
