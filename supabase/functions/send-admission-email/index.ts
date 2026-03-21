@@ -68,6 +68,9 @@ serve(async (req) => {
         user_id: publicKey,
         template_params: {
           ...emailData,
+          // HIPAA: strip SSN defensively in case client sends it
+          patient_ssn: undefined,
+          ssn: undefined,
           to_email: emailData.intake_specialist_email,
           intake_specialist_name: 'Intake Specialist',
         },

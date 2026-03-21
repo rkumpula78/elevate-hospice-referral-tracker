@@ -4,7 +4,6 @@ interface AdmissionEmailData {
   patient_first_name: string;
   patient_last_name: string;
   patient_dob: string;
-  patient_ssn: string;
   primary_insurance: string;
   referral_source: string;
   responsible_party: string;
@@ -40,7 +39,6 @@ export const formatEmailData = (referralData: any, patientData: any): AdmissionE
     patient_first_name: patientData?.first_name || referralData?.patient_name?.split(' ')[0] || 'N/A',
     patient_last_name: patientData?.last_name || referralData?.patient_name?.split(' ').slice(1).join(' ') || 'N/A',
     patient_dob: patientData?.date_of_birth || 'N/A',
-    patient_ssn: patientData?.ssn || 'N/A',
     primary_insurance: patientData?.primary_insurance || referralData?.insurance || 'N/A',
     referral_source: referralData?.organizations?.name || 'N/A',
     responsible_party: patientData?.responsible_party_name || 'N/A',
