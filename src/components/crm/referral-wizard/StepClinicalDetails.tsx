@@ -84,7 +84,7 @@ export function StepClinicalDetails({ formData, onFieldChange, fieldErrors, touc
             <Select value={formData.benefit_period_number.toString()} onValueChange={(v) => onFieldChange('benefit_period_number', v)} disabled={disabled}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="1">1st (60 days)</SelectItem>
+                <SelectItem value="1">1st (90 days)</SelectItem>
                 <SelectItem value="2">2nd (90 days)</SelectItem>
                 <SelectItem value="3">3rd (60 days)</SelectItem>
                 <SelectItem value="4">4th (60 days)</SelectItem>
