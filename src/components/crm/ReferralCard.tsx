@@ -76,10 +76,7 @@ const ReferralCard = ({
 
   const progressPercentage = getStatusProgress(referral.status || 'new_referral');
   const progressBarColor = getStatusProgressBarColor(referral.status || 'new_referral');
-
   const nextStageLabel = getNextStage(referral.status || 'new_referral');
-    return stageFlow[status] || 'N/A';
-  };
 
   const getDaysInStage = () => {
     if (!referral.updated_at && !referral.created_at) return 0;
