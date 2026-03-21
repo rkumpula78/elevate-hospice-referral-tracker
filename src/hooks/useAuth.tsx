@@ -123,6 +123,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const signUp = async (email: string, password: string) => {
+    // Validate email domain before calling edge function
+    const allowedDomain = '@elevatehospiceaz.com';
+    if (!email.toLowerCase().endsWith(allowedDomain)) {
+      return { 
+        error: { 
+          message: 'Only Elevate Hospice email addresses (@elevatehospiceaz.com) can be used to create accounts.' 
+        } 
+      };
+    }
+
     try {
       // Use the edge function for validated signup
       const { data, error } = await supabase.functions.invoke('validate-signup', {
