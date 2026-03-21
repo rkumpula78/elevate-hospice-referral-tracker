@@ -58,7 +58,7 @@ const EditPatientDialog = ({ open, onOpenChange, patientId }: EditPatientDialogP
   const { data: documents } = useQuery({
     queryKey: ['patient-documents', patientId],
     queryFn: async () => {
-      console.log('Fetching documents for patient ID:', patientId);
+      // PHI-safe: only log patient ID
       const { data, error } = await supabase
         .from('patient_documents')
         .select('*')
