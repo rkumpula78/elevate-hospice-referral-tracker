@@ -112,9 +112,7 @@ const ReferralCard = ({
   const isUrgent = referral.priority === 'urgent';
   const priorityBadge = getPriorityBadge(referral.priority || 'routine');
 
-  const progressPercentage = getStatusProgress(referral.status);
-  const progressBarColor = getProgressBarColor(referral.status);
-  const nextStage = getNextStage(referral.status);
+  const nextStage = nextStageLabel;
   const daysInStage = getDaysInStage();
 
   const handleSchedule = () => {
