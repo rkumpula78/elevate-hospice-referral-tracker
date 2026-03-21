@@ -6,7 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import PageLayout from "@/components/layout/PageLayout";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Download, FileText, Calendar, TrendingUp, Users, Building, Phone, Target } from "lucide-react";
+import { Download, FileText, Calendar, TrendingUp, Users, Building, Phone, Target, ClipboardCheck } from "lucide-react";
+import ActivityComplianceCard from "@/components/reports/ActivityComplianceCard";
 import { format, startOfMonth, endOfMonth, subMonths } from 'date-fns';
 import { useIsMobile } from "@/hooks/use-mobile";
 import ExportDropdown from "@/components/ui/export-dropdown";
@@ -372,6 +373,9 @@ const ReportsPage = () => {
               </Button>
             </CardContent>
           </Card>
+
+          {/* Activity Compliance Card */}
+          <ActivityComplianceCard periodStart={start} periodEnd={end} />
         </div>
       </div>
     </PageLayout>

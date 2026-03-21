@@ -132,6 +132,23 @@ const ActivityCommunicationsLog = ({ organizationId, referralId, contactId, titl
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    // Validate: require discussion_points for in-person visits
+    const inPersonTypes = ['in_person_visit', 'lunch_learn', 'inservice', 'community_event'];
+    if (inPersonTypes.includes(formData.interaction_type) && (formData.discussion_points || '').trim().length < 10) {
+      toast({
+        title: '⚠️ Notes required',
+        description: 'In-person activities require discussion notes (min 10 characters).',
+        variant: 'warning',
+      });
+    }
+    // Validate: require next_step when follow_up is checked
+    if (formData.follow_up_required && !(formData.next_step || '').trim()) {
+      toast({
+        title: '⚠️ Next step recommended',
+        description: 'Please add a next step when follow-up is required.',
+        variant: 'warning',
+      });
+    }
     addActivityMutation.mutate(formData);
   };
 
