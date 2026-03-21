@@ -156,6 +156,11 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
     setTouchedFields(prev => ({ ...prev, [field]: true }));
     const error = validateField(field, formData[field as keyof typeof formData]);
     setFieldErrors(prev => ({ ...prev, [field]: error || '' }));
+    
+    // Trigger duplicate check when patient name loses focus
+    if (field === 'patient_name' && formData.patient_name.trim().length >= 2 && !duplicateCheckDone) {
+      checkForDuplicates(formData.patient_name, formData.patient_phone);
+    }
   };
 
   const handleFieldChange = (field: string, value: string) => {
