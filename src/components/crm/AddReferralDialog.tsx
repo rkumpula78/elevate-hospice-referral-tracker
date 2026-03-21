@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { RequiredFieldsIndicator } from "@/components/ui/required-fields-indicator";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -32,6 +33,7 @@ interface AddReferralDialogProps {
 const INITIAL_FORM = {
   patient_name: '',
   patient_phone: '',
+  patient_address: '',
   diagnosis: '',
   insurance: '',
   priority: 'routine' as 'low' | 'routine' | 'urgent',
@@ -46,6 +48,15 @@ const INITIAL_FORM = {
   notes: '',
   benefit_period_number: 1
 };
+
+const REQUIRED_FIELDS = [
+  { key: 'patient_name', label: 'Patient Name', step: 1 },
+  { key: 'patient_phone', label: 'Patient Phone', step: 1 },
+  { key: 'patient_address', label: 'Address', step: 1 },
+  { key: 'diagnosis', label: 'Diagnosis', step: 3 },
+  { key: 'insurance', label: 'Insurance', step: 3 },
+  { key: 'organization_id', label: 'Referral Source', step: 2 },
+] as const;
 
 const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
   const { toast } = useToast();
@@ -143,11 +154,21 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
   const intakeCoordinators = ['Maria Rodriguez', 'Jennifer Thompson', 'Robert Chen', 'Amanda Williams', 'Michael Foster'];
 
   // Validation
+  const requiredFieldsCompleted = REQUIRED_FIELDS.filter(f => {
+    const val = formData[f.key as keyof typeof formData];
+    return typeof val === 'string' ? val.trim().length > 0 : !!val;
+  }).length;
+
   const validateField = (field: string, value: any): string | null => {
     if (field === 'patient_name' && (!value || !value.trim())) return "Patient name is required";
+    if (field === 'patient_phone' && (!value || !value.trim())) return "Patient phone is required";
     if (field === 'patient_phone' && value?.trim()) {
       if (!/^\(\d{3}\) \d{3}-\d{4}$/.test(value)) return "Phone must be (XXX) XXX-XXXX";
     }
+    if (field === 'patient_address' && (!value || !value.trim())) return "Address is required";
+    if (field === 'diagnosis' && (!value || !value.trim())) return "Diagnosis is required";
+    if (field === 'insurance' && (!value || !value.trim())) return "Insurance is required";
+    if (field === 'organization_id' && (!value || !value.trim())) return "Referral source is required";
     if (field === 'reason_for_non_admittance' && formData.status === 'closed' && (!value || !value.trim())) return "Close reason is required";
     return null;
   };
@@ -191,23 +212,58 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
 
   // Step validation
   const validateStep = (step: number): boolean => {
-    if (step === 1) return !!formData.patient_name.trim();
-    if (step === 3 && formData.status === 'closed') return !!formData.reason_for_non_admittance.trim();
+    if (step === 1) return !!formData.patient_name.trim() && !!formData.patient_phone.trim() && !!formData.patient_address.trim();
+    if (step === 2) return !!formData.organization_id || showNewOrgForm;
+    if (step === 3) {
+      if (!formData.diagnosis.trim() || !formData.insurance.trim()) return false;
+      if (formData.status === 'closed' && !formData.reason_for_non_admittance.trim()) return false;
+      return true;
+    }
     return true;
   };
 
   const handleNext = () => {
     if (currentStep === 1) {
-      setTouchedFields(prev => ({ ...prev, patient_name: true }));
-      if (!formData.patient_name.trim()) {
-        setFieldErrors(prev => ({ ...prev, patient_name: 'Patient name is required' }));
-        return;
+      const step1Required = { patient_name: 'Patient name is required', patient_phone: 'Patient phone is required', patient_address: 'Address is required' };
+      const newTouched: Record<string, boolean> = {};
+      const newErrors: Record<string, string> = {};
+      let hasError = false;
+      for (const [field, msg] of Object.entries(step1Required)) {
+        newTouched[field] = true;
+        if (!(formData[field as keyof typeof formData] as string)?.trim()) {
+          newErrors[field] = msg;
+          hasError = true;
+        }
       }
+      setTouchedFields(prev => ({ ...prev, ...newTouched }));
+      setFieldErrors(prev => ({ ...prev, ...newErrors }));
+      if (hasError) return;
     }
-    if (currentStep === 3 && formData.status === 'closed' && !formData.reason_for_non_admittance.trim()) {
-      setTouchedFields(prev => ({ ...prev, reason_for_non_admittance: true }));
-      setFieldErrors(prev => ({ ...prev, reason_for_non_admittance: 'Close reason is required' }));
+    if (currentStep === 2 && !formData.organization_id && !showNewOrgForm) {
+      setTouchedFields(prev => ({ ...prev, organization_id: true }));
+      setFieldErrors(prev => ({ ...prev, organization_id: 'Referral source is required' }));
       return;
+    }
+    if (currentStep === 3) {
+      const step3Required = { diagnosis: 'Diagnosis is required', insurance: 'Insurance is required' };
+      const newTouched: Record<string, boolean> = {};
+      const newErrors: Record<string, string> = {};
+      let hasError = false;
+      for (const [field, msg] of Object.entries(step3Required)) {
+        newTouched[field] = true;
+        if (!(formData[field as keyof typeof formData] as string)?.trim()) {
+          newErrors[field] = msg;
+          hasError = true;
+        }
+      }
+      if (formData.status === 'closed' && !formData.reason_for_non_admittance.trim()) {
+        newTouched.reason_for_non_admittance = true;
+        newErrors.reason_for_non_admittance = 'Close reason is required';
+        hasError = true;
+      }
+      setTouchedFields(prev => ({ ...prev, ...newTouched }));
+      setFieldErrors(prev => ({ ...prev, ...newErrors }));
+      if (hasError) return;
     }
     setCurrentStep(prev => Math.min(prev + 1, 4));
   };
@@ -264,9 +320,9 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
   // Render step content
   const renderStep = () => {
     switch (currentStep) {
-      case 1: return <StepPatientInfo formData={formData} onFieldChange={handleFieldChange} fieldErrors={fieldErrors} touchedFields={touchedFields} onFieldBlur={handleFieldBlur} disabled={isSubmitting} />;
-      case 2: return <StepSourceAssignment formData={formData} onFieldChange={handleFieldChange} onReferringContactChange={handleReferringContactChange} onAddContactClick={handleAddContactClick} organizations={organizations} organizationsLoading={organizationsLoading} marketers={marketers} intakeCoordinators={intakeCoordinators} showNewOrgForm={showNewOrgForm} setShowNewOrgForm={setShowNewOrgForm} newOrgName={newOrgName} setNewOrgName={setNewOrgName} newOrgType={newOrgType} setNewOrgType={setNewOrgType} disabled={isSubmitting} />;
-      case 3: return <StepClinicalDetails formData={formData} onFieldChange={handleFieldChange} fieldErrors={fieldErrors} touchedFields={touchedFields} onFieldBlur={handleFieldBlur} disabled={isSubmitting} />;
+      case 1: return <StepPatientInfo formData={formData} onFieldChange={handleFieldChange} fieldErrors={fieldErrors} touchedFields={touchedFields} onFieldBlur={handleFieldBlur} disabled={isSubmitting} />; 
+      case 2: return <StepSourceAssignment formData={formData} onFieldChange={handleFieldChange} onReferringContactChange={handleReferringContactChange} onAddContactClick={handleAddContactClick} organizations={organizations} organizationsLoading={organizationsLoading} marketers={marketers} intakeCoordinators={intakeCoordinators} showNewOrgForm={showNewOrgForm} setShowNewOrgForm={setShowNewOrgForm} newOrgName={newOrgName} setNewOrgName={setNewOrgName} newOrgType={newOrgType} setNewOrgType={setNewOrgType} disabled={isSubmitting} fieldErrors={fieldErrors} touchedFields={touchedFields} onFieldBlur={handleFieldBlur} />;
+      case 3: return <StepClinicalDetails formData={formData} onFieldChange={handleFieldChange} fieldErrors={fieldErrors} touchedFields={touchedFields} onFieldBlur={handleFieldBlur} disabled={isSubmitting} />; 
       case 4: return <StepReview formData={formData} organizationName={orgName} onFieldChange={handleFieldChange} onEditStep={setCurrentStep} disabled={isSubmitting} />;
     }
   };
@@ -282,7 +338,7 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
             Next<ArrowRight className="w-4 h-4 ml-1" />
           </Button>
         ) : (
-          <Button type="button" onClick={handleSubmit} disabled={isSubmitting || !formData.patient_name.trim()} className="h-12 sm:h-10">
+          <Button type="button" onClick={handleSubmit} disabled={isSubmitting || requiredFieldsCompleted < REQUIRED_FIELDS.length} className="h-12 sm:h-10">
             {isSubmitting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Adding...</> : 'Add Referral'}
           </Button>
         )}
@@ -292,8 +348,9 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
 
   const content = (
     <div className="flex flex-col h-full">
-      <div className="px-4 sm:px-6 py-3 border-b">
+      <div className="px-4 sm:px-6 py-3 border-b space-y-2">
         <ReferralWizardStepper currentStep={currentStep} />
+        <RequiredFieldsIndicator total={REQUIRED_FIELDS.length} completed={requiredFieldsCompleted} />
       </div>
       <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4">
         {renderStep()}

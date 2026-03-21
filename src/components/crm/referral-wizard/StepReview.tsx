@@ -8,6 +8,7 @@ interface StepReviewProps {
   formData: {
     patient_name: string;
     patient_phone: string;
+    patient_address: string;
     diagnosis: string;
     insurance: string;
     priority: string;
@@ -55,6 +56,7 @@ export function StepReview({ formData, organizationName, onFieldChange, onEditSt
           <div className="grid grid-cols-2 gap-2">
             <Field label="Name" value={formData.patient_name} />
             <Field label="Phone" value={formData.patient_phone} />
+            <Field label="Address" value={formData.patient_address} />
           </div>
         </CardContent>
       </Card>

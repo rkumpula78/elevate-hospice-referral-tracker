@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { EnhancedInput } from "@/components/ui/enhanced-input";
-import { Plus, User } from "lucide-react";
+import { Plus, User, AlertCircle } from "lucide-react";
 import ReferringContactSelector from "../ReferringContactSelector";
 
 interface StepSourceAssignmentProps {
@@ -28,6 +28,9 @@ interface StepSourceAssignmentProps {
   setNewOrgName: (v: string) => void;
   newOrgType: string;
   setNewOrgType: (v: any) => void;
+  fieldErrors?: Record<string, string>;
+  touchedFields?: Record<string, boolean>;
+  onFieldBlur?: (field: string) => void;
   disabled: boolean;
 }
 
@@ -35,7 +38,7 @@ export function StepSourceAssignment({
   formData, onFieldChange, onReferringContactChange, onAddContactClick,
   organizations, organizationsLoading, marketers, intakeCoordinators,
   showNewOrgForm, setShowNewOrgForm, newOrgName, setNewOrgName, newOrgType, setNewOrgType,
-  disabled
+  disabled, fieldErrors = {}, touchedFields = {}, onFieldBlur
 }: StepSourceAssignmentProps) {
   return (
     <div className="space-y-4">
@@ -43,7 +46,7 @@ export function StepSourceAssignment({
 
       {/* Organization */}
       <div>
-        <Label>Referral Source</Label>
+        <Label>Referral Source <span className="text-destructive">*</span></Label>
         {!showNewOrgForm ? (
           <Select
             value={formData.organization_id}
@@ -85,6 +88,11 @@ export function StepSourceAssignment({
               </SelectContent>
             </Select>
           </div>
+        )}
+        {touchedFields.organization_id && fieldErrors.organization_id && !formData.organization_id && (
+          <p className="text-sm text-destructive mt-1 flex items-center gap-1">
+            <AlertCircle className="w-3 h-3" />{fieldErrors.organization_id}
+          </p>
         )}
       </div>
 

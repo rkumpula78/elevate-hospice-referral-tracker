@@ -30,12 +30,42 @@ export function StepClinicalDetails({ formData, onFieldChange, fieldErrors, touc
       <h3 className="text-base font-semibold">Clinical Details</h3>
       <div className="space-y-4">
         <div>
-          <Label>Diagnosis</Label>
-          <EnhancedInput icon={<FileText className="w-4 h-4" />} value={formData.diagnosis} onChange={(e) => onFieldChange('diagnosis', e.target.value)} placeholder="e.g., End-stage CHF" disabled={disabled} />
+          <Label>Diagnosis <span className="text-destructive">*</span></Label>
+          <EnhancedInput
+            icon={<FileText className="w-4 h-4" />}
+            value={formData.diagnosis}
+            onChange={(e) => onFieldChange('diagnosis', e.target.value)}
+            onBlur={() => onFieldBlur('diagnosis')}
+            placeholder="e.g., End-stage CHF"
+            disabled={disabled}
+            required
+            isValid={touchedFields.diagnosis && !fieldErrors.diagnosis && !!formData.diagnosis}
+            isInvalid={touchedFields.diagnosis && !!fieldErrors.diagnosis}
+          />
+          {touchedFields.diagnosis && fieldErrors.diagnosis && (
+            <p className="text-sm text-destructive mt-1 flex items-center gap-1">
+              <AlertCircle className="w-3 h-3" />{fieldErrors.diagnosis}
+            </p>
+          )}
         </div>
         <div>
-          <Label>Insurance</Label>
-          <EnhancedInput icon={<Briefcase className="w-4 h-4" />} value={formData.insurance} onChange={(e) => onFieldChange('insurance', e.target.value)} placeholder="e.g., Medicare Part A" disabled={disabled} />
+          <Label>Insurance <span className="text-destructive">*</span></Label>
+          <EnhancedInput
+            icon={<Briefcase className="w-4 h-4" />}
+            value={formData.insurance}
+            onChange={(e) => onFieldChange('insurance', e.target.value)}
+            onBlur={() => onFieldBlur('insurance')}
+            placeholder="e.g., Medicare Part A"
+            disabled={disabled}
+            required
+            isValid={touchedFields.insurance && !fieldErrors.insurance && !!formData.insurance}
+            isInvalid={touchedFields.insurance && !!fieldErrors.insurance}
+          />
+          {touchedFields.insurance && fieldErrors.insurance && (
+            <p className="text-sm text-destructive mt-1 flex items-center gap-1">
+              <AlertCircle className="w-3 h-3" />{fieldErrors.insurance}
+            </p>
+          )}
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>
