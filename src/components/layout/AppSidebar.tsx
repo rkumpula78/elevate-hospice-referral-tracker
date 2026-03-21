@@ -53,6 +53,7 @@ const primaryItems = [
   { title: "Referrals", url: "/referrals", icon: Phone },
   { title: "Organizations", url: "/organizations", icon: Building },
   { title: "Schedule", url: "/schedule", icon: Calendar },
+  { title: "Marketing", url: "/marketing", icon: Megaphone },
 ];
 
 const insightsItems = [
