@@ -67,7 +67,7 @@ const AppSidebar = () => {
   const { signOut, displayName, user, isAdmin } = useAuth();
   const isMobile = useIsMobile();
   const isTabletOrMobile = useIsTabletOrMobile();
-  const { setOpenMobile, isMobile: sidebarIsMobile, open } = useSidebar();
+  const { setOpenMobile, openMobile, isMobile: sidebarIsMobile } = useSidebar();
 
   const insightsActive = insightsItems.some(i => location.pathname === i.url);
   const [insightsOpen, setInsightsOpen] = useState(insightsActive);
@@ -139,7 +139,7 @@ const AppSidebar = () => {
 
   return (
     <>
-      {isTabletOrMobile && open && sidebarIsMobile && (
+      {isTabletOrMobile && openMobile && sidebarIsMobile && (
         <div 
           className="fixed inset-0 bg-black/50 z-40 transition-opacity duration-300 ease-in-out"
           onClick={() => setOpenMobile(false)}
