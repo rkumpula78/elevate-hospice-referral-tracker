@@ -3,6 +3,9 @@ project_id = "qpjdiargpivwtbakkfpo"
 [functions.ai-assist]
 verify_jwt = false
 
+[functions.ai-search]
+verify_jwt = false
+
 [functions.get-mapbox-token]
 verify_jwt = false
 
@@ -13,4 +16,10 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.geocode-address]
+verify_jwt = false
+
+[functions.teams-webhook]
+verify_jwt = false
+
+[functions.admin-users]
 verify_jwt = false
