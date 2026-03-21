@@ -139,7 +139,7 @@ const AppSidebar = () => {
 
   return (
     <>
-      {isTabletOrMobile && open && sidebarIsMobile && (
+      {isTabletOrMobile && openMobile && sidebarIsMobile && (
         <div 
           className="fixed inset-0 bg-black/50 z-40 transition-opacity duration-300 ease-in-out"
           onClick={() => setOpenMobile(false)}
