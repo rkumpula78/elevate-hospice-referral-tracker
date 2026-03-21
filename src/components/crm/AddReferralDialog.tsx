@@ -280,6 +280,7 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
       const { data: newReferral, error } = await supabase.from('referrals').insert({
         patient_name: data.patient_name,
         patient_phone: data.patient_phone || null,
+        address: data.patient_address || null,
         diagnosis: data.diagnosis || null,
         insurance: data.insurance || null,
         priority: data.priority,
