@@ -38,7 +38,7 @@ export function StepSourceAssignment({
   formData, onFieldChange, onReferringContactChange, onAddContactClick,
   organizations, organizationsLoading, marketers, intakeCoordinators,
   showNewOrgForm, setShowNewOrgForm, newOrgName, setNewOrgName, newOrgType, setNewOrgType,
-  disabled
+  disabled, fieldErrors = {}, touchedFields = {}, onFieldBlur
 }: StepSourceAssignmentProps) {
   return (
     <div className="space-y-4">
