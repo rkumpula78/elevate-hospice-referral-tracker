@@ -2,6 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { logAuditEvent, computeChanges } from '@/lib/auditLog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -153,12 +154,16 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
   // Mutation for updating referral data
   const updateReferralMutation = useMutation({
     mutationFn: async (data: any) => {
+      const oldData = referralData ? { ...referralData } : null;
       const { error } = await supabase
         .from('referrals')
         .update(data)
         .eq('id', referralId);
       
       if (error) throw error;
+
+      const changes = computeChanges(oldData as any, data);
+      await logAuditEvent({ action: 'update', tableName: 'referrals', recordId: referralId, changes });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['referrals'] });

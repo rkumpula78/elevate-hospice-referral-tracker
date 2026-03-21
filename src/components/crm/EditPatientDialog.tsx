@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { logAuditEvent, computeChanges } from '@/lib/auditLog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -78,6 +79,7 @@ const EditPatientDialog = ({ open, onOpenChange, patientId }: EditPatientDialogP
   // Update patient mutation
   const updatePatientMutation = useMutation({
     mutationFn: async (data: any) => {
+      const oldData = patient ? { ...patient } : null;
       console.log('Updating patient ID:', patientId);
       const { error } = await supabase
         .from('patients')
@@ -88,6 +90,9 @@ const EditPatientDialog = ({ open, onOpenChange, patientId }: EditPatientDialogP
         console.error('Error updating patient:', error.message);
         throw error;
       }
+
+      const changes = computeChanges(oldData as any, data);
+      await logAuditEvent({ action: 'update', tableName: 'patients', recordId: patientId, changes });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['patients'] });

@@ -4,6 +4,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { logAuditEvent } from '@/lib/auditLog';
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, ArrowLeft, ArrowRight } from "lucide-react";
 import AddContactDialog from "./AddContactDialog";
@@ -183,7 +184,10 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
         benefit_period_number: data.benefit_period_number
       }).select().single();
       if (error) throw error;
-      if (newReferral) await autoNotifyNewReferral(newReferral);
+      if (newReferral) {
+        await logAuditEvent({ action: 'create', tableName: 'referrals', recordId: newReferral.id });
+        await autoNotifyNewReferral(newReferral);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['referrals'] });
