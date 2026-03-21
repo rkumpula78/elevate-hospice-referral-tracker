@@ -317,12 +317,9 @@ const ReferralCard = ({
                 </SelectValue>
               </SelectTrigger>
               <SelectContent className="modern-dropdown">
-                <SelectItem value="new_referral" className="modern-dropdown-item">New</SelectItem>
-                <SelectItem value="in_progress" className="modern-dropdown-item">In Progress</SelectItem>
-                <SelectItem value="assessment" className="modern-dropdown-item">Assessment</SelectItem>
-                <SelectItem value="pending" className="modern-dropdown-item">Pending</SelectItem>
-                <SelectItem value="admitted" className="modern-dropdown-item">Admitted</SelectItem>
-                <SelectItem value="closed" className="modern-dropdown-item">Closed</SelectItem>
+                {REFERRAL_STATUSES.map(s => (
+                  <SelectItem key={s.value} value={s.value} className="modern-dropdown-item">{s.label}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
