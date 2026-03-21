@@ -54,29 +54,7 @@ const ReferralCard = ({
       return () => clearTimeout(timer);
     }
   }, [referral.status]);
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'new_referral': return 'bg-blue-600 text-white border-blue-700';
-      case 'in_progress': return 'bg-yellow-600 text-white border-yellow-700';
-      case 'assessment': return 'bg-purple-600 text-white border-purple-700';
-      case 'pending': return 'bg-orange-600 text-white border-orange-700';
-      case 'admitted': return 'bg-green-600 text-white border-green-700';
-      case 'closed': return 'bg-gray-600 text-white border-gray-700';
-      default: return 'bg-gray-600 text-white border-gray-700';
-    }
-  };
-
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'new_referral': return 'New';
-      case 'in_progress': return 'In Progress';
-      case 'assessment': return 'Assessment';
-      case 'pending': return 'Pending';
-      case 'admitted': return 'Admitted';
-      case 'closed': return 'Closed';
-      default: return status;
-    }
-  };
+  // Use shared constants for status display
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
