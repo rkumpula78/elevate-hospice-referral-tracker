@@ -79,6 +79,7 @@ const EditPatientDialog = ({ open, onOpenChange, patientId }: EditPatientDialogP
   // Update patient mutation
   const updatePatientMutation = useMutation({
     mutationFn: async (data: any) => {
+      const oldData = patient ? { ...patient } : null;
       console.log('Updating patient ID:', patientId);
       const { error } = await supabase
         .from('patients')
@@ -89,6 +90,9 @@ const EditPatientDialog = ({ open, onOpenChange, patientId }: EditPatientDialogP
         console.error('Error updating patient:', error.message);
         throw error;
       }
+
+      const changes = computeChanges(oldData as any, data);
+      await logAuditEvent({ action: 'update', tableName: 'patients', recordId: patientId, changes });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['patients'] });

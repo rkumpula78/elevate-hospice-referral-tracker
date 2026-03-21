@@ -154,12 +154,16 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
   // Mutation for updating referral data
   const updateReferralMutation = useMutation({
     mutationFn: async (data: any) => {
+      const oldData = referral ? { ...referral } : null;
       const { error } = await supabase
         .from('referrals')
         .update(data)
         .eq('id', referralId);
       
       if (error) throw error;
+
+      const changes = computeChanges(oldData as any, data);
+      await logAuditEvent({ action: 'update', tableName: 'referrals', recordId: referralId, changes });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['referrals'] });
