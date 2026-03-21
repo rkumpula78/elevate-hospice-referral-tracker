@@ -1,17 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import React, { useState, useEffect, useCallback } from 'react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { logAuditEvent } from '@/lib/auditLog';
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2, ArrowLeft, ArrowRight } from "lucide-react";
+import { Loader2, ArrowLeft, ArrowRight, AlertTriangle, ExternalLink } from "lucide-react";
+import { Link } from "react-router-dom";
 import AddContactDialog from "./AddContactDialog";
 import { useTeamsIntegration } from "@/hooks/useTeamsIntegration";
 import { useIsMobile } from "@/hooks/use-mobile";
 import type { Database } from "@/integrations/supabase/types";
 import { formatPhoneNumber } from "@/lib/formatters";
+import { getStatusLabel, getStatusBadgeColor } from "@/lib/constants";
 
 import { ReferralWizardStepper } from "./referral-wizard/ReferralWizardStepper";
 import { StepPatientInfo } from "./referral-wizard/StepPatientInfo";
