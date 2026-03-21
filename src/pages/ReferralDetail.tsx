@@ -90,29 +90,7 @@ const ReferralDetail = () => {
     );
   }
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'new_referral': return 'bg-blue-100 text-blue-800';
-      case 'in_progress': return 'bg-yellow-100 text-yellow-800';
-      case 'assessment': return 'bg-purple-100 text-purple-800';
-      case 'pending': return 'bg-orange-100 text-orange-800';
-      case 'admitted': return 'bg-green-100 text-green-800';
-      case 'closed': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'new_referral': return 'New';
-      case 'in_progress': return 'In Progress';
-      case 'assessment': return 'Assessment';
-      case 'pending': return 'Pending';
-      case 'admitted': return 'Admitted';
-      case 'closed': return 'Closed';
-      default: return status;
-    }
-  };
+  // Status helpers imported from constants
 
   const parsedNotes = parseNotes(referral.notes);
 

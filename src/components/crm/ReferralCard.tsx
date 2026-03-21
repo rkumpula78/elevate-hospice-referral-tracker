@@ -77,15 +77,7 @@ const ReferralCard = ({
   const progressPercentage = getStatusProgress(referral.status || 'new_referral');
   const progressBarColor = getStatusProgressBarColor(referral.status || 'new_referral');
 
-  const getNextStage = (status: string) => {
-    const stageFlow: Record<string, string> = {
-      'new_referral': 'In Progress',
-      'in_progress': 'Assessment',
-      'assessment': 'Pending',
-      'pending': 'Admitted',
-      'admitted': 'Completed',
-    };
-    
+  const nextStageLabel = getNextStage(referral.status || 'new_referral');
     return stageFlow[status] || 'N/A';
   };
 
