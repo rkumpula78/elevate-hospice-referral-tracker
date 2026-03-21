@@ -17,12 +17,14 @@ export type Database = {
       activity_communications: {
         Row: {
           activity_date: string
+          competitive_mentions: string[] | null
           completed_by: string
           contact_id: string | null
           cost_amount: number | null
           created_at: string | null
           discussion_points: string | null
           duration_minutes: number | null
+          extracted_data: Json | null
           follow_up_completed: boolean | null
           follow_up_date: string | null
           follow_up_required: boolean | null
@@ -34,16 +36,20 @@ export type Database = {
           outcome_sentiment: string | null
           purpose: string[] | null
           referral_id: string | null
+          sentiment: string | null
+          source: string | null
           updated_at: string | null
         }
         Insert: {
           activity_date?: string
+          competitive_mentions?: string[] | null
           completed_by: string
           contact_id?: string | null
           cost_amount?: number | null
           created_at?: string | null
           discussion_points?: string | null
           duration_minutes?: number | null
+          extracted_data?: Json | null
           follow_up_completed?: boolean | null
           follow_up_date?: string | null
           follow_up_required?: boolean | null
@@ -55,16 +61,20 @@ export type Database = {
           outcome_sentiment?: string | null
           purpose?: string[] | null
           referral_id?: string | null
+          sentiment?: string | null
+          source?: string | null
           updated_at?: string | null
         }
         Update: {
           activity_date?: string
+          competitive_mentions?: string[] | null
           completed_by?: string
           contact_id?: string | null
           cost_amount?: number | null
           created_at?: string | null
           discussion_points?: string | null
           duration_minutes?: number | null
+          extracted_data?: Json | null
           follow_up_completed?: boolean | null
           follow_up_date?: string | null
           follow_up_required?: boolean | null
@@ -76,6 +86,8 @@ export type Database = {
           outcome_sentiment?: string | null
           purpose?: string[] | null
           referral_id?: string | null
+          sentiment?: string | null
+          source?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -1676,12 +1688,14 @@ export type Database = {
       }
       patients: {
         Row: {
+          acuity: string | null
           address: string | null
           admission_date: string | null
           advanced_directive: boolean | null
           attending_physician: string | null
           caregiver_contact: string | null
           caregiver_name: string | null
+          city: string | null
           created_at: string | null
           date_of_birth: string | null
           diagnosis: string | null
@@ -1690,12 +1704,15 @@ export type Database = {
           dnr_status: boolean | null
           emergency_contact: string | null
           emergency_phone: string | null
+          facility: string | null
           first_name: string
           funeral_arrangements: string | null
           height: number | null
           id: string
           insurance: string | null
           last_name: string
+          latitude: number | null
+          longitude: number | null
           medicaid_number: string | null
           medicare_number: string | null
           msw_notes: string | null
@@ -1713,19 +1730,23 @@ export type Database = {
           special_medical_needs: string | null
           spiritual_preferences: string | null
           ssn: string | null
+          state: string | null
           status: Database["public"]["Enums"]["patient_status"] | null
           transport_needs: string | null
           upcoming_appointments: string | null
           updated_at: string | null
           weight: number | null
+          zip: string | null
         }
         Insert: {
+          acuity?: string | null
           address?: string | null
           admission_date?: string | null
           advanced_directive?: boolean | null
           attending_physician?: string | null
           caregiver_contact?: string | null
           caregiver_name?: string | null
+          city?: string | null
           created_at?: string | null
           date_of_birth?: string | null
           diagnosis?: string | null
@@ -1734,12 +1755,15 @@ export type Database = {
           dnr_status?: boolean | null
           emergency_contact?: string | null
           emergency_phone?: string | null
+          facility?: string | null
           first_name: string
           funeral_arrangements?: string | null
           height?: number | null
           id?: string
           insurance?: string | null
           last_name: string
+          latitude?: number | null
+          longitude?: number | null
           medicaid_number?: string | null
           medicare_number?: string | null
           msw_notes?: string | null
@@ -1757,19 +1781,23 @@ export type Database = {
           special_medical_needs?: string | null
           spiritual_preferences?: string | null
           ssn?: string | null
+          state?: string | null
           status?: Database["public"]["Enums"]["patient_status"] | null
           transport_needs?: string | null
           upcoming_appointments?: string | null
           updated_at?: string | null
           weight?: number | null
+          zip?: string | null
         }
         Update: {
+          acuity?: string | null
           address?: string | null
           admission_date?: string | null
           advanced_directive?: boolean | null
           attending_physician?: string | null
           caregiver_contact?: string | null
           caregiver_name?: string | null
+          city?: string | null
           created_at?: string | null
           date_of_birth?: string | null
           diagnosis?: string | null
@@ -1778,12 +1806,15 @@ export type Database = {
           dnr_status?: boolean | null
           emergency_contact?: string | null
           emergency_phone?: string | null
+          facility?: string | null
           first_name?: string
           funeral_arrangements?: string | null
           height?: number | null
           id?: string
           insurance?: string | null
           last_name?: string
+          latitude?: number | null
+          longitude?: number | null
           medicaid_number?: string | null
           medicare_number?: string | null
           msw_notes?: string | null
@@ -1801,11 +1832,13 @@ export type Database = {
           special_medical_needs?: string | null
           spiritual_preferences?: string | null
           ssn?: string | null
+          state?: string | null
           status?: Database["public"]["Enums"]["patient_status"] | null
           transport_needs?: string | null
           upcoming_appointments?: string | null
           updated_at?: string | null
           weight?: number | null
+          zip?: string | null
         }
         Relationships: [
           {
@@ -1824,8 +1857,10 @@ export type Database = {
           first_name: string | null
           id: string
           last_name: string | null
+          phone: string | null
           role: string | null
           updated_at: string
+          whatsapp_opt_in: boolean | null
         }
         Insert: {
           created_at?: string
@@ -1833,8 +1868,10 @@ export type Database = {
           first_name?: string | null
           id: string
           last_name?: string | null
+          phone?: string | null
           role?: string | null
           updated_at?: string
+          whatsapp_opt_in?: boolean | null
         }
         Update: {
           created_at?: string
@@ -1842,8 +1879,10 @@ export type Database = {
           first_name?: string | null
           id?: string
           last_name?: string | null
+          phone?: string | null
           role?: string | null
           updated_at?: string
+          whatsapp_opt_in?: boolean | null
         }
         Relationships: []
       }
@@ -2558,6 +2597,80 @@ export type Database = {
           },
         ]
       }
+      whatsapp_conversation_state: {
+        Row: {
+          created_at: string | null
+          current_flow: string | null
+          flow_state: Json | null
+          id: string
+          last_message_at: string | null
+          user_id: string | null
+          user_phone: string
+        }
+        Insert: {
+          created_at?: string | null
+          current_flow?: string | null
+          flow_state?: Json | null
+          id?: string
+          last_message_at?: string | null
+          user_id?: string | null
+          user_phone: string
+        }
+        Update: {
+          created_at?: string | null
+          current_flow?: string | null
+          flow_state?: Json | null
+          id?: string
+          last_message_at?: string | null
+          user_id?: string | null
+          user_phone?: string
+        }
+        Relationships: []
+      }
+      whatsapp_notification_queue: {
+        Row: {
+          created_at: string | null
+          error_message: string | null
+          id: string
+          message_body: string | null
+          message_type: string
+          recipient_phone: string
+          referral_id: string | null
+          sent_at: string | null
+          status: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          message_body?: string | null
+          message_type: string
+          recipient_phone: string
+          referral_id?: string | null
+          sent_at?: string | null
+          status?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          message_body?: string | null
+          message_type?: string
+          recipient_phone?: string
+          referral_id?: string | null
+          sent_at?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_notification_queue_referral_id_fkey"
+            columns: ["referral_id"]
+            isOneToOne: false
+            referencedRelation: "referrals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -2587,7 +2700,12 @@ export type Database = {
         | "social_worker"
         | "chaplain"
         | "aide"
-      patient_status: "active" | "discharged" | "deceased" | "transferred"
+      patient_status:
+        | "active"
+        | "discharged"
+        | "deceased"
+        | "transferred"
+        | "transitioning"
       referral_status:
         | "pending"
         | "contacted"
@@ -2748,7 +2866,13 @@ export const Constants = {
         "chaplain",
         "aide",
       ],
-      patient_status: ["active", "discharged", "deceased", "transferred"],
+      patient_status: [
+        "active",
+        "discharged",
+        "deceased",
+        "transferred",
+        "transitioning",
+      ],
       referral_status: [
         "pending",
         "contacted",
