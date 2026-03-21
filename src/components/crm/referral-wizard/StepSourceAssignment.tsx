@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { EnhancedInput } from "@/components/ui/enhanced-input";
-import { Plus, User } from "lucide-react";
+import { Plus, User, AlertCircle } from "lucide-react";
 import ReferringContactSelector from "../ReferringContactSelector";
 
 interface StepSourceAssignmentProps {
