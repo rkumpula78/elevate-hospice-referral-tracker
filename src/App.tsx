@@ -56,9 +56,9 @@ const ProtectedLayout = () => {
 
   return (
     <SidebarProvider defaultOpen={isDesktop}>
-      <div className="min-h-screen flex w-full">
+      <div className="min-h-screen flex w-full overflow-hidden">
         <AppSidebar />
-          <div className="flex-1">
+          <div className="flex-1 overflow-y-auto min-h-0">
             <Routes>
               <Route index element={<Navigate to="/dashboard" replace />} />
               <Route path="dashboard" element={<Dashboard />} />

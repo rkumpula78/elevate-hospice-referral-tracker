@@ -68,7 +68,7 @@ export function MobileFAB() {
         ))}
 
         {/* Main FAB */}
-        <button
+        <button style={{ pointerEvents: 'auto' }}
           onClick={() => setIsOpen(prev => !prev)}
           className={cn(
             "w-14 h-14 rounded-full flex items-center justify-center shadow-xl transition-transform duration-200 bg-primary text-primary-foreground",
