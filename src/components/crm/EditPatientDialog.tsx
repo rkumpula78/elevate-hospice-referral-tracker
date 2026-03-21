@@ -78,7 +78,7 @@ const EditPatientDialog = ({ open, onOpenChange, patientId }: EditPatientDialogP
   // Update patient mutation
   const updatePatientMutation = useMutation({
     mutationFn: async (data: any) => {
-      console.log('Updating patient with data:', data);
+      console.log('Updating patient ID:', patientId);
       const { error } = await supabase
         .from('patients')
         .update(data)
