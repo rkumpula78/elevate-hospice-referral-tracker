@@ -63,7 +63,57 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    const { action, userId, email, password, first_name, last_name }: AdminRequest = await req.json();
+    let requestBody: any;
+    try {
+      requestBody = await req.json();
+    } catch {
+      return new Response(
+        JSON.stringify({ error: { message: "Invalid JSON body" } }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    const { action, userId, email, password, first_name, last_name }: AdminRequest = requestBody;
+
+    // Validate action
+    const validActions = ["list", "delete", "resend-invite", "set-password", "update-user"];
+    if (!action || !validActions.includes(action)) {
+      return new Response(
+        JSON.stringify({ error: { message: "Invalid action" } }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    // Validate UUID format for userId when required
+    const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (userId && !UUID_REGEX.test(userId)) {
+      return new Response(
+        JSON.stringify({ error: { message: "Invalid userId format" } }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    // Validate email format when provided
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return new Response(
+        JSON.stringify({ error: { message: "Invalid email format" } }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    // Validate string lengths
+    if (first_name && first_name.length > 100) {
+      return new Response(
+        JSON.stringify({ error: { message: "First name too long (max 100 chars)" } }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+    if (last_name && last_name.length > 100) {
+      return new Response(
+        JSON.stringify({ error: { message: "Last name too long (max 100 chars)" } }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
 
     // LIST: Get all auth users with status
     if (action === "list") {
@@ -306,9 +356,9 @@ const handler = async (req: Request): Promise<Response> => {
       { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
   } catch (error: any) {
-    console.error("Admin users error:", error);
+    console.error("Admin users error");
     return new Response(
-      JSON.stringify({ error: { message: error.message } }),
+      JSON.stringify({ error: { message: "An internal error occurred" } }),
       { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
   }
