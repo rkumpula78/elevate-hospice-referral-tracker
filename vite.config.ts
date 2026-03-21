@@ -20,13 +20,19 @@ export default defineConfig(({ mode }) => ({
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         runtimeCaching: [
           {
-            urlPattern: /^https:\/\/qpjdiargpivwtbakkfpo\.supabase\.co\/.*/i,
+            // Only cache Supabase auth endpoints and storage assets — never cache REST API (PHI)
+            urlPattern: /^https:\/\/qpjdiargpivwtbakkfpo\.supabase\.co\/auth\/.*/i,
             handler: 'NetworkFirst',
             options: {
-              cacheName: 'supabase-api-cache',
-              expiration: { maxEntries: 100, maxAgeSeconds: 60 * 60 * 24 },
+              cacheName: 'supabase-auth-cache',
+              expiration: { maxEntries: 10, maxAgeSeconds: 300 },
               networkTimeoutSeconds: 5,
             },
+          },
+          {
+            // Block all other Supabase API calls (REST, realtime) from being cached
+            urlPattern: /^https:\/\/qpjdiargpivwtbakkfpo\.supabase\.co\/rest\/.*/i,
+            handler: 'NetworkOnly',
           },
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
