@@ -1,17 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import React, { useState, useEffect, useCallback } from 'react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { logAuditEvent } from '@/lib/auditLog';
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2, ArrowLeft, ArrowRight } from "lucide-react";
+import { Loader2, ArrowLeft, ArrowRight, AlertTriangle, ExternalLink } from "lucide-react";
+import { Link } from "react-router-dom";
 import AddContactDialog from "./AddContactDialog";
 import { useTeamsIntegration } from "@/hooks/useTeamsIntegration";
 import { useIsMobile } from "@/hooks/use-mobile";
 import type { Database } from "@/integrations/supabase/types";
 import { formatPhoneNumber } from "@/lib/formatters";
+import { getStatusLabel, getStatusBadgeColor } from "@/lib/constants";
 
 import { ReferralWizardStepper } from "./referral-wizard/ReferralWizardStepper";
 import { StepPatientInfo } from "./referral-wizard/StepPatientInfo";
@@ -61,6 +64,48 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
   const [showAddContactDialog, setShowAddContactDialog] = useState(false);
   const [selectedOrgName, setSelectedOrgName] = useState('');
 
+  // Duplicate detection state
+  const [duplicates, setDuplicates] = useState<any[]>([]);
+  const [showDuplicateWarning, setShowDuplicateWarning] = useState(false);
+  const [duplicateCheckDone, setDuplicateCheckDone] = useState(false);
+
+  // Duplicate detection
+  const checkForDuplicates = useCallback(async (name: string, phone?: string) => {
+    if (!name || name.trim().length < 2) return;
+    const trimmed = name.trim().toLowerCase();
+    
+    let query = supabase
+      .from('referrals')
+      .select('id, patient_name, status, created_at, organizations(name)')
+      .ilike('patient_name', `%${trimmed}%`)
+      .limit(5);
+
+    const { data: nameMatches } = await query;
+    let allMatches = nameMatches || [];
+
+    // Also check phone if provided
+    if (phone && phone.trim().length >= 10) {
+      const { data: phoneMatches } = await supabase
+        .from('referrals')
+        .select('id, patient_name, status, created_at, organizations(name)')
+        .eq('patient_phone', phone)
+        .limit(5);
+      
+      if (phoneMatches) {
+        const existingIds = new Set(allMatches.map(m => m.id));
+        for (const pm of phoneMatches) {
+          if (!existingIds.has(pm.id)) allMatches.push(pm);
+        }
+      }
+    }
+
+    setDuplicates(allMatches);
+    setDuplicateCheckDone(true);
+    if (allMatches.length > 0) {
+      setShowDuplicateWarning(true);
+    }
+  }, []);
+
   // Reset when dialog closes
   useEffect(() => {
     if (!open) {
@@ -70,6 +115,9 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
       setTouchedFields({});
       setShowNewOrgForm(false);
       setNewOrgName('');
+      setDuplicates([]);
+      setShowDuplicateWarning(false);
+      setDuplicateCheckDone(false);
     }
   }, [open]);
 
@@ -108,6 +156,11 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
     setTouchedFields(prev => ({ ...prev, [field]: true }));
     const error = validateField(field, formData[field as keyof typeof formData]);
     setFieldErrors(prev => ({ ...prev, [field]: error || '' }));
+    
+    // Trigger duplicate check when patient name loses focus
+    if (field === 'patient_name' && formData.patient_name.trim().length >= 2 && !duplicateCheckDone) {
+      checkForDuplicates(formData.patient_name, formData.patient_phone);
+    }
   };
 
   const handleFieldChange = (field: string, value: string) => {
@@ -249,6 +302,55 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
     </div>
   );
 
+  const duplicateWarningDialog = (
+    <Dialog open={showDuplicateWarning} onOpenChange={setShowDuplicateWarning}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 text-amber-600">
+            <AlertTriangle className="w-5 h-5" />
+            Potential Duplicate Found
+          </DialogTitle>
+          <DialogDescription>
+            We found {duplicates.length} existing referral{duplicates.length > 1 ? 's' : ''} that may match this patient.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-3 max-h-60 overflow-y-auto">
+          {duplicates.map((dup) => (
+            <div key={dup.id} className="flex items-center justify-between p-3 border rounded-lg bg-muted/50">
+              <div className="space-y-1">
+                <p className="font-medium text-sm">{dup.patient_name}</p>
+                <div className="flex items-center gap-2">
+                  <Badge className={`text-xs ${getStatusBadgeColor(dup.status)}`}>
+                    {getStatusLabel(dup.status)}
+                  </Badge>
+                  <span className="text-xs text-muted-foreground">
+                    {dup.created_at ? new Date(dup.created_at).toLocaleDateString() : ''}
+                  </span>
+                </div>
+                {dup.organizations?.name && (
+                  <p className="text-xs text-muted-foreground">{dup.organizations.name}</p>
+                )}
+              </div>
+              <Link to={`/referral/${dup.id}`} onClick={() => { setShowDuplicateWarning(false); onOpenChange(false); }}>
+                <Button variant="ghost" size="sm">
+                  <ExternalLink className="w-4 h-4" />
+                </Button>
+              </Link>
+            </div>
+          ))}
+        </div>
+        <DialogFooter className="flex-col sm:flex-row gap-2">
+          <Button variant="outline" onClick={() => { setShowDuplicateWarning(false); onOpenChange(false); }}>
+            Cancel
+          </Button>
+          <Button variant="default" onClick={() => setShowDuplicateWarning(false)}>
+            Create Anyway
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+
   if (isMobile) {
     return (
       <>
@@ -261,6 +363,7 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
             {content}
           </SheetContent>
         </Sheet>
+        {duplicateWarningDialog}
         {formData.organization_id && (
           <AddContactDialog open={showAddContactDialog} onOpenChange={setShowAddContactDialog} organizationId={formData.organization_id} organizationName={selectedOrgName} onContactAdded={handleContactAdded} autoSelectAsReferrer={true} />
         )}
@@ -279,6 +382,7 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
           {content}
         </DialogContent>
       </Dialog>
+      {duplicateWarningDialog}
       {formData.organization_id && (
         <AddContactDialog open={showAddContactDialog} onOpenChange={setShowAddContactDialog} organizationId={formData.organization_id} organizationName={selectedOrgName} onContactAdded={handleContactAdded} autoSelectAsReferrer={true} />
       )}
