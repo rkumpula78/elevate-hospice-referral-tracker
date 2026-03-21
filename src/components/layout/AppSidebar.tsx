@@ -67,7 +67,7 @@ const AppSidebar = () => {
   const { signOut, displayName, user, isAdmin } = useAuth();
   const isMobile = useIsMobile();
   const isTabletOrMobile = useIsTabletOrMobile();
-  const { setOpenMobile, isMobile: sidebarIsMobile, open } = useSidebar();
+  const { setOpenMobile, openMobile, isMobile: sidebarIsMobile } = useSidebar();
 
   const insightsActive = insightsItems.some(i => location.pathname === i.url);
   const [insightsOpen, setInsightsOpen] = useState(insightsActive);
