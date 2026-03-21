@@ -74,33 +74,8 @@ const ReferralCard = ({
     }
   };
 
-  const getStatusProgress = (status: string) => {
-    const statusMap: Record<string, number> = {
-      'new_referral': 15,
-      'in_progress': 35,
-      'assessment': 55,
-      'pending': 75,
-      'admitted': 100,
-    };
-    
-    if (status === 'closed') return 0;
-    
-    return statusMap[status] || 0;
-  };
-
-  const getProgressBarColor = (status: string) => {
-    const colorMap: Record<string, string> = {
-      'new_referral': 'bg-blue-400',
-      'in_progress': 'bg-yellow-400',
-      'assessment': 'bg-purple-500',
-      'pending': 'bg-orange-500',
-      'admitted': 'bg-green-500',
-    };
-    
-    if (status === 'closed') return 'bg-gray-400';
-    
-    return colorMap[status] || 'bg-gray-400';
-  };
+  const progressPercentage = getStatusProgress(referral.status || 'new_referral');
+  const progressBarColor = getStatusProgressBarColor(referral.status || 'new_referral');
 
   const getNextStage = (status: string) => {
     const stageFlow: Record<string, string> = {
