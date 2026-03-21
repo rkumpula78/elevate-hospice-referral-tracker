@@ -24,16 +24,9 @@ import { BulkActionsToolbar } from './BulkActionsToolbar';
 import PullToRefresh from 'react-simple-pull-to-refresh';
 import { Link } from 'react-router-dom';
 
-type ReferralStatus = 'new_referral' | 'in_progress' | 'assessment' | 'pending' | 'admitted' | 'closed';
+import { REFERRAL_STATUSES, getStatusBadgeColor, getStatusLabel, normalizeStatus, type ReferralStatusValue } from '@/lib/constants';
 
-const statusOptions = [
-  { value: 'new_referral', label: 'New' },
-  { value: 'in_progress', label: 'In Progress' },
-  { value: 'assessment', label: 'Assessment' },
-  { value: 'pending', label: 'Pending' },
-  { value: 'admitted', label: 'Admitted' },
-  { value: 'closed', label: 'Closed' },
-];
+const statusOptions = REFERRAL_STATUSES;
 
 interface ReferralsListProps {
   initialFilter?: string | null;
