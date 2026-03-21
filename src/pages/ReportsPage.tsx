@@ -373,6 +373,9 @@ const ReportsPage = () => {
               </Button>
             </CardContent>
           </Card>
+
+          {/* Activity Compliance Card */}
+          <ActivityComplianceCard periodStart={start} periodEnd={end} />
         </div>
       </div>
     </PageLayout>

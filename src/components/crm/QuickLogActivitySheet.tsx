@@ -121,8 +121,22 @@ const QuickLogActivitySheet = ({ organizationId, organizationName, accountRating
     setSelectedTemplate(template);
   };
 
+  const isInPersonType = (type: string) =>
+    ['Visit', 'Meeting', 'Presentation'].includes(type);
+
   const handleConfirm = () => {
     if (!selectedTemplate) return;
+    // Validate notes for in-person types
+    if (isInPersonType(selectedTemplate.interaction_type)) {
+      const totalNotes = ((selectedTemplate.default_notes || '') + ' ' + additionalNotes).trim();
+      if (totalNotes.length < 10) {
+        toast({
+          title: '⚠️ Short notes',
+          description: 'In-person activities should include meaningful discussion notes (10+ characters).',
+          variant: 'warning',
+        });
+      }
+    }
     logMutation.mutate(selectedTemplate);
   };
 

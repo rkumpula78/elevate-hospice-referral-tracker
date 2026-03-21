@@ -173,6 +173,12 @@ const MyDayView = () => {
 
   const content = (
     <div className="space-y-5">
+      {/* Goal Progress + Quick Stats */}
+      <GoalProgressWidget />
+
+      {/* My Route This Week */}
+      <MyRouteThisWeek />
+
       {/* Quick Stats Bar */}
       <div className="grid grid-cols-3 gap-3" data-tour="my-day-stats">
         {statsLoading ? (
