@@ -47,9 +47,8 @@ export const referralFormSchema = z.object({
   email: emailValidation,
 }).refine((data) => {
   // Require reason for non-admittance if status indicates not admitted
-  const notAdmittedStatuses = ['not_admitted_patient_choice', 'not_admitted_not_appropriate', 'not_admitted_lost_contact'];
-  if (notAdmittedStatuses.includes(data.status)) {
-    return !!data.reason_for_non_admittance?.trim();
+  if (data.status === 'closed' && !data.reason_for_non_admittance?.trim()) {
+    return false;
   }
   return true;
 }, {
