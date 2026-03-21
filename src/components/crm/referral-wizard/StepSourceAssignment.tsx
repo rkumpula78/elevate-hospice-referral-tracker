@@ -89,6 +89,11 @@ export function StepSourceAssignment({
             </Select>
           </div>
         )}
+        {touchedFields.organization_id && fieldErrors.organization_id && !formData.organization_id && (
+          <p className="text-sm text-destructive mt-1 flex items-center gap-1">
+            <AlertCircle className="w-3 h-3" />{fieldErrors.organization_id}
+          </p>
+        )}
       </div>
 
       {/* Referring Contact */}
