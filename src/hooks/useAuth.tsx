@@ -1,6 +1,7 @@
 import React, { useState, useEffect, createContext, useContext } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { clearQueue } from '@/lib/offlineQueue';
 
 interface AuthContextType {
   user: User | null;
@@ -156,6 +157,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const signOut = async () => {
+    clearQueue(); // Remove any queued data from localStorage on logout
     await supabase.auth.signOut();
   };
 
