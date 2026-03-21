@@ -9,7 +9,7 @@ export interface BenefitPeriod {
   totalDays: number;
   f2fRequired: boolean;
   f2fDeadline?: Date;
-  certificationDays: number; // 60, 90, or subsequent 60-day periods
+  certificationDays: number; // 90 (periods 1-2) or 60 (period 3+)
   isActive: boolean;
   status: 'current' | 'upcoming' | 'completed';
 }
@@ -39,20 +39,20 @@ export class BenefitPeriodCalculator {
     const periods: BenefitPeriod[] = [];
     const daysSinceAdmission = differenceInDays(targetDate, admissionDate);
     
-    // First period: 60 days
+    // First period: 90 days
     const firstPeriod = this.createBenefitPeriod(
       1, 
       admissionDate, 
-      addDays(admissionDate, 60), 
-      60, 
+      addDays(admissionDate, 90), 
+      90, 
       targetDate
     );
     periods.push(firstPeriod);
     
-    // Second period: 90 days (days 61-150)
-    if (daysSinceAdmission > 60) {
-      const secondStart = addDays(admissionDate, 60);
-      const secondEnd = addDays(admissionDate, 150);
+    // Second period: 90 days (days 91-180)
+    if (daysSinceAdmission > 90) {
+      const secondStart = addDays(admissionDate, 90);
+      const secondEnd = addDays(admissionDate, 180);
       const secondPeriod = this.createBenefitPeriod(
         2, 
         secondStart, 
@@ -65,7 +65,7 @@ export class BenefitPeriodCalculator {
     
     // Subsequent periods: 60 days each
     let periodNumber = 3;
-    let periodStart = addDays(admissionDate, 150);
+    let periodStart = addDays(admissionDate, 180);
     
     while (isBefore(periodStart, targetDate)) {
       const periodEnd = addDays(periodStart, 60);
