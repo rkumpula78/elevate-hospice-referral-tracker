@@ -14,6 +14,7 @@ import PageLayout from '@/components/layout/PageLayout';
 import { format } from 'date-fns';
 import AIQuickHelp from '@/components/dashboard/AIQuickHelp';
 import StatusTimeline from '@/components/referrals/StatusTimeline';
+import { getStatusBadgeColor as getStatusColor, getStatusLabel } from '@/lib/constants';
 
 const ReferralDetail = () => {
   const { id } = useParams();
