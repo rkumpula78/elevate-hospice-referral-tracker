@@ -143,7 +143,7 @@ const EditPatientDialog = ({ open, onOpenChange, patientId }: EditPatientDialogP
         throw dbError;
       }
 
-      console.log('Document record created:', docData);
+      console.log('Document record created:', docData?.id);
       return docData;
     },
     onSuccess: () => {
