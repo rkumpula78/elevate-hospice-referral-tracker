@@ -13,7 +13,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
-import { Plus, User, Phone, FileText, Briefcase, Building } from 'lucide-react';
+import { Plus, User, Phone, FileText, Briefcase, Building, AlertTriangle } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { calculateBenefitPeriod } from '@/lib/benefitPeriodLogic';
 
 // Import patient edit sections
 import PatientOverviewSection from './patient-edit/PatientOverviewSection';
@@ -544,20 +547,49 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="benefit-period">Benefit Period</Label>
-                      <Select 
-                        name="benefit_period" 
-                        defaultValue="1"
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select benefit period" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="1">Benefit Period 1 (0-60 days)</SelectItem>
-                          <SelectItem value="2">Benefit Period 2 (61-150 days)</SelectItem>
-                          <SelectItem value="3">Benefit Period 3 (151-210 days)</SelectItem>
-                          <SelectItem value="4">Benefit Period 4+ (210+ days)</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      {(() => {
+                        const admDate = referralData?.admission_date;
+                        const calc = admDate ? calculateBenefitPeriod(admDate) : null;
+                        const currentManual = referralData?.benefit_period_number?.toString() || '1';
+                        const mismatch = calc && calc.period.toString() !== currentManual;
+                        return (
+                          <>
+                            {calc && (
+                              <div className="mb-2 p-2 rounded-md bg-muted text-sm space-y-1">
+                                <div className="flex justify-between items-center">
+                                  <span className="text-muted-foreground">Auto-calculated:</span>
+                                  <Badge variant="outline">Period {calc.period}</Badge>
+                                </div>
+                                <Progress value={(calc.daysElapsed / calc.totalDays) * 100} className="h-2" />
+                                <div className="flex justify-between text-xs text-muted-foreground">
+                                  <span>Day {calc.daysElapsed} of {calc.totalDays}</span>
+                                  <span>{calc.daysRemaining} days remaining</span>
+                                </div>
+                              </div>
+                            )}
+                            <Select 
+                              name="benefit_period" 
+                              defaultValue={calc ? calc.period.toString() : currentManual}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select benefit period" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="1">Benefit Period 1 (0-60 days)</SelectItem>
+                                <SelectItem value="2">Benefit Period 2 (61-150 days)</SelectItem>
+                                <SelectItem value="3">Benefit Period 3 (151-210 days)</SelectItem>
+                                <SelectItem value="4">Benefit Period 4+ (210+ days)</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            {mismatch && (
+                              <p className="text-xs text-amber-600 mt-1 flex items-center gap-1">
+                                <AlertTriangle className="w-3 h-3" />
+                                Manual selection differs from calculated period ({calc.period})
+                              </p>
+                            )}
+                          </>
+                        );
+                      })()}
                     </div>
                 <div>
                   <Label htmlFor="priority" className="text-gray-700">Priority</Label>
