@@ -43,7 +43,7 @@ export async function logAuditEvent({
   try {
     const { data: { user } } = await supabase.auth.getUser();
 
-    await supabase.from('admin_audit_log').insert({
+    await supabase.from('admin_audit_log').insert([{
       admin_user_id: user?.id ?? null,
       action: `${action}:${tableName}`,
       target_user_id: null,
@@ -51,8 +51,8 @@ export async function logAuditEvent({
         table_name: tableName,
         record_id: recordId,
         changes: changes ?? null,
-      },
-    });
+      } as any,
+    }]);
   } catch (err) {
     // Audit logging should never block the main operation
     console.error('Audit log error:', (err as Error).message);
