@@ -8,6 +8,7 @@ interface StepReviewProps {
   formData: {
     patient_name: string;
     patient_phone: string;
+    patient_address: string;
     diagnosis: string;
     insurance: string;
     priority: string;
