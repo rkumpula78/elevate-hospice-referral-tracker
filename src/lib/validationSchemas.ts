@@ -38,7 +38,7 @@ export const referralFormSchema = z.object({
   referring_physician: z.string().optional(),
   assigned_marketer: z.string().optional(),
   referral_intake_coordinator: z.string().optional(),
-  status: z.string(),
+  status: z.enum(REFERRAL_STATUSES.map(s => s.value) as [string, ...string[]]),
   reason_for_non_admittance: z.string().optional(),
   notes: z.string().max(500, { message: "Notes must be less than 500 characters" }).optional(),
   benefit_period_number: z.number().min(1).max(5),
