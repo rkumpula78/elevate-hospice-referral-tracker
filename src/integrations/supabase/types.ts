@@ -1715,6 +1715,7 @@ export type Database = {
           longitude: number | null
           medicaid_number: string | null
           medicare_number: string | null
+          middle_name: string | null
           msw_notes: string | null
           next_steps: string | null
           notes: string | null
@@ -1766,6 +1767,7 @@ export type Database = {
           longitude?: number | null
           medicaid_number?: string | null
           medicare_number?: string | null
+          middle_name?: string | null
           msw_notes?: string | null
           next_steps?: string | null
           notes?: string | null
@@ -1817,6 +1819,7 @@ export type Database = {
           longitude?: number | null
           medicaid_number?: string | null
           medicare_number?: string | null
+          middle_name?: string | null
           msw_notes?: string | null
           next_steps?: string | null
           notes?: string | null
@@ -2230,6 +2233,7 @@ export type Database = {
           medicaid_number: string | null
           medical_records_received: boolean | null
           medicare_number: string | null
+          middle_name: string | null
           msw_notes: string | null
           next_steps: string | null
           notes: string | null
@@ -2292,6 +2296,7 @@ export type Database = {
           medicaid_number?: string | null
           medical_records_received?: boolean | null
           medicare_number?: string | null
+          middle_name?: string | null
           msw_notes?: string | null
           next_steps?: string | null
           notes?: string | null
@@ -2354,6 +2359,7 @@ export type Database = {
           medicaid_number?: string | null
           medical_records_received?: boolean | null
           medicare_number?: string | null
+          middle_name?: string | null
           msw_notes?: string | null
           next_steps?: string | null
           notes?: string | null
