@@ -1,6 +1,7 @@
 import React, { useState, useEffect, createContext, useContext } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { clearQueue } from '@/lib/offlineQueue';
 
 interface AuthContextType {
   user: User | null;
