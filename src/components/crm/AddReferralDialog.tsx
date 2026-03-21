@@ -320,7 +320,7 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
   // Render step content
   const renderStep = () => {
     switch (currentStep) {
-      case 1: return <StepPatientInfo formData={formData} onFieldChange={handleFieldChange} fieldErrors={fieldErrors} touchedFields={touchedFields} onFieldBlur={handleFieldBlur} disabled={isSubmitting} />;
+      case 1: return <StepPatientInfo formData={formData} onFieldChange={handleFieldChange} fieldErrors={fieldErrors} touchedFields={touchedFields} onFieldBlur={handleFieldBlur} disabled={isSubmitting} />; 
       case 2: return <StepSourceAssignment formData={formData} onFieldChange={handleFieldChange} onReferringContactChange={handleReferringContactChange} onAddContactClick={handleAddContactClick} organizations={organizations} organizationsLoading={organizationsLoading} marketers={marketers} intakeCoordinators={intakeCoordinators} showNewOrgForm={showNewOrgForm} setShowNewOrgForm={setShowNewOrgForm} newOrgName={newOrgName} setNewOrgName={setNewOrgName} newOrgType={newOrgType} setNewOrgType={setNewOrgType} disabled={isSubmitting} />;
       case 3: return <StepClinicalDetails formData={formData} onFieldChange={handleFieldChange} fieldErrors={fieldErrors} touchedFields={touchedFields} onFieldBlur={handleFieldBlur} disabled={isSubmitting} />;
       case 4: return <StepReview formData={formData} organizationName={orgName} onFieldChange={handleFieldChange} onEditStep={setCurrentStep} disabled={isSubmitting} />;
