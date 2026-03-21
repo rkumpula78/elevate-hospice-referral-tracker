@@ -129,12 +129,12 @@ export function QuickNoteSheet({ open, onOpenChange, prefilledOrgId }: QuickNote
             </div>
           </div>
 
-          {/* Organization */}
+          {/* Organization (required) */}
           <div>
-            <Label className="text-sm">Organization</Label>
+            <Label className="text-sm">Organization <span className="text-destructive">*</span></Label>
             <Select value={orgId} onValueChange={setOrgId}>
-              <SelectTrigger className="h-12">
-                <SelectValue placeholder="Select organization (optional)" />
+              <SelectTrigger className={cn("h-12", !orgId && "border-destructive/50")}>
+                <SelectValue placeholder="Select organization" />
               </SelectTrigger>
               <SelectContent>
                 {organizations?.map((org) => (
@@ -142,6 +142,9 @@ export function QuickNoteSheet({ open, onOpenChange, prefilledOrgId }: QuickNote
                 ))}
               </SelectContent>
             </Select>
+            {!orgId && (
+              <p className="text-xs text-destructive mt-1">Organization is required</p>
+            )}
           </div>
 
           {/* Note */}
@@ -160,7 +163,7 @@ export function QuickNoteSheet({ open, onOpenChange, prefilledOrgId }: QuickNote
           {/* Save */}
           <Button
             onClick={() => saveMutation.mutate()}
-            disabled={!note.trim() || saveMutation.isPending}
+            disabled={!note.trim() || !orgId || saveMutation.isPending}
             className="w-full h-12 text-base"
           >
             {saveMutation.isPending ? (
