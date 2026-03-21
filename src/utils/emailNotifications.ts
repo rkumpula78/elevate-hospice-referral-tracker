@@ -4,7 +4,6 @@ interface AdmissionEmailData {
   patient_first_name: string;
   patient_last_name: string;
   patient_dob: string;
-  patient_ssn: string;
   primary_insurance: string;
   referral_source: string;
   responsible_party: string;
