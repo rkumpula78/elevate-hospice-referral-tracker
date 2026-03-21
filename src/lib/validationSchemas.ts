@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { REFERRAL_STATUSES } from "./constants";
 
 // Phone number validation - must be 10 digits when stripped of formatting
 const phoneRegex = /^\(\d{3}\) \d{3}-\d{4}$/;
