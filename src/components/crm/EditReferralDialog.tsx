@@ -26,6 +26,7 @@ import DocumentsSection from './patient-edit/DocumentsSection';
 import { EnhancedInput } from '@/components/ui/enhanced-input';
 import { CharacterCounterTextarea } from '@/components/ui/character-counter-textarea';
 import { formatPhoneNumber } from '@/lib/formatters';
+import { REFERRAL_STATUSES } from '@/lib/constants';
 
 interface EditReferralDialogProps {
   open: boolean;
@@ -578,12 +579,9 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-white border border-gray-300 z-[100]">
-                      <SelectItem value="new_referral">New</SelectItem>
-                      <SelectItem value="in_progress">In Progress</SelectItem>
-                      <SelectItem value="assessment">Assessment</SelectItem>
-                      <SelectItem value="pending">Pending</SelectItem>
-                      <SelectItem value="admitted">Admitted</SelectItem>
-                      <SelectItem value="closed">Closed</SelectItem>
+                      {REFERRAL_STATUSES.map(s => (
+                        <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>

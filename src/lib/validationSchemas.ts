@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { REFERRAL_STATUSES } from "./constants";
 
 // Phone number validation - must be 10 digits when stripped of formatting
 const phoneRegex = /^\(\d{3}\) \d{3}-\d{4}$/;
@@ -37,7 +38,7 @@ export const referralFormSchema = z.object({
   referring_physician: z.string().optional(),
   assigned_marketer: z.string().optional(),
   referral_intake_coordinator: z.string().optional(),
-  status: z.string(),
+  status: z.enum(REFERRAL_STATUSES.map(s => s.value) as [string, ...string[]]),
   reason_for_non_admittance: z.string().optional(),
   notes: z.string().max(500, { message: "Notes must be less than 500 characters" }).optional(),
   benefit_period_number: z.number().min(1).max(5),
@@ -46,9 +47,8 @@ export const referralFormSchema = z.object({
   email: emailValidation,
 }).refine((data) => {
   // Require reason for non-admittance if status indicates not admitted
-  const notAdmittedStatuses = ['not_admitted_patient_choice', 'not_admitted_not_appropriate', 'not_admitted_lost_contact'];
-  if (notAdmittedStatuses.includes(data.status)) {
-    return !!data.reason_for_non_admittance?.trim();
+  if (data.status === 'closed' && !data.reason_for_non_admittance?.trim()) {
+    return false;
   }
   return true;
 }, {

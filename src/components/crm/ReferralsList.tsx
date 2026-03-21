@@ -24,16 +24,9 @@ import { BulkActionsToolbar } from './BulkActionsToolbar';
 import PullToRefresh from 'react-simple-pull-to-refresh';
 import { Link } from 'react-router-dom';
 
-type ReferralStatus = 'new_referral' | 'in_progress' | 'assessment' | 'pending' | 'admitted' | 'closed';
+import { REFERRAL_STATUSES, getStatusBadgeColor, getStatusLabel, normalizeStatus, type ReferralStatusValue } from '@/lib/constants';
 
-const statusOptions = [
-  { value: 'new_referral', label: 'New' },
-  { value: 'in_progress', label: 'In Progress' },
-  { value: 'assessment', label: 'Assessment' },
-  { value: 'pending', label: 'Pending' },
-  { value: 'admitted', label: 'Admitted' },
-  { value: 'closed', label: 'Closed' },
-];
+const statusOptions = REFERRAL_STATUSES;
 
 interface ReferralsListProps {
   initialFilter?: string | null;
@@ -141,7 +134,7 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
   };
 
   const updateStatusMutation = useMutation({
-    mutationFn: async ({ id, status }: { id: string, status: ReferralStatus }) => {
+    mutationFn: async ({ id, status }: { id: string, status: ReferralStatusValue }) => {
       const { error } = await supabase
         .from('referrals')
         .update({ status })
@@ -535,15 +528,7 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
               </TableCell>
               <TableCell>{referral.organizations?.name || 'N/A'}</TableCell>
               <TableCell>
-              <span className={`px-2 py-1 text-xs rounded-full ${
-                  referral.status === 'new_referral' ? 'bg-blue-100 text-blue-800' :
-                  referral.status === 'in_progress' ? 'bg-yellow-100 text-yellow-800' :
-                  referral.status === 'assessment' ? 'bg-purple-100 text-purple-800' :
-                  referral.status === 'pending' ? 'bg-orange-100 text-orange-800' :
-                  referral.status === 'admitted' ? 'bg-green-100 text-green-800' :
-                  referral.status === 'closed' ? 'bg-gray-100 text-gray-800' :
-                  'bg-blue-100 text-blue-800'
-                }`}>
+              <span className={`px-2 py-1 text-xs rounded-full ${getStatusBadgeColor(referral.status)}`}>
                   {statusOptions.find(s => s.value === referral.status)?.label || referral.status}
                 </span>
               </TableCell>
@@ -662,7 +647,7 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
                     isUpdatingStatus={updateStatusMutation.isPending}
                     isUpdatingPriority={updatePriorityMutation.isPending}
                     isUpdatingMarketer={updateMarketerMutation.isPending}
-                    onStatusChange={(id, status) => updateStatusMutation.mutate({ id, status: status as ReferralStatus })}
+                    onStatusChange={(id, status) => updateStatusMutation.mutate({ id, status: status as ReferralStatusValue })}
                     onPriorityChange={(id, priority) => updatePriorityMutation.mutate({ id, priority })}
                     onMarketerChange={handleMarketerChange}
                     onEdit={handleEditReferral}

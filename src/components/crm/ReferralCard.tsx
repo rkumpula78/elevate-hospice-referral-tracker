@@ -12,6 +12,7 @@ import { Link } from "react-router-dom";
 import { format, differenceInDays } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { getStatusSolidColor as getStatusColor, getStatusLabel, getStatusProgress, getStatusProgressBarColor, getNextStage, REFERRAL_STATUSES } from '@/lib/constants';
 
 interface ReferralCardProps {
   referral: any;
@@ -54,29 +55,7 @@ const ReferralCard = ({
       return () => clearTimeout(timer);
     }
   }, [referral.status]);
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'new_referral': return 'bg-blue-600 text-white border-blue-700';
-      case 'in_progress': return 'bg-yellow-600 text-white border-yellow-700';
-      case 'assessment': return 'bg-purple-600 text-white border-purple-700';
-      case 'pending': return 'bg-orange-600 text-white border-orange-700';
-      case 'admitted': return 'bg-green-600 text-white border-green-700';
-      case 'closed': return 'bg-gray-600 text-white border-gray-700';
-      default: return 'bg-gray-600 text-white border-gray-700';
-    }
-  };
-
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'new_referral': return 'New';
-      case 'in_progress': return 'In Progress';
-      case 'assessment': return 'Assessment';
-      case 'pending': return 'Pending';
-      case 'admitted': return 'Admitted';
-      case 'closed': return 'Closed';
-      default: return status;
-    }
-  };
+  // Use shared constants for status display
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
@@ -96,45 +75,9 @@ const ReferralCard = ({
     }
   };
 
-  const getStatusProgress = (status: string) => {
-    const statusMap: Record<string, number> = {
-      'new_referral': 15,
-      'in_progress': 35,
-      'assessment': 55,
-      'pending': 75,
-      'admitted': 100,
-    };
-    
-    if (status === 'closed') return 0;
-    
-    return statusMap[status] || 0;
-  };
-
-  const getProgressBarColor = (status: string) => {
-    const colorMap: Record<string, string> = {
-      'new_referral': 'bg-blue-400',
-      'in_progress': 'bg-yellow-400',
-      'assessment': 'bg-purple-500',
-      'pending': 'bg-orange-500',
-      'admitted': 'bg-green-500',
-    };
-    
-    if (status === 'closed') return 'bg-gray-400';
-    
-    return colorMap[status] || 'bg-gray-400';
-  };
-
-  const getNextStage = (status: string) => {
-    const stageFlow: Record<string, string> = {
-      'new_referral': 'In Progress',
-      'in_progress': 'Assessment',
-      'assessment': 'Pending',
-      'pending': 'Admitted',
-      'admitted': 'Completed',
-    };
-    
-    return stageFlow[status] || 'N/A';
-  };
+  const progressPercentage = getStatusProgress(referral.status || 'new_referral');
+  const progressBarColor = getStatusProgressBarColor(referral.status || 'new_referral');
+  const nextStageLabel = getNextStage(referral.status || 'new_referral');
 
   const getDaysInStage = () => {
     if (!referral.updated_at && !referral.created_at) return 0;
@@ -170,9 +113,7 @@ const ReferralCard = ({
   const isUrgent = referral.priority === 'urgent';
   const priorityBadge = getPriorityBadge(referral.priority || 'routine');
 
-  const progressPercentage = getStatusProgress(referral.status);
-  const progressBarColor = getProgressBarColor(referral.status);
-  const nextStage = getNextStage(referral.status);
+  const nextStage = nextStageLabel;
   const daysInStage = getDaysInStage();
 
   const handleSchedule = () => {
@@ -376,12 +317,9 @@ const ReferralCard = ({
                 </SelectValue>
               </SelectTrigger>
               <SelectContent className="modern-dropdown">
-                <SelectItem value="new_referral" className="modern-dropdown-item">New</SelectItem>
-                <SelectItem value="in_progress" className="modern-dropdown-item">In Progress</SelectItem>
-                <SelectItem value="assessment" className="modern-dropdown-item">Assessment</SelectItem>
-                <SelectItem value="pending" className="modern-dropdown-item">Pending</SelectItem>
-                <SelectItem value="admitted" className="modern-dropdown-item">Admitted</SelectItem>
-                <SelectItem value="closed" className="modern-dropdown-item">Closed</SelectItem>
+                {REFERRAL_STATUSES.map(s => (
+                  <SelectItem key={s.value} value={s.value} className="modern-dropdown-item">{s.label}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
