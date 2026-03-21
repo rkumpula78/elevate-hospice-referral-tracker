@@ -168,6 +168,27 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
 
       const changes = computeChanges(oldData as any, data);
       await logAuditEvent({ action: 'update', tableName: 'referrals', recordId: referralId, changes });
+
+      // If status changed to 'admitted', geocode the patient address
+      if (data.status === 'admitted' && oldData?.status !== 'admitted') {
+        const address = data.address || oldData?.address;
+        if (address) {
+          // Fire and forget — don't block the mutation
+          import('@/lib/geocode').then(({ geocodePatientAddress }) => {
+            // Find the patient created by the trigger
+            supabase
+              .from('patients')
+              .select('id')
+              .eq('referral_id', referralId)
+              .maybeSingle()
+              .then(({ data: patient }) => {
+                if (patient?.id) {
+                  geocodePatientAddress(patient.id, address);
+                }
+              });
+          });
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['referrals'] });
