@@ -154,7 +154,7 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
   // Mutation for updating referral data
   const updateReferralMutation = useMutation({
     mutationFn: async (data: any) => {
-      const oldData = referral ? { ...referral } : null;
+      const oldData = referralData ? { ...referralData } : null;
       const { error } = await supabase
         .from('referrals')
         .update(data)
