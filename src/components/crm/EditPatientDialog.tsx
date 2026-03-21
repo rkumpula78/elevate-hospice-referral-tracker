@@ -122,7 +122,7 @@ const EditPatientDialog = ({ open, onOpenChange, patientId }: EditPatientDialogP
         throw uploadError;
       }
 
-      console.log('File uploaded successfully:', uploadData);
+      console.log('File uploaded successfully');
 
       // Create document record
       const { data: docData, error: dbError } = await supabase
