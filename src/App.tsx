@@ -13,6 +13,7 @@ import { useBreakpoint } from "@/hooks/use-responsive";
 import { MobileFAB } from "@/components/mobile/MobileFAB";
 import OfflineBanner from "@/components/offline/OfflineBanner";
 import { useOfflineSync } from "@/hooks/useOfflineSync";
+import { useSessionTimeout } from "@/hooks/useSessionTimeout";
 import Auth from "./pages/Auth";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
