@@ -64,6 +64,11 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
   const [showAddContactDialog, setShowAddContactDialog] = useState(false);
   const [selectedOrgName, setSelectedOrgName] = useState('');
 
+  // Duplicate detection state
+  const [duplicates, setDuplicates] = useState<any[]>([]);
+  const [showDuplicateWarning, setShowDuplicateWarning] = useState(false);
+  const [duplicateCheckDone, setDuplicateCheckDone] = useState(false);
+
   // Reset when dialog closes
   useEffect(() => {
     if (!open) {
