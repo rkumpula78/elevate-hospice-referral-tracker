@@ -26,6 +26,7 @@ import DocumentsSection from './patient-edit/DocumentsSection';
 import { EnhancedInput } from '@/components/ui/enhanced-input';
 import { CharacterCounterTextarea } from '@/components/ui/character-counter-textarea';
 import { formatPhoneNumber } from '@/lib/formatters';
+import { REFERRAL_STATUSES } from '@/lib/constants';
 
 interface EditReferralDialogProps {
   open: boolean;

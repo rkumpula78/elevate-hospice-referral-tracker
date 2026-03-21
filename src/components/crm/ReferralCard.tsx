@@ -12,6 +12,7 @@ import { Link } from "react-router-dom";
 import { format, differenceInDays } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { getStatusSolidColor as getStatusColor, getStatusLabel, getStatusProgress, getStatusProgressBarColor, getNextStage, REFERRAL_STATUSES } from '@/lib/constants';
 
 interface ReferralCardProps {
   referral: any;
