@@ -274,6 +274,30 @@ export class BenefitPeriodCalculator {
 }
 
 /**
+ * Convenience function: calculate the current benefit period from an admission date string.
+ * Returns period number, days remaining, and date range.
+ */
+export function calculateBenefitPeriod(admissionDate: string): {
+  period: number;
+  daysRemaining: number;
+  daysElapsed: number;
+  totalDays: number;
+  startDate: string;
+  endDate: string;
+} {
+  const admission = new Date(admissionDate);
+  const current = BenefitPeriodCalculator.getCurrentBenefitPeriod(admission);
+  return {
+    period: current.number,
+    daysRemaining: current.daysRemaining,
+    daysElapsed: current.daysElapsed,
+    totalDays: current.totalDays,
+    startDate: format(current.startDate, 'yyyy-MM-dd'),
+    endDate: format(current.endDate, 'yyyy-MM-dd'),
+  };
+}
+
+/**
  * Utility functions for formatting and display
  */
 export class BenefitPeriodFormatter {
