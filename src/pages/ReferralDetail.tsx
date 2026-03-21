@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Calendar, Phone, Mail, User, Building2, Edit, Plus } from 'lucide-react';
 import ReferralEligibility from '@/components/crm/ReferralEligibility';
+import BenefitPeriodTracker from '@/components/crm/BenefitPeriodTracker';
 import { Badge } from '@/components/ui/badge';
 import EditReferralDialog from '@/components/crm/EditReferralDialog';
 import ScheduleVisitDialog from '@/components/crm/ScheduleVisitDialog';
