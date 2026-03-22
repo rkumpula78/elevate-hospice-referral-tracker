@@ -254,8 +254,8 @@ const MapComponent = () => {
   }
 
   return (
-    <div className="relative w-full h-full">
-      <div ref={mapContainer} className="absolute inset-0 rounded-lg" />
+    <div className="relative w-full" style={{ height: '100%', minHeight: '500px' }}>
+      <div ref={mapContainer} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, minHeight: '500px' }} className="rounded-lg" />
       <div className="absolute top-2 left-2 z-10">
         <MapFilters
           filters={filters}
