@@ -8,7 +8,7 @@ const MapPage = () => {
       title="Territory Map" 
       subtitle="View and manage your organization territory with route planning"
     >
-      <div className="h-[calc(100vh-12rem)]">
+      <div style={{ height: 'calc(100vh - 12rem)' }}>
         <MapComponent />
       </div>
     </PageLayout>
