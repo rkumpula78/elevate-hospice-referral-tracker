@@ -14,9 +14,8 @@ export default defineConfig(({ mode }) => ({
     rollupOptions: {
       output: {
         manualChunks: {
-          vendor: ['react', 'react-dom', 'react-router-dom'],
-          ui: ['recharts', 'react-big-calendar', 'mapbox-gl'],
-          supabase: ['@supabase/supabase-js'],
+          mapbox: ['mapbox-gl'],
+          charts: ['recharts', 'react-big-calendar'],
         },
       },
     },
