@@ -32,6 +32,7 @@ import NotFound from "./pages/NotFound";
 import AnalyticsPage from "./pages/AnalyticsPage";
 import ReportsPage from "./pages/ReportsPage";
 import MarketingPage from "./pages/MarketingPage";
+import MapPage from "./pages/MapPage";
 import KPIPage from "./pages/KPIPage";
 
 const queryClient = new QueryClient({
@@ -71,6 +72,7 @@ const ProtectedLayout = () => {
               <Route path="analytics" element={<AnalyticsPage />} />
               <Route path="reports" element={<ReportsPage />} />
               <Route path="marketing" element={<MarketingPage />} />
+              <Route path="map" element={<MapPage />} />
               <Route path="kpi" element={<KPIPage />} />
               <Route path="settings" element={<SettingsPage />} />
               <Route path="admin/users" element={

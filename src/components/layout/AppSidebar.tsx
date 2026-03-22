@@ -29,7 +29,8 @@ import {
   Activity,
   ChevronDown,
   TrendingUp,
-  Megaphone
+  Megaphone,
+  MapPin
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -53,13 +54,14 @@ const primaryItems = [
   { title: "Referrals", url: "/referrals", icon: Phone },
   { title: "Organizations", url: "/organizations", icon: Building },
   { title: "Schedule", url: "/schedule", icon: Calendar },
-  { title: "Marketing", url: "/marketing", icon: Megaphone },
+  { title: "Territory Map", url: "/map", icon: MapPin },
 ];
 
 const insightsItems = [
   { title: "KPI Dashboard", url: "/kpi", icon: Activity },
   { title: "Analytics", url: "/analytics", icon: BarChart3 },
   { title: "Reports", url: "/reports", icon: FileText },
+  { title: "Marketing", url: "/marketing", icon: Megaphone },
 ];
 
 const AppSidebar = () => {
