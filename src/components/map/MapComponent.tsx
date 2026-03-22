@@ -231,47 +231,45 @@ const MapComponent = () => {
     if (m.getSource('route')) m.removeSource('route');
   }, []);
 
-  if (isLoading || orgsLoading) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="text-center">
-          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading map...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="text-center p-6">
-          <p className="text-destructive font-medium">{error}</p>
-          <p className="text-sm text-muted-foreground mt-2">Ensure the MAPBOX_PUBLIC_TOKEN secret is configured.</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="relative w-full" style={{ height: '100%', minHeight: '500px' }}>
       <div ref={mapContainer} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, minHeight: '500px' }} className="rounded-lg" />
-      <div className="absolute top-2 left-2 z-10">
-        <MapFilters
-          filters={filters}
-          onChange={setFilters}
-          orgTypes={orgTypes}
-          orgCount={filteredOrgs.length}
-        />
-      </div>
-      <RoutePlanner
-        active={routeActive}
-        onToggle={() => { setRouteActive(!routeActive); if (routeActive) { setRouteStops([]); clearRoute(); } }}
-        stops={routeStops}
-        onRemoveStop={(id) => { setRouteStops(prev => prev.filter(s => s.id !== id)); clearRoute(); }}
-        onClearStops={() => { setRouteStops([]); clearRoute(); }}
-        onRouteCalculated={handleRouteCalculated}
-      />
+      {(isLoading || orgsLoading) && (
+        <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/80 rounded-lg">
+          <div className="text-center">
+            <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+            <p className="text-muted-foreground">Loading map...</p>
+          </div>
+        </div>
+      )}
+      {error && (
+        <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/80 rounded-lg">
+          <div className="text-center p-6">
+            <p className="text-destructive font-medium">{error}</p>
+            <p className="text-sm text-muted-foreground mt-2">Ensure the MAPBOX_PUBLIC_TOKEN secret is configured.</p>
+          </div>
+        </div>
+      )}
+      {!isLoading && !orgsLoading && !error && (
+        <>
+          <div className="absolute top-2 left-2 z-10">
+            <MapFilters
+              filters={filters}
+              onChange={setFilters}
+              orgTypes={orgTypes}
+              orgCount={filteredOrgs.length}
+            />
+          </div>
+          <RoutePlanner
+            active={routeActive}
+            onToggle={() => { setRouteActive(!routeActive); if (routeActive) { setRouteStops([]); clearRoute(); } }}
+            stops={routeStops}
+            onRemoveStop={(id) => { setRouteStops(prev => prev.filter(s => s.id !== id)); clearRoute(); }}
+            onClearStops={() => { setRouteStops([]); clearRoute(); }}
+            onRouteCalculated={handleRouteCalculated}
+          />
+        </>
+      )}
     </div>
   );
 };
