@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Service role full access on patients" ON public.patients;
