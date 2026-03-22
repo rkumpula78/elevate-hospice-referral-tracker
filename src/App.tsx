@@ -32,6 +32,7 @@ import NotFound from "./pages/NotFound";
 import AnalyticsPage from "./pages/AnalyticsPage";
 import ReportsPage from "./pages/ReportsPage";
 import MarketingPage from "./pages/MarketingPage";
+import MapPage from "./pages/MapPage";
 import KPIPage from "./pages/KPIPage";
 
 const queryClient = new QueryClient({
