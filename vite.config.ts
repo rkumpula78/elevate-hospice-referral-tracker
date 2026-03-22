@@ -10,6 +10,17 @@ export default defineConfig(({ mode }) => ({
     host: "::",
     port: 8080,
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+          ui: ['recharts', 'react-big-calendar', 'mapbox-gl'],
+          supabase: ['@supabase/supabase-js'],
+        },
+      },
+    },
+  },
   plugins: [
     react(),
     mode === 'development' && componentTagger(),
@@ -17,10 +28,9 @@ export default defineConfig(({ mode }) => ({
       registerType: 'autoUpdate',
       workbox: {
       globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
-        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
+        maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
         runtimeCaching: [
           {
-            // Only cache Supabase auth endpoints and storage assets — never cache REST API (PHI)
             urlPattern: /^https:\/\/qpjdiargpivwtbakkfpo\.supabase\.co\/auth\/.*/i,
             handler: 'NetworkFirst',
             options: {
@@ -30,7 +40,6 @@ export default defineConfig(({ mode }) => ({
             },
           },
           {
-            // Block all other Supabase API calls (REST, realtime) from being cached
             urlPattern: /^https:\/\/qpjdiargpivwtbakkfpo\.supabase\.co\/rest\/.*/i,
             handler: 'NetworkOnly',
           },
@@ -53,7 +62,7 @@ export default defineConfig(({ mode }) => ({
         ],
         navigateFallbackDenylist: [/^\/~oauth/],
       },
-      manifest: false, // Using our own public/manifest.json
+      manifest: false,
     }),
   ].filter(Boolean),
   resolve: {
