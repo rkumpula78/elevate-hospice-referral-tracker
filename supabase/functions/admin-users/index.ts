@@ -322,7 +322,7 @@ const handler = async (req: Request): Promise<Response> => {
       if (updateError) {
         console.error("Update user error:", updateError);
         return new Response(
-          JSON.stringify({ error: updateError }),
+          JSON.stringify({ error: { message: "Failed to update user" } }),
           { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
         );
       }
