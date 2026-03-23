@@ -257,7 +257,6 @@ ${context === 'family' ?
     return new Response(
       JSON.stringify({ 
         message: fallbackMessage,
-        error: error.message,
         success: false 
       }),
       {

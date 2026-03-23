@@ -6,6 +6,18 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 }
 
+const ALLOWED_EMAIL_DOMAIN = '@elevatehospiceaz.com';
+
+// Whitelist of allowed template parameter keys
+const ALLOWED_TEMPLATE_KEYS = [
+  'patient_name', 'admission_date', 'diagnosis', 'physician',
+  'referral_source', 'insurance', 'address', 'phone',
+  'emergency_contact', 'emergency_phone', 'notes',
+  'intake_specialist_email', 'intake_specialist_name',
+  'referring_facility', 'priority', 'status',
+  'assigned_marketer', 'contact_person',
+];
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
@@ -45,6 +57,15 @@ serve(async (req) => {
       )
     }
 
+    // Validate recipient email domain
+    const recipientEmail = emailData.intake_specialist_email;
+    if (!recipientEmail || typeof recipientEmail !== 'string' || !recipientEmail.toLowerCase().endsWith(ALLOWED_EMAIL_DOMAIN)) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid recipient email. Must be an @elevatehospiceaz.com address.' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
     // Get EmailJS credentials from secrets
     const serviceId = Deno.env.get('EMAILJS_SERVICE_ID');
     const templateId = Deno.env.get('EMAILJS_TEMPLATE_ID');
@@ -58,6 +79,23 @@ serve(async (req) => {
       )
     }
 
+    // Build sanitized template params from whitelist only
+    const sanitizedParams: Record<string, string> = {};
+    for (const key of ALLOWED_TEMPLATE_KEYS) {
+      if (emailData[key] !== undefined && emailData[key] !== null) {
+        const value = String(emailData[key]).substring(0, 1000); // length limit
+        sanitizedParams[key] = value;
+      }
+    }
+
+    // HIPAA: ensure SSN is never included
+    delete sanitizedParams['patient_ssn'];
+    delete sanitizedParams['ssn'];
+
+    // Override recipient and specialist name
+    sanitizedParams['to_email'] = recipientEmail;
+    sanitizedParams['intake_specialist_name'] = sanitizedParams['intake_specialist_name'] || 'Intake Specialist';
+
     // Call EmailJS REST API directly
     const emailjsResponse = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
       method: 'POST',
@@ -66,14 +104,7 @@ serve(async (req) => {
         service_id: serviceId,
         template_id: templateId,
         user_id: publicKey,
-        template_params: {
-          ...emailData,
-          // HIPAA: strip SSN defensively in case client sends it
-          patient_ssn: undefined,
-          ssn: undefined,
-          to_email: emailData.intake_specialist_email,
-          intake_specialist_name: 'Intake Specialist',
-        },
+        template_params: sanitizedParams,
       }),
     });
 
