@@ -210,19 +210,29 @@ const ReferralCard = ({
                 variant="outline" 
                 size="sm" 
                 onClick={() => onEdit(referral.id)} 
-                className="h-11 px-4 text-sm flex-1 bg-gray-100 hover:bg-gray-200 border-gray-300 text-gray-900 font-semibold shadow-sm active:scale-95 transition-all"
+                className="h-11 px-3 text-sm flex-1 bg-muted hover:bg-accent border-border text-foreground font-semibold shadow-sm active:scale-95 transition-all"
               >
-                <Edit className="w-4 h-4 mr-2" />
+                <Edit className="w-4 h-4 mr-1" />
                 Edit
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setShowQuickActivity(true)} 
+                className="h-11 px-3 text-sm flex-1 bg-muted hover:bg-accent border-border text-foreground font-semibold shadow-sm active:scale-95 transition-all"
+              >
+                <FileText className="w-4 h-4 mr-1" />
+                Log
               </Button>
               
               <Button 
                 variant="default" 
                 size="sm" 
                 onClick={handleSchedule} 
-                className="h-11 px-4 text-sm flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-sm active:scale-95 transition-all"
+                className="h-11 px-3 text-sm flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-sm active:scale-95 transition-all"
               >
-                <Calendar className="w-4 h-4 mr-2" />
+                <Calendar className="w-4 h-4 mr-1" />
                 Schedule
               </Button>
             </>
