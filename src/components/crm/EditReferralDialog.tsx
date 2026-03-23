@@ -452,9 +452,10 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
         </DialogHeader>
 
         <Tabs defaultValue="patient-info" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mx-4 sm:mx-6 mt-4 bg-gray-100">
+          <TabsList className="grid w-full grid-cols-4 mx-4 sm:mx-6 mt-4 bg-gray-100">
             <TabsTrigger value="patient-info" className="text-sm sm:text-base text-gray-700 data-[state=active]:bg-white data-[state=active]:text-gray-900">Patient Info</TabsTrigger>
             <TabsTrigger value="status-notes" className="text-sm sm:text-base text-gray-700 data-[state=active]:bg-white data-[state=active]:text-gray-900">Status & Notes</TabsTrigger>
+            <TabsTrigger value="followup" className="text-sm sm:text-base text-gray-700 data-[state=active]:bg-white data-[state=active]:text-gray-900">Follow-up</TabsTrigger>
             <TabsTrigger value="referral-source" className="text-sm sm:text-base text-gray-700 data-[state=active]:bg-white data-[state=active]:text-gray-900">Referral Source</TabsTrigger>
           </TabsList>
 
