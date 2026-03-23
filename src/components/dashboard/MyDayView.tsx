@@ -177,6 +177,9 @@ const MyDayView = () => {
       {/* Goal Progress + Quick Stats */}
       <GoalProgressWidget />
 
+      {/* My Follow-ups */}
+      <MyFollowUpsView />
+
       {/* My Route This Week */}
       <MyRouteThisWeek />
 
