@@ -321,6 +321,9 @@ const Dashboard = () => {
         {/* Alert Center - Shows urgent actions needed */}
         <AlertCenter />
 
+        {/* Follow-ups Due This Week */}
+        <FollowUpsDueWidget />
+
         {/* Enhanced Key Performance Indicators */}
         <div className="mb-6">
           <h2 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-foreground" data-tour="census-card">KEY METRICS - LAST 30 DAYS</h2>
