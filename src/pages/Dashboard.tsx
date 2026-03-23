@@ -27,6 +27,7 @@ import GrowthMetricsCard from "@/components/dashboard/GrowthMetricsCard";
 import { TrendMetricCard } from "@/components/dashboard/TrendMetricCard";
 import OnboardingTour from "@/components/onboarding/OnboardingTour";
 import FollowUpsDueWidget from "@/components/dashboard/FollowUpsDueWidget";
+import MonthlyAdmissionsWidget from "@/components/dashboard/MonthlyAdmissionsWidget";
 
 const Dashboard = () => {
   const [showQuickAdd, setShowQuickAdd] = useState(false);
