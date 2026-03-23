@@ -2224,23 +2224,29 @@ export type Database = {
           emergency_contact: string | null
           emergency_phone: string | null
           first_name: string | null
+          followup_frequency: string | null
           funeral_arrangements: string | null
           height: number | null
           id: string
           insurance: string | null
           insurance_verification: boolean | null
           last_name: string | null
+          location_city: string | null
+          location_type: string | null
+          md_notified: boolean | null
           medicaid_number: string | null
           medical_records_received: boolean | null
           medicare_number: string | null
           middle_name: string | null
           msw_notes: string | null
+          next_followup_date: string | null
           next_steps: string | null
           notes: string | null
           organization_id: string | null
           patient_location: string | null
           patient_name: string
           patient_phone: string | null
+          pcp_provider: string | null
           phone: string | null
           physician: string | null
           primary_insurance: string | null
@@ -2288,23 +2294,29 @@ export type Database = {
           emergency_contact?: string | null
           emergency_phone?: string | null
           first_name?: string | null
+          followup_frequency?: string | null
           funeral_arrangements?: string | null
           height?: number | null
           id?: string
           insurance?: string | null
           insurance_verification?: boolean | null
           last_name?: string | null
+          location_city?: string | null
+          location_type?: string | null
+          md_notified?: boolean | null
           medicaid_number?: string | null
           medical_records_received?: boolean | null
           medicare_number?: string | null
           middle_name?: string | null
           msw_notes?: string | null
+          next_followup_date?: string | null
           next_steps?: string | null
           notes?: string | null
           organization_id?: string | null
           patient_location?: string | null
           patient_name: string
           patient_phone?: string | null
+          pcp_provider?: string | null
           phone?: string | null
           physician?: string | null
           primary_insurance?: string | null
@@ -2352,23 +2364,29 @@ export type Database = {
           emergency_contact?: string | null
           emergency_phone?: string | null
           first_name?: string | null
+          followup_frequency?: string | null
           funeral_arrangements?: string | null
           height?: number | null
           id?: string
           insurance?: string | null
           insurance_verification?: boolean | null
           last_name?: string | null
+          location_city?: string | null
+          location_type?: string | null
+          md_notified?: boolean | null
           medicaid_number?: string | null
           medical_records_received?: boolean | null
           medicare_number?: string | null
           middle_name?: string | null
           msw_notes?: string | null
+          next_followup_date?: string | null
           next_steps?: string | null
           notes?: string | null
           organization_id?: string | null
           patient_location?: string | null
           patient_name?: string
           patient_phone?: string | null
+          pcp_provider?: string | null
           phone?: string | null
           physician?: string | null
           primary_insurance?: string | null

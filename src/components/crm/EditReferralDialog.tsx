@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
-import { Plus, User, Phone, FileText, Briefcase, Building, AlertTriangle } from 'lucide-react';
+import { Plus, User, Phone, FileText, Briefcase, Building, AlertTriangle, MapPin } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { calculateBenefitPeriod } from '@/lib/benefitPeriodLogic';
@@ -29,7 +29,7 @@ import DocumentsSection from './patient-edit/DocumentsSection';
 import { EnhancedInput } from '@/components/ui/enhanced-input';
 import { CharacterCounterTextarea } from '@/components/ui/character-counter-textarea';
 import { formatPhoneNumber } from '@/lib/formatters';
-import { REFERRAL_STATUSES } from '@/lib/constants';
+import { REFERRAL_STATUSES, FOLLOWUP_FREQUENCIES, LOCATION_TYPES } from '@/lib/constants';
 
 interface EditReferralDialogProps {
   open: boolean;
@@ -356,7 +356,7 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
     for (const [key, value] of formData.entries()) {
       if (key === 'organization_id' && value === 'none') {
         updateData[key] = null;
-      } else if (key === 'insurance_verification' || key === 'medical_records_received') {
+      } else if (key === 'insurance_verification' || key === 'medical_records_received' || key === 'md_notified') {
         updateData[key] = value === 'on';
       } else if (key === 'assigned_marketer' && value === 'none') {
         updateData[key] = null;
@@ -452,9 +452,10 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
         </DialogHeader>
 
         <Tabs defaultValue="patient-info" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mx-4 sm:mx-6 mt-4 bg-gray-100">
+          <TabsList className="grid w-full grid-cols-4 mx-4 sm:mx-6 mt-4 bg-gray-100">
             <TabsTrigger value="patient-info" className="text-sm sm:text-base text-gray-700 data-[state=active]:bg-white data-[state=active]:text-gray-900">Patient Info</TabsTrigger>
             <TabsTrigger value="status-notes" className="text-sm sm:text-base text-gray-700 data-[state=active]:bg-white data-[state=active]:text-gray-900">Status & Notes</TabsTrigger>
+            <TabsTrigger value="followup" className="text-sm sm:text-base text-gray-700 data-[state=active]:bg-white data-[state=active]:text-gray-900">Follow-up</TabsTrigger>
             <TabsTrigger value="referral-source" className="text-sm sm:text-base text-gray-700 data-[state=active]:bg-white data-[state=active]:text-gray-900">Referral Source</TabsTrigger>
           </TabsList>
 
@@ -739,6 +740,76 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
                   >
                     <Plus className="w-4 h-4" />
                   </Button>
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="followup" className="space-y-4 bg-white">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="pcp_provider" className="text-gray-700">PCP Provider</Label>
+                  <Input
+                    id="pcp_provider"
+                    name="pcp_provider"
+                    defaultValue={(referralData as any).pcp_provider || ''}
+                    placeholder="e.g., Judith, Daniella, Kim"
+                    className="bg-white border-gray-300 text-gray-900"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">DoctorCare or external PCP following this patient</p>
+                </div>
+                <div>
+                  <Label htmlFor="next_followup_date" className="text-gray-700">Next Follow-up Date</Label>
+                  <Input
+                    id="next_followup_date"
+                    name="next_followup_date"
+                    type="date"
+                    defaultValue={(referralData as any).next_followup_date || ''}
+                    className="bg-white border-gray-300 text-gray-900"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="followup_frequency" className="text-gray-700">Follow-up Frequency</Label>
+                  <Select name="followup_frequency" defaultValue={(referralData as any).followup_frequency || 'monthly'}>
+                    <SelectTrigger className="bg-white border-gray-300 text-gray-900">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white border border-gray-300 z-[100]">
+                      {FOLLOWUP_FREQUENCIES.map(f => (
+                        <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="location_type" className="text-gray-700">Location Type</Label>
+                  <Select name="location_type" defaultValue={(referralData as any).location_type || ''}>
+                    <SelectTrigger className="bg-white border-gray-300 text-gray-900">
+                      <SelectValue placeholder="Select location type" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white border border-gray-300 z-[100]">
+                      {LOCATION_TYPES.map(l => (
+                        <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="location_city" className="text-gray-700">Location City</Label>
+                  <Input
+                    id="location_city"
+                    name="location_city"
+                    defaultValue={(referralData as any).location_city || ''}
+                    placeholder="e.g., Scottsdale, Mesa, Goodyear"
+                    className="bg-white border-gray-300 text-gray-900"
+                  />
+                </div>
+                <div className="flex items-center space-x-2 pt-6">
+                  <Checkbox
+                    id="md_notified"
+                    name="md_notified"
+                    defaultChecked={(referralData as any).md_notified || false}
+                  />
+                  <Label htmlFor="md_notified" className="text-gray-700">MD Notified of Admission</Label>
                 </div>
               </div>
             </TabsContent>
