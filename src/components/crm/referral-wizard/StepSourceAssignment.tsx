@@ -94,6 +94,9 @@ export function StepSourceAssignment({
             <AlertCircle className="w-3 h-3" />{fieldErrors.organization_id}
           </p>
         )}
+        <p className="text-xs text-muted-foreground mt-1">
+          Referrals are attributed to organizations for compliance reporting.
+        </p>
       </div>
 
       {/* Referring Contact */}
