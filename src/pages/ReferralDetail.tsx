@@ -233,6 +233,13 @@ const ReferralDetail = () => {
             </CardContent>
           </Card>
 
+          {/* Admission Details (shown only when admitted) */}
+          {referral.status === 'admitted' && (
+            <div className="lg:col-span-2">
+              <AdmissionDetailsSection referral={referral} onUpdate={() => refetch()} />
+            </div>
+          )}
+
           {/* Status Timeline */}
           <div className="lg:col-span-2">
             <StatusTimeline referralId={id!} currentStatus={referral.status} />
