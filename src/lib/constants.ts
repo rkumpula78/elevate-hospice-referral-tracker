@@ -4,7 +4,28 @@ export const REFERRAL_STATUSES = [
   { value: 'assessment_scheduled', label: 'Assessment Scheduled', color: 'orange' },
   { value: 'pending', label: 'Pending', color: 'amber' },
   { value: 'admitted', label: 'Admitted', color: 'green' },
+  { value: 'palliative_outreach', label: 'Palliative Outreach', color: 'purple' },
+  { value: 'not_appropriate', label: 'Not Appropriate', color: 'slate' },
+  { value: 'declined', label: 'Declined', color: 'red' },
+  { value: 'lost_to_followup', label: 'Lost to Follow-up', color: 'rose' },
   { value: 'closed', label: 'Closed', color: 'gray' },
+] as const;
+
+export const FOLLOWUP_FREQUENCIES = [
+  { value: 'weekly', label: 'Weekly' },
+  { value: 'biweekly', label: 'Biweekly' },
+  { value: 'monthly', label: 'Monthly' },
+  { value: 'as_needed', label: 'As Needed' },
+] as const;
+
+export const LOCATION_TYPES = [
+  { value: 'PH', label: 'Private Home' },
+  { value: 'GH', label: 'Group Home' },
+  { value: 'ALF', label: 'Assisted Living' },
+  { value: 'IL', label: 'Independent Living' },
+  { value: 'SNF', label: 'Skilled Nursing' },
+  { value: 'MC', label: 'Memory Care' },
+  { value: 'Other', label: 'Other' },
 ] as const;
 
 export type ReferralStatusValue = (typeof REFERRAL_STATUSES)[number]['value'];
