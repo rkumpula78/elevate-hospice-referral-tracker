@@ -178,6 +178,7 @@ const PalliativeOutreachBoard = () => {
                         Log
                       </Button>
                     </TableCell>
+                  </TableRow>
                 );
               })}
             </TableBody>
