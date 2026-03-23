@@ -44,9 +44,9 @@ export function StepSourceAssignment({
     <div className="space-y-4">
       <h3 className="text-base font-semibold">Source & Assignment</h3>
 
-      {/* Organization */}
+      {/* Organization - Referral Source */}
       <div>
-        <Label>Referral Source <span className="text-destructive">*</span></Label>
+        <Label>Referring Organization <span className="text-destructive">*</span></Label>
         {!showNewOrgForm ? (
           <Select
             value={formData.organization_id}
