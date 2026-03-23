@@ -183,6 +183,15 @@ const PalliativeOutreachBoard = () => {
           </Table>
         </div>
       )}
+
+      {quickLogRef && (
+        <QuickLogActivityDialog
+          open={!!quickLogRef}
+          onOpenChange={(open) => { if (!open) setQuickLogRef(null); }}
+          referralId={quickLogRef.id}
+          patientName={quickLogRef.name}
+        />
+      )}
     </div>
   );
 };
