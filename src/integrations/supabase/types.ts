@@ -2253,6 +2253,7 @@ export type Database = {
           referral_date: string | null
           referral_intake_coordinator: string | null
           referral_source: string | null
+          referring_contact_name: string | null
           referring_physician: string | null
           responsible_party_contact: string | null
           responsible_party_name: string | null
@@ -2316,6 +2317,7 @@ export type Database = {
           referral_date?: string | null
           referral_intake_coordinator?: string | null
           referral_source?: string | null
+          referring_contact_name?: string | null
           referring_physician?: string | null
           responsible_party_contact?: string | null
           responsible_party_name?: string | null
@@ -2379,6 +2381,7 @@ export type Database = {
           referral_date?: string | null
           referral_intake_coordinator?: string | null
           referral_source?: string | null
+          referring_contact_name?: string | null
           referring_physician?: string | null
           responsible_party_contact?: string | null
           responsible_party_name?: string | null

@@ -746,7 +746,7 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
             <TabsContent value="referral-source" className="space-y-4 bg-white">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="organization_id" className="text-gray-700">Referring Organization</Label>
+                  <Label htmlFor="organization_id" className="text-gray-700">Referring Organization <span className="text-destructive">*</span></Label>
                   <Select name="organization_id" defaultValue={referralData.organization_id || 'none'}>
                     <SelectTrigger className="bg-white border-gray-300 text-gray-900">
                       <SelectValue placeholder="Select organization" />
@@ -760,16 +760,22 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
                       ))}
                     </SelectContent>
                   </Select>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Referrals are attributed to organizations for compliance reporting.
+                  </p>
                 </div>
                 <div>
-                  <Label htmlFor="referral_contact_person" className="text-gray-700">Referral Contact Person</Label>
+                  <Label htmlFor="referring_contact_name" className="text-gray-700">Clinician/Contact Name at Referring Org</Label>
                   <Input
-                    id="referral_contact_person"
-                    name="referral_contact_person"
-                    defaultValue={referralData.referral_contact_person || ''}
-                    placeholder="Contact name at facility"
+                    id="referring_contact_name"
+                    name="referring_contact_name"
+                    defaultValue={(referralData as any).referring_contact_name || referralData.referral_contact_person || ''}
+                    placeholder="e.g., Dr. Smith, Donna (discharge planner)"
                     className="bg-white border-gray-300 text-gray-900"
                   />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    The clinician or staff member who identified the patient need. Internal context only — not shown in reports.
+                  </p>
                 </div>
                 <div>
                   <Label htmlFor="referral_contact_phone" className="text-gray-700">Referral Contact Phone</Label>

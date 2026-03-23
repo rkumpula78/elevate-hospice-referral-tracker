@@ -99,9 +99,13 @@ export function StepSourceAssignment({
         </p>
       </div>
 
-      {/* Referring Contact */}
+      {/* Referring Contact - internal context only */}
       {formData.organization_id && !showNewOrgForm && (
         <div className="border-t pt-4">
+          <Label className="text-base font-medium">Clinician/Contact Name at Referring Org</Label>
+          <p className="text-xs text-muted-foreground mb-2">
+            The clinician or staff member who identified the patient need (e.g., the PCP, discharge planner, or case manager). Internal context only — not shown in reports.
+          </p>
           <ReferringContactSelector
             organizationId={formData.organization_id}
             selectedContactId={formData.referring_contact_id}
