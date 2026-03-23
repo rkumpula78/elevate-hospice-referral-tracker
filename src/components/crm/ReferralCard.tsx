@@ -467,6 +467,13 @@ const ReferralCard = ({
           </div>
         </div>
       </CardContent>
+
+      <MobileQuickActivitySheet
+        open={showQuickActivity}
+        onOpenChange={setShowQuickActivity}
+        referralId={referral.id}
+        patientName={referral.patient_name}
+      />
     </Card>
   );
 };
