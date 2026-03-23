@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import EditReferralDialog from '@/components/crm/EditReferralDialog';
 import ScheduleVisitDialog from '@/components/crm/ScheduleVisitDialog';
 import ReferralFamilyContacts from '@/components/crm/ReferralFamilyContacts';
+import ReferralActivityLog from '@/components/crm/ReferralActivityLog';
 import PageLayout from '@/components/layout/PageLayout';
 import { format } from 'date-fns';
 import AIQuickHelp from '@/components/dashboard/AIQuickHelp';
