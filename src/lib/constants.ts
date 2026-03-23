@@ -111,9 +111,9 @@ export const LEGACY_STATUS_MAP: Record<string, ReferralStatusValue> = {
   assessment: 'assessment_scheduled',
   assessment_scheduled: 'assessment_scheduled',
   pending_admission: 'pending',
-  not_admitted_patient_choice: 'closed',
-  not_admitted_not_appropriate: 'closed',
-  not_admitted_lost_contact: 'closed',
+  not_admitted_patient_choice: 'declined',
+  not_admitted_not_appropriate: 'not_appropriate',
+  not_admitted_lost_contact: 'lost_to_followup',
   deceased_prior_admission: 'closed',
 };
 
