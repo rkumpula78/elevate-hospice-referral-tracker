@@ -122,7 +122,7 @@ const handler = async (req: Request): Promise<Response> => {
       if (listError) {
         console.error("List users error:", listError);
         return new Response(
-          JSON.stringify({ error: listError }),
+          JSON.stringify({ error: { message: "Failed to list users" } }),
           { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
         );
       }
