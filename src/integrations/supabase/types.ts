@@ -1943,6 +1943,47 @@ export type Database = {
         }
         Relationships: []
       }
+      referral_activity_log: {
+        Row: {
+          activity_type: string
+          created_at: string
+          created_by: string
+          id: string
+          next_action: string | null
+          next_action_date: string | null
+          note_text: string
+          referral_id: string
+        }
+        Insert: {
+          activity_type?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          next_action?: string | null
+          next_action_date?: string | null
+          note_text?: string
+          referral_id: string
+        }
+        Update: {
+          activity_type?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          next_action?: string | null
+          next_action_date?: string | null
+          note_text?: string
+          referral_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_activity_log_referral_id_fkey"
+            columns: ["referral_id"]
+            isOneToOne: false
+            referencedRelation: "referrals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       referral_assessments: {
         Row: {
           assessment_outcome: string | null

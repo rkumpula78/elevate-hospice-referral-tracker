@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import EditReferralDialog from '@/components/crm/EditReferralDialog';
 import ScheduleVisitDialog from '@/components/crm/ScheduleVisitDialog';
 import ReferralFamilyContacts from '@/components/crm/ReferralFamilyContacts';
+import ReferralActivityLog from '@/components/crm/ReferralActivityLog';
 import PageLayout from '@/components/layout/PageLayout';
 import { format } from 'date-fns';
 import AIQuickHelp from '@/components/dashboard/AIQuickHelp';
@@ -40,23 +41,6 @@ const ReferralDetail = () => {
     },
     enabled: !!id
   });
-
-  // Parse notes to display as rich text
-  const parseNotes = (notes: string | null) => {
-    if (!notes) return null;
-    
-    try {
-      const parsedComments = JSON.parse(notes);
-      if (Array.isArray(parsedComments)) {
-        return parsedComments;
-      }
-    } catch {
-      // If not valid JSON, treat as plain text
-      return [{ id: '1', text: notes, timestamp: new Date().toISOString(), author: 'System' }];
-    }
-    
-    return null;
-  };
 
   if (isLoading) {
     return (
@@ -91,10 +75,6 @@ const ReferralDetail = () => {
       </PageLayout>
     );
   }
-
-  // Status helpers imported from constants
-
-  const parsedNotes = parseNotes(referral.notes);
 
   return (
     <PageLayout 
@@ -269,26 +249,8 @@ const ReferralDetail = () => {
             </CardContent>
           </Card>
 
-          {parsedNotes && parsedNotes.length > 0 && (
-            <Card className="lg:col-span-2">
-              <CardHeader>
-                <CardTitle>Notes</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {parsedNotes.map((comment: any) => (
-                    <div key={comment.id} className="border-b pb-3 last:border-b-0 last:pb-0">
-                      <div className="flex justify-between items-start text-xs text-gray-500 mb-2">
-                        <span className="font-medium">{comment.author}</span>
-                        <span>{format(new Date(comment.timestamp), 'MMM dd, yyyy HH:mm')}</span>
-                      </div>
-                      <p className="text-sm text-gray-900 whitespace-pre-wrap">{comment.text}</p>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
+          {/* Structured Activity Log */}
+          <ReferralActivityLog referralId={id!} />
         </div>
 
         <EditReferralDialog

@@ -4,12 +4,14 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { SortHeader } from '@/components/ui/sort-header';
-import { differenceInDays, format, parseISO, isAfter, isBefore, addDays } from 'date-fns';
+import { differenceInDays, format, parseISO, isBefore } from 'date-fns';
 import { FOLLOWUP_FREQUENCIES, LOCATION_TYPES, getStatusBadgeColor, getStatusLabel } from '@/lib/constants';
-import { AlertCircle, Clock } from 'lucide-react';
+import { AlertCircle, Clock, Pencil } from 'lucide-react';
+import QuickLogActivityDialog from '@/components/crm/QuickLogActivityDialog';
 
 const PalliativeOutreachBoard = () => {
   const navigate = useNavigate();
@@ -17,6 +19,7 @@ const PalliativeOutreachBoard = () => {
   const [filterFrequency, setFilterFrequency] = useState('all');
   const [filterLocation, setFilterLocation] = useState('all');
   const [sort, setSort] = useState<{ field: string; direction: 'asc' | 'desc' }>({ field: 'next_followup_date', direction: 'asc' });
+  const [quickLogRef, setQuickLogRef] = useState<{ id: string; name: string } | null>(null);
 
   const { data: referrals = [], isLoading } = useQuery({
     queryKey: ['palliative-outreach-referrals'],
@@ -128,6 +131,7 @@ const PalliativeOutreachBoard = () => {
                 <TableHead>Status</TableHead>
                 <TableHead>Last Note</TableHead>
                 <TableHead><SortHeader label="Days Since Update" field="updated_at" currentSort={sort} onSort={handleSort} /></TableHead>
+                <TableHead className="w-[80px]">Action</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -163,12 +167,32 @@ const PalliativeOutreachBoard = () => {
                     </TableCell>
                     <TableCell className="max-w-[200px] truncate text-sm text-muted-foreground">{getLastNote(ref.notes)}</TableCell>
                     <TableCell>{daysSinceUpdate != null ? `${daysSinceUpdate}d` : '—'}</TableCell>
+                    <TableCell>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="gap-1 text-xs"
+                        onClick={(e) => { e.stopPropagation(); setQuickLogRef({ id: ref.id, name: ref.patient_name }); }}
+                      >
+                        <Pencil className="w-3 h-3" />
+                        Log
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 );
               })}
             </TableBody>
           </Table>
         </div>
+      )}
+
+      {quickLogRef && (
+        <QuickLogActivityDialog
+          open={!!quickLogRef}
+          onOpenChange={(open) => { if (!open) setQuickLogRef(null); }}
+          referralId={quickLogRef.id}
+          patientName={quickLogRef.name}
+        />
       )}
     </div>
   );
