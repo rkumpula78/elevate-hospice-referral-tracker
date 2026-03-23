@@ -137,7 +137,7 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
     mutationFn: async ({ id, status }: { id: string, status: ReferralStatusValue }) => {
       const { error } = await supabase
         .from('referrals')
-        .update({ status })
+        .update({ status: status as any })
         .eq('id', id);
       if (error) throw error;
 
