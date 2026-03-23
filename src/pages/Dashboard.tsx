@@ -26,6 +26,7 @@ import ValuesReminder from "@/components/dashboard/ValuesReminder";
 import GrowthMetricsCard from "@/components/dashboard/GrowthMetricsCard";
 import { TrendMetricCard } from "@/components/dashboard/TrendMetricCard";
 import OnboardingTour from "@/components/onboarding/OnboardingTour";
+import FollowUpsDueWidget from "@/components/dashboard/FollowUpsDueWidget";
 
 const Dashboard = () => {
   const [showQuickAdd, setShowQuickAdd] = useState(false);
