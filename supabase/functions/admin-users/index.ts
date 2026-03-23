@@ -183,7 +183,7 @@ const handler = async (req: Request): Promise<Response> => {
       if (deleteError) {
         console.error("Delete user error:", deleteError);
         return new Response(
-          JSON.stringify({ error: deleteError }),
+          JSON.stringify({ error: { message: "Failed to delete user" } }),
           { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
         );
       }
