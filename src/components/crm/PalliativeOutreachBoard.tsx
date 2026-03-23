@@ -166,7 +166,17 @@ const PalliativeOutreachBoard = () => {
                     </TableCell>
                     <TableCell className="max-w-[200px] truncate text-sm text-muted-foreground">{getLastNote(ref.notes)}</TableCell>
                     <TableCell>{daysSinceUpdate != null ? `${daysSinceUpdate}d` : '—'}</TableCell>
-                  </TableRow>
+                    <TableCell>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="gap-1 text-xs"
+                        onClick={(e) => { e.stopPropagation(); setQuickLogRef({ id: ref.id, name: ref.patient_name }); }}
+                      >
+                        <Pencil className="w-3 h-3" />
+                        Log
+                      </Button>
+                    </TableCell>
                 );
               })}
             </TableBody>
