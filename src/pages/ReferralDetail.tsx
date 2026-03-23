@@ -42,23 +42,6 @@ const ReferralDetail = () => {
     enabled: !!id
   });
 
-  // Parse notes to display as rich text
-  const parseNotes = (notes: string | null) => {
-    if (!notes) return null;
-    
-    try {
-      const parsedComments = JSON.parse(notes);
-      if (Array.isArray(parsedComments)) {
-        return parsedComments;
-      }
-    } catch {
-      // If not valid JSON, treat as plain text
-      return [{ id: '1', text: notes, timestamp: new Date().toISOString(), author: 'System' }];
-    }
-    
-    return null;
-  };
-
   if (isLoading) {
     return (
       <PageLayout title="Loading..." subtitle="Please wait">
@@ -92,10 +75,6 @@ const ReferralDetail = () => {
       </PageLayout>
     );
   }
-
-  // Status helpers imported from constants
-
-  const parsedNotes = parseNotes(referral.notes);
 
   return (
     <PageLayout 
