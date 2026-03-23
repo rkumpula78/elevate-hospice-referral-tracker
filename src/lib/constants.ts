@@ -73,8 +73,9 @@ export const getStatusProgress = (status: string): number => {
     assessment_scheduled: 55,
     pending: 75,
     admitted: 100,
+    palliative_outreach: 50,
   };
-  if (status === 'closed') return 0;
+  if (['closed', 'not_appropriate', 'declined', 'lost_to_followup'].includes(status)) return 0;
   return map[status] || 0;
 };
 
