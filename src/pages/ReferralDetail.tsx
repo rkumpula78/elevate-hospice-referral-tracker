@@ -270,26 +270,8 @@ const ReferralDetail = () => {
             </CardContent>
           </Card>
 
-          {parsedNotes && parsedNotes.length > 0 && (
-            <Card className="lg:col-span-2">
-              <CardHeader>
-                <CardTitle>Notes</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {parsedNotes.map((comment: any) => (
-                    <div key={comment.id} className="border-b pb-3 last:border-b-0 last:pb-0">
-                      <div className="flex justify-between items-start text-xs text-gray-500 mb-2">
-                        <span className="font-medium">{comment.author}</span>
-                        <span>{format(new Date(comment.timestamp), 'MMM dd, yyyy HH:mm')}</span>
-                      </div>
-                      <p className="text-sm text-gray-900 whitespace-pre-wrap">{comment.text}</p>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
+          {/* Structured Activity Log */}
+          <ReferralActivityLog referralId={id!} />
         </div>
 
         <EditReferralDialog
