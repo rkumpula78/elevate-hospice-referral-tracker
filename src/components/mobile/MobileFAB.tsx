@@ -3,7 +3,7 @@ import { Plus, X, Pencil, MapPin, UserPlus } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import { QuickNoteSheet } from './QuickNoteSheet';
-import AddReferralDialog from '../crm/AddReferralDialog';
+import { MobileQuickReferralSheet } from './MobileQuickReferralSheet';
 import { useLocation } from 'react-router-dom';
 
 export function MobileFAB() {
@@ -86,7 +86,7 @@ export function MobileFAB() {
         prefilledOrgId={prefilledOrgId}
       />
 
-      <AddReferralDialog
+      <MobileQuickReferralSheet
         open={showAddReferral}
         onOpenChange={setShowAddReferral}
       />

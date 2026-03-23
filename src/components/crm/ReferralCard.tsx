@@ -1,13 +1,14 @@
 
 
 import React, { useState, useEffect } from 'react';
+import { MobileQuickActivitySheet } from '@/components/mobile/MobileQuickActivitySheet';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Phone, Building2, User, Edit, Calendar, AlertCircle, Clock, CheckCircle, Plus, MapPin, Loader2 } from "lucide-react";
+import { Phone, Building2, User, Edit, Calendar, AlertCircle, Clock, CheckCircle, Plus, MapPin, Loader2, FileText } from "lucide-react";
 import { Link } from "react-router-dom";
 import { format, differenceInDays } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -45,6 +46,7 @@ const ReferralCard = ({
 }: ReferralCardProps) => {
   const isMobile = useIsMobile();
   const [justUpdatedStatus, setJustUpdatedStatus] = useState(false);
+  const [showQuickActivity, setShowQuickActivity] = useState(false);
   const prevStatusRef = React.useRef(referral.status);
 
   useEffect(() => {
@@ -208,19 +210,29 @@ const ReferralCard = ({
                 variant="outline" 
                 size="sm" 
                 onClick={() => onEdit(referral.id)} 
-                className="h-11 px-4 text-sm flex-1 bg-gray-100 hover:bg-gray-200 border-gray-300 text-gray-900 font-semibold shadow-sm active:scale-95 transition-all"
+                className="h-11 px-3 text-sm flex-1 bg-muted hover:bg-accent border-border text-foreground font-semibold shadow-sm active:scale-95 transition-all"
               >
-                <Edit className="w-4 h-4 mr-2" />
+                <Edit className="w-4 h-4 mr-1" />
                 Edit
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setShowQuickActivity(true)} 
+                className="h-11 px-3 text-sm flex-1 bg-muted hover:bg-accent border-border text-foreground font-semibold shadow-sm active:scale-95 transition-all"
+              >
+                <FileText className="w-4 h-4 mr-1" />
+                Log
               </Button>
               
               <Button 
                 variant="default" 
                 size="sm" 
                 onClick={handleSchedule} 
-                className="h-11 px-4 text-sm flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-sm active:scale-95 transition-all"
+                className="h-11 px-3 text-sm flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-sm active:scale-95 transition-all"
               >
-                <Calendar className="w-4 h-4 mr-2" />
+                <Calendar className="w-4 h-4 mr-1" />
                 Schedule
               </Button>
             </>
@@ -455,6 +467,13 @@ const ReferralCard = ({
           </div>
         </div>
       </CardContent>
+
+      <MobileQuickActivitySheet
+        open={showQuickActivity}
+        onOpenChange={setShowQuickActivity}
+        referralId={referral.id}
+        patientName={referral.patient_name}
+      />
     </Card>
   );
 };
