@@ -72,7 +72,7 @@ const MyDayView = () => {
     queryFn: async () => {
       const { data } = await supabase
         .from('referrals')
-        .select('id, first_name, last_name, referral_date, referral_source, created_at, organizations(name)')
+        .select('id, first_name, last_name, referral_date, created_at, organizations(name)')
         .eq('status', 'new_referral')
         .order('created_at', { ascending: false })
         .limit(10);
@@ -325,7 +325,7 @@ const MyDayView = () => {
                       {redactLastName(ref.first_name, ref.last_name)}
                     </p>
                     <p className="text-xs text-muted-foreground truncate">
-                      {org?.name || ref.referral_source || 'Unknown source'} · {ref.referral_date ? format(parseISO(ref.referral_date), 'MMM d') : 'No date'}
+                      {org?.name || 'Unknown source'} · {ref.referral_date ? format(parseISO(ref.referral_date), 'MMM d') : 'No date'}
                     </p>
                   </div>
                   <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />

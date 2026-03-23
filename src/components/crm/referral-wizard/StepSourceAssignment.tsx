@@ -44,9 +44,9 @@ export function StepSourceAssignment({
     <div className="space-y-4">
       <h3 className="text-base font-semibold">Source & Assignment</h3>
 
-      {/* Organization */}
+      {/* Organization - Referral Source */}
       <div>
-        <Label>Referral Source <span className="text-destructive">*</span></Label>
+        <Label>Referring Organization <span className="text-destructive">*</span></Label>
         {!showNewOrgForm ? (
           <Select
             value={formData.organization_id}
@@ -94,11 +94,18 @@ export function StepSourceAssignment({
             <AlertCircle className="w-3 h-3" />{fieldErrors.organization_id}
           </p>
         )}
+        <p className="text-xs text-muted-foreground mt-1">
+          Referrals are attributed to organizations for compliance reporting.
+        </p>
       </div>
 
-      {/* Referring Contact */}
+      {/* Referring Contact - internal context only */}
       {formData.organization_id && !showNewOrgForm && (
         <div className="border-t pt-4">
+          <Label className="text-base font-medium">Clinician/Contact Name at Referring Org</Label>
+          <p className="text-xs text-muted-foreground mb-2">
+            The clinician or staff member who identified the patient need (e.g., the PCP, discharge planner, or case manager). Internal context only — not shown in reports.
+          </p>
           <ReferringContactSelector
             organizationId={formData.organization_id}
             selectedContactId={formData.referring_contact_id}
