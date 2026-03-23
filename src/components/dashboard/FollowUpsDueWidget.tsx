@@ -20,7 +20,7 @@ const FollowUpsDueWidget = () => {
       const { data, error } = await supabase
         .from('referrals')
         .select('id, patient_name, assigned_marketer, next_followup_date')
-        .in('status', ['palliative_outreach', 'not_appropriate'])
+        .in('status', ['palliative_outreach', 'not_appropriate'] as any[])
         .not('next_followup_date', 'is', null)
         .lte('next_followup_date', format(nextWeek, 'yyyy-MM-dd'))
         .order('next_followup_date', { ascending: true })

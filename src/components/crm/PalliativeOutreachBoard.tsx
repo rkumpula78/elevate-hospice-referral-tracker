@@ -24,7 +24,7 @@ const PalliativeOutreachBoard = () => {
       const { data, error } = await supabase
         .from('referrals')
         .select('id, patient_name, assigned_marketer, pcp_provider, next_followup_date, followup_frequency, location_type, location_city, status, notes, updated_at')
-        .in('status', ['palliative_outreach', 'not_appropriate'])
+        .in('status', ['palliative_outreach', 'not_appropriate'] as any[])
         .order('next_followup_date', { ascending: true, nullsFirst: false });
 
       if (error) throw error;
