@@ -131,7 +131,7 @@ const PalliativeOutreachBoard = () => {
                 <TableHead>Status</TableHead>
                 <TableHead>Last Note</TableHead>
                 <TableHead><SortHeader label="Days Since Update" field="updated_at" currentSort={sort} onSort={handleSort} /></TableHead>
-              </TableRow>
+                <TableHead className="w-[80px]">Action</TableHead>
             </TableHeader>
             <TableBody>
               {sorted.map(ref => {
