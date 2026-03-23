@@ -4,12 +4,14 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { SortHeader } from '@/components/ui/sort-header';
-import { differenceInDays, format, parseISO, isAfter, isBefore, addDays } from 'date-fns';
+import { differenceInDays, format, parseISO, isBefore } from 'date-fns';
 import { FOLLOWUP_FREQUENCIES, LOCATION_TYPES, getStatusBadgeColor, getStatusLabel } from '@/lib/constants';
-import { AlertCircle, Clock } from 'lucide-react';
+import { AlertCircle, Clock, Pencil } from 'lucide-react';
+import QuickLogActivityDialog from '@/components/crm/QuickLogActivityDialog';
 
 const PalliativeOutreachBoard = () => {
   const navigate = useNavigate();
