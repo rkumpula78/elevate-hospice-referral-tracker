@@ -86,8 +86,9 @@ export const getStatusProgressBarColor = (status: string): string => {
     assessment_scheduled: 'bg-orange-500',
     pending: 'bg-amber-500',
     admitted: 'bg-green-500',
+    palliative_outreach: 'bg-purple-500',
   };
-  if (status === 'closed') return 'bg-gray-400';
+  if (['closed', 'not_appropriate', 'declined', 'lost_to_followup'].includes(status)) return 'bg-gray-400';
   return map[status] || 'bg-gray-400';
 };
 
