@@ -4,9 +4,12 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import MapFilters from './MapFilters';
+import MapSearch from './MapSearch';
+import MapListView from './MapListView';
 import RoutePlanner from './RoutePlanner';
 import { useMapOrganizations, filterOrganizations, toGeoJSON, type MapFiltersState, type MapOrganization } from './useMapOrganizations';
-import { buildPopupHTML, getMarkerColor } from './MapMarkerPopup';
+import { buildPopupHTML } from './MapMarkerPopup';
+import { ViewToggle } from '@/components/ui/view-toggle';
 
 const RATING_COLORS: Record<string, string> = {
   A: '#22c55e',
@@ -23,10 +26,31 @@ const MapComponent = () => {
   const [filters, setFilters] = useState<MapFiltersState>({ ratings: [], lastVisit: 'all', orgTypes: [] });
   const [routeActive, setRouteActive] = useState(false);
   const [routeStops, setRouteStops] = useState<MapOrganization[]>([]);
+  const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
   const { toast } = useToast();
   const { organizations, orgTypes, isLoading: orgsLoading } = useMapOrganizations();
 
   const filteredOrgs = filterOrganizations(organizations, filters);
+
+  // Fly to an organization on search select
+  const handleSearchSelect = useCallback((org: MapOrganization) => {
+    const m = map.current;
+    if (!m) return;
+    m.flyTo({ center: [org.gps_longitude, org.gps_latitude], zoom: 14, duration: 1500 });
+    // Open popup after fly
+    setTimeout(() => {
+      new mapboxgl.Popup({ offset: 15 })
+        .setLngLat([org.gps_longitude, org.gps_latitude])
+        .setHTML(buildPopupHTML({
+          id: org.id,
+          name: org.name,
+          account_rating: org.account_rating || 'C',
+          ytd_referrals: org.ytd_referrals,
+          last_visit_date: org.last_visit_date,
+        }))
+        .addTo(m);
+    }, 1600);
+  }, []);
 
   // Initialize map
   useEffect(() => {
@@ -71,7 +95,6 @@ const MapComponent = () => {
     const m = map.current;
     if (!m) return;
 
-    // Add empty source - will be updated when data arrives
     if (!m.getSource('organizations')) {
       m.addSource('organizations', {
         type: 'geojson',
@@ -108,7 +131,25 @@ const MapComponent = () => {
         },
       });
 
-      // Individual points
+      // "Needs visit" pulsing ring — rendered behind main points
+      m.addLayer({
+        id: 'needs-visit-ring',
+        type: 'circle',
+        source: 'organizations',
+        filter: ['all', ['!', ['has', 'point_count']], ['==', ['get', 'needs_visit'], true]],
+        paint: {
+          'circle-color': 'transparent',
+          'circle-radius': [
+            'match', ['get', 'account_rating'],
+            'A', 16, 'B', 13, 'C', 11, 'D', 9, 11,
+          ],
+          'circle-stroke-width': 3,
+          'circle-stroke-color': '#ef4444',
+          'circle-stroke-opacity': 0.6,
+        },
+      });
+
+      // Individual points — sized by rating
       m.addLayer({
         id: 'unclustered-point',
         type: 'circle',
@@ -123,7 +164,10 @@ const MapComponent = () => {
             'D', RATING_COLORS.D,
             RATING_COLORS.C,
           ],
-          'circle-radius': 8,
+          'circle-radius': [
+            'match', ['get', 'account_rating'],
+            'A', 12, 'B', 9, 'C', 7, 'D', 5, 7,
+          ],
           'circle-stroke-width': 2,
           'circle-stroke-color': '#fff',
         },
@@ -147,7 +191,6 @@ const MapComponent = () => {
         const coords = (feature.geometry as any).coordinates.slice();
         const props = feature.properties as any;
 
-        // Handle route mode
         if (routeActiveRef.current) {
           const org = organizationsRef.current.find(o => o.id === props.id);
           if (org) {
@@ -233,7 +276,24 @@ const MapComponent = () => {
 
   return (
     <div className="relative w-full" style={{ height: '100%', minHeight: '500px' }}>
-      <div ref={mapContainer} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, minHeight: '500px' }} className="rounded-lg" />
+      {/* Map container always rendered */}
+      <div
+        ref={mapContainer}
+        style={{
+          position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, minHeight: '500px',
+          display: viewMode === 'card' ? 'block' : 'none',
+        }}
+        className="rounded-lg"
+      />
+
+      {/* List view */}
+      {viewMode === 'list' && (
+        <div className="absolute inset-0 z-10">
+          <MapListView organizations={filteredOrgs} />
+        </div>
+      )}
+
+      {/* Loading overlay */}
       {(isLoading || orgsLoading) && (
         <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/80 rounded-lg">
           <div className="text-center">
@@ -242,6 +302,8 @@ const MapComponent = () => {
           </div>
         </div>
       )}
+
+      {/* Error overlay */}
       {error && (
         <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/80 rounded-lg">
           <div className="text-center p-6">
@@ -250,24 +312,34 @@ const MapComponent = () => {
           </div>
         </div>
       )}
+
+      {/* Controls */}
       {!isLoading && !orgsLoading && !error && (
         <>
-          <div className="absolute top-2 left-2 z-10">
-            <MapFilters
-              filters={filters}
-              onChange={setFilters}
-              orgTypes={orgTypes}
-              orgCount={filteredOrgs.length}
-            />
+          <div className="absolute top-2 left-2 z-10 flex flex-col gap-2">
+            <div className="flex items-center gap-2">
+              <MapSearch organizations={organizations} onSelect={handleSearchSelect} />
+              <ViewToggle view={viewMode} onViewChange={setViewMode} />
+            </div>
+            {viewMode === 'card' && (
+              <MapFilters
+                filters={filters}
+                onChange={setFilters}
+                orgTypes={orgTypes}
+                orgCount={filteredOrgs.length}
+              />
+            )}
           </div>
-          <RoutePlanner
-            active={routeActive}
-            onToggle={() => { setRouteActive(!routeActive); if (routeActive) { setRouteStops([]); clearRoute(); } }}
-            stops={routeStops}
-            onRemoveStop={(id) => { setRouteStops(prev => prev.filter(s => s.id !== id)); clearRoute(); }}
-            onClearStops={() => { setRouteStops([]); clearRoute(); }}
-            onRouteCalculated={handleRouteCalculated}
-          />
+          {viewMode === 'card' && (
+            <RoutePlanner
+              active={routeActive}
+              onToggle={() => { setRouteActive(!routeActive); if (routeActive) { setRouteStops([]); clearRoute(); } }}
+              stops={routeStops}
+              onRemoveStop={(id) => { setRouteStops(prev => prev.filter(s => s.id !== id)); clearRoute(); }}
+              onClearStops={() => { setRouteStops([]); clearRoute(); }}
+              onRouteCalculated={handleRouteCalculated}
+            />
+          )}
         </>
       )}
     </div>
