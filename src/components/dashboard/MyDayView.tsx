@@ -12,6 +12,7 @@ import { FloatingActionButton } from '@/components/ui/floating-action-button';
 import QuickAddDialog from '@/components/crm/QuickAddDialog';
 import { AccountRatingBadge } from '@/components/crm/AccountRatingBadge';
 import MyRouteThisWeek from '@/components/dashboard/MyRouteThisWeek';
+import MyFollowUpsView from '@/components/mobile/MyFollowUpsView';
 import GoalProgressWidget from '@/components/dashboard/GoalProgressWidget';
 import PullToRefresh from 'react-simple-pull-to-refresh';
 import {
