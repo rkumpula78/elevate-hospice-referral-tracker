@@ -31,13 +31,14 @@ const TeamsConfigurationWizard: React.FC<TeamsConfigurationWizardProps> = ({
 }) => {
   const { toast } = useToast();
   const [activeStep, setActiveStep] = useState(0);
+  // Webhook URLs are stored as Edge Function secrets, not client-side env vars
   const [webhookUrls, setWebhookUrls] = useState({
-    primary: process.env.REACT_APP_TEAMS_WEBHOOK_URL || '',
-    urgent: process.env.REACT_APP_TEAMS_WEBHOOK_URGENT_URL || '',
-    scheduling: process.env.REACT_APP_TEAMS_WEBHOOK_SCHEDULING_URL || '',
-    system: process.env.REACT_APP_TEAMS_WEBHOOK_SYSTEM_URL || '',
-    regionA: process.env.REACT_APP_TEAMS_WEBHOOK_REGION_A_URL || '',
-    regionB: process.env.REACT_APP_TEAMS_WEBHOOK_REGION_B_URL || ''
+    primary: '',
+    urgent: '',
+    scheduling: '',
+    system: '',
+    regionA: '',
+    regionB: ''
   });
 
   const configValidation = validateTeamsConfiguration();

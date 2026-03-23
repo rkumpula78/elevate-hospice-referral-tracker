@@ -122,7 +122,7 @@ const handler = async (req: Request): Promise<Response> => {
       if (listError) {
         console.error("List users error:", listError);
         return new Response(
-          JSON.stringify({ error: listError }),
+          JSON.stringify({ error: { message: "Failed to list users" } }),
           { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
         );
       }
@@ -183,7 +183,7 @@ const handler = async (req: Request): Promise<Response> => {
       if (deleteError) {
         console.error("Delete user error:", deleteError);
         return new Response(
-          JSON.stringify({ error: deleteError }),
+          JSON.stringify({ error: { message: "Failed to delete user" } }),
           { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
         );
       }
@@ -228,7 +228,7 @@ const handler = async (req: Request): Promise<Response> => {
         if (resetErr) {
           console.error("Resend error:", resetErr);
           return new Response(
-            JSON.stringify({ error: resetErr }),
+            JSON.stringify({ error: { message: "Failed to resend invitation" } }),
             { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
           );
         }
@@ -267,17 +267,15 @@ const handler = async (req: Request): Promise<Response> => {
 
       if (updateError) {
         console.error("Set password error:", updateError);
-        // Return 200 with error in body for weak_password to allow graceful client handling
-        const isWeakPassword = updateError.code === "weak_password" || 
+        const isWeakPassword = (updateError as any).code === "weak_password" || 
           (updateError as any).__isAuthError && (updateError as any).name === "AuthWeakPasswordError";
         
         return new Response(
           JSON.stringify({ 
             success: false, 
             error: {
-              code: (updateError as any).code || "unknown",
-              message: updateError.message,
-              reasons: (updateError as any).reasons || []
+              code: isWeakPassword ? "weak_password" : "update_failed",
+              message: isWeakPassword ? "Password does not meet strength requirements" : "Failed to set password",
             }
           }),
           { status: isWeakPassword ? 200 : 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
@@ -322,7 +320,7 @@ const handler = async (req: Request): Promise<Response> => {
       if (updateError) {
         console.error("Update user error:", updateError);
         return new Response(
-          JSON.stringify({ error: updateError }),
+          JSON.stringify({ error: { message: "Failed to update user" } }),
           { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
         );
       }

@@ -1,4 +1,7 @@
 // Teams notification routing configuration
+// NOTE: All Teams webhook URLs are stored as Edge Function secrets (TEAMS_WEBHOOK_URL).
+// Notifications are routed through the teams-webhook Edge Function — never from the client.
+
 export interface TeamsRoutingConfig {
   byPriority: Record<string, string>;
   byOrgType: Record<string, string>;
@@ -11,40 +14,28 @@ export interface TeamsRoutingConfig {
   };
 }
 
+// All webhook URLs are empty client-side — routing is handled server-side in the teams-webhook Edge Function
 export const teamsRoutingConfig: TeamsRoutingConfig = {
-  // Route by referral priority
   byPriority: {
-    urgent: process.env.REACT_APP_TEAMS_WEBHOOK_URGENT_URL || process.env.REACT_APP_TEAMS_WEBHOOK_URL || '',
-    routine: process.env.REACT_APP_TEAMS_WEBHOOK_URL || '',
-    low: process.env.REACT_APP_TEAMS_WEBHOOK_URL || ''
+    urgent: '',
+    routine: '',
+    low: ''
   },
-  
-  // Route by organization type
   byOrgType: {
-    hospital: process.env.REACT_APP_TEAMS_WEBHOOK_URL || '',
-    snf: process.env.REACT_APP_TEAMS_WEBHOOK_URL || '',
-    physician_office: process.env.REACT_APP_TEAMS_WEBHOOK_URL || '',
-    home_health: process.env.REACT_APP_TEAMS_WEBHOOK_URL || '',
-    other: process.env.REACT_APP_TEAMS_WEBHOOK_URL || ''
+    hospital: '',
+    snf: '',
+    physician_office: '',
+    home_health: '',
+    other: ''
   },
-  
-  // Route by assigned marketer (regional teams)
   byMarketer: {
-    'John Smith': process.env.REACT_APP_TEAMS_WEBHOOK_REGION_A_URL || process.env.REACT_APP_TEAMS_WEBHOOK_URL || '',
-    'Sarah Johnson': process.env.REACT_APP_TEAMS_WEBHOOK_REGION_B_URL || process.env.REACT_APP_TEAMS_WEBHOOK_URL || '',
-    'Mike Davis': process.env.REACT_APP_TEAMS_WEBHOOK_REGION_A_URL || process.env.REACT_APP_TEAMS_WEBHOOK_URL || '',
-    'Lisa Wilson': process.env.REACT_APP_TEAMS_WEBHOOK_REGION_B_URL || process.env.REACT_APP_TEAMS_WEBHOOK_URL || '',
-    'David Brown': process.env.REACT_APP_TEAMS_WEBHOOK_REGION_A_URL || process.env.REACT_APP_TEAMS_WEBHOOK_URL || '',
-    // Default fallback
-    default: process.env.REACT_APP_TEAMS_WEBHOOK_URL || ''
+    default: ''
   },
-  
-  // Special notification routing
   special: {
-    f2fOverdue: process.env.REACT_APP_TEAMS_WEBHOOK_URGENT_URL || process.env.REACT_APP_TEAMS_WEBHOOK_URL || '',
-    f2fUpcoming: process.env.REACT_APP_TEAMS_WEBHOOK_URL || '',
-    scheduling: process.env.REACT_APP_TEAMS_WEBHOOK_SCHEDULING_URL || process.env.REACT_APP_TEAMS_WEBHOOK_URL || '',
-    systemAlerts: process.env.REACT_APP_TEAMS_WEBHOOK_SYSTEM_URL || process.env.REACT_APP_TEAMS_WEBHOOK_URL || ''
+    f2fOverdue: '',
+    f2fUpcoming: '',
+    scheduling: '',
+    systemAlerts: ''
   }
 };
 
@@ -78,55 +69,52 @@ export const teamMemberMapping = {
 };
 
 /**
- * Determines the appropriate Teams webhook URL based on referral data and notification type
+ * Determines the notification routing category based on referral data and notification type.
+ * The actual webhook URL resolution happens server-side in the teams-webhook Edge Function.
+ */
+export function getNotificationCategory(
+  referral: any,
+  notificationType: 'new_referral' | 'f2f_deadline' | 'status_change' | 'system_alert',
+  additionalContext?: { isOverdue?: boolean; daysUntilDeadline?: number }
+): string {
+  if (notificationType === 'f2f_deadline') {
+    if (additionalContext?.isOverdue || (additionalContext?.daysUntilDeadline !== undefined && additionalContext.daysUntilDeadline < 0)) {
+      return 'urgent';
+    }
+    if (additionalContext?.daysUntilDeadline !== undefined && additionalContext.daysUntilDeadline <= 3) {
+      return 'urgent';
+    }
+    return 'routine';
+  }
+  
+  if (notificationType === 'system_alert') {
+    return 'system';
+  }
+  
+  if (referral?.priority === 'urgent') {
+    return 'urgent';
+  }
+  
+  if (notificationType === 'status_change') {
+    const criticalStatuses = ['not_admitted_patient_choice', 'not_admitted_not_appropriate', 'deceased_prior_admission'];
+    if (criticalStatuses.includes(referral?.status)) {
+      return 'urgent';
+    }
+  }
+  
+  return 'routine';
+}
+
+/**
+ * @deprecated Use getNotificationCategory instead. Webhook URLs are resolved server-side.
  */
 export function getWebhookUrl(
   referral: any,
   notificationType: 'new_referral' | 'f2f_deadline' | 'status_change' | 'system_alert',
   additionalContext?: { isOverdue?: boolean; daysUntilDeadline?: number }
 ): string {
-  
-  // Special routing for F2F notifications
-  if (notificationType === 'f2f_deadline') {
-    if (additionalContext?.isOverdue || (additionalContext?.daysUntilDeadline !== undefined && additionalContext.daysUntilDeadline < 0)) {
-      return teamsRoutingConfig.special.f2fOverdue;
-    }
-    if (additionalContext?.daysUntilDeadline !== undefined && additionalContext.daysUntilDeadline <= 3) {
-      return teamsRoutingConfig.special.f2fOverdue; // Also route urgent upcoming to urgent channel
-    }
-    return teamsRoutingConfig.special.f2fUpcoming;
-  }
-  
-  // System alerts
-  if (notificationType === 'system_alert') {
-    return teamsRoutingConfig.special.systemAlerts;
-  }
-  
-  // Priority-based routing for urgent referrals
-  if (referral.priority === 'urgent') {
-    return teamsRoutingConfig.byPriority.urgent;
-  }
-  
-  // Status change routing for critical statuses
-  if (notificationType === 'status_change') {
-    const criticalStatuses = ['not_admitted_patient_choice', 'not_admitted_not_appropriate', 'deceased_prior_admission'];
-    if (criticalStatuses.includes(referral.status)) {
-      return teamsRoutingConfig.special.f2fOverdue; // Use urgent channel for critical status changes
-    }
-  }
-  
-  // Regional routing by marketer
-  if (referral.assigned_marketer && teamsRoutingConfig.byMarketer[referral.assigned_marketer]) {
-    return teamsRoutingConfig.byMarketer[referral.assigned_marketer];
-  }
-  
-  // Priority-based routing
-  if (referral.priority && teamsRoutingConfig.byPriority[referral.priority]) {
-    return teamsRoutingConfig.byPriority[referral.priority];
-  }
-  
-  // Default fallback
-  return teamsRoutingConfig.byMarketer.default;
+  // Always return empty — webhooks are resolved server-side
+  return '';
 }
 
 /**
@@ -150,43 +138,20 @@ export function getTeamMemberMention(memberName: string) {
 }
 
 /**
- * Validates that webhook URLs are configured
+ * Validates that Teams integration is configured.
+ * Webhook URLs are stored as Edge Function secrets, not client-side env vars.
  */
 export function validateTeamsConfiguration(): {
   isValid: boolean;
   errors: string[];
   warnings: string[];
 } {
-  const errors: string[] = [];
-  const warnings: string[] = [];
-  
-  // Check primary webhook
-  if (!process.env.REACT_APP_TEAMS_WEBHOOK_URL) {
-    errors.push('Primary Teams webhook URL (REACT_APP_TEAMS_WEBHOOK_URL) is not configured');
-  }
-  
-  // Check optional webhooks
-  if (!process.env.REACT_APP_TEAMS_WEBHOOK_URGENT_URL) {
-    warnings.push('Urgent webhook URL not configured - urgent notifications will go to primary channel');
-  }
-  
-  if (!process.env.REACT_APP_TEAMS_WEBHOOK_SCHEDULING_URL) {
-    warnings.push('Scheduling webhook URL not configured - scheduling notifications will go to primary channel');
-  }
-  
-  if (!process.env.REACT_APP_TEAMS_WEBHOOK_SYSTEM_URL) {
-    warnings.push('System alerts webhook URL not configured - system alerts will go to primary channel');
-  }
-  
-  // Check regional webhooks
-  if (!process.env.REACT_APP_TEAMS_WEBHOOK_REGION_A_URL && !process.env.REACT_APP_TEAMS_WEBHOOK_REGION_B_URL) {
-    warnings.push('Regional webhook URLs not configured - all notifications will go to primary channels');
-  }
-  
   return {
-    isValid: errors.length === 0,
-    errors,
-    warnings
+    isValid: true,
+    errors: [],
+    warnings: [
+      'Teams webhook URLs are configured as Edge Function secrets. Check the Supabase dashboard to verify configuration.'
+    ]
   };
 }
 
