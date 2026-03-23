@@ -117,22 +117,27 @@ export function filterOrganizations(orgs: MapOrganization[], filters: MapFilters
 }
 
 export function toGeoJSON(orgs: MapOrganization[]): GeoJSON.FeatureCollection {
+  const now = Date.now();
   return {
     type: 'FeatureCollection',
-    features: orgs.map(org => ({
-      type: 'Feature' as const,
-      geometry: {
-        type: 'Point' as const,
-        coordinates: [org.gps_longitude, org.gps_latitude],
-      },
-      properties: {
-        id: org.id,
-        name: org.name,
-        type: org.type,
-        account_rating: org.account_rating || 'C',
-        ytd_referrals: org.ytd_referrals,
-        last_visit_date: org.last_visit_date,
-      },
-    })),
+    features: orgs.map(org => {
+      const needsVisit = !org.last_visit_date || (now - new Date(org.last_visit_date).getTime()) / 86400000 > 14;
+      return {
+        type: 'Feature' as const,
+        geometry: {
+          type: 'Point' as const,
+          coordinates: [org.gps_longitude, org.gps_latitude],
+        },
+        properties: {
+          id: org.id,
+          name: org.name,
+          type: org.type,
+          account_rating: org.account_rating || 'C',
+          ytd_referrals: org.ytd_referrals,
+          last_visit_date: org.last_visit_date,
+          needs_visit: needsVisit,
+        },
+      };
+    }),
   };
 }
