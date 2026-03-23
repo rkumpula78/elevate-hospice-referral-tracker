@@ -2248,6 +2248,7 @@ export type Database = {
         Row: {
           address: string | null
           admission_date: string | null
+          admission_notes: string | null
           advanced_directive: boolean | null
           assessment_scheduled_date: string | null
           assigned_marketer: string | null
@@ -2318,6 +2319,7 @@ export type Database = {
         Insert: {
           address?: string | null
           admission_date?: string | null
+          admission_notes?: string | null
           advanced_directive?: boolean | null
           assessment_scheduled_date?: string | null
           assigned_marketer?: string | null
@@ -2388,6 +2390,7 @@ export type Database = {
         Update: {
           address?: string | null
           admission_date?: string | null
+          admission_notes?: string | null
           advanced_directive?: boolean | null
           assessment_scheduled_date?: string | null
           assigned_marketer?: string | null

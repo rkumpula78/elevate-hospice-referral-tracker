@@ -27,6 +27,7 @@ import GrowthMetricsCard from "@/components/dashboard/GrowthMetricsCard";
 import { TrendMetricCard } from "@/components/dashboard/TrendMetricCard";
 import OnboardingTour from "@/components/onboarding/OnboardingTour";
 import FollowUpsDueWidget from "@/components/dashboard/FollowUpsDueWidget";
+import MonthlyAdmissionsWidget from "@/components/dashboard/MonthlyAdmissionsWidget";
 
 const Dashboard = () => {
   const [showQuickAdd, setShowQuickAdd] = useState(false);
@@ -781,6 +782,9 @@ const Dashboard = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Monthly Admissions */}
+        <MonthlyAdmissionsWidget />
 
         {/* Analytics Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Calendar, Phone, Mail, User, Building2, Edit, Plus } from 'lucide-react';
 import ReferralEligibility from '@/components/crm/ReferralEligibility';
+import AdmissionDetailsSection from '@/components/crm/AdmissionDetailsSection';
 import BenefitPeriodTracker from '@/components/crm/BenefitPeriodTracker';
 import { Badge } from '@/components/ui/badge';
 import EditReferralDialog from '@/components/crm/EditReferralDialog';
@@ -231,6 +232,13 @@ const ReferralDetail = () => {
               )}
             </CardContent>
           </Card>
+
+          {/* Admission Details (shown only when admitted) */}
+          {referral.status === 'admitted' && (
+            <div className="lg:col-span-2">
+              <AdmissionDetailsSection referral={referral} onUpdate={() => refetch()} />
+            </div>
+          )}
 
           {/* Status Timeline */}
           <div className="lg:col-span-2">
