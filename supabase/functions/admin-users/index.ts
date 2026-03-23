@@ -228,7 +228,7 @@ const handler = async (req: Request): Promise<Response> => {
         if (resetErr) {
           console.error("Resend error:", resetErr);
           return new Response(
-            JSON.stringify({ error: resetErr }),
+            JSON.stringify({ error: { message: "Failed to resend invitation" } }),
             { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
           );
         }
