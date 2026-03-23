@@ -46,6 +46,7 @@ const ReferralCard = ({
 }: ReferralCardProps) => {
   const isMobile = useIsMobile();
   const [justUpdatedStatus, setJustUpdatedStatus] = useState(false);
+  const [showQuickActivity, setShowQuickActivity] = useState(false);
   const prevStatusRef = React.useRef(referral.status);
 
   useEffect(() => {
