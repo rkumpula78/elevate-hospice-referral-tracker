@@ -744,6 +744,76 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
               </div>
             </TabsContent>
 
+            <TabsContent value="followup" className="space-y-4 bg-white">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="pcp_provider" className="text-gray-700">PCP Provider</Label>
+                  <Input
+                    id="pcp_provider"
+                    name="pcp_provider"
+                    defaultValue={(referralData as any).pcp_provider || ''}
+                    placeholder="e.g., Judith, Daniella, Kim"
+                    className="bg-white border-gray-300 text-gray-900"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">DoctorCare or external PCP following this patient</p>
+                </div>
+                <div>
+                  <Label htmlFor="next_followup_date" className="text-gray-700">Next Follow-up Date</Label>
+                  <Input
+                    id="next_followup_date"
+                    name="next_followup_date"
+                    type="date"
+                    defaultValue={(referralData as any).next_followup_date || ''}
+                    className="bg-white border-gray-300 text-gray-900"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="followup_frequency" className="text-gray-700">Follow-up Frequency</Label>
+                  <Select name="followup_frequency" defaultValue={(referralData as any).followup_frequency || 'monthly'}>
+                    <SelectTrigger className="bg-white border-gray-300 text-gray-900">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white border border-gray-300 z-[100]">
+                      {FOLLOWUP_FREQUENCIES.map(f => (
+                        <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="location_type" className="text-gray-700">Location Type</Label>
+                  <Select name="location_type" defaultValue={(referralData as any).location_type || ''}>
+                    <SelectTrigger className="bg-white border-gray-300 text-gray-900">
+                      <SelectValue placeholder="Select location type" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white border border-gray-300 z-[100]">
+                      {LOCATION_TYPES.map(l => (
+                        <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="location_city" className="text-gray-700">Location City</Label>
+                  <Input
+                    id="location_city"
+                    name="location_city"
+                    defaultValue={(referralData as any).location_city || ''}
+                    placeholder="e.g., Scottsdale, Mesa, Goodyear"
+                    className="bg-white border-gray-300 text-gray-900"
+                  />
+                </div>
+                <div className="flex items-center space-x-2 pt-6">
+                  <Checkbox
+                    id="md_notified"
+                    name="md_notified"
+                    defaultChecked={(referralData as any).md_notified || false}
+                  />
+                  <Label htmlFor="md_notified" className="text-gray-700">MD Notified of Admission</Label>
+                </div>
+              </div>
+            </TabsContent>
+
             <TabsContent value="referral-source" className="space-y-4 bg-white">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
