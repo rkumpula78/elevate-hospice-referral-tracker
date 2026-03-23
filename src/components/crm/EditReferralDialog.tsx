@@ -356,7 +356,7 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
     for (const [key, value] of formData.entries()) {
       if (key === 'organization_id' && value === 'none') {
         updateData[key] = null;
-      } else if (key === 'insurance_verification' || key === 'medical_records_received') {
+      } else if (key === 'insurance_verification' || key === 'medical_records_received' || key === 'md_notified') {
         updateData[key] = value === 'on';
       } else if (key === 'assigned_marketer' && value === 'none') {
         updateData[key] = null;
