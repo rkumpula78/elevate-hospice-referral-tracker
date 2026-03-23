@@ -57,6 +57,10 @@ export const getStatusSolidColor = (status: string): string => {
     assessment_scheduled: 'bg-orange-600 text-white border-orange-700',
     pending: 'bg-amber-600 text-white border-amber-700',
     admitted: 'bg-green-600 text-white border-green-700',
+    palliative_outreach: 'bg-purple-600 text-white border-purple-700',
+    not_appropriate: 'bg-slate-600 text-white border-slate-700',
+    declined: 'bg-red-600 text-white border-red-700',
+    lost_to_followup: 'bg-rose-600 text-white border-rose-700',
     closed: 'bg-gray-600 text-white border-gray-700',
   };
   return map[status] || 'bg-gray-600 text-white border-gray-700';
