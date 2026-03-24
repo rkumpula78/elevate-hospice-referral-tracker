@@ -14,6 +14,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { ONBOARDING_KEY } from "@/components/onboarding/OnboardingTour";
 import MyTemplatesSettings from "@/components/settings/MyTemplatesSettings";
 import ReminderSettings from "@/components/settings/ReminderSettings";
+import WebhookSettings from "@/components/settings/WebhookSettings";
 
 const SettingsPage = () => {
   const { user } = useAuth();
