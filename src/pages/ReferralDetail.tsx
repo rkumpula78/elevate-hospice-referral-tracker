@@ -123,7 +123,6 @@ const ReferralDetail = () => {
               <Edit className="w-4 h-4 mr-2" />
               Edit Referral
             </Button>
-          </div>
             {isAdmin && (
               <Button 
                 variant="destructive" 
@@ -135,6 +134,7 @@ const ReferralDetail = () => {
               </Button>
             )}
           </div>
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card>
