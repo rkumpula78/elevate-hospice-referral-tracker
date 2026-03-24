@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
+import { notifyStatusChange } from '@/lib/webhookNotifier';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -57,6 +58,13 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
   // Bulk selection state
   const [selectedReferralIds, setSelectedReferralIds] = useState<Set<string>>(new Set());
   const [undoState, setUndoState] = useState<{ referrals: any[], action: string } | null>(null);
+  const [lastSelectedIndex, setLastSelectedIndex] = useState<number | null>(null);
+
+  // Clear selection when filters change
+  React.useEffect(() => {
+    setSelectedReferralIds(new Set());
+    setLastSelectedIndex(null);
+  }, [filters]);
 
   const { data: referrals, isLoading, refetch } = useQuery({
     queryKey: ['referrals', filters],
@@ -268,7 +276,23 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
     }
   };
 
-  const handleSelectReferral = (id: string, checked: boolean) => {
+  const handleSelectReferral = (id: string, checked: boolean, event?: React.MouseEvent) => {
+    const currentList = sortedReferrals || [];
+    const clickedIndex = currentList.findIndex(r => r.id === id);
+
+    // Shift+click range select
+    if (event?.shiftKey && lastSelectedIndex !== null && clickedIndex !== -1) {
+      const start = Math.min(lastSelectedIndex, clickedIndex);
+      const end = Math.max(lastSelectedIndex, clickedIndex);
+      const newSelected = new Set(selectedReferralIds);
+      for (let i = start; i <= end; i++) {
+        newSelected.add(currentList[i].id);
+      }
+      setSelectedReferralIds(newSelected);
+      setLastSelectedIndex(clickedIndex);
+      return;
+    }
+
     const newSelected = new Set(selectedReferralIds);
     if (checked) {
       newSelected.add(id);
@@ -276,6 +300,7 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
       newSelected.delete(id);
     }
     setSelectedReferralIds(newSelected);
+    setLastSelectedIndex(clickedIndex);
   };
 
   const handleClearSelection = () => {
@@ -287,26 +312,43 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
     const selectedReferrals = referrals?.filter(r => selectedReferralIds.has(r.id)) || [];
     setUndoState({ referrals: selectedReferrals, action: 'status' });
     
+    let succeeded = 0;
+    let failed = 0;
+    
     try {
-      for (const id of Array.from(selectedReferralIds)) {
-        await supabase.from('referrals').update({ status: status as any }).eq('id', id);
+      for (const ref of selectedReferrals) {
+        const oldStatus = ref.status;
+        const { error } = await supabase.from('referrals').update({ status: status as any }).eq('id', ref.id);
+        if (error) { failed++; continue; }
+        succeeded++;
+        
+        // Fire webhook for each actual status change
+        if (oldStatus !== status) {
+          notifyStatusChange(ref.id, oldStatus || '', status);
+        }
+        
+        // Log activity
+        try {
+          await supabase.from('referral_activity_log').insert({
+            referral_id: ref.id,
+            activity_type: 'Note',
+            note: `[Bulk Update] Status changed to ${status} (part of bulk update affecting ${selectedReferrals.length} referrals)`,
+            created_by: 'System',
+          } as any);
+        } catch {} 
       }
+      
       queryClient.invalidateQueries({ queryKey: ['referrals'] });
       
       const undoAction = () => handleUndo();
-      
       toast({
-        title: `Updated ${selectedReferralIds.size} referrals`,
-        action: (
-          <Button variant="outline" size="sm" onClick={undoAction}>
-            Undo
-          </Button>
-        ),
+        title: failed > 0 
+          ? `Updated ${succeeded} of ${selectedReferrals.length} referrals. ${failed} failed.`
+          : `Updated ${succeeded} referrals`,
+        action: <Button variant="outline" size="sm" onClick={undoAction}>Undo</Button>,
       });
       
       setSelectedReferralIds(new Set());
-      
-      // Clear undo state after 5 seconds
       setTimeout(() => setUndoState(null), 5000);
     } catch (error) {
       showToast({ title: "Error updating referrals", variant: "destructive" });
@@ -398,6 +440,40 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
     }
   };
 
+  const handleBulkFollowUpFrequency = async (frequency: string) => {
+    const selectedReferrals = referrals?.filter(r => selectedReferralIds.has(r.id)) || [];
+    setUndoState({ referrals: selectedReferrals, action: 'followup_frequency' });
+    
+    try {
+      for (const id of Array.from(selectedReferralIds)) {
+        await supabase.from('referrals').update({ followup_frequency: frequency } as any).eq('id', id);
+      }
+      queryClient.invalidateQueries({ queryKey: ['referrals'] });
+      toast({ title: `Updated follow-up frequency for ${selectedReferralIds.size} referrals` });
+      setSelectedReferralIds(new Set());
+      setTimeout(() => setUndoState(null), 5000);
+    } catch (error) {
+      showToast({ title: "Error updating referrals", variant: "destructive" });
+    }
+  };
+
+  const handleBulkFollowUpDate = async (date: string) => {
+    const selectedReferrals = referrals?.filter(r => selectedReferralIds.has(r.id)) || [];
+    setUndoState({ referrals: selectedReferrals, action: 'followup_date' });
+    
+    try {
+      for (const id of Array.from(selectedReferralIds)) {
+        await supabase.from('referrals').update({ next_followup_date: date }).eq('id', id);
+      }
+      queryClient.invalidateQueries({ queryKey: ['referrals'] });
+      toast({ title: `Set follow-up date for ${selectedReferralIds.size} referrals` });
+      setSelectedReferralIds(new Set());
+      setTimeout(() => setUndoState(null), 5000);
+    } catch (error) {
+      showToast({ title: "Error updating referrals", variant: "destructive" });
+    }
+  };
+
   const handleBulkExport = () => {
     const selectedReferrals = referrals?.filter(r => selectedReferralIds.has(r.id)) || [];
     
@@ -406,25 +482,25 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
       return;
     }
 
-    // Create CSV content
-    const headers = ['Patient Name', 'Status', 'Priority', 'Organization', 'Referral Date', 'Assigned Marketer', 'Diagnosis', 'Insurance'];
+    const headers = ['Patient Name', 'Status', 'Referral Source', 'Referral Date', 'Assigned To', 'Phone', 'Location', 'Diagnosis', 'Insurance', 'Notes'];
     const rows = selectedReferrals.map(r => [
       r.patient_name || '',
       r.status || '',
-      r.priority || '',
       r.organizations?.name || '',
       r.referral_date || '',
       r.assigned_marketer || '',
+      r.patient_phone || r.phone || '',
+      r.address || '',
       r.diagnosis || '',
       r.insurance || '',
+      r.notes || '',
     ]);
 
     const csvContent = [
       headers.join(','),
-      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+      ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
     ].join('\n');
 
-    // Create and download file
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
@@ -456,6 +532,8 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
           if (undoState.action === 'status') updates.status = referral.status;
           if (undoState.action === 'priority') updates.priority = referral.priority;
           if (undoState.action === 'assign') updates.assigned_marketer = referral.assigned_marketer;
+          if (undoState.action === 'followup_frequency') updates.followup_frequency = referral.followup_frequency;
+          if (undoState.action === 'followup_date') updates.next_followup_date = referral.next_followup_date;
           
           await supabase.from('referrals').update(updates).eq('id', referral.id);
         }
@@ -494,6 +572,13 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead className="w-10">
+              <Checkbox
+                checked={allSelected}
+                onCheckedChange={handleSelectAll}
+                className="h-4 w-4"
+              />
+            </TableHead>
             <TableHead>
               <SortHeader label="Patient" field="patient_name" currentSort={sortConfig} onSort={handleSort} />
             </TableHead>
@@ -517,7 +602,23 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
         </TableHeader>
         <TableBody>
           {sortedReferrals?.map((referral) => (
-            <TableRow key={referral.id}>
+            <TableRow 
+              key={referral.id}
+              className={selectedReferralIds.has(referral.id) ? 'bg-primary/5' : ''}
+            >
+              <TableCell>
+                <Checkbox
+                  checked={selectedReferralIds.has(referral.id)}
+                  onCheckedChange={(checked) => handleSelectReferral(referral.id, !!checked)}
+                  onClick={(e: React.MouseEvent) => {
+                    if (e.shiftKey) {
+                      e.preventDefault();
+                      handleSelectReferral(referral.id, !selectedReferralIds.has(referral.id), e);
+                    }
+                  }}
+                  className="h-4 w-4"
+                />
+              </TableCell>
               <TableCell className="font-medium">
                 <Link 
                   to={`/referral/${referral.id}`}
@@ -574,12 +675,15 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
       {hasSelection && (
         <BulkActionsToolbar
           selectedCount={selectedReferralIds.size}
+          selectedNames={referrals?.filter(r => selectedReferralIds.has(r.id)).map(r => r.patient_name || 'Unknown') || []}
           onClearSelection={handleClearSelection}
           onBulkStatusUpdate={handleBulkStatusUpdate}
           onBulkPriorityUpdate={handleBulkPriorityUpdate}
           onBulkAssign={handleBulkAssign}
           onBulkDelete={handleBulkDelete}
           onBulkExport={handleBulkExport}
+          onBulkFollowUpFrequency={handleBulkFollowUpFrequency}
+          onBulkFollowUpDate={handleBulkFollowUpDate}
           marketers={marketers}
         />
       )}
