@@ -2263,6 +2263,7 @@ export type Database = {
           contact_date: string | null
           created_at: string | null
           date_of_birth: string | null
+          deleted_at: string | null
           diagnosis: string | null
           dme_needs: string | null
           dnr_status: boolean | null
@@ -2334,6 +2335,7 @@ export type Database = {
           contact_date?: string | null
           created_at?: string | null
           date_of_birth?: string | null
+          deleted_at?: string | null
           diagnosis?: string | null
           dme_needs?: string | null
           dnr_status?: boolean | null
@@ -2405,6 +2407,7 @@ export type Database = {
           contact_date?: string | null
           created_at?: string | null
           date_of_birth?: string | null
+          deleted_at?: string | null
           diagnosis?: string | null
           dme_needs?: string | null
           dnr_status?: boolean | null
