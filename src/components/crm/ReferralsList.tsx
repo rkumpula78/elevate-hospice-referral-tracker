@@ -66,35 +66,50 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
     setLastSelectedIndex(null);
   }, [filters]);
 
+  // Search state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  // Debounce search
+  React.useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(searchQuery), 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Keyboard shortcut: Ctrl/Cmd+K to focus search
+  const searchInputRef = React.useRef<HTMLInputElement>(null);
+  React.useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, []);
+
   const { data: referrals, isLoading, refetch } = useQuery({
     queryKey: ['referrals', filters],
     queryFn: async () => {
       let query = supabase
         .from('referrals')
         .select('*, organizations(name, type)')
+        .is('deleted_at', null)
         .order('referral_date', { ascending: false });
 
-      // Apply status filter (with proper type casting)
       if (filters.statuses.length > 0) {
         query = query.in('status', filters.statuses as any);
       }
-      
-      // Apply priority filter
       if (filters.priorities.length > 0) {
         query = query.in('priority', filters.priorities);
       }
-      
-      // Apply facility filter
       if (filters.facilities.length > 0) {
         query = query.in('organization_id', filters.facilities);
       }
-      
-      // Apply insurance filter
       if (filters.insurances.length > 0) {
         query = query.in('insurance', filters.insurances);
       }
-      
-      // Apply date range filter
       if (filters.dateRange?.from) {
         query = query.gte('referral_date', filters.dateRange.from.toISOString());
       }
