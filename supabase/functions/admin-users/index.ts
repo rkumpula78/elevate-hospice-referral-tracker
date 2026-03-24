@@ -14,6 +14,7 @@ interface AdminRequest {
   password?: string;
   first_name?: string;
   last_name?: string;
+  staff_type?: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
