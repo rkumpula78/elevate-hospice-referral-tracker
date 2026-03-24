@@ -532,6 +532,8 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
           if (undoState.action === 'status') updates.status = referral.status;
           if (undoState.action === 'priority') updates.priority = referral.priority;
           if (undoState.action === 'assign') updates.assigned_marketer = referral.assigned_marketer;
+          if (undoState.action === 'followup_frequency') updates.followup_frequency = referral.followup_frequency;
+          if (undoState.action === 'followup_date') updates.next_followup_date = referral.next_followup_date;
           
           await supabase.from('referrals').update(updates).eq('id', referral.id);
         }
