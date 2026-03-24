@@ -51,6 +51,7 @@ const ReferralDetail = () => {
           organizations(name, type, contact_person, phone)
         `)
         .eq('id', id)
+        .is('deleted_at', null)
         .single();
 
       if (error) throw error;
