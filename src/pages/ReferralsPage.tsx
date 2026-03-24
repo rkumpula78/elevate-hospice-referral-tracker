@@ -6,16 +6,18 @@ import { MobileOptimizedCard } from "@/components/ui/mobile-card";
 import ReferralsList from "@/components/crm/ReferralsList";
 import ReferralKanban from "@/components/crm/ReferralKanban";
 import PalliativeOutreachBoard from "@/components/crm/PalliativeOutreachBoard";
+import AddReferralDialog from "@/components/crm/AddReferralDialog";
 import PageLayout from "@/components/layout/PageLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { LayoutList, Kanban } from "lucide-react";
+import { LayoutList, Kanban, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const VIEW_STORAGE_KEY = 'elevate-referrals-pipeline-view';
 
 const ReferralsPage = () => {
+  const [showAddReferral, setShowAddReferral] = useState(false);
   const [searchParams] = useSearchParams();
   const filter = searchParams.get('filter');
   const tabParam = searchParams.get('tab');
@@ -70,25 +72,33 @@ const ReferralsPage = () => {
             </TabsTrigger>
           </TabsList>
 
-          {/* View toggle shown only for pipeline tab */}
-          <div className="flex items-center border rounded-lg overflow-hidden">
-            <Button
-              variant="ghost"
-              size="sm"
-              className={cn('rounded-none gap-1.5 px-3', pipelineView === 'list' && 'bg-muted')}
-              onClick={() => setPipelineView('list')}
-            >
-              <LayoutList className="w-4 h-4" />
-              <span className="hidden sm:inline text-xs">List</span>
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className={cn('rounded-none gap-1.5 px-3', pipelineView === 'kanban' && 'bg-muted')}
-              onClick={() => setPipelineView('kanban')}
-            >
-              <Kanban className="w-4 h-4" />
-              <span className="hidden sm:inline text-xs">Kanban</span>
+          <div className="flex items-center gap-2">
+            {/* View toggle */}
+            <div className="flex items-center border rounded-lg overflow-hidden">
+              <Button
+                variant="ghost"
+                size="sm"
+                className={cn('rounded-none gap-1.5 px-3', pipelineView === 'list' && 'bg-muted')}
+                onClick={() => setPipelineView('list')}
+              >
+                <LayoutList className="w-4 h-4" />
+                <span className="hidden sm:inline text-xs">List</span>
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className={cn('rounded-none gap-1.5 px-3', pipelineView === 'kanban' && 'bg-muted')}
+                onClick={() => setPipelineView('kanban')}
+              >
+                <Kanban className="w-4 h-4" />
+                <span className="hidden sm:inline text-xs">Kanban</span>
+              </Button>
+            </div>
+
+            {/* Add Referral button */}
+            <Button onClick={() => setShowAddReferral(true)} size="sm" className="gap-1.5">
+              <Plus className="w-4 h-4" />
+              <span className="hidden sm:inline">Add Referral</span>
             </Button>
           </div>
         </div>
@@ -117,6 +127,8 @@ const ReferralsPage = () => {
           </MobileOptimizedCard>
         </TabsContent>
       </Tabs>
+
+      <AddReferralDialog open={showAddReferral} onOpenChange={setShowAddReferral} />
     </PageLayout>
   );
 };
