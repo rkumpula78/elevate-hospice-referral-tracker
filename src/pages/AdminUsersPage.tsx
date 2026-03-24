@@ -23,6 +23,7 @@ interface AuthUser {
   status: 'pending' | 'active' | 'disabled';
   first_name: string;
   last_name: string;
+  staff_type: string;
 }
 
 interface UserWithRoles extends AuthUser {
