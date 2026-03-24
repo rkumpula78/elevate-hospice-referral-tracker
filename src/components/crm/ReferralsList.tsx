@@ -45,6 +45,7 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
     priorities: [],
     facilities: [],
     insurances: [],
+    marketers: [],
     dateRange: undefined,
   });
   
@@ -110,6 +111,9 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
       }
       if (filters.insurances.length > 0) {
         query = query.in('insurance', filters.insurances);
+      }
+      if (filters.marketers.length > 0) {
+        query = query.in('assigned_marketer', filters.marketers);
       }
       if (filters.dateRange?.from) {
         query = query.gte('referral_date', filters.dateRange.from.toISOString());

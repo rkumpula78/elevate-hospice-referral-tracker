@@ -17,6 +17,7 @@ export interface ReferralFilters {
   priorities: string[];
   facilities: string[];
   insurances: string[];
+  marketers: string[];
   dateRange?: DateRange;
 }
 
@@ -62,6 +63,23 @@ export const ReferralsFilterBar = ({
       
       const uniqueInsurances = [...new Set(data.map((r) => r.insurance).filter(Boolean))];
       return uniqueInsurances.map((ins) => ({ label: ins, value: ins }));
+    },
+  });
+
+  // Fetch unique assigned marketers
+  const { data: marketers = [] } = useQuery({
+    queryKey: ['marketers-filter'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('referrals')
+        .select('assigned_marketer')
+        .not('assigned_marketer', 'is', null)
+        .is('deleted_at', null);
+      
+      if (error) throw error;
+      
+      const uniqueMarketers = [...new Set(data.map((r) => r.assigned_marketer).filter(Boolean))] as string[];
+      return uniqueMarketers.sort().map((m) => ({ label: m, value: m }));
     },
   });
 
@@ -119,6 +137,14 @@ export const ReferralsFilterBar = ({
       });
     }
 
+    if (filters.marketers.length > 0) {
+      chips.push({
+        key: 'marketers',
+        label: 'Assigned Marketer',
+        value: `${filters.marketers.length} selected`,
+      });
+    }
+
     if (filters.dateRange?.from) {
       chips.push({
         key: 'dateRange',
@@ -146,6 +172,7 @@ export const ReferralsFilterBar = ({
       priorities: [],
       facilities: [],
       insurances: [],
+      marketers: [],
       dateRange: undefined,
     });
   };
@@ -238,7 +265,7 @@ export const ReferralsFilterBar = ({
       </div>
 
       {/* Filter Controls */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         <div>
           <Label className="text-xs font-medium mb-2 block">Status</Label>
           <MultiSelect
@@ -277,6 +304,17 @@ export const ReferralsFilterBar = ({
             selected={filters.insurances}
             onChange={(value) => updateFilter('insurances', value)}
             placeholder="All insurances"
+            searchable
+          />
+        </div>
+
+        <div>
+          <Label className="text-xs font-medium mb-2 block">Assigned Marketer</Label>
+          <MultiSelect
+            options={marketers}
+            selected={filters.marketers}
+            onChange={(value) => updateFilter('marketers', value)}
+            placeholder="All marketers"
             searchable
           />
         </div>
