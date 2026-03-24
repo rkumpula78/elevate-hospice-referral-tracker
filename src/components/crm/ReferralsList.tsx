@@ -716,12 +716,39 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
         />
       )}
 
-      {/* New Filter Bar */}
+      {/* Search Bar */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <Input
+          ref={searchInputRef}
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search by patient name or organization... (Ctrl+K)"
+          className="pl-10 pr-10"
+        />
+        {searchQuery && (
+          <button
+            onClick={() => setSearchQuery('')}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+          >
+            <XIcon className="w-4 h-4" />
+          </button>
+        )}
+      </div>
+
+      {/* Result count */}
+      {debouncedSearch && (
+        <p className="text-sm text-muted-foreground">
+          Showing <span className="font-medium text-foreground">{filteredAndSortedReferrals?.length || 0}</span> of {referrals?.length || 0} referrals
+        </p>
+      )}
+
+      {/* Filter Bar */}
       <ReferralsFilterBar
         filters={filters}
         onFiltersChange={setFilters}
         totalCount={totalReferrals || 0}
-        filteredCount={referrals?.length || 0}
+        filteredCount={filteredAndSortedReferrals?.length || 0}
       />
 
       <div className="flex justify-between items-center gap-3">
