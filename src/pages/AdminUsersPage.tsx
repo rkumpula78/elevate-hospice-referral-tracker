@@ -482,6 +482,7 @@ export default function AdminUsersPage() {
                   <TableHead>Name</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Staff Type</TableHead>
                   <TableHead>Roles</TableHead>
                   <TableHead>Last Sign In</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
