@@ -275,7 +275,23 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
     }
   };
 
-  const handleSelectReferral = (id: string, checked: boolean) => {
+  const handleSelectReferral = (id: string, checked: boolean, event?: React.MouseEvent) => {
+    const currentList = sortedReferrals || [];
+    const clickedIndex = currentList.findIndex(r => r.id === id);
+
+    // Shift+click range select
+    if (event?.shiftKey && lastSelectedIndex !== null && clickedIndex !== -1) {
+      const start = Math.min(lastSelectedIndex, clickedIndex);
+      const end = Math.max(lastSelectedIndex, clickedIndex);
+      const newSelected = new Set(selectedReferralIds);
+      for (let i = start; i <= end; i++) {
+        newSelected.add(currentList[i].id);
+      }
+      setSelectedReferralIds(newSelected);
+      setLastSelectedIndex(clickedIndex);
+      return;
+    }
+
     const newSelected = new Set(selectedReferralIds);
     if (checked) {
       newSelected.add(id);
@@ -283,6 +299,7 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
       newSelected.delete(id);
     }
     setSelectedReferralIds(newSelected);
+    setLastSelectedIndex(clickedIndex);
   };
 
   const handleClearSelection = () => {
