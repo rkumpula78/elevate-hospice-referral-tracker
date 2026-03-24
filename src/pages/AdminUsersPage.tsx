@@ -500,6 +500,11 @@ export default function AdminUsersPage() {
                     <TableCell>{user.email}</TableCell>
                     <TableCell>{getStatusBadge(user.status)}</TableCell>
                     <TableCell>
+                      <Badge variant="outline" className="capitalize">
+                        {(user.staff_type || 'marketer').replace('_', ' ')}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
                       <div className="flex gap-1">
                         {user.roles.includes('admin') && (
                           <Badge variant="default">Admin</Badge>
