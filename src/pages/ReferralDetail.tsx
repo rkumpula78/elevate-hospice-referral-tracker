@@ -320,17 +320,19 @@ const ReferralDetail = () => {
               <AlertDialogAction
                 className="bg-destructive hover:bg-destructive/90"
                 onClick={async () => {
-                  try {
-                    await supabase
-                      .from('referrals')
-                      .update({ deleted_at: new Date().toISOString() } as any)
-                      .eq('id', id!);
-                    queryClient.invalidateQueries({ queryKey: ['referrals'] });
-                    toast.success('Referral deleted');
-                    navigate('/referrals');
-                  } catch {
-                    toast.error('Failed to delete referral');
+                  const { error } = await supabase
+                    .from('referrals')
+                    .update({ deleted_at: new Date().toISOString() } as any)
+                    .eq('id', id!);
+                  if (error) {
+                    toast.error('Failed to delete referral: ' + error.message);
+                    return;
                   }
+                  queryClient.invalidateQueries({ queryKey: ['referrals'] });
+                  queryClient.invalidateQueries({ queryKey: ['referrals-kanban'] });
+                  queryClient.invalidateQueries({ queryKey: ['palliative-outreach-count'] });
+                  toast.success('Referral deleted');
+                  navigate('/referrals');
                 }}
               >
                 Delete
