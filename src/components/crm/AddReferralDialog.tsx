@@ -148,7 +148,8 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
     queryFn: async () => {
       const { data, error } = await supabase.from('profiles').select('id, first_name, last_name, email').not('first_name', 'is', null).not('last_name', 'is', null).order('first_name');
       if (error) throw error;
-      return (data || []).map(m => `${m.first_name} ${m.last_name}`);
+      const names = (data || []).map(m => `${m.first_name} ${m.last_name}`);
+      return [...new Set(names)];
     }
   });
 
