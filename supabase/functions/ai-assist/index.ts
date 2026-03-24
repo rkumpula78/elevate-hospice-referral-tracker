@@ -4,7 +4,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.8";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 // Elevate Hospice core values for context
@@ -17,7 +17,7 @@ const ELEVATE_VALUES = {
 };
 
 // Message templates for different situations
-const MESSAGE_TEMPLATES = {
+const MESSAGE_TEMPLATES: Record<string, Record<string, { tone: string; structure: string }>> = {
   family: {
     initial_outreach: {
       tone: "Warm, empathetic, non-pushy",
@@ -71,6 +71,24 @@ const MESSAGE_TEMPLATES = {
     }
   }
 };
+
+/**
+ * Strip any PHI that staff may have pasted into the notes field.
+ * Removes patterns that look like SSNs, phone numbers, dates of birth, addresses.
+ * This is a best-effort sanitization layer.
+ */
+function sanitizeNotesForAI(notes: string): string {
+  let sanitized = notes;
+  // Remove SSN patterns
+  sanitized = sanitized.replace(/\b\d{3}[-.\s]?\d{2}[-.\s]?\d{4}\b/g, '[REDACTED-SSN]');
+  // Remove phone patterns
+  sanitized = sanitized.replace(/\b(\+?1?[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b/g, '[REDACTED-PHONE]');
+  // Remove email addresses
+  sanitized = sanitized.replace(/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g, '[REDACTED-EMAIL]');
+  // Remove date of birth patterns (MM/DD/YYYY, MM-DD-YYYY)
+  sanitized = sanitized.replace(/\b(0?[1-9]|1[0-2])[\/\-](0?[1-9]|[12]\d|3[01])[\/\-](19|20)\d{2}\b/g, '[REDACTED-DOB]');
+  return sanitized;
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -128,7 +146,6 @@ serve(async (req) => {
       );
     }
 
-    // Validate optional string fields
     if (notes && (typeof notes !== 'string' || notes.length > 2000)) {
       return new Response(
         JSON.stringify({ message: 'Notes must be a string under 2000 characters.', success: false }),
@@ -162,9 +179,15 @@ serve(async (req) => {
     } else {
       template = MESSAGE_TEMPLATES[context]?.[situation];
       if (!template) {
-        throw new Error("Invalid situation or context");
+        return new Response(
+          JSON.stringify({ message: 'Invalid situation for the given context.', success: false }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
       }
     }
+
+    // Sanitize notes to strip any accidentally-pasted PHI
+    const sanitizedNotes = notes ? sanitizeNotesForAI(notes) : '';
 
     // Build the system prompt
     const systemPrompt = `You are an AI assistant for Elevate Hospice, helping craft compassionate and professional messages.
@@ -180,49 +203,59 @@ Context: Writing a message for ${context === 'family' ? 'family communication' :
 Tone: ${template.tone}
 Structure: ${template.structure}
 
+IMPORTANT: Do not include any patient-specific health information, SSNs, dates of birth, or addresses in generated messages. Keep messages general and professional.
+
 ${context === 'family' ? 
   'Remember: Families are in emotional distress. Be deeply empathetic while remaining professional.' :
   'Remember: Referral sources value efficiency, outcomes, and professionalism. Show how we make their job easier.'
 }`;
 
-    // Build the user prompt
+    // Build the user prompt — use sanitized notes only
     let userPrompt;
     
     if (situation === 'freeform') {
-      userPrompt = `Request: ${notes}\n`;
+      userPrompt = `Request: ${sanitizedNotes}\n`;
       
       if (context === 'family' && contactName) {
-        userPrompt += `Family member: ${contactName}\n`;
+        userPrompt += `Family member first name: ${contactName}\n`;
       } else if (context === 'referral' && organizationName) {
         userPrompt += `Organization: ${organizationName}\n`;
       }
       
-      userPrompt += `\nGenerate an appropriate message based on the request above. Keep it professional, brief (2-3 paragraphs max), and specific.`;
+      userPrompt += `\nGenerate an appropriate message based on the request above. Keep it professional, brief (2-3 paragraphs max), and specific. Do not include any PHI.`;
     } else {
       userPrompt = `Situation: ${situation}\n`;
       
       if (context === 'family' && contactName) {
-        userPrompt += `Family member: ${contactName}\n`;
+        userPrompt += `Family member first name: ${contactName}\n`;
       } else if (context === 'referral' && organizationName) {
         userPrompt += `Organization: ${organizationName}\n`;
       }
       
-      if (notes) {
-        userPrompt += `Additional context: ${notes}\n`;
+      if (sanitizedNotes) {
+        userPrompt += `Additional context: ${sanitizedNotes}\n`;
       }
       
-      userPrompt += `\nGenerate a brief, appropriate message (2-3 paragraphs max). Be specific and actionable.`;
+      userPrompt += `\nGenerate a brief, appropriate message (2-3 paragraphs max). Be specific and actionable. Do not include any PHI.`;
     }
 
-    // Call OpenAI (you'll need to add your API key to environment variables)
-    const openAIResponse = await fetch("https://api.openai.com/v1/chat/completions", {
+    // Use Lovable AI Gateway instead of OpenAI directly
+    const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
+    if (!lovableApiKey) {
+      return new Response(
+        JSON.stringify({ message: 'AI service is not configured. Please contact your administrator.', success: false }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${Deno.env.get("OPENAI_API_KEY")}`,
+        "Authorization": `Bearer ${lovableApiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
+        model: "google/gemini-3-flash-preview",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt }
@@ -232,7 +265,24 @@ ${context === 'family' ?
       }),
     });
 
-    const aiData = await openAIResponse.json();
+    if (!aiResponse.ok) {
+      const status = aiResponse.status;
+      if (status === 429) {
+        return new Response(
+          JSON.stringify({ message: 'AI service is temporarily rate limited. Please try again in a moment.', success: false }),
+          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      if (status === 402) {
+        return new Response(
+          JSON.stringify({ message: 'AI credits exhausted. Please add funds in Lovable settings.', success: false }),
+          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      throw new Error(`AI gateway error: ${status}`);
+    }
+
+    const aiData = await aiResponse.json();
     
     if (!aiData.choices?.[0]?.message?.content) {
       throw new Error("Failed to generate message");
@@ -249,9 +299,8 @@ ${context === 'family' ?
       }
     );
   } catch (error) {
-    console.error("Error in ai-assist function:", error);
+    console.error("Error in ai-assist function");
     
-    // Fallback message if AI fails
     const fallbackMessage = "I apologize, but I'm having trouble generating a message right now. Please try again in a moment, or feel free to write your own message.";
     
     return new Response(
@@ -261,8 +310,8 @@ ${context === 'family' ?
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200, // Return 200 even on error so the UI can handle it gracefully
+        status: 200,
       }
     );
   }
-}); 
+});
