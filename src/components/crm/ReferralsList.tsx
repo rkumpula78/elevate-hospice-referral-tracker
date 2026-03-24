@@ -304,7 +304,7 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
   };
 
   const handleSelectReferral = (id: string, checked: boolean, event?: React.MouseEvent) => {
-    const currentList = sortedReferrals || [];
+    const currentList = filteredAndSortedReferrals || [];
     const clickedIndex = currentList.findIndex(r => r.id === id);
 
     // Shift+click range select
@@ -628,7 +628,7 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {sortedReferrals?.map((referral) => (
+          {filteredAndSortedReferrals?.map((referral) => (
             <TableRow 
               key={referral.id}
               className={selectedReferralIds.has(referral.id) ? 'bg-primary/5' : ''}
@@ -766,7 +766,7 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
         <>
           {view === 'list' ? renderListView() : (
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6 animate-fade-in">
-              {sortedReferrals?.map((referral, index) => (
+              {filteredAndSortedReferrals?.map((referral, index) => (
                 <div 
                   key={referral.id}
                   className="animate-fade-in"
