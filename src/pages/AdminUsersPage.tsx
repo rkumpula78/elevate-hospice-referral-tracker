@@ -135,19 +135,24 @@ export default function AdminUsersPage() {
 
       const newUserId: string | undefined = data?.user?.id;
 
-      if (newUserId && newUserRole === 'admin') {
-        const { error: roleError } = await supabase
-          .from('user_roles')
-          .insert({ user_id: newUserId, role: 'admin', assigned_by: currentUser?.id });
+      if (newUserId) {
+        // Set staff_type on profile
+        await supabase.from('profiles').update({ staff_type: newUserStaffType }).eq('id', newUserId);
 
-        if (roleError) console.error('Role assignment error:', roleError);
+        if (newUserRole === 'admin') {
+          const { error: roleError } = await supabase
+            .from('user_roles')
+            .insert({ user_id: newUserId, role: 'admin', assigned_by: currentUser?.id });
 
-        await supabase.from('admin_audit_log').insert({
-          admin_user_id: currentUser?.id,
-          action: 'assign_admin_role',
-          target_user_id: newUserId,
-          details: { email: newUserEmail }
-        });
+          if (roleError) console.error('Role assignment error:', roleError);
+
+          await supabase.from('admin_audit_log').insert({
+            admin_user_id: currentUser?.id,
+            action: 'assign_admin_role',
+            target_user_id: newUserId,
+            details: { email: newUserEmail }
+          });
+        }
       }
 
       setShowAddDialog(false);
@@ -156,6 +161,7 @@ export default function AdminUsersPage() {
       setNewUserFirstName('');
       setNewUserLastName('');
       setNewUserRole('user');
+      setNewUserStaffType('marketer');
       loadUsers();
     } catch (error: any) {
       console.error('Error adding user:', error);
