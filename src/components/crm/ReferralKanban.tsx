@@ -38,9 +38,18 @@ const ReferralKanban = ({ referrals }: ReferralKanbanProps) => {
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
       const { error } = await supabase
         .from('referrals')
-        .update({ status: status as any })
-        .eq('id', id);
+        .update({ status: status as any, deleted_at: undefined } as any)
+        .eq('id', id)
+        .is('deleted_at', null);
       if (error) throw error;
+    },
+    onMutate: async (vars) => {
+      await queryClient.cancelQueries({ queryKey: ['referrals-kanban'] });
+      const previous = queryClient.getQueryData(['referrals-kanban']);
+      queryClient.setQueryData(['referrals-kanban'], (old: any[]) =>
+        old?.map(r => r.id === vars.id ? { ...r, status: vars.status, updated_at: new Date().toISOString() } : r) ?? []
+      );
+      return { previous };
     },
     onSuccess: (_d, vars) => {
       queryClient.invalidateQueries({ queryKey: ['referrals'] });
@@ -48,7 +57,10 @@ const ReferralKanban = ({ referrals }: ReferralKanbanProps) => {
       queryClient.invalidateQueries({ queryKey: ['palliative-outreach-count'] });
       toast({ title: `✅ Moved to ${getStatusLabel(vars.status)}` });
     },
-    onError: () => {
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(['referrals-kanban'], context.previous);
+      }
       toast({ title: 'Failed to update status', variant: 'destructive' });
     },
   });

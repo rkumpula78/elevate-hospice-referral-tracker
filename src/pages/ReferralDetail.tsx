@@ -51,6 +51,7 @@ const ReferralDetail = () => {
           organizations(name, type, contact_person, phone)
         `)
         .eq('id', id)
+        .is('deleted_at', null)
         .single();
 
       if (error) throw error;
@@ -122,7 +123,6 @@ const ReferralDetail = () => {
               <Edit className="w-4 h-4 mr-2" />
               Edit Referral
             </Button>
-          </div>
             {isAdmin && (
               <Button 
                 variant="destructive" 
@@ -134,6 +134,7 @@ const ReferralDetail = () => {
               </Button>
             )}
           </div>
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card>
@@ -319,17 +320,19 @@ const ReferralDetail = () => {
               <AlertDialogAction
                 className="bg-destructive hover:bg-destructive/90"
                 onClick={async () => {
-                  try {
-                    await supabase
-                      .from('referrals')
-                      .update({ deleted_at: new Date().toISOString() } as any)
-                      .eq('id', id!);
-                    queryClient.invalidateQueries({ queryKey: ['referrals'] });
-                    toast.success('Referral deleted');
-                    navigate('/referrals');
-                  } catch {
-                    toast.error('Failed to delete referral');
+                  const { error } = await supabase
+                    .from('referrals')
+                    .update({ deleted_at: new Date().toISOString() } as any)
+                    .eq('id', id!);
+                  if (error) {
+                    toast.error('Failed to delete referral: ' + error.message);
+                    return;
                   }
+                  queryClient.invalidateQueries({ queryKey: ['referrals'] });
+                  queryClient.invalidateQueries({ queryKey: ['referrals-kanban'] });
+                  queryClient.invalidateQueries({ queryKey: ['palliative-outreach-count'] });
+                  toast.success('Referral deleted');
+                  navigate('/referrals');
                 }}
               >
                 Delete
