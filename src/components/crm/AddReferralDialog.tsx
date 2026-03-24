@@ -12,6 +12,7 @@ import { Loader2, ArrowLeft, ArrowRight, AlertTriangle, ExternalLink } from "luc
 import { Link } from "react-router-dom";
 import AddContactDialog from "./AddContactDialog";
 import { useTeamsIntegration } from "@/hooks/useTeamsIntegration";
+import { notifyNewReferral } from "@/lib/webhookNotifier";
 import { useIsMobile } from "@/hooks/use-mobile";
 import type { Database } from "@/integrations/supabase/types";
 import { formatPhoneNumber } from "@/lib/formatters";
@@ -297,6 +298,7 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
       if (newReferral) {
         await logAuditEvent({ action: 'create', tableName: 'referrals', recordId: newReferral.id });
         await autoNotifyNewReferral(newReferral);
+        notifyNewReferral(newReferral.id);
       }
     },
     onSuccess: () => {

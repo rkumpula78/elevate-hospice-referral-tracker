@@ -17,6 +17,7 @@ import { Plus, User, Phone, FileText, Briefcase, Building, AlertTriangle, MapPin
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { calculateBenefitPeriod } from '@/lib/benefitPeriodLogic';
+import { notifyStatusChange } from '@/lib/webhookNotifier';
 
 // Import patient edit sections
 import PatientOverviewSection from './patient-edit/PatientOverviewSection';
@@ -168,6 +169,11 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
 
       const changes = computeChanges(oldData as any, data);
       await logAuditEvent({ action: 'update', tableName: 'referrals', recordId: referralId, changes });
+
+      // Fire webhook if status changed
+      if (oldData && data.status && oldData.status !== data.status) {
+        notifyStatusChange(referralId, oldData.status, data.status);
+      }
 
       // If status changed to 'admitted', geocode the patient address
       if (data.status === 'admitted' && oldData?.status !== 'admitted') {

@@ -2668,6 +2668,80 @@ export type Database = {
           },
         ]
       }
+      webhook_config: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          event_type: string
+          id: string
+          last_status: string | null
+          last_triggered_at: string | null
+          updated_at: string
+          webhook_url: string
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          event_type: string
+          id?: string
+          last_status?: string | null
+          last_triggered_at?: string | null
+          updated_at?: string
+          webhook_url: string
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          event_type?: string
+          id?: string
+          last_status?: string | null
+          last_triggered_at?: string | null
+          updated_at?: string
+          webhook_url?: string
+        }
+        Relationships: []
+      }
+      webhook_logs: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          event_type: string
+          http_status: number | null
+          id: string
+          payload: Json | null
+          referral_id: string | null
+          success: boolean
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          event_type: string
+          http_status?: number | null
+          id?: string
+          payload?: Json | null
+          referral_id?: string | null
+          success?: boolean
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          event_type?: string
+          http_status?: number | null
+          id?: string
+          payload?: Json | null
+          referral_id?: string | null
+          success?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhook_logs_referral_id_fkey"
+            columns: ["referral_id"]
+            isOneToOne: false
+            referencedRelation: "referrals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       whatsapp_conversation_state: {
         Row: {
           created_at: string | null

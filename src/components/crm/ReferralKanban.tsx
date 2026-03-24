@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { notifyStatusChange } from '@/lib/webhookNotifier';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -95,6 +96,7 @@ const ReferralKanban = ({ referrals }: ReferralKanbanProps) => {
     if (!id) return;
     const ref = referrals.find(r => r.id === id);
     if (ref && ref.status !== targetStatus) {
+      notifyStatusChange(id, ref.status, targetStatus);
       updateStatusMutation.mutate({ id, status: targetStatus });
     }
     setDraggedId(null);
