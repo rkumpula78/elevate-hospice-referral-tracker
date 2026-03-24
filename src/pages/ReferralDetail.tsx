@@ -123,7 +123,17 @@ const ReferralDetail = () => {
               Edit Referral
             </Button>
           </div>
-        </div>
+            {isAdmin && (
+              <Button 
+                variant="destructive" 
+                size="sm"
+                onClick={() => setShowDeleteDialog(true)}
+              >
+                <Trash2 className="w-4 h-4 mr-1" />
+                Delete
+              </Button>
+            )}
+          </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card>
