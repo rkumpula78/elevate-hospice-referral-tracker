@@ -2833,6 +2833,7 @@ export type Database = {
       }
       get_dashboard_stats: { Args: never; Returns: Json }
       get_kpi_metrics: { Args: never; Returns: Json }
+      get_org_name: { Args: { org_id: string }; Returns: string }
       has_healthcare_access: { Args: never; Returns: boolean }
       has_role: {
         Args: {
