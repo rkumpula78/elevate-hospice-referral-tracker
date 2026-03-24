@@ -319,6 +319,7 @@ export default function AdminUsersPage() {
     setEditFirstName(user.first_name || '');
     setEditLastName(user.last_name || '');
     setEditEmail(user.email || '');
+    setEditStaffType(user.staff_type || 'marketer');
   };
 
   const handleEditUser = async () => {
