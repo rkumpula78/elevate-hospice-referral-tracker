@@ -518,6 +518,13 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead className="w-10">
+              <Checkbox
+                checked={allSelected}
+                onCheckedChange={handleSelectAll}
+                className="h-4 w-4"
+              />
+            </TableHead>
             <TableHead>
               <SortHeader label="Patient" field="patient_name" currentSort={sortConfig} onSort={handleSort} />
             </TableHead>
@@ -541,7 +548,23 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
         </TableHeader>
         <TableBody>
           {sortedReferrals?.map((referral) => (
-            <TableRow key={referral.id}>
+            <TableRow 
+              key={referral.id}
+              className={selectedReferralIds.has(referral.id) ? 'bg-primary/5' : ''}
+            >
+              <TableCell>
+                <Checkbox
+                  checked={selectedReferralIds.has(referral.id)}
+                  onCheckedChange={(checked) => handleSelectReferral(referral.id, !!checked)}
+                  onClick={(e: React.MouseEvent) => {
+                    if (e.shiftKey) {
+                      e.preventDefault();
+                      handleSelectReferral(referral.id, !selectedReferralIds.has(referral.id), e);
+                    }
+                  }}
+                  className="h-4 w-4"
+                />
+              </TableCell>
               <TableCell className="font-medium">
                 <Link 
                   to={`/referral/${referral.id}`}
