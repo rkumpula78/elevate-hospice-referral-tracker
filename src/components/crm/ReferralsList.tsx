@@ -440,6 +440,40 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
     }
   };
 
+  const handleBulkFollowUpFrequency = async (frequency: string) => {
+    const selectedReferrals = referrals?.filter(r => selectedReferralIds.has(r.id)) || [];
+    setUndoState({ referrals: selectedReferrals, action: 'followup_frequency' });
+    
+    try {
+      for (const id of Array.from(selectedReferralIds)) {
+        await supabase.from('referrals').update({ followup_frequency: frequency } as any).eq('id', id);
+      }
+      queryClient.invalidateQueries({ queryKey: ['referrals'] });
+      toast({ title: `Updated follow-up frequency for ${selectedReferralIds.size} referrals` });
+      setSelectedReferralIds(new Set());
+      setTimeout(() => setUndoState(null), 5000);
+    } catch (error) {
+      showToast({ title: "Error updating referrals", variant: "destructive" });
+    }
+  };
+
+  const handleBulkFollowUpDate = async (date: string) => {
+    const selectedReferrals = referrals?.filter(r => selectedReferralIds.has(r.id)) || [];
+    setUndoState({ referrals: selectedReferrals, action: 'followup_date' });
+    
+    try {
+      for (const id of Array.from(selectedReferralIds)) {
+        await supabase.from('referrals').update({ next_followup_date: date }).eq('id', id);
+      }
+      queryClient.invalidateQueries({ queryKey: ['referrals'] });
+      toast({ title: `Set follow-up date for ${selectedReferralIds.size} referrals` });
+      setSelectedReferralIds(new Set());
+      setTimeout(() => setUndoState(null), 5000);
+    } catch (error) {
+      showToast({ title: "Error updating referrals", variant: "destructive" });
+    }
+  };
+
   const handleBulkExport = () => {
     const selectedReferrals = referrals?.filter(r => selectedReferralIds.has(r.id)) || [];
     
@@ -448,25 +482,25 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
       return;
     }
 
-    // Create CSV content
-    const headers = ['Patient Name', 'Status', 'Priority', 'Organization', 'Referral Date', 'Assigned Marketer', 'Diagnosis', 'Insurance'];
+    const headers = ['Patient Name', 'Status', 'Referral Source', 'Referral Date', 'Assigned To', 'Phone', 'Location', 'Diagnosis', 'Insurance', 'Notes'];
     const rows = selectedReferrals.map(r => [
       r.patient_name || '',
       r.status || '',
-      r.priority || '',
       r.organizations?.name || '',
       r.referral_date || '',
       r.assigned_marketer || '',
+      r.patient_phone || r.phone || '',
+      r.address || '',
       r.diagnosis || '',
       r.insurance || '',
+      r.notes || '',
     ]);
 
     const csvContent = [
       headers.join(','),
-      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+      ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
     ].join('\n');
 
-    // Create and download file
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
