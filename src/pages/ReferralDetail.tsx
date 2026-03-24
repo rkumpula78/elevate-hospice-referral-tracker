@@ -37,6 +37,10 @@ const ReferralDetail = () => {
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showScheduleDialog, setShowScheduleDialog] = useState(false);
 
+  const { isAdmin } = useAuth();
+  const queryClient = useQueryClient();
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+
   const { data: referral, isLoading, refetch } = useQuery({
     queryKey: ['referral', id],
     queryFn: async () => {
