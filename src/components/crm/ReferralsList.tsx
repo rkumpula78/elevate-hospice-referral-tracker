@@ -246,10 +246,22 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
     setSortConfig({ field, direction });
   };
 
-  const sortedReferrals = React.useMemo(() => {
-    if (!referrals || !sortConfig) return referrals;
+  // Filter by search, then sort
+  const filteredAndSortedReferrals = React.useMemo(() => {
+    let result = referrals || [];
+    
+    // Apply client-side search filter
+    if (debouncedSearch.trim()) {
+      const q = debouncedSearch.toLowerCase();
+      result = result.filter(r => 
+        (r.patient_name || '').toLowerCase().includes(q) ||
+        (r.organizations?.name || '').toLowerCase().includes(q)
+      );
+    }
 
-    return [...referrals].sort((a, b) => {
+    if (!sortConfig) return result;
+
+    return [...result].sort((a, b) => {
       const aValue = a[sortConfig.field as keyof typeof a];
       const bValue = b[sortConfig.field as keyof typeof b];
       
@@ -266,7 +278,7 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
         ? (aValue as any) - (bValue as any)
         : (bValue as any) - (aValue as any);
     });
-  }, [referrals, sortConfig]);
+  }, [referrals, sortConfig, debouncedSearch]);
 
   const handleEditReferral = (referralId: string) => {
     setEditingReferralId(referralId);
