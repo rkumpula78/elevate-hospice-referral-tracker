@@ -445,7 +445,7 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
     
     try {
       for (const id of Array.from(selectedReferralIds)) {
-        await supabase.from('referrals').delete().eq('id', id);
+        await supabase.from('referrals').update({ deleted_at: new Date().toISOString() } as any).eq('id', id);
       }
       queryClient.invalidateQueries({ queryKey: ['referrals'] });
       
