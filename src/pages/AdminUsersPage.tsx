@@ -334,6 +334,7 @@ export default function AdminUsersPage() {
           userId: editUser.id,
           first_name: editFirstName,
           last_name: editLastName,
+          staff_type: editStaffType,
           ...(editEmail !== editUser.email ? { email: editEmail } : {}),
         },
       });
