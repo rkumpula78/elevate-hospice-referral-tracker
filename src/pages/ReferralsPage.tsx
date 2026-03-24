@@ -127,6 +127,8 @@ const ReferralsPage = () => {
           </MobileOptimizedCard>
         </TabsContent>
       </Tabs>
+
+      <AddReferralDialog open={showAddReferral} onOpenChange={setShowAddReferral} />
     </PageLayout>
   );
 };
