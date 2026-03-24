@@ -2801,6 +2801,12 @@ export type Database = {
         | "in_progress"
         | "assessment"
         | "closed"
+        | "palliative_outreach"
+        | "discharged"
+        | "deceased"
+        | "not_appropriate"
+        | "lost_to_followup"
+        | "revoked"
       visit_type: "admission" | "routine" | "urgent" | "discharge"
     }
     CompositeTypes: {
@@ -2968,6 +2974,12 @@ export const Constants = {
         "in_progress",
         "assessment",
         "closed",
+        "palliative_outreach",
+        "discharged",
+        "deceased",
+        "not_appropriate",
+        "lost_to_followup",
+        "revoked",
       ],
       visit_type: ["admission", "routine", "urgent", "discharge"],
     },
