@@ -1,10 +1,22 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Calendar, Phone, Mail, User, Building2, Edit, Plus } from 'lucide-react';
+import { ArrowLeft, Calendar, Phone, Mail, User, Building2, Edit, Plus, Trash2 } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { toast } from 'sonner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import ReferralEligibility from '@/components/crm/ReferralEligibility';
 import AdmissionDetailsSection from '@/components/crm/AdmissionDetailsSection';
 import BenefitPeriodTracker from '@/components/crm/BenefitPeriodTracker';
