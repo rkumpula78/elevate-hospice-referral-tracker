@@ -74,7 +74,7 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    const { action, userId, email, password, first_name, last_name }: AdminRequest = requestBody;
+    const { action, userId, email, password, first_name, last_name, staff_type }: AdminRequest = requestBody;
 
     // Validate action
     const validActions = ["list", "delete", "resend-invite", "set-password", "update-user"];
