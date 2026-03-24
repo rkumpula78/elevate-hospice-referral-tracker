@@ -57,6 +57,13 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
   // Bulk selection state
   const [selectedReferralIds, setSelectedReferralIds] = useState<Set<string>>(new Set());
   const [undoState, setUndoState] = useState<{ referrals: any[], action: string } | null>(null);
+  const [lastSelectedIndex, setLastSelectedIndex] = useState<number | null>(null);
+
+  // Clear selection when filters change
+  React.useEffect(() => {
+    setSelectedReferralIds(new Set());
+    setLastSelectedIndex(null);
+  }, [filters]);
 
   const { data: referrals, isLoading, refetch } = useQuery({
     queryKey: ['referrals', filters],
