@@ -639,6 +639,19 @@ export default function AdminUsersPage() {
                 onChange={(e) => setEditEmail(e.target.value)}
               />
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-staffType">Staff Type</Label>
+              <Select value={editStaffType} onValueChange={setEditStaffType}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="marketer">Marketer</SelectItem>
+                  <SelectItem value="intake_coordinator">Intake Coordinator</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             <Button onClick={handleEditUser} className="w-full" disabled={savingEdit}>
               {savingEdit && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               Save Changes
