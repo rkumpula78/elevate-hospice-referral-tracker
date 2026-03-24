@@ -46,12 +46,14 @@ export default function AdminUsersPage() {
   const [editLastName, setEditLastName] = useState('');
   const [editEmail, setEditEmail] = useState('');
   const [savingEdit, setSavingEdit] = useState(false);
+  const [editStaffType, setEditStaffType] = useState('marketer');
   
   const [newUserEmail, setNewUserEmail] = useState('');
   const [newUserPassword, setNewUserPassword] = useState('');
   const [newUserFirstName, setNewUserFirstName] = useState('');
   const [newUserLastName, setNewUserLastName] = useState('');
   const [newUserRole, setNewUserRole] = useState<'admin' | 'user'>('user');
+  const [newUserStaffType, setNewUserStaffType] = useState('marketer');
   const [addingUser, setAddingUser] = useState(false);
 
   useEffect(() => {
