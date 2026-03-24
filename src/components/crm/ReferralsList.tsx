@@ -311,26 +311,41 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
     const selectedReferrals = referrals?.filter(r => selectedReferralIds.has(r.id)) || [];
     setUndoState({ referrals: selectedReferrals, action: 'status' });
     
+    let succeeded = 0;
+    let failed = 0;
+    
     try {
-      for (const id of Array.from(selectedReferralIds)) {
-        await supabase.from('referrals').update({ status: status as any }).eq('id', id);
+      for (const ref of selectedReferrals) {
+        const oldStatus = ref.status;
+        const { error } = await supabase.from('referrals').update({ status: status as any }).eq('id', ref.id);
+        if (error) { failed++; continue; }
+        succeeded++;
+        
+        // Fire webhook for each actual status change
+        if (oldStatus !== status) {
+          notifyStatusChange(ref.id, oldStatus || '', status);
+        }
+        
+        // Log activity
+        await supabase.from('referral_activity_log').insert({
+          referral_id: ref.id,
+          activity_type: 'Note',
+          note: `[Bulk Update] Status changed to ${status} (part of bulk update affecting ${selectedReferrals.length} referrals)`,
+          created_by: 'System',
+        } as any).catch(() => {});
       }
+      
       queryClient.invalidateQueries({ queryKey: ['referrals'] });
       
       const undoAction = () => handleUndo();
-      
       toast({
-        title: `Updated ${selectedReferralIds.size} referrals`,
-        action: (
-          <Button variant="outline" size="sm" onClick={undoAction}>
-            Undo
-          </Button>
-        ),
+        title: failed > 0 
+          ? `Updated ${succeeded} of ${selectedReferrals.length} referrals. ${failed} failed.`
+          : `Updated ${succeeded} referrals`,
+        action: <Button variant="outline" size="sm" onClick={undoAction}>Undo</Button>,
       });
       
       setSelectedReferralIds(new Set());
-      
-      // Clear undo state after 5 seconds
       setTimeout(() => setUndoState(null), 5000);
     } catch (error) {
       showToast({ title: "Error updating referrals", variant: "destructive" });
