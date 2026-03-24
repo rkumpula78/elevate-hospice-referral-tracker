@@ -17,6 +17,7 @@ import { Plus, User, Phone, FileText, Briefcase, Building, AlertTriangle, MapPin
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { calculateBenefitPeriod } from '@/lib/benefitPeriodLogic';
+import { notifyStatusChange } from '@/lib/webhookNotifier';
 
 // Import patient edit sections
 import PatientOverviewSection from './patient-edit/PatientOverviewSection';
