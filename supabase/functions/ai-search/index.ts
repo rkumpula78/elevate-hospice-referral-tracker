@@ -3,21 +3,45 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
 
-const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!
 const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
 // UUID validation regex
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function sanitizeSearchQuery(input: string): string {
-  // Remove potentially dangerous characters for ilike queries
   return input.replace(/[%_\\]/g, '').trim();
+}
+
+/**
+ * De-identify PHI: strip names, addresses, phones, DOB, and other identifiers.
+ * Only pass status, diagnosis category, and aggregate counts to the AI model.
+ */
+function deidentifyReferral(r: any, index: number) {
+  return {
+    ref: `Referral-${index + 1}`,
+    status: r.status,
+    diagnosis: r.diagnosis || 'Unknown',
+    insurance_type: r.primary_insurance || r.insurance || 'Unknown',
+    priority: r.priority || 'routine',
+    org: r.organizations?.name || 'Unknown source',
+  };
+}
+
+function deidentifyPatient(p: any, index: number) {
+  return {
+    ref: `Patient-${index + 1}`,
+    status: p.status,
+    diagnosis: p.diagnosis || 'Unknown',
+    insurance_type: p.primary_insurance || 'Unknown',
+    dnr_status: p.dnr_status ? 'Yes' : 'No',
+    has_advanced_directive: p.advanced_directive ? 'Yes' : 'No',
+  };
 }
 
 serve(async (req) => {
@@ -35,14 +59,12 @@ serve(async (req) => {
       });
     }
 
-    // Create an authenticated client using the user's JWT
     const userClient = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: authHeader } }
     });
 
-    const token = authHeader.replace('Bearer ', '');
-    const { data: claimsData, error: claimsError } = await userClient.auth.getClaims(token);
-    if (claimsError || !claimsData?.claims) {
+    const { data: { user }, error: userError } = await userClient.auth.getUser();
+    if (userError || !user) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -85,15 +107,14 @@ serve(async (req) => {
 
     const query = rawQuery.trim();
     const sanitizedQuery = sanitizeSearchQuery(query);
-
-    // Use the authenticated user client (respects RLS) instead of service role
     const supabase = userClient;
 
     if (searchType === 'ai') {
-      if (!openAIApiKey) {
+      const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
+      if (!lovableApiKey) {
         return new Response(JSON.stringify({ 
           type: 'ai_response',
-          response: 'AI search is currently unavailable. Please contact your administrator to configure the OpenAI API key.' 
+          response: 'AI search is currently unavailable. Please contact your administrator.' 
         }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
@@ -132,29 +153,19 @@ serve(async (req) => {
         });
       }
 
-      // Gather context data — exclude SSN and other sensitive fields
+      // Gather context data — DE-IDENTIFIED, no PHI sent to AI
       let contextData = '';
       let navigationAction = null;
 
       if (query.toLowerCase().includes('referral') || query.toLowerCase().includes('dnr') || query.toLowerCase().includes('patient')) {
         const { data: referrals, error } = await supabase
           .from('referrals')
-          .select(`
-            id, patient_name, status, referral_date, diagnosis, notes, insurance,
-            patient_phone, assigned_marketer, priority, first_name, last_name,
-            date_of_birth, address, phone, emergency_contact, emergency_phone,
-            physician, primary_insurance, next_steps, patient_status,
-            organizations(name)
-          `);
+          .select('id, patient_name, status, diagnosis, insurance, primary_insurance, priority, first_name, last_name, organizations(name)')
+          .is('deleted_at', null);
         
         if (!error && referrals) {
           const matchingReferrals = referrals.filter(ref => {
-            const searchableText = [
-              ref.patient_name, ref.diagnosis, ref.notes, ref.insurance,
-              ref.first_name, ref.last_name, ref.address, ref.physician,
-              ref.primary_insurance, ref.next_steps, ref.emergency_contact
-            ].join(' ').toLowerCase();
-            
+            const searchableText = [ref.patient_name, ref.diagnosis, ref.first_name, ref.last_name].join(' ').toLowerCase();
             return searchableText.includes(query.toLowerCase());
           });
 
@@ -165,10 +176,13 @@ serve(async (req) => {
             return acc;
           }, {});
           
+          // De-identify before building context
+          const deidentified = matchingReferrals.slice(0, 10).map(deidentifyReferral);
+          
           if (matchingCount > 0) {
-            contextData = `Found ${matchingCount} referral(s) matching "${query}": ${matchingReferrals.map(r => `${r.patient_name || `${r.first_name} ${r.last_name}`} (${r.status})`).join(', ')}. Total referrals in system: ${totalReferrals}. Status breakdown: ${JSON.stringify(statusCounts)}.`;
+            contextData = `Found ${matchingCount} matching referral(s). Total referrals: ${totalReferrals}. Status breakdown: ${JSON.stringify(statusCounts)}. Matching records (de-identified): ${JSON.stringify(deidentified)}.`;
           } else {
-            contextData = `No referrals found matching "${query}". Total referrals: ${totalReferrals}. Status breakdown: ${JSON.stringify(statusCounts)}.`;
+            contextData = `No referrals found matching the query. Total referrals: ${totalReferrals}. Status breakdown: ${JSON.stringify(statusCounts)}.`;
           }
           navigationAction = { type: 'navigate', path: '/referrals', label: 'View All Referrals' };
         }
@@ -177,58 +191,35 @@ serve(async (req) => {
       if (query.toLowerCase().includes('patient') || query.toLowerCase().includes('dnr')) {
         const { data: patients, error } = await supabase
           .from('patients')
-          .select(`
-            id, first_name, last_name, status, diagnosis, notes, address, phone,
-            emergency_contact, emergency_phone, physician, primary_insurance,
-            next_steps, msw_notes, upcoming_appointments, advanced_directive,
-            dnr_status, prior_hospice_info, caregiver_name, spiritual_preferences,
-            dme_needs, special_medical_needs, attending_physician, funeral_arrangements
-          `);
+          .select('id, first_name, last_name, status, diagnosis, primary_insurance, dnr_status, advanced_directive');
         
         if (!error && patients) {
           const matchingPatients = patients.filter(patient => {
-            const searchableText = [
-              patient.first_name, patient.last_name, patient.diagnosis, patient.notes,
-              patient.address, patient.physician, patient.primary_insurance,
-              patient.next_steps, patient.msw_notes, patient.upcoming_appointments,
-              patient.prior_hospice_info, patient.caregiver_name, patient.spiritual_preferences,
-              patient.dme_needs, patient.special_medical_needs, patient.attending_physician,
-              patient.funeral_arrangements, patient.emergency_contact
-            ].join(' ').toLowerCase();
-            
+            const searchableText = [patient.first_name, patient.last_name, patient.diagnosis].join(' ').toLowerCase();
             const isDnrQuery = query.toLowerCase().includes('dnr');
-            const hasDnrInText = searchableText.includes('dnr');
-            const hasDnrStatus = patient.dnr_status === true;
-            
-            if (isDnrQuery) {
-              return hasDnrInText || hasDnrStatus;
-            }
-            
+            if (isDnrQuery) return patient.dnr_status === true || searchableText.includes('dnr');
             return searchableText.includes(query.toLowerCase());
           });
 
           const totalPatients = patients.length;
           const matchingCount = matchingPatients.length;
-          const statusCounts = patients.reduce((acc: Record<string, number>, patient) => {
-            acc[patient.status] = (acc[patient.status] || 0) + 1;
+          const statusCounts = patients.reduce((acc: Record<string, number>, p) => {
+            acc[p.status] = (acc[p.status] || 0) + 1;
             return acc;
           }, {});
           
+          // De-identify before building context
+          const deidentified = matchingPatients.slice(0, 10).map(deidentifyPatient);
+          
           if (matchingCount > 0) {
-            contextData += ` Found ${matchingCount} patient(s) matching "${query}": ${matchingPatients.map(p => `${p.first_name} ${p.last_name} (${p.status})`).join(', ')}. Total patients: ${totalPatients}. Status breakdown: ${JSON.stringify(statusCounts)}.`;
+            contextData += ` Found ${matchingCount} matching patient(s). Total patients: ${totalPatients}. Status breakdown: ${JSON.stringify(statusCounts)}. Matching records (de-identified): ${JSON.stringify(deidentified)}.`;
             
             if (query.toLowerCase().includes('dnr')) {
-              const dnrPatients = matchingPatients.filter(p => p.dnr_status || 
-                [p.notes, p.msw_notes, p.next_steps, p.special_medical_needs].some(field => 
-                  field && field.toLowerCase().includes('dnr')
-                )
-              );
-              if (dnrPatients.length > 0) {
-                contextData += ` DNR-related patients: ${dnrPatients.map(p => `${p.first_name} ${p.last_name}`).join(', ')}.`;
-              }
+              const dnrCount = matchingPatients.filter(p => p.dnr_status).length;
+              contextData += ` ${dnrCount} patient(s) have DNR status.`;
             }
           } else {
-            contextData += ` No patients found matching "${query}". Total patients: ${totalPatients}.`;
+            contextData += ` No patients found matching the query. Total patients: ${totalPatients}.`;
           }
           
           if (!navigationAction) {
@@ -240,7 +231,7 @@ serve(async (req) => {
       if (query.toLowerCase().includes('organization') || query.toLowerCase().includes('facility') || query.toLowerCase().includes('referral source')) {
         const { data: organizations, error } = await supabase
           .from('organizations')
-          .select('id, name, type, assigned_marketer, contact_person, contact_email, address, phone')
+          .select('id, name, type')
           .eq('is_active', true);
         
         if (!error && organizations) {
@@ -250,27 +241,31 @@ serve(async (req) => {
             return acc;
           }, {});
           
-          contextData += ` Current referral source data: Total active referral sources (organizations): ${totalOrgs}. Type breakdown: ${JSON.stringify(typeBreakdown)}. Examples include: ${organizations.slice(0, 5).map(o => `${o.name} (${o.type})`).join(', ')}.`;
+          // Only send org names and types — no contact info
+          contextData += ` Active referral sources: ${totalOrgs}. Type breakdown: ${JSON.stringify(typeBreakdown)}. Examples: ${organizations.slice(0, 5).map(o => `${o.name} (${o.type})`).join(', ')}.`;
           if (!navigationAction) {
             navigationAction = { type: 'navigate', path: '/organizations', label: 'View All Organizations' };
           }
         }
       }
 
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      // Call Lovable AI Gateway instead of OpenAI directly
+      const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${openAIApiKey}`,
+          'Authorization': `Bearer ${lovableApiKey}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'gpt-4o-mini',
+          model: 'google/gemini-3-flash-preview',
           messages: [
             { 
               role: 'system', 
-              content: `You are a helpful assistant for a hospice CRM system. You have access to real-time data from the system. Use the provided context data to answer questions with specific numbers and facts.
+              content: `You are a helpful assistant for a hospice CRM system. You have access to de-identified, aggregate data from the system. Use the provided context to answer questions with specific numbers and facts.
 
-IMPORTANT: Organizations in this system are the referral sources. When users ask about "referral sources" they are referring to organizations.
+IMPORTANT: All patient/referral data has been de-identified. You will see references like "Referral-1", "Patient-1" instead of real names. This is intentional for HIPAA compliance. Never ask for or attempt to reference real patient names.
+
+Organizations in this system are the referral sources. When users ask about "referral sources" they are referring to organizations.
 
 SEARCH CONTEXT DATA:
 ${contextData}
@@ -281,6 +276,7 @@ When answering questions:
 3. If no matches are found, clearly state this and suggest alternative searches
 4. Provide actionable insights when relevant
 5. Remember that organizations ARE referral sources
+6. Refer to records by their de-identified labels (Referral-1, Patient-1, etc.)
 
 Available navigation paths:
 - /referrals - for referral-related queries
@@ -295,7 +291,26 @@ Available navigation paths:
       });
 
       if (!response.ok) {
-        console.error('OpenAI API error:', response.status);
+        const status = response.status;
+        if (status === 429) {
+          return new Response(JSON.stringify({ 
+            type: 'ai_response',
+            response: 'AI search is temporarily rate limited. Please try again in a moment.' 
+          }), {
+            status: 429,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+        if (status === 402) {
+          return new Response(JSON.stringify({ 
+            type: 'ai_response',
+            response: 'AI credits exhausted. Please add funds in Lovable settings.' 
+          }), {
+            status: 402,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+        console.error('AI gateway error:', status);
         return new Response(JSON.stringify({ 
           type: 'ai_response',
           response: 'I apologize, but I\'m experiencing technical difficulties. Please try your search again.' 
@@ -325,7 +340,7 @@ Available navigation paths:
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     } else {
-      // Regular search with sanitized input
+      // Regular search with sanitized input — returns data directly, no AI involved
       const searchResults = await Promise.all([
         supabase
           .from('referrals')
