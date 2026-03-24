@@ -303,6 +303,40 @@ const ReferralDetail = () => {
           onOpenChange={setShowScheduleDialog}
           referralId={id}
         />
+
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Referral</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to permanently delete the referral for <strong>{referral?.patient_name}</strong>?
+                This action cannot be easily undone. All activity log entries for this referral will also be hidden.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                className="bg-destructive hover:bg-destructive/90"
+                onClick={async () => {
+                  try {
+                    await supabase
+                      .from('referrals')
+                      .update({ deleted_at: new Date().toISOString() } as any)
+                      .eq('id', id!);
+                    queryClient.invalidateQueries({ queryKey: ['referrals'] });
+                    toast.success('Referral deleted');
+                    navigate('/referrals');
+                  } catch {
+                    toast.error('Failed to delete referral');
+                  }
+                }}
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </PageLayout>
   );
