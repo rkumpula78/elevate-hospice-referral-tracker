@@ -23,6 +23,7 @@ interface AuthUser {
   status: 'pending' | 'active' | 'disabled';
   first_name: string;
   last_name: string;
+  staff_type: string;
 }
 
 interface UserWithRoles extends AuthUser {
@@ -45,12 +46,14 @@ export default function AdminUsersPage() {
   const [editLastName, setEditLastName] = useState('');
   const [editEmail, setEditEmail] = useState('');
   const [savingEdit, setSavingEdit] = useState(false);
+  const [editStaffType, setEditStaffType] = useState('marketer');
   
   const [newUserEmail, setNewUserEmail] = useState('');
   const [newUserPassword, setNewUserPassword] = useState('');
   const [newUserFirstName, setNewUserFirstName] = useState('');
   const [newUserLastName, setNewUserLastName] = useState('');
   const [newUserRole, setNewUserRole] = useState<'admin' | 'user'>('user');
+  const [newUserStaffType, setNewUserStaffType] = useState('marketer');
   const [addingUser, setAddingUser] = useState(false);
 
   useEffect(() => {
@@ -80,10 +83,16 @@ export default function AdminUsersPage() {
       
       if (rolesError) throw rolesError;
 
+      // Get profiles for staff_type
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('id, staff_type');
+
       // Combine data
       const usersWithRoles: UserWithRoles[] = authUsers.map(user => {
         const userRoles = rolesData?.filter(r => r.user_id === user.id).map(r => r.role) || [];
-        return { ...user, roles: userRoles };
+        const profile = profilesData?.find(p => p.id === user.id);
+        return { ...user, roles: userRoles, staff_type: profile?.staff_type || 'marketer' };
       });
 
       setUsers(usersWithRoles);
@@ -126,19 +135,24 @@ export default function AdminUsersPage() {
 
       const newUserId: string | undefined = data?.user?.id;
 
-      if (newUserId && newUserRole === 'admin') {
-        const { error: roleError } = await supabase
-          .from('user_roles')
-          .insert({ user_id: newUserId, role: 'admin', assigned_by: currentUser?.id });
+      if (newUserId) {
+        // Set staff_type on profile
+        await supabase.from('profiles').update({ staff_type: newUserStaffType }).eq('id', newUserId);
 
-        if (roleError) console.error('Role assignment error:', roleError);
+        if (newUserRole === 'admin') {
+          const { error: roleError } = await supabase
+            .from('user_roles')
+            .insert({ user_id: newUserId, role: 'admin', assigned_by: currentUser?.id });
 
-        await supabase.from('admin_audit_log').insert({
-          admin_user_id: currentUser?.id,
-          action: 'assign_admin_role',
-          target_user_id: newUserId,
-          details: { email: newUserEmail }
-        });
+          if (roleError) console.error('Role assignment error:', roleError);
+
+          await supabase.from('admin_audit_log').insert({
+            admin_user_id: currentUser?.id,
+            action: 'assign_admin_role',
+            target_user_id: newUserId,
+            details: { email: newUserEmail }
+          });
+        }
       }
 
       setShowAddDialog(false);
@@ -147,6 +161,7 @@ export default function AdminUsersPage() {
       setNewUserFirstName('');
       setNewUserLastName('');
       setNewUserRole('user');
+      setNewUserStaffType('marketer');
       loadUsers();
     } catch (error: any) {
       console.error('Error adding user:', error);
@@ -304,6 +319,7 @@ export default function AdminUsersPage() {
     setEditFirstName(user.first_name || '');
     setEditLastName(user.last_name || '');
     setEditEmail(user.email || '');
+    setEditStaffType(user.staff_type || 'marketer');
   };
 
   const handleEditUser = async () => {
@@ -318,6 +334,7 @@ export default function AdminUsersPage() {
           userId: editUser.id,
           first_name: editFirstName,
           last_name: editLastName,
+          staff_type: editStaffType,
           ...(editEmail !== editUser.email ? { email: editEmail } : {}),
         },
       });
@@ -429,6 +446,19 @@ export default function AdminUsersPage() {
                         </SelectContent>
                       </Select>
                     </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="staffType">Staff Type</Label>
+                      <Select value={newUserStaffType} onValueChange={setNewUserStaffType}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="marketer">Marketer</SelectItem>
+                          <SelectItem value="intake_coordinator">Intake Coordinator</SelectItem>
+                          <SelectItem value="admin">Admin</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                     <Button onClick={handleAddUser} className="w-full" disabled={addingUser}>
                       {addingUser && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                       Create User
@@ -452,6 +482,7 @@ export default function AdminUsersPage() {
                   <TableHead>Name</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Staff Type</TableHead>
                   <TableHead>Roles</TableHead>
                   <TableHead>Last Sign In</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
@@ -468,6 +499,11 @@ export default function AdminUsersPage() {
                     </TableCell>
                     <TableCell>{user.email}</TableCell>
                     <TableCell>{getStatusBadge(user.status)}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="capitalize">
+                        {(user.staff_type || 'marketer').replace('_', ' ')}
+                      </Badge>
+                    </TableCell>
                     <TableCell>
                       <div className="flex gap-1">
                         {user.roles.includes('admin') && (
@@ -602,6 +638,19 @@ export default function AdminUsersPage() {
                 value={editEmail}
                 onChange={(e) => setEditEmail(e.target.value)}
               />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-staffType">Staff Type</Label>
+              <Select value={editStaffType} onValueChange={setEditStaffType}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="marketer">Marketer</SelectItem>
+                  <SelectItem value="intake_coordinator">Intake Coordinator</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <Button onClick={handleEditUser} className="w-full" disabled={savingEdit}>
               {savingEdit && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}

@@ -14,6 +14,7 @@ interface AdminRequest {
   password?: string;
   first_name?: string;
   last_name?: string;
+  staff_type?: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -73,7 +74,7 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    const { action, userId, email, password, first_name, last_name }: AdminRequest = requestBody;
+    const { action, userId, email, password, first_name, last_name, staff_type }: AdminRequest = requestBody;
 
     // Validate action
     const validActions = ["list", "delete", "resend-invite", "set-password", "update-user"];
@@ -330,6 +331,10 @@ const handler = async (req: Request): Promise<Response> => {
       if (first_name !== undefined) profileUpdate.first_name = first_name;
       if (last_name !== undefined) profileUpdate.last_name = last_name;
       if (email) profileUpdate.email = email;
+      if (staff_type) {
+        const validTypes = ['marketer', 'intake_coordinator', 'admin'];
+        if (validTypes.includes(staff_type)) profileUpdate.staff_type = staff_type;
+      }
 
       if (Object.keys(profileUpdate).length > 0) {
         await adminClient.from("profiles").update(profileUpdate).eq("id", userId);
