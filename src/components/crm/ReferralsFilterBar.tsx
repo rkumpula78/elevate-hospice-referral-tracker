@@ -66,6 +66,23 @@ export const ReferralsFilterBar = ({
     },
   });
 
+  // Fetch unique assigned marketers
+  const { data: marketers = [] } = useQuery({
+    queryKey: ['marketers-filter'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('referrals')
+        .select('assigned_marketer')
+        .not('assigned_marketer', 'is', null)
+        .is('deleted_at', null);
+      
+      if (error) throw error;
+      
+      const uniqueMarketers = [...new Set(data.map((r) => r.assigned_marketer).filter(Boolean))] as string[];
+      return uniqueMarketers.sort().map((m) => ({ label: m, value: m }));
+    },
+  });
+
   const statusOptions: MultiSelectOption[] = [
     { label: 'New', value: 'new_referral' },
     { label: 'In Progress', value: 'in_progress' },
