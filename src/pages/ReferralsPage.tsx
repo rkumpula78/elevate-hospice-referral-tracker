@@ -6,11 +6,12 @@ import { MobileOptimizedCard } from "@/components/ui/mobile-card";
 import ReferralsList from "@/components/crm/ReferralsList";
 import ReferralKanban from "@/components/crm/ReferralKanban";
 import PalliativeOutreachBoard from "@/components/crm/PalliativeOutreachBoard";
+import AddReferralDialog from "@/components/crm/AddReferralDialog";
 import PageLayout from "@/components/layout/PageLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { LayoutList, Kanban } from "lucide-react";
+import { LayoutList, Kanban, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const VIEW_STORAGE_KEY = 'elevate-referrals-pipeline-view';
