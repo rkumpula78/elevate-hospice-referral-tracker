@@ -45,6 +45,7 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
     priorities: [],
     facilities: [],
     insurances: [],
+    marketers: [],
     dateRange: undefined,
   });
   

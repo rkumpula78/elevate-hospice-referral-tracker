@@ -147,6 +147,7 @@ export const ReferralsFilterBar = ({
       priorities: [],
       facilities: [],
       insurances: [],
+      marketers: [],
       dateRange: undefined,
     });
   };
