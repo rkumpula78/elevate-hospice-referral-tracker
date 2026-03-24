@@ -137,6 +137,14 @@ export const ReferralsFilterBar = ({
       });
     }
 
+    if (filters.marketers.length > 0) {
+      chips.push({
+        key: 'marketers',
+        label: 'Assigned Marketer',
+        value: `${filters.marketers.length} selected`,
+      });
+    }
+
     if (filters.dateRange?.from) {
       chips.push({
         key: 'dateRange',
