@@ -17,6 +17,7 @@ export interface ReferralFilters {
   priorities: string[];
   facilities: string[];
   insurances: string[];
+  marketers: string[];
   dateRange?: DateRange;
 }
 
