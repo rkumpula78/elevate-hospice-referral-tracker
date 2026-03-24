@@ -72,25 +72,33 @@ const ReferralsPage = () => {
             </TabsTrigger>
           </TabsList>
 
-          {/* View toggle shown only for pipeline tab */}
-          <div className="flex items-center border rounded-lg overflow-hidden">
-            <Button
-              variant="ghost"
-              size="sm"
-              className={cn('rounded-none gap-1.5 px-3', pipelineView === 'list' && 'bg-muted')}
-              onClick={() => setPipelineView('list')}
-            >
-              <LayoutList className="w-4 h-4" />
-              <span className="hidden sm:inline text-xs">List</span>
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className={cn('rounded-none gap-1.5 px-3', pipelineView === 'kanban' && 'bg-muted')}
-              onClick={() => setPipelineView('kanban')}
-            >
-              <Kanban className="w-4 h-4" />
-              <span className="hidden sm:inline text-xs">Kanban</span>
+          <div className="flex items-center gap-2">
+            {/* View toggle */}
+            <div className="flex items-center border rounded-lg overflow-hidden">
+              <Button
+                variant="ghost"
+                size="sm"
+                className={cn('rounded-none gap-1.5 px-3', pipelineView === 'list' && 'bg-muted')}
+                onClick={() => setPipelineView('list')}
+              >
+                <LayoutList className="w-4 h-4" />
+                <span className="hidden sm:inline text-xs">List</span>
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className={cn('rounded-none gap-1.5 px-3', pipelineView === 'kanban' && 'bg-muted')}
+                onClick={() => setPipelineView('kanban')}
+              >
+                <Kanban className="w-4 h-4" />
+                <span className="hidden sm:inline text-xs">Kanban</span>
+              </Button>
+            </div>
+
+            {/* Add Referral button */}
+            <Button onClick={() => setShowAddReferral(true)} size="sm" className="gap-1.5">
+              <Plus className="w-4 h-4" />
+              <span className="hidden sm:inline">Add Referral</span>
             </Button>
           </div>
         </div>
