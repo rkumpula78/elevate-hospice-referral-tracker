@@ -446,6 +446,19 @@ export default function AdminUsersPage() {
                         </SelectContent>
                       </Select>
                     </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="staffType">Staff Type</Label>
+                      <Select value={newUserStaffType} onValueChange={setNewUserStaffType}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="marketer">Marketer</SelectItem>
+                          <SelectItem value="intake_coordinator">Intake Coordinator</SelectItem>
+                          <SelectItem value="admin">Admin</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                     <Button onClick={handleAddUser} className="w-full" disabled={addingUser}>
                       {addingUser && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                       Create User
