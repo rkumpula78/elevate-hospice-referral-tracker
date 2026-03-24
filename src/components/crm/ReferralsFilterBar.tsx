@@ -265,7 +265,7 @@ export const ReferralsFilterBar = ({
       </div>
 
       {/* Filter Controls */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         <div>
           <Label className="text-xs font-medium mb-2 block">Status</Label>
           <MultiSelect
@@ -304,6 +304,17 @@ export const ReferralsFilterBar = ({
             selected={filters.insurances}
             onChange={(value) => updateFilter('insurances', value)}
             placeholder="All insurances"
+            searchable
+          />
+        </div>
+
+        <div>
+          <Label className="text-xs font-medium mb-2 block">Assigned Marketer</Label>
+          <MultiSelect
+            options={marketers}
+            selected={filters.marketers}
+            onChange={(value) => updateFilter('marketers', value)}
+            placeholder="All marketers"
             searchable
           />
         </div>
