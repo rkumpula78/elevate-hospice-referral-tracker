@@ -16,7 +16,9 @@ import { cn } from "@/lib/utils";
 
 const VIEW_STORAGE_KEY = 'elevate-referrals-pipeline-view';
 
+  const [showAddReferral, setShowAddReferral] = useState(false);
 const ReferralsPage = () => {
+  const [showAddReferral, setShowAddReferral] = useState(false);
   const [searchParams] = useSearchParams();
   const filter = searchParams.get('filter');
   const tabParam = searchParams.get('tab');
