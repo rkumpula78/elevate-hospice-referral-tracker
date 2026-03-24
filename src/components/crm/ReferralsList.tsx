@@ -328,12 +328,14 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
         }
         
         // Log activity
-        await supabase.from('referral_activity_log').insert({
-          referral_id: ref.id,
-          activity_type: 'Note',
-          note: `[Bulk Update] Status changed to ${status} (part of bulk update affecting ${selectedReferrals.length} referrals)`,
-          created_by: 'System',
-        } as any).catch(() => {});
+        try {
+          await supabase.from('referral_activity_log').insert({
+            referral_id: ref.id,
+            activity_type: 'Note',
+            note: `[Bulk Update] Status changed to ${status} (part of bulk update affecting ${selectedReferrals.length} referrals)`,
+            created_by: 'System',
+          } as any);
+        } catch {} 
       }
       
       queryClient.invalidateQueries({ queryKey: ['referrals'] });
