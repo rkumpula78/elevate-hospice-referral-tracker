@@ -675,12 +675,15 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
       {hasSelection && (
         <BulkActionsToolbar
           selectedCount={selectedReferralIds.size}
+          selectedNames={referrals?.filter(r => selectedReferralIds.has(r.id)).map(r => r.patient_name || 'Unknown') || []}
           onClearSelection={handleClearSelection}
           onBulkStatusUpdate={handleBulkStatusUpdate}
           onBulkPriorityUpdate={handleBulkPriorityUpdate}
           onBulkAssign={handleBulkAssign}
           onBulkDelete={handleBulkDelete}
           onBulkExport={handleBulkExport}
+          onBulkFollowUpFrequency={handleBulkFollowUpFrequency}
+          onBulkFollowUpDate={handleBulkFollowUpDate}
           marketers={marketers}
         />
       )}
