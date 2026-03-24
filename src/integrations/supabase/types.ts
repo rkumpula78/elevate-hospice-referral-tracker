@@ -1862,6 +1862,7 @@ export type Database = {
           last_name: string | null
           phone: string | null
           role: string | null
+          staff_type: string | null
           updated_at: string
           whatsapp_opt_in: boolean | null
         }
@@ -1873,6 +1874,7 @@ export type Database = {
           last_name?: string | null
           phone?: string | null
           role?: string | null
+          staff_type?: string | null
           updated_at?: string
           whatsapp_opt_in?: boolean | null
         }
@@ -1884,6 +1886,7 @@ export type Database = {
           last_name?: string | null
           phone?: string | null
           role?: string | null
+          staff_type?: string | null
           updated_at?: string
           whatsapp_opt_in?: boolean | null
         }
