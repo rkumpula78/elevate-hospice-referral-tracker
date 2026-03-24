@@ -298,6 +298,7 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
       if (newReferral) {
         await logAuditEvent({ action: 'create', tableName: 'referrals', recordId: newReferral.id });
         await autoNotifyNewReferral(newReferral);
+        notifyNewReferral(newReferral.id);
       }
     },
     onSuccess: () => {

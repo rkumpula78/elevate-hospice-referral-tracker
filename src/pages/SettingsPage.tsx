@@ -301,6 +301,8 @@ const SettingsPage = () => {
 
         <ReminderSettings />
 
+        <WebhookSettings />
+
         <MyTemplatesSettings />
       </div>
     </PageLayout>
