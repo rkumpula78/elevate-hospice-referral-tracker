@@ -96,6 +96,7 @@ const ReferralKanban = ({ referrals }: ReferralKanbanProps) => {
     if (!id) return;
     const ref = referrals.find(r => r.id === id);
     if (ref && ref.status !== targetStatus) {
+      notifyStatusChange(id, ref.status, targetStatus);
       updateStatusMutation.mutate({ id, status: targetStatus });
     }
     setDraggedId(null);
