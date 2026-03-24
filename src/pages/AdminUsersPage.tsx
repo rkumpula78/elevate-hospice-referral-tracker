@@ -83,10 +83,16 @@ export default function AdminUsersPage() {
       
       if (rolesError) throw rolesError;
 
+      // Get profiles for staff_type
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('id, staff_type');
+
       // Combine data
       const usersWithRoles: UserWithRoles[] = authUsers.map(user => {
         const userRoles = rolesData?.filter(r => r.user_id === user.id).map(r => r.role) || [];
-        return { ...user, roles: userRoles };
+        const profile = profilesData?.find(p => p.id === user.id);
+        return { ...user, roles: userRoles, staff_type: profile?.staff_type || 'marketer' };
       });
 
       setUsers(usersWithRoles);
