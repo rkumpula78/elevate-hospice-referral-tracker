@@ -1,10 +1,22 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Calendar, Phone, Mail, User, Building2, Edit, Plus } from 'lucide-react';
+import { ArrowLeft, Calendar, Phone, Mail, User, Building2, Edit, Plus, Trash2 } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { toast } from 'sonner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import ReferralEligibility from '@/components/crm/ReferralEligibility';
 import AdmissionDetailsSection from '@/components/crm/AdmissionDetailsSection';
 import BenefitPeriodTracker from '@/components/crm/BenefitPeriodTracker';
@@ -24,6 +36,10 @@ const ReferralDetail = () => {
   const navigate = useNavigate();
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showScheduleDialog, setShowScheduleDialog] = useState(false);
+
+  const { isAdmin } = useAuth();
+  const queryClient = useQueryClient();
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const { data: referral, isLoading, refetch } = useQuery({
     queryKey: ['referral', id],
@@ -107,7 +123,17 @@ const ReferralDetail = () => {
               Edit Referral
             </Button>
           </div>
-        </div>
+            {isAdmin && (
+              <Button 
+                variant="destructive" 
+                size="sm"
+                onClick={() => setShowDeleteDialog(true)}
+              >
+                <Trash2 className="w-4 h-4 mr-1" />
+                Delete
+              </Button>
+            )}
+          </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card>
@@ -277,6 +303,40 @@ const ReferralDetail = () => {
           onOpenChange={setShowScheduleDialog}
           referralId={id}
         />
+
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Referral</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to permanently delete the referral for <strong>{referral?.patient_name}</strong>?
+                This action cannot be easily undone. All activity log entries for this referral will also be hidden.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                className="bg-destructive hover:bg-destructive/90"
+                onClick={async () => {
+                  try {
+                    await supabase
+                      .from('referrals')
+                      .update({ deleted_at: new Date().toISOString() } as any)
+                      .eq('id', id!);
+                    queryClient.invalidateQueries({ queryKey: ['referrals'] });
+                    toast.success('Referral deleted');
+                    navigate('/referrals');
+                  } catch {
+                    toast.error('Failed to delete referral');
+                  }
+                }}
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </PageLayout>
   );

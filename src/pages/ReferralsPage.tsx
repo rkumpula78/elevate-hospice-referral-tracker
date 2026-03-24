@@ -34,6 +34,7 @@ const ReferralsPage = () => {
       const { count, error } = await supabase
         .from('referrals')
         .select('*', { count: 'exact', head: true })
+        .is('deleted_at', null)
         .in('status', ['palliative_outreach', 'not_appropriate'] as any[]);
       if (error) throw error;
       return count || 0;
@@ -47,6 +48,7 @@ const ReferralsPage = () => {
       const { data, error } = await supabase
         .from('referrals')
         .select('*, organizations(name, type)')
+        .is('deleted_at', null)
         .order('referral_date', { ascending: false });
       if (error) throw error;
       return data || [];

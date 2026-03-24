@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Filter, Phone } from "lucide-react";
+import { Plus, Filter, Phone, Search, X as XIcon } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { useToast, toast } from "@/hooks/use-toast";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ViewToggle } from "@/components/ui/view-toggle";
@@ -66,35 +67,50 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
     setLastSelectedIndex(null);
   }, [filters]);
 
+  // Search state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  // Debounce search
+  React.useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(searchQuery), 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Keyboard shortcut: Ctrl/Cmd+K to focus search
+  const searchInputRef = React.useRef<HTMLInputElement>(null);
+  React.useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, []);
+
   const { data: referrals, isLoading, refetch } = useQuery({
     queryKey: ['referrals', filters],
     queryFn: async () => {
       let query = supabase
         .from('referrals')
         .select('*, organizations(name, type)')
+        .is('deleted_at', null)
         .order('referral_date', { ascending: false });
 
-      // Apply status filter (with proper type casting)
       if (filters.statuses.length > 0) {
         query = query.in('status', filters.statuses as any);
       }
-      
-      // Apply priority filter
       if (filters.priorities.length > 0) {
         query = query.in('priority', filters.priorities);
       }
-      
-      // Apply facility filter
       if (filters.facilities.length > 0) {
         query = query.in('organization_id', filters.facilities);
       }
-      
-      // Apply insurance filter
       if (filters.insurances.length > 0) {
         query = query.in('insurance', filters.insurances);
       }
-      
-      // Apply date range filter
       if (filters.dateRange?.from) {
         query = query.gte('referral_date', filters.dateRange.from.toISOString());
       }
@@ -231,10 +247,22 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
     setSortConfig({ field, direction });
   };
 
-  const sortedReferrals = React.useMemo(() => {
-    if (!referrals || !sortConfig) return referrals;
+  // Filter by search, then sort
+  const filteredAndSortedReferrals = React.useMemo(() => {
+    let result = referrals || [];
+    
+    // Apply client-side search filter
+    if (debouncedSearch.trim()) {
+      const q = debouncedSearch.toLowerCase();
+      result = result.filter(r => 
+        (r.patient_name || '').toLowerCase().includes(q) ||
+        (r.organizations?.name || '').toLowerCase().includes(q)
+      );
+    }
 
-    return [...referrals].sort((a, b) => {
+    if (!sortConfig) return result;
+
+    return [...result].sort((a, b) => {
       const aValue = a[sortConfig.field as keyof typeof a];
       const bValue = b[sortConfig.field as keyof typeof b];
       
@@ -251,7 +279,7 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
         ? (aValue as any) - (bValue as any)
         : (bValue as any) - (aValue as any);
     });
-  }, [referrals, sortConfig]);
+  }, [referrals, sortConfig, debouncedSearch]);
 
   const handleEditReferral = (referralId: string) => {
     setEditingReferralId(referralId);
@@ -277,7 +305,7 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
   };
 
   const handleSelectReferral = (id: string, checked: boolean, event?: React.MouseEvent) => {
-    const currentList = sortedReferrals || [];
+    const currentList = filteredAndSortedReferrals || [];
     const clickedIndex = currentList.findIndex(r => r.id === id);
 
     // Shift+click range select
@@ -417,7 +445,7 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
     
     try {
       for (const id of Array.from(selectedReferralIds)) {
-        await supabase.from('referrals').delete().eq('id', id);
+        await supabase.from('referrals').update({ deleted_at: new Date().toISOString() } as any).eq('id', id);
       }
       queryClient.invalidateQueries({ queryKey: ['referrals'] });
       
@@ -601,7 +629,7 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {sortedReferrals?.map((referral) => (
+          {filteredAndSortedReferrals?.map((referral) => (
             <TableRow 
               key={referral.id}
               className={selectedReferralIds.has(referral.id) ? 'bg-primary/5' : ''}
@@ -688,12 +716,39 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
         />
       )}
 
-      {/* New Filter Bar */}
+      {/* Search Bar */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <Input
+          ref={searchInputRef}
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search by patient name or organization... (Ctrl+K)"
+          className="pl-10 pr-10"
+        />
+        {searchQuery && (
+          <button
+            onClick={() => setSearchQuery('')}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+          >
+            <XIcon className="w-4 h-4" />
+          </button>
+        )}
+      </div>
+
+      {/* Result count */}
+      {debouncedSearch && (
+        <p className="text-sm text-muted-foreground">
+          Showing <span className="font-medium text-foreground">{filteredAndSortedReferrals?.length || 0}</span> of {referrals?.length || 0} referrals
+        </p>
+      )}
+
+      {/* Filter Bar */}
       <ReferralsFilterBar
         filters={filters}
         onFiltersChange={setFilters}
         totalCount={totalReferrals || 0}
-        filteredCount={referrals?.length || 0}
+        filteredCount={filteredAndSortedReferrals?.length || 0}
       />
 
       <div className="flex justify-between items-center gap-3">
@@ -739,7 +794,7 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
         <>
           {view === 'list' ? renderListView() : (
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6 animate-fade-in">
-              {sortedReferrals?.map((referral, index) => (
+              {filteredAndSortedReferrals?.map((referral, index) => (
                 <div 
                   key={referral.id}
                   className="animate-fade-in"
