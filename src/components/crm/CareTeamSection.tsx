@@ -28,11 +28,11 @@ interface CareTeamSectionProps {
 }
 
 const ROLE_CONFIG = [
-  { field: 'primary_rn', label: 'Primary RN', roles: ['rn'] },
+  { field: 'primary_rn', label: 'Primary RN', roles: ['rn', 'np'] },
   { field: 'cna', label: 'CNA', roles: ['cna'] },
   { field: 'social_worker', label: 'Social Worker', roles: ['sw'] },
   { field: 'chaplain', label: 'Chaplain', roles: ['chaplain'] },
-  { field: 'marketer', label: 'Marketer', roles: ['marketing', 'admin', 'intake_coordinator'] },
+  { field: 'marketer', label: 'Marketer', roles: ['marketing', 'admin'] },
 ] as const;
 
 const CareTeamSection = ({ referralId, referral, onUpdate }: CareTeamSectionProps) => {
