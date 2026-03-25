@@ -2259,9 +2259,12 @@ export type Database = {
           benefit_period_number: number | null
           caregiver_contact: string | null
           caregiver_name: string | null
+          chaplain: string | null
           closed_reason: string | null
+          cna: string | null
           contact_date: string | null
           created_at: string | null
+          created_by: string | null
           date_of_birth: string | null
           deleted_at: string | null
           diagnosis: string | null
@@ -2279,6 +2282,7 @@ export type Database = {
           last_name: string | null
           location_city: string | null
           location_type: string | null
+          marketer: string | null
           md_notified: boolean | null
           medicaid_number: string | null
           medical_records_received: boolean | null
@@ -2296,6 +2300,7 @@ export type Database = {
           phone: string | null
           physician: string | null
           primary_insurance: string | null
+          primary_rn: string | null
           prior_hospice_info: string | null
           priority: string | null
           reason_for_non_admittance: string | null
@@ -2311,6 +2316,7 @@ export type Database = {
           responsible_party_name: string | null
           responsible_party_relationship: string | null
           secondary_insurance: string | null
+          social_worker: string | null
           special_medical_needs: string | null
           spiritual_preferences: string | null
           ssn: string | null
@@ -2331,9 +2337,12 @@ export type Database = {
           benefit_period_number?: number | null
           caregiver_contact?: string | null
           caregiver_name?: string | null
+          chaplain?: string | null
           closed_reason?: string | null
+          cna?: string | null
           contact_date?: string | null
           created_at?: string | null
+          created_by?: string | null
           date_of_birth?: string | null
           deleted_at?: string | null
           diagnosis?: string | null
@@ -2351,6 +2360,7 @@ export type Database = {
           last_name?: string | null
           location_city?: string | null
           location_type?: string | null
+          marketer?: string | null
           md_notified?: boolean | null
           medicaid_number?: string | null
           medical_records_received?: boolean | null
@@ -2368,6 +2378,7 @@ export type Database = {
           phone?: string | null
           physician?: string | null
           primary_insurance?: string | null
+          primary_rn?: string | null
           prior_hospice_info?: string | null
           priority?: string | null
           reason_for_non_admittance?: string | null
@@ -2383,6 +2394,7 @@ export type Database = {
           responsible_party_name?: string | null
           responsible_party_relationship?: string | null
           secondary_insurance?: string | null
+          social_worker?: string | null
           special_medical_needs?: string | null
           spiritual_preferences?: string | null
           ssn?: string | null
@@ -2403,9 +2415,12 @@ export type Database = {
           benefit_period_number?: number | null
           caregiver_contact?: string | null
           caregiver_name?: string | null
+          chaplain?: string | null
           closed_reason?: string | null
+          cna?: string | null
           contact_date?: string | null
           created_at?: string | null
+          created_by?: string | null
           date_of_birth?: string | null
           deleted_at?: string | null
           diagnosis?: string | null
@@ -2423,6 +2438,7 @@ export type Database = {
           last_name?: string | null
           location_city?: string | null
           location_type?: string | null
+          marketer?: string | null
           md_notified?: boolean | null
           medicaid_number?: string | null
           medical_records_received?: boolean | null
@@ -2440,6 +2456,7 @@ export type Database = {
           phone?: string | null
           physician?: string | null
           primary_insurance?: string | null
+          primary_rn?: string | null
           prior_hospice_info?: string | null
           priority?: string | null
           reason_for_non_admittance?: string | null
@@ -2455,6 +2472,7 @@ export type Database = {
           responsible_party_name?: string | null
           responsible_party_relationship?: string | null
           secondary_insurance?: string | null
+          social_worker?: string | null
           special_medical_needs?: string | null
           spiritual_preferences?: string | null
           ssn?: string | null
@@ -2466,13 +2484,81 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "referrals_chaplain_fkey"
+            columns: ["chaplain"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referrals_cna_fkey"
+            columns: ["cna"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referrals_marketer_fkey"
+            columns: ["marketer"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "referrals_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "referrals_primary_rn_fkey"
+            columns: ["primary_rn"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referrals_social_worker_fkey"
+            columns: ["social_worker"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      staff: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          is_active: boolean
+          name: string
+          phone: string | null
+          role: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          phone?: string | null
+          role: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          phone?: string | null
+          role?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       teams_configuration: {
         Row: {
