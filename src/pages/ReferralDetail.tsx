@@ -261,6 +261,13 @@ const ReferralDetail = () => {
             </CardContent>
           </Card>
 
+          {/* Care Team */}
+          <CareTeamSection
+            referralId={id!}
+            referral={referral}
+            onUpdate={() => refetch()}
+          />
+
           {/* Admission Details (shown only when admitted) */}
           {referral.status === 'admitted' && (
             <div className="lg:col-span-2">
