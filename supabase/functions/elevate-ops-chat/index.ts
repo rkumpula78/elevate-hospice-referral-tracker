@@ -147,6 +147,7 @@ serve(async (req) => {
         Authorization: `Bearer ${apiToken}`,
       },
       body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(30000),
     });
 
     if (!response.ok) {
