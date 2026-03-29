@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
+import { extractAssistantReply } from "@/lib/chatResponse";
 import { supabase } from "@/integrations/supabase/client";
 
 interface Message {
@@ -108,11 +109,7 @@ export default function AskElevateAIPage() {
 
         if (error) throw new Error(error.message);
 
-        const reply =
-          data?.choices?.[0]?.message?.content ||
-          data?.message ||
-          data?.error ||
-          "Elevate Ops didn't return a response. The gateway may be processing — try again.";
+        const reply = extractAssistantReply(data);
 
         setMessages((prev) => [
           ...prev,
