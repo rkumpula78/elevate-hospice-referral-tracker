@@ -161,6 +161,18 @@ serve(async (req) => {
     }
 
     const data = await response.json();
+    console.log("OpenClaw response status:", response.status, "has choices:", !!data?.choices?.length);
+    
+    // Extract the reply content and return in a normalized format
+    const replyContent = data?.choices?.[0]?.message?.content;
+    if (!replyContent) {
+      console.error("OpenClaw returned no content. Full response:", JSON.stringify(data).slice(0, 500));
+      return new Response(
+        JSON.stringify({ error: "The AI model did not return a response. Please try again." }),
+        { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    
     return new Response(JSON.stringify(data), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
