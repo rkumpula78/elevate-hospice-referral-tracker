@@ -109,8 +109,10 @@ export default function AskElevateAIPage() {
         if (error) throw new Error(error.message);
 
         const reply =
-          data?.choices?.[0]?.message?.content ??
-          "I didn't receive a response. Please try again.";
+          data?.choices?.[0]?.message?.content ||
+          data?.message ||
+          data?.error ||
+          "Elevate Ops didn't return a response. The gateway may be processing — try again.";
 
         setMessages((prev) => [
           ...prev,
