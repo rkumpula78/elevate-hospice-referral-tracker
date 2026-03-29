@@ -35,6 +35,7 @@ import ReportsPage from "./pages/ReportsPage";
 import MarketingPage from "./pages/MarketingPage";
 import MapPage from "./pages/MapPage";
 import KPIPage from "./pages/KPIPage";
+import AskElevateAIPage from "./pages/AskElevateAIPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -75,6 +76,7 @@ const ProtectedLayout = () => {
               <Route path="marketing" element={<MarketingPage />} />
               <Route path="map" element={<MapPage />} />
               <Route path="kpi" element={<KPIPage />} />
+              <Route path="ask-elevate" element={<AskElevateAIPage />} />
               <Route path="settings" element={<SettingsPage />} />
               <Route path="admin/users" element={
                 <AdminRoute>

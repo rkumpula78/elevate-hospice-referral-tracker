@@ -30,7 +30,8 @@ import {
   ChevronDown,
   TrendingUp,
   Megaphone,
-  MapPin
+  MapPin,
+  Sparkles
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -55,6 +56,7 @@ const primaryItems = [
   { title: "Organizations", url: "/organizations", icon: Building },
   { title: "Schedule", url: "/schedule", icon: Calendar },
   { title: "Territory Map", url: "/map", icon: MapPin },
+  { title: "Ask ElevateAI", url: "/ask-elevate", icon: Sparkles },
 ];
 
 const insightsItems = [
