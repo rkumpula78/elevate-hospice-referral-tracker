@@ -1,48 +1,59 @@
 
 
-## Marketer Weekly Prioritization Enhancements
+## Plan: Integrate OpenClaw Elevate Ops Chatbot
 
-Based on the five audit questions, here are the gaps and a plan to address the most impactful ones.
+### What We're Building
+A floating chat widget ("Elevate Ops") available on all CRM pages, powered by the OpenClaw gateway. It will be context-aware — when viewing a referral, patient, or organization, the bot automatically gets that context.
 
-### What to Build
+### Security Fixes to the Uploaded Code
+The uploaded edge function has **hardcoded credentials** (API token and gateway URL). These must be moved to Supabase secrets. The function also lacks JWT authentication, which is required per HIPAA compliance standards.
 
-#### 1. "My Route This Week" View (highest impact)
-Add a new tab or section in MyDayView that filters organizations by routing week tag (parsed from `partnership_notes` like "West Valley Week 1"). Shows:
-- Only orgs for the current routing week (auto-detected or manually selected)
-- Last contact date with color coding
-- Overdue follow-ups count
-- Quick-log button inline
-- Sorted by priority (days since last contact × account rating weight)
+### Steps
 
-#### 2. Activity Compliance Cards (for Ryan)
-Add a section to the Reports page or a new admin widget showing per-marketer:
-- Total activities logged this week/month
-- % of assigned accounts contacted in current cycle
-- Average notes length (quality proxy)
-- Follow-up completion rate
-- Goal vs. actual (pulls from `liaison_goals` table)
+**1. Store OpenClaw credentials as Supabase secrets**
+- Add `OPENCLAW_GATEWAY_URL` secret (`http://178.156.236.80:18789`)
+- Add `OPENCLAW_API_TOKEN` secret (the token from the uploaded file)
+- Never hardcode these in source code
 
-#### 3. Required Notes Validation
-Add minimum validation to the Quick Log and Activity Log forms:
-- `discussion_points` required (min 10 chars) for in-person visits
-- `next_step` required when `follow_up_required` is checked
-- Toast warning (not blocking) for very short notes
+**2. Create `elevate-ops-chat` edge function**
+- Based on the uploaded `index.ts` but with:
+  - Credentials read from `Deno.env.get()` instead of hardcoded
+  - JWT verification via `supabase.auth.getUser()`
+  - Input validation (messages array, length limits)
+  - PHI sanitization on any context data sent to the external API
+  - CORS headers matching project standard
+- Register in `supabase/config.toml` with `verify_jwt = false` (manual verification in code per project pattern)
 
-#### 4. Marketer Goal Widget in MyDayView
-Surface the `liaison_goals` data as a progress bar widget: "This week: 8/15 visits, 3/10 calls, 0/2 lunch-and-learns"
+**3. Create `ElevateOpsChat` floating widget component**
+- Floating bubble (bottom-right) on all authenticated pages
+- Opens a chat panel with:
+  - Message history (local state, not persisted — avoids PHI storage concerns)
+  - Markdown rendering via `react-markdown`
+  - Loading/typing indicator
+  - Clear conversation button
+- Context injection: reads current route to detect if on a referral/patient/org detail page, passes non-PHI context (status, org name, role) to the edge function
+- Uses `supabase.functions.invoke('elevate-ops-chat', ...)` for API calls
 
-### Technical Approach
+**4. Mount widget in `ProtectedLayout`**
+- Add `<ElevateOpsChat />` alongside the existing `<MobileFAB />` in `App.tsx`'s `ProtectedLayout`
 
-**Files to modify:**
-- `src/components/dashboard/MyDayView.tsx` — Add "My Route" section and goal progress widget
-- `src/pages/ReportsPage.tsx` — Add marketer activity compliance report card
-- `src/components/crm/QuickLogActivitySheet.tsx` — Add notes validation
-- `src/components/crm/ActivityCommunicationsLog.tsx` — Add notes validation
+### Technical Details
 
-**No database changes needed** — all data already exists in `organizations.partnership_notes`, `activity_communications`, and `liaison_goals`.
+**Edge function request shape:**
+```json
+{
+  "messages": [{"role": "user", "content": "..."}],
+  "context": { "currentPage": "referral", "status": "new_referral" }
+}
+```
 
-**Routing week detection:** Parse `partnership_notes` for "Week N" pattern, then use `Math.ceil(weekOfMonth / 1)` or let the marketer select which week they're on via a dropdown.
+**PHI protection:** Context sent to OpenClaw will only include non-identifying data (status, org type, page type). Patient names, diagnoses, addresses, and other PHI will be excluded from the context payload.
 
-### Priority
-Recommend building #1 (My Route) and #2 (Compliance Cards) first — these directly answer "what's missing that would change how the marketer prioritizes their week."
+**Component placement:** The widget renders as a fixed-position element, so it won't interfere with the existing sidebar or MobileFAB layout. On mobile, it will stack above the FAB.
+
+### Files Changed/Created
+- `supabase/functions/elevate-ops-chat/index.ts` — new edge function
+- `supabase/config.toml` — add function config
+- `src/components/chat/ElevateOpsChat.tsx` — new floating chat widget
+- `src/App.tsx` — mount the widget in ProtectedLayout
 
