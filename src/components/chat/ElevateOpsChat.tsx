@@ -5,6 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { extractAssistantReply } from "@/lib/chatResponse";
 import { supabase } from "@/integrations/supabase/client";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -136,11 +137,7 @@ export default function ElevateOpsChat() {
 
         if (error) throw new Error(error.message);
 
-        const reply =
-          data?.choices?.[0]?.message?.content ||
-          data?.message ||
-          data?.error ||
-          "Elevate Ops didn't return a response. The gateway may be processing — try again.";
+        const reply = extractAssistantReply(data);
 
         setMessages((prev) => [
           ...prev,
