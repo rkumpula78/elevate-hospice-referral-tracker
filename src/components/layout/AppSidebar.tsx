@@ -30,7 +30,8 @@ import {
   ChevronDown,
   TrendingUp,
   Megaphone,
-  MapPin
+  MapPin,
+  Sparkles
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
