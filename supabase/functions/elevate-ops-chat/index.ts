@@ -9,6 +9,7 @@ const corsHeaders = {
 };
 
 const MODEL = "openclaw:elevate-bot";
+const RESPONSE_TIMEOUT = 44000; // just under Supabase's 45s limit
 
 // PHI sanitization: strip SSNs, phone numbers, emails, DOBs from any string
 function sanitizeText(text: string): string {
@@ -147,7 +148,7 @@ serve(async (req) => {
         Authorization: `Bearer ${apiToken}`,
       },
       body: JSON.stringify(payload),
-      signal: AbortSignal.timeout(45000),
+      signal: AbortSignal.timeout(RESPONSE_TIMEOUT),
     });
 
     if (!response.ok) {
