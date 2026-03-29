@@ -11,6 +11,7 @@ import AdminRoute from "@/components/auth/AdminRoute";
 import AppSidebar from "@/components/layout/AppSidebar";
 import { useBreakpoint } from "@/hooks/use-responsive";
 import { MobileFAB } from "@/components/mobile/MobileFAB";
+import ElevateOpsChat from "@/components/chat/ElevateOpsChat";
 import OfflineBanner from "@/components/offline/OfflineBanner";
 import { useOfflineSync } from "@/hooks/useOfflineSync";
 import { useSessionTimeout } from "@/hooks/useSessionTimeout";
