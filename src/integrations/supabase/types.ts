@@ -2560,6 +2560,105 @@ export type Database = {
         }
         Relationships: []
       }
+      stories: {
+        Row: {
+          assets: Json | null
+          consent_form_url: string | null
+          consent_status: Database["public"]["Enums"]["story_consent_status"]
+          created_at: string
+          id: string
+          notes: string | null
+          patient_alias: string | null
+          quote_full: string | null
+          quote_short: string | null
+          source: Database["public"]["Enums"]["story_source"]
+          staff_mentioned: string[] | null
+          status: Database["public"]["Enums"]["story_status"]
+          story_date: string | null
+          submitted_by: string | null
+          tags: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          assets?: Json | null
+          consent_form_url?: string | null
+          consent_status?: Database["public"]["Enums"]["story_consent_status"]
+          created_at?: string
+          id?: string
+          notes?: string | null
+          patient_alias?: string | null
+          quote_full?: string | null
+          quote_short?: string | null
+          source?: Database["public"]["Enums"]["story_source"]
+          staff_mentioned?: string[] | null
+          status?: Database["public"]["Enums"]["story_status"]
+          story_date?: string | null
+          submitted_by?: string | null
+          tags?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          assets?: Json | null
+          consent_form_url?: string | null
+          consent_status?: Database["public"]["Enums"]["story_consent_status"]
+          created_at?: string
+          id?: string
+          notes?: string | null
+          patient_alias?: string | null
+          quote_full?: string | null
+          quote_short?: string | null
+          source?: Database["public"]["Enums"]["story_source"]
+          staff_mentioned?: string[] | null
+          status?: Database["public"]["Enums"]["story_status"]
+          story_date?: string | null
+          submitted_by?: string | null
+          tags?: string[] | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      story_submissions: {
+        Row: {
+          consent_obtained: boolean | null
+          created_at: string
+          id: string
+          patient_alias: string | null
+          reviewer_notes: string | null
+          status: Database["public"]["Enums"]["submission_status"]
+          story_notes: string | null
+          submission_type: Database["public"]["Enums"]["submission_type"]
+          submitted_by: string
+          submitted_by_role: string | null
+          suggested_quote: string | null
+        }
+        Insert: {
+          consent_obtained?: boolean | null
+          created_at?: string
+          id?: string
+          patient_alias?: string | null
+          reviewer_notes?: string | null
+          status?: Database["public"]["Enums"]["submission_status"]
+          story_notes?: string | null
+          submission_type?: Database["public"]["Enums"]["submission_type"]
+          submitted_by: string
+          submitted_by_role?: string | null
+          suggested_quote?: string | null
+        }
+        Update: {
+          consent_obtained?: boolean | null
+          created_at?: string
+          id?: string
+          patient_alias?: string | null
+          reviewer_notes?: string | null
+          status?: Database["public"]["Enums"]["submission_status"]
+          story_notes?: string | null
+          submission_type?: Database["public"]["Enums"]["submission_type"]
+          submitted_by?: string
+          submitted_by_role?: string | null
+          suggested_quote?: string | null
+        }
+        Relationships: []
+      }
       teams_configuration: {
         Row: {
           config_key: string
@@ -2974,6 +3073,20 @@ export type Database = {
         | "not_appropriate"
         | "lost_to_followup"
         | "revoked"
+      story_consent_status:
+        | "public_source"
+        | "consent_on_file"
+        | "pending_consent"
+        | "anonymous_approved"
+      story_source:
+        | "google_review"
+        | "bereavement_call"
+        | "family_submission"
+        | "staff_observed"
+        | "other"
+      story_status: "draft" | "in_review" | "approved" | "archived"
+      submission_status: "new" | "in_review" | "approved" | "declined"
+      submission_type: "patient_story" | "family_feedback" | "content_idea"
       visit_type: "admission" | "routine" | "urgent" | "discharge"
     }
     CompositeTypes: {
@@ -3148,6 +3261,22 @@ export const Constants = {
         "lost_to_followup",
         "revoked",
       ],
+      story_consent_status: [
+        "public_source",
+        "consent_on_file",
+        "pending_consent",
+        "anonymous_approved",
+      ],
+      story_source: [
+        "google_review",
+        "bereavement_call",
+        "family_submission",
+        "staff_observed",
+        "other",
+      ],
+      story_status: ["draft", "in_review", "approved", "archived"],
+      submission_status: ["new", "in_review", "approved", "declined"],
+      submission_type: ["patient_story", "family_feedback", "content_idea"],
       visit_type: ["admission", "routine", "urgent", "discharge"],
     },
   },
