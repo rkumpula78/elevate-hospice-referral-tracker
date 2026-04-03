@@ -36,6 +36,7 @@ import MarketingPage from "./pages/MarketingPage";
 import MapPage from "./pages/MapPage";
 import KPIPage from "./pages/KPIPage";
 import AskElevateAIPage from "./pages/AskElevateAIPage";
+import StoryLibraryPage from "./pages/StoryLibraryPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
