@@ -44,6 +44,7 @@ const primaryItems = [
   { title: "Organizations", url: "/organizations", icon: Building },
   { title: "Schedule", url: "/schedule", icon: Calendar },
   { title: "Territory Map", url: "/map", icon: MapPin },
+  { title: "Story Library", url: "/stories", icon: BookOpen },
   { title: "Ask ElevateAI", url: "/ask-elevate", icon: Sparkles },
 ];
 
