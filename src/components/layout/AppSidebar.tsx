@@ -3,19 +3,6 @@ import { Link, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { getQueueLength } from '@/lib/offlineQueue';
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  useSidebar,
-} from "@/components/ui/sidebar";
 import { 
   LayoutDashboard, 
   Building, 
@@ -31,7 +18,8 @@ import {
   TrendingUp,
   Megaphone,
   MapPin,
-  Sparkles
+  Sparkles,
+  BookOpen
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
