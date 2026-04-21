@@ -1,18 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { SortHeader } from '@/components/ui/sort-header';
 import { differenceInDays, format, parseISO, isBefore } from 'date-fns';
 import { FOLLOWUP_FREQUENCIES, LOCATION_TYPES, getStatusBadgeColor, getStatusLabel } from '@/lib/constants';
-import { AlertCircle, Clock, Pencil } from 'lucide-react';
+import { AlertCircle, Clock, Pencil, Search, X as XIcon } from 'lucide-react';
 import QuickLogActivityDialog from '@/components/crm/QuickLogActivityDialog';
 import InlineStatusNote from '@/components/crm/InlineStatusNote';
+import { useDebounce } from '@/hooks/useDebounce';
 
 const PalliativeOutreachBoard = () => {
   const navigate = useNavigate();
@@ -22,6 +24,20 @@ const PalliativeOutreachBoard = () => {
   const [filterCompany, setFilterCompany] = useState('all');
   const [sort, setSort] = useState<{ field: string; direction: 'asc' | 'desc' }>({ field: 'next_followup_date', direction: 'asc' });
   const [quickLogRef, setQuickLogRef] = useState<{ id: string; name: string } | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearch = useDebounce(searchQuery, 300);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
 
   const { data: referrals = [], isLoading } = useQuery({
     queryKey: ['palliative-outreach-referrals'],
