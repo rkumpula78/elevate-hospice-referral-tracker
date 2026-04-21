@@ -113,6 +113,13 @@ const PalliativeOutreachBoard = () => {
             {LOCATION_TYPES.map(l => <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>)}
           </SelectContent>
         </Select>
+        <Select value={filterCompany} onValueChange={setFilterCompany}>
+          <SelectTrigger className="w-[180px]"><SelectValue placeholder="Primary Care Co." /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All PC Companies</SelectItem>
+            {uniqueCompanies.map(c => <SelectItem key={c as string} value={c as string}>{c as string}</SelectItem>)}
+          </SelectContent>
+        </Select>
       </div>
 
       {sorted.length === 0 ? (
