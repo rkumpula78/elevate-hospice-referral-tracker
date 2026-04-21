@@ -37,11 +37,13 @@ const PalliativeOutreachBoard = () => {
   });
 
   const uniqueAssigned = [...new Set(referrals.map(r => r.assigned_marketer).filter(Boolean))];
+  const uniqueCompanies = [...new Set(referrals.map((r: any) => r.pcp_company).filter(Boolean))].sort();
 
   const filtered = referrals.filter(r => {
     if (filterAssigned !== 'all' && r.assigned_marketer !== filterAssigned) return false;
     if (filterFrequency !== 'all' && r.followup_frequency !== filterFrequency) return false;
     if (filterLocation !== 'all' && r.location_type !== filterLocation) return false;
+    if (filterCompany !== 'all' && (r as any).pcp_company !== filterCompany) return false;
     return true;
   });
 
