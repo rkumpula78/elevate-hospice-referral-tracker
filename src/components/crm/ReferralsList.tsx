@@ -32,9 +32,10 @@ const statusOptions = REFERRAL_STATUSES;
 
 interface ReferralsListProps {
   initialFilter?: string | null;
+  defaultView?: 'card' | 'list';
 }
 
-const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
+const ReferralsList = ({ initialFilter, defaultView = 'card' }: ReferralsListProps) => {
   const { toast: showToast } = useToast();
   const queryClient = useQueryClient();
   const isTabletOrMobile = useIsTabletOrMobile();
@@ -49,7 +50,7 @@ const ReferralsList = ({ initialFilter }: ReferralsListProps) => {
     dateRange: undefined,
   });
   
-  const [view, setView] = useState<'card' | 'list'>('card');
+  const [view, setView] = useState<'card' | 'list'>(defaultView);
   const [sortConfig, setSortConfig] = useState<{ field: string; direction: 'asc' | 'desc' } | null>(null);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);

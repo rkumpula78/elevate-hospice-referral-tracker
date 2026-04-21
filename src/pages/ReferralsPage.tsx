@@ -112,7 +112,7 @@ const ReferralsPage = () => {
               description="Manage incoming referrals and track their progress"
               className="bg-background"
             >
-              <ReferralsList initialFilter={filter} />
+              <ReferralsList initialFilter={filter} defaultView="list" />
             </MobileOptimizedCard>
           )}
         </TabsContent>
