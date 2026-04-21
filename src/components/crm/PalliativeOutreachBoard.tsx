@@ -27,7 +27,7 @@ const PalliativeOutreachBoard = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('referrals')
-        .select('id, patient_name, assigned_marketer, pcp_provider, pcp_company, next_followup_date, followup_frequency, location_type, location_city, status, notes, updated_at')
+        .select('id, patient_name, assigned_marketer, pcp_provider, pcp_company, next_followup_date, followup_frequency, location_type, location_city, status, notes, patient_status_note, updated_at')
         .in('status', ['palliative_outreach', 'not_appropriate'] as any[])
         .order('next_followup_date', { ascending: true, nullsFirst: false });
 
@@ -140,6 +140,7 @@ const PalliativeOutreachBoard = () => {
                 <TableHead>Frequency</TableHead>
                 <TableHead>Location</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead className="min-w-[220px]">Patient Status</TableHead>
                 <TableHead>Last Note</TableHead>
                 <TableHead><SortHeader label="Days Since Update" field="updated_at" currentSort={sort} onSort={handleSort} /></TableHead>
                 <TableHead className="w-[80px]">Action</TableHead>
@@ -176,6 +177,13 @@ const PalliativeOutreachBoard = () => {
                     </TableCell>
                     <TableCell>
                       <Badge className={getStatusBadgeColor(ref.status)}>{getStatusLabel(ref.status)}</Badge>
+                    </TableCell>
+                    <TableCell className="max-w-[260px] text-sm whitespace-pre-wrap">
+                      {(ref as any).patient_status_note ? (
+                        <span className="text-foreground">{(ref as any).patient_status_note}</span>
+                      ) : (
+                        <span className="text-muted-foreground italic">—</span>
+                      )}
                     </TableCell>
                     <TableCell className="max-w-[200px] truncate text-sm text-muted-foreground">{getLastNote(ref.notes)}</TableCell>
                     <TableCell>{daysSinceUpdate != null ? `${daysSinceUpdate}d` : '—'}</TableCell>
