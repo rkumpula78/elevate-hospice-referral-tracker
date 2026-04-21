@@ -178,6 +178,13 @@ const PalliativeOutreachBoard = () => {
                     <TableCell>
                       <Badge className={getStatusBadgeColor(ref.status)}>{getStatusLabel(ref.status)}</Badge>
                     </TableCell>
+                    <TableCell className="max-w-[260px] text-sm whitespace-pre-wrap">
+                      {(ref as any).patient_status_note ? (
+                        <span className="text-foreground">{(ref as any).patient_status_note}</span>
+                      ) : (
+                        <span className="text-muted-foreground italic">—</span>
+                      )}
+                    </TableCell>
                     <TableCell className="max-w-[200px] truncate text-sm text-muted-foreground">{getLastNote(ref.notes)}</TableCell>
                     <TableCell>{daysSinceUpdate != null ? `${daysSinceUpdate}d` : '—'}</TableCell>
                     <TableCell>
