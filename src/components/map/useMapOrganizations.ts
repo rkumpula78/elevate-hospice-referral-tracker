@@ -70,6 +70,7 @@ export function useMapOrganizations() {
         gps_latitude: Number(org.gps_latitude),
         gps_longitude: Number(org.gps_longitude),
         address: org.address,
+        assigned_marketer: (org as any).assigned_marketer ?? null,
         ytd_referrals: refCountMap[org.id] || 0,
         last_visit_date: lastVisitMap[org.id] || null,
       })) as MapOrganization[];
@@ -103,6 +104,10 @@ export function filterOrganizations(orgs: MapOrganization[], filters: MapFilters
     }
     if (filters.orgTypes.length > 0 && !filters.orgTypes.includes(org.type)) {
       return false;
+    }
+    if (filters.marketers && filters.marketers.length > 0) {
+      const m = org.assigned_marketer || '__unassigned__';
+      if (!filters.marketers.includes(m)) return false;
     }
     if (filters.lastVisit === 'overdue') {
       if (!org.last_visit_date) return true;
