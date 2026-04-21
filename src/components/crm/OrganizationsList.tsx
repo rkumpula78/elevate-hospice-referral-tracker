@@ -618,6 +618,17 @@ const OrganizationsList = () => {
                 <Edit className="w-3 h-3 mr-1" />
                 Edit
               </Button>
+              {isAdmin && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setDeletingOrgId(org.id)}
+                  className="text-destructive hover:text-destructive"
+                  title="Archive organization"
+                >
+                  <Trash2 className="w-3 h-3" />
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -730,18 +741,67 @@ const OrganizationsList = () => {
         </div>
       </div>
 
+      {/* Search bar */}
+      <div className="relative max-w-xl">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+        <Input
+          ref={searchInputRef}
+          type="text"
+          placeholder="Search organizations by name, contact, address... (Ctrl+K)"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="pl-9 pr-16"
+        />
+        {searchQuery && (
+          <button
+            type="button"
+            onClick={() => setSearchQuery('')}
+            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground"
+            aria-label="Clear search"
+          >
+            <XIcon className="w-4 h-4" />
+          </button>
+        )}
+      </div>
+      {debouncedSearch && (
+        <div className="text-xs text-muted-foreground -mt-2">
+          {sortedOrganizations?.length || 0} {sortedOrganizations?.length === 1 ? 'result' : 'results'} for "{debouncedSearch}"
+        </div>
+      )}
+
       {/* Organizations Display */}
       {(!sortedOrganizations || sortedOrganizations.length === 0) ? (
         <EmptyState
           icon={Building}
-          title="No organizations yet"
-          description="Add referral sources to build your territory"
-          actionLabel="Add Organization"
-          onAction={() => setShowAddDialog(true)}
+          title={debouncedSearch ? 'No matches found' : 'No organizations yet'}
+          description={debouncedSearch ? 'Try a different search term' : 'Add referral sources to build your territory'}
+          actionLabel={debouncedSearch ? undefined : 'Add Organization'}
+          onAction={debouncedSearch ? undefined : () => setShowAddDialog(true)}
         />
       ) : (
         view === 'list' ? renderListView() : renderCardView()
       )}
+
+      {/* Delete confirmation */}
+      <AlertDialog open={!!deletingOrgId} onOpenChange={(open) => !open && setDeletingOrgId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Archive this organization?</AlertDialogTitle>
+            <AlertDialogDescription>
+              The organization will be marked inactive and hidden from default views. Existing referrals are preserved. Admins can restore by editing and setting Active again.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive hover:bg-destructive/90"
+              onClick={() => deletingOrgId && deleteOrgMutation.mutate(deletingOrgId)}
+            >
+              Archive
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <EnhancedAddOrganizationDialog 
         open={showAddDialog} 
