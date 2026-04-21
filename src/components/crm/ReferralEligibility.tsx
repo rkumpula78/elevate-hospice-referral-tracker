@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,10 +18,49 @@ interface ReferralEligibilityProps {
   referralId: string;
 }
 
+// Best-effort split of a free-text address into street/city/state/zip.
+// Accepts formats like "123 Main St, Phoenix, AZ 85001" or "123 Main St, Phoenix AZ 85001".
+const parseAddress = (full?: string | null) => {
+  if (!full) return { street: '', city: '', state: '', zip: '' };
+  const parts = full.split(',').map(p => p.trim()).filter(Boolean);
+  let street = '', city = '', state = '', zip = '';
+  if (parts.length >= 3) {
+    street = parts[0];
+    city = parts[1];
+    const tail = parts.slice(2).join(' ').trim();
+    const m = tail.match(/^([A-Za-z]{2})\s*(\d{5}(?:-\d{4})?)?$/);
+    if (m) { state = m[1].toUpperCase(); zip = m[2] || ''; }
+    else { state = tail; }
+  } else if (parts.length === 2) {
+    street = parts[0];
+    const m = parts[1].match(/^(.+?)\s+([A-Za-z]{2})\s*(\d{5}(?:-\d{4})?)?$/);
+    if (m) { city = m[1]; state = m[2].toUpperCase(); zip = m[3] || ''; }
+    else { city = parts[1]; }
+  } else {
+    street = parts[0] || '';
+  }
+  return { street, city, state, zip };
+};
+
 const ReferralEligibility = ({ referralId }: ReferralEligibilityProps) => {
   const queryClient = useQueryClient();
   const [showDialog, setShowDialog] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+
+  // Pull the parent referral so we can auto-populate beneficiary info
+  const { data: referral } = useQuery({
+    queryKey: ['referral-for-eligibility', referralId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('referrals')
+        .select('patient_name, first_name, last_name, date_of_birth, address, location_city, medicare_number')
+        .eq('id', referralId)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!referralId,
+  });
 
   const { data: eligibility, isLoading } = useQuery({
     queryKey: ['referral-eligibility', referralId],
@@ -42,31 +81,17 @@ const ReferralEligibility = ({ referralId }: ReferralEligibilityProps) => {
 
   const [formData, setFormData] = useState<Record<string, any>>({});
 
-  const openCreateDialog = () => {
-    setEditingId(null);
-    setFormData({
-      medicare_number: '',
-      date_of_birth: '',
+  const buildPrefillFromReferral = () => {
+    const parsed = parseAddress(referral?.address);
+    return {
+      medicare_number: referral?.medicare_number || '',
+      date_of_birth: referral?.date_of_birth || '',
       date_of_death: '',
       sex: '',
-      beneficiary_address: '',
-      beneficiary_city: '',
-      beneficiary_state: '',
-      beneficiary_zip: '',
-      part_a_entitlement_reason: '',
-      part_a_entitlement_date: '',
-      part_a_termination_date: '',
-      part_b_entitlement_reason: '',
-      part_b_entitlement_date: '',
-      part_b_termination_date: '',
-      full_inpatient_days: '',
-      copay_inpatient_days: '',
-      inpatient_ded_amt_remaining: '',
-      full_snf_days: '',
-      copay_snf_days: '',
-      lifetime_psychiatric_days_remain: '',
-      lifetime_reserve_days_remain: '',
-      inpatient_blood_ded_units_remain: '',
+      beneficiary_address: parsed.street,
+      beneficiary_city: parsed.city || referral?.location_city || '',
+      beneficiary_state: parsed.state,
+      beneficiary_zip: parsed.zip,
       hospice_election_exists: false,
       hospice_election_notes: '',
       medicare_advantage_active: false,
@@ -77,22 +102,30 @@ const ReferralEligibility = ({ referralId }: ReferralEligibilityProps) => {
       verification_source: 'NGS',
       eligibility_span_start: '',
       eligibility_span_end: '',
-      notes: ''
-    });
+      notes: '',
+    };
+  };
+
+  const openCreateDialog = () => {
+    setEditingId(null);
+    setFormData(buildPrefillFromReferral());
     setShowDialog(true);
   };
 
   const openEditDialog = () => {
     if (!eligibility) return;
+    const parsed = parseAddress(referral?.address);
     setEditingId(eligibility.id);
     setFormData({
       ...eligibility,
-      date_of_birth: eligibility.date_of_birth || '',
+      // Fall back to referral data if eligibility row has gaps
+      medicare_number: eligibility.medicare_number || referral?.medicare_number || '',
+      date_of_birth: eligibility.date_of_birth || referral?.date_of_birth || '',
       date_of_death: eligibility.date_of_death || '',
-      part_a_entitlement_date: eligibility.part_a_entitlement_date || '',
-      part_a_termination_date: eligibility.part_a_termination_date || '',
-      part_b_entitlement_date: eligibility.part_b_entitlement_date || '',
-      part_b_termination_date: eligibility.part_b_termination_date || '',
+      beneficiary_address: eligibility.beneficiary_address || parsed.street || '',
+      beneficiary_city: eligibility.beneficiary_city || parsed.city || referral?.location_city || '',
+      beneficiary_state: eligibility.beneficiary_state || parsed.state || '',
+      beneficiary_zip: eligibility.beneficiary_zip || parsed.zip || '',
       eligibility_span_start: eligibility.eligibility_span_start || '',
       eligibility_span_end: eligibility.eligibility_span_end || '',
     });
@@ -111,20 +144,6 @@ const ReferralEligibility = ({ referralId }: ReferralEligibilityProps) => {
         beneficiary_city: formData.beneficiary_city || null,
         beneficiary_state: formData.beneficiary_state || null,
         beneficiary_zip: formData.beneficiary_zip || null,
-        part_a_entitlement_reason: formData.part_a_entitlement_reason || null,
-        part_a_entitlement_date: formData.part_a_entitlement_date || null,
-        part_a_termination_date: formData.part_a_termination_date || null,
-        part_b_entitlement_reason: formData.part_b_entitlement_reason || null,
-        part_b_entitlement_date: formData.part_b_entitlement_date || null,
-        part_b_termination_date: formData.part_b_termination_date || null,
-        full_inpatient_days: formData.full_inpatient_days ? parseInt(formData.full_inpatient_days) : null,
-        copay_inpatient_days: formData.copay_inpatient_days ? parseInt(formData.copay_inpatient_days) : null,
-        inpatient_ded_amt_remaining: formData.inpatient_ded_amt_remaining ? parseFloat(formData.inpatient_ded_amt_remaining) : null,
-        full_snf_days: formData.full_snf_days ? parseInt(formData.full_snf_days) : null,
-        copay_snf_days: formData.copay_snf_days ? parseInt(formData.copay_snf_days) : null,
-        lifetime_psychiatric_days_remain: formData.lifetime_psychiatric_days_remain ? parseInt(formData.lifetime_psychiatric_days_remain) : null,
-        lifetime_reserve_days_remain: formData.lifetime_reserve_days_remain ? parseInt(formData.lifetime_reserve_days_remain) : null,
-        inpatient_blood_ded_units_remain: formData.inpatient_blood_ded_units_remain ? parseFloat(formData.inpatient_blood_ded_units_remain) : null,
         hospice_election_exists: formData.hospice_election_exists || false,
         hospice_election_notes: formData.hospice_election_notes || null,
         medicare_advantage_active: formData.medicare_advantage_active || false,
@@ -243,12 +262,6 @@ const ReferralEligibility = ({ referralId }: ReferralEligibilityProps) => {
                     Medicare Advantage Active
                   </Badge>
                 )}
-                {eligibility.part_a_entitlement_date && !eligibility.part_a_termination_date && (
-                  <Badge variant="outline" className="flex items-center gap-1 text-green-700 border-green-300 bg-green-50">
-                    <CheckCircle className="h-3 w-3" />
-                    Part A Active
-                  </Badge>
-                )}
               </div>
 
               {/* Beneficiary info */}
@@ -276,48 +289,6 @@ const ReferralEligibility = ({ referralId }: ReferralEligibilityProps) => {
                 </div>
               </div>
 
-              {/* Entitlement */}
-              <div>
-                <h4 className="text-sm font-semibold text-muted-foreground mb-2">Entitlement</h4>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div className="border rounded-md p-3">
-                    <p className="font-medium mb-1">Part A</p>
-                    <p className="text-muted-foreground text-xs">{eligibility.part_a_entitlement_reason || 'N/A'}</p>
-                    <p>Entitlement: {eligibility.part_a_entitlement_date || '—'}</p>
-                    <p>Termination: {eligibility.part_a_termination_date || 'None'}</p>
-                  </div>
-                  <div className="border rounded-md p-3">
-                    <p className="font-medium mb-1">Part B</p>
-                    <p className="text-muted-foreground text-xs">{eligibility.part_b_entitlement_reason || 'N/A'}</p>
-                    <p>Entitlement: {eligibility.part_b_entitlement_date || '—'}</p>
-                    <p>Termination: {eligibility.part_b_termination_date || 'None'}</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Benefit Days */}
-              <div>
-                <h4 className="text-sm font-semibold text-muted-foreground mb-2">Benefit Days Remaining</h4>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-                  <div className="border rounded-md p-2 text-center">
-                    <p className="text-lg font-bold">{eligibility.full_inpatient_days ?? '—'}</p>
-                    <p className="text-xs text-muted-foreground">Full Inpatient</p>
-                  </div>
-                  <div className="border rounded-md p-2 text-center">
-                    <p className="text-lg font-bold">{eligibility.copay_inpatient_days ?? '—'}</p>
-                    <p className="text-xs text-muted-foreground">Copay Inpatient</p>
-                  </div>
-                  <div className="border rounded-md p-2 text-center">
-                    <p className="text-lg font-bold">{eligibility.full_snf_days ?? '—'}</p>
-                    <p className="text-xs text-muted-foreground">Full SNF</p>
-                  </div>
-                  <div className="border rounded-md p-2 text-center">
-                    <p className="text-lg font-bold">{eligibility.lifetime_reserve_days_remain ?? '—'}</p>
-                    <p className="text-xs text-muted-foreground">Lifetime Reserve</p>
-                  </div>
-                </div>
-              </div>
-
               {/* Verification */}
               <div className="text-xs text-muted-foreground border-t pt-3">
                 Verified: {eligibility.eligibility_verified_date ? format(new Date(eligibility.eligibility_verified_date), 'MMM dd, yyyy') : '—'}
@@ -341,7 +312,7 @@ const ReferralEligibility = ({ referralId }: ReferralEligibilityProps) => {
           <DialogHeader>
             <DialogTitle>{editingId ? 'Edit' : 'Add'} Medicare Eligibility</DialogTitle>
             <DialogDescription>
-              Enter beneficiary eligibility information from the NGS system or other Medicare verification source.
+              Beneficiary fields are pre-filled from the referral record where available. Update as needed from NGS or your Medicare verification source.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-6">
@@ -351,11 +322,11 @@ const ReferralEligibility = ({ referralId }: ReferralEligibilityProps) => {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <Label htmlFor="medicare_number">Medicare Number (MBI)</Label>
-                  <Input id="medicare_number" value={formData.medicare_number} onChange={e => updateField('medicare_number', e.target.value)} />
+                  <Input id="medicare_number" value={formData.medicare_number || ''} onChange={e => updateField('medicare_number', e.target.value)} />
                 </div>
                 <div>
                   <Label htmlFor="sex">Sex</Label>
-                  <Select value={formData.sex} onValueChange={v => updateField('sex', v)}>
+                  <Select value={formData.sex || ''} onValueChange={v => updateField('sex', v)}>
                     <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="Male">Male</SelectItem>
@@ -365,105 +336,29 @@ const ReferralEligibility = ({ referralId }: ReferralEligibilityProps) => {
                 </div>
                 <div>
                   <Label htmlFor="dob">Date of Birth</Label>
-                  <Input id="dob" type="date" value={formData.date_of_birth} onChange={e => updateField('date_of_birth', e.target.value)} />
+                  <Input id="dob" type="date" value={formData.date_of_birth || ''} onChange={e => updateField('date_of_birth', e.target.value)} />
                 </div>
                 <div>
                   <Label htmlFor="dod">Date of Death</Label>
-                  <Input id="dod" type="date" value={formData.date_of_death} onChange={e => updateField('date_of_death', e.target.value)} />
+                  <Input id="dod" type="date" value={formData.date_of_death || ''} onChange={e => updateField('date_of_death', e.target.value)} />
                 </div>
-                <div>
+                <div className="col-span-2">
                   <Label htmlFor="b_address">Address</Label>
-                  <Input id="b_address" value={formData.beneficiary_address} onChange={e => updateField('beneficiary_address', e.target.value)} />
+                  <Input id="b_address" value={formData.beneficiary_address || ''} onChange={e => updateField('beneficiary_address', e.target.value)} />
                 </div>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="col-span-2 grid grid-cols-3 gap-2">
                   <div>
                     <Label htmlFor="b_city">City</Label>
-                    <Input id="b_city" value={formData.beneficiary_city} onChange={e => updateField('beneficiary_city', e.target.value)} />
+                    <Input id="b_city" value={formData.beneficiary_city || ''} onChange={e => updateField('beneficiary_city', e.target.value)} />
                   </div>
                   <div>
                     <Label htmlFor="b_state">State</Label>
-                    <Input id="b_state" value={formData.beneficiary_state} onChange={e => updateField('beneficiary_state', e.target.value)} maxLength={2} />
+                    <Input id="b_state" value={formData.beneficiary_state || ''} onChange={e => updateField('beneficiary_state', e.target.value)} maxLength={2} />
                   </div>
                   <div>
                     <Label htmlFor="b_zip">ZIP</Label>
-                    <Input id="b_zip" value={formData.beneficiary_zip} onChange={e => updateField('beneficiary_zip', e.target.value)} />
+                    <Input id="b_zip" value={formData.beneficiary_zip || ''} onChange={e => updateField('beneficiary_zip', e.target.value)} />
                   </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Part A/B Entitlement */}
-            <div>
-              <h4 className="text-sm font-semibold mb-3">Entitlement Information</h4>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2 border rounded-md p-3">
-                  <p className="font-medium text-sm">Part A</p>
-                  <div>
-                    <Label htmlFor="part_a_reason">Reason</Label>
-                    <Input id="part_a_reason" value={formData.part_a_entitlement_reason} onChange={e => updateField('part_a_entitlement_reason', e.target.value)} placeholder="e.g., Age OASI" />
-                  </div>
-                  <div>
-                    <Label htmlFor="part_a_date">Entitlement Date</Label>
-                    <Input id="part_a_date" type="date" value={formData.part_a_entitlement_date} onChange={e => updateField('part_a_entitlement_date', e.target.value)} />
-                  </div>
-                  <div>
-                    <Label htmlFor="part_a_term">Termination Date</Label>
-                    <Input id="part_a_term" type="date" value={formData.part_a_termination_date} onChange={e => updateField('part_a_termination_date', e.target.value)} />
-                  </div>
-                </div>
-                <div className="space-y-2 border rounded-md p-3">
-                  <p className="font-medium text-sm">Part B</p>
-                  <div>
-                    <Label htmlFor="part_b_reason">Reason</Label>
-                    <Input id="part_b_reason" value={formData.part_b_entitlement_reason} onChange={e => updateField('part_b_entitlement_reason', e.target.value)} />
-                  </div>
-                  <div>
-                    <Label htmlFor="part_b_date">Entitlement Date</Label>
-                    <Input id="part_b_date" type="date" value={formData.part_b_entitlement_date} onChange={e => updateField('part_b_entitlement_date', e.target.value)} />
-                  </div>
-                  <div>
-                    <Label htmlFor="part_b_term">Termination Date</Label>
-                    <Input id="part_b_term" type="date" value={formData.part_b_termination_date} onChange={e => updateField('part_b_termination_date', e.target.value)} />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Benefit Days */}
-            <div>
-              <h4 className="text-sm font-semibold mb-3">Benefit Days Remaining</h4>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <div>
-                  <Label htmlFor="full_ip">Full Inpatient</Label>
-                  <Input id="full_ip" type="number" value={formData.full_inpatient_days} onChange={e => updateField('full_inpatient_days', e.target.value)} />
-                </div>
-                <div>
-                  <Label htmlFor="copay_ip">Copay Inpatient</Label>
-                  <Input id="copay_ip" type="number" value={formData.copay_inpatient_days} onChange={e => updateField('copay_inpatient_days', e.target.value)} />
-                </div>
-                <div>
-                  <Label htmlFor="ip_ded">IP Ded Remaining ($)</Label>
-                  <Input id="ip_ded" type="number" step="0.01" value={formData.inpatient_ded_amt_remaining} onChange={e => updateField('inpatient_ded_amt_remaining', e.target.value)} />
-                </div>
-                <div>
-                  <Label htmlFor="full_snf">Full SNF</Label>
-                  <Input id="full_snf" type="number" value={formData.full_snf_days} onChange={e => updateField('full_snf_days', e.target.value)} />
-                </div>
-                <div>
-                  <Label htmlFor="copay_snf">Copay SNF</Label>
-                  <Input id="copay_snf" type="number" value={formData.copay_snf_days} onChange={e => updateField('copay_snf_days', e.target.value)} />
-                </div>
-                <div>
-                  <Label htmlFor="psych">Lifetime Psych</Label>
-                  <Input id="psych" type="number" value={formData.lifetime_psychiatric_days_remain} onChange={e => updateField('lifetime_psychiatric_days_remain', e.target.value)} />
-                </div>
-                <div>
-                  <Label htmlFor="reserve">Lifetime Reserve</Label>
-                  <Input id="reserve" type="number" value={formData.lifetime_reserve_days_remain} onChange={e => updateField('lifetime_reserve_days_remain', e.target.value)} />
-                </div>
-                <div>
-                  <Label htmlFor="blood">Blood Ded Units</Label>
-                  <Input id="blood" type="number" step="0.1" value={formData.inpatient_blood_ded_units_remain} onChange={e => updateField('inpatient_blood_ded_units_remain', e.target.value)} />
                 </div>
               </div>
             </div>
@@ -484,7 +379,7 @@ const ReferralEligibility = ({ referralId }: ReferralEligibilityProps) => {
                       <Textarea
                         className="mt-2"
                         placeholder="Hospice election details..."
-                        value={formData.hospice_election_notes}
+                        value={formData.hospice_election_notes || ''}
                         onChange={e => updateField('hospice_election_notes', e.target.value)}
                       />
                     )}
@@ -502,7 +397,7 @@ const ReferralEligibility = ({ referralId }: ReferralEligibilityProps) => {
                       <Textarea
                         className="mt-2"
                         placeholder="MA plan details..."
-                        value={formData.medicare_advantage_notes}
+                        value={formData.medicare_advantage_notes || ''}
                         onChange={e => updateField('medicare_advantage_notes', e.target.value)}
                       />
                     )}
@@ -520,7 +415,7 @@ const ReferralEligibility = ({ referralId }: ReferralEligibilityProps) => {
                       <Textarea
                         className="mt-2"
                         placeholder="MSP details..."
-                        value={formData.msp_notes}
+                        value={formData.msp_notes || ''}
                         onChange={e => updateField('msp_notes', e.target.value)}
                       />
                     )}
@@ -535,11 +430,11 @@ const ReferralEligibility = ({ referralId }: ReferralEligibilityProps) => {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <Label htmlFor="verified_by">Verified By</Label>
-                  <Input id="verified_by" value={formData.eligibility_verified_by} onChange={e => updateField('eligibility_verified_by', e.target.value)} />
+                  <Input id="verified_by" value={formData.eligibility_verified_by || ''} onChange={e => updateField('eligibility_verified_by', e.target.value)} />
                 </div>
                 <div>
                   <Label htmlFor="v_source">Source</Label>
-                  <Select value={formData.verification_source} onValueChange={v => updateField('verification_source', v)}>
+                  <Select value={formData.verification_source || 'NGS'} onValueChange={v => updateField('verification_source', v)}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="NGS">NGS</SelectItem>
@@ -552,16 +447,16 @@ const ReferralEligibility = ({ referralId }: ReferralEligibilityProps) => {
                 </div>
                 <div>
                   <Label htmlFor="span_start">Eligibility Span Start</Label>
-                  <Input id="span_start" type="date" value={formData.eligibility_span_start} onChange={e => updateField('eligibility_span_start', e.target.value)} />
+                  <Input id="span_start" type="date" value={formData.eligibility_span_start || ''} onChange={e => updateField('eligibility_span_start', e.target.value)} />
                 </div>
                 <div>
                   <Label htmlFor="span_end">Eligibility Span End</Label>
-                  <Input id="span_end" type="date" value={formData.eligibility_span_end} onChange={e => updateField('eligibility_span_end', e.target.value)} />
+                  <Input id="span_end" type="date" value={formData.eligibility_span_end || ''} onChange={e => updateField('eligibility_span_end', e.target.value)} />
                 </div>
               </div>
               <div className="mt-3">
                 <Label htmlFor="elig_notes">Notes</Label>
-                <Textarea id="elig_notes" value={formData.notes} onChange={e => updateField('notes', e.target.value)} placeholder="Additional eligibility notes..." />
+                <Textarea id="elig_notes" value={formData.notes || ''} onChange={e => updateField('notes', e.target.value)} placeholder="Additional eligibility notes..." />
               </div>
             </div>
 
