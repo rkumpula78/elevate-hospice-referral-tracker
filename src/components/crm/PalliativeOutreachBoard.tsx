@@ -12,6 +12,7 @@ import { differenceInDays, format, parseISO, isBefore } from 'date-fns';
 import { FOLLOWUP_FREQUENCIES, LOCATION_TYPES, getStatusBadgeColor, getStatusLabel } from '@/lib/constants';
 import { AlertCircle, Clock, Pencil } from 'lucide-react';
 import QuickLogActivityDialog from '@/components/crm/QuickLogActivityDialog';
+import InlineStatusNote from '@/components/crm/InlineStatusNote';
 
 const PalliativeOutreachBoard = () => {
   const navigate = useNavigate();
@@ -178,12 +179,12 @@ const PalliativeOutreachBoard = () => {
                     <TableCell>
                       <Badge className={getStatusBadgeColor(ref.status)}>{getStatusLabel(ref.status)}</Badge>
                     </TableCell>
-                    <TableCell className="max-w-[260px] text-sm whitespace-pre-wrap">
-                      {(ref as any).patient_status_note ? (
-                        <span className="text-foreground">{(ref as any).patient_status_note}</span>
-                      ) : (
-                        <span className="text-muted-foreground italic">—</span>
-                      )}
+                    <TableCell className="max-w-[280px] align-top">
+                      <InlineStatusNote
+                        referralId={ref.id}
+                        value={(ref as any).patient_status_note}
+                        invalidateKeys={[['palliative-outreach-referrals']]}
+                      />
                     </TableCell>
                     <TableCell className="max-w-[200px] truncate text-sm text-muted-foreground">{getLastNote(ref.notes)}</TableCell>
                     <TableCell>{daysSinceUpdate != null ? `${daysSinceUpdate}d` : '—'}</TableCell>
