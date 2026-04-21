@@ -159,6 +159,7 @@ const PalliativeOutreachBoard = () => {
                     <TableCell className="font-medium">{ref.patient_name}</TableCell>
                     <TableCell>{ref.assigned_marketer || '—'}</TableCell>
                     <TableCell>{ref.pcp_provider || '—'}</TableCell>
+                    <TableCell>{(ref as any).pcp_company || '—'}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
                         {isOverdue && <AlertCircle className="w-4 h-4 text-red-500" />}
