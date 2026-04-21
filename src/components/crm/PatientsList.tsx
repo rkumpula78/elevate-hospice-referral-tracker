@@ -142,6 +142,7 @@ const PatientsList = () => {
                 Physician{getSortIcon('physician')}
               </Button>
             </TableHead>
+            <TableHead>Marketer</TableHead>
             <TableHead>
               <Button variant="ghost" onClick={() => handleSort('status')} className="h-auto p-0 font-medium">
                 Status{getSortIcon('status')}
@@ -174,6 +175,13 @@ const PatientsList = () => {
               </TableCell>
               <TableCell>{patient.diagnosis}</TableCell>
               <TableCell>{patient.physician}</TableCell>
+              <TableCell>
+                {(patient as any).assigned_marketer ? (
+                  <span className="text-sm">{(patient as any).assigned_marketer}</span>
+                ) : (
+                  <span className="text-xs italic text-muted-foreground">Unassigned</span>
+                )}
+              </TableCell>
               <TableCell>
                 <Badge className={getStatusColor(patient.status || 'active')}>
                   {patient.status || 'active'}
