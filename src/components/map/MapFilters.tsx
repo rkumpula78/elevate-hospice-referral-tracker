@@ -12,12 +12,13 @@ interface MapFiltersProps {
   filters: MapFiltersState;
   onChange: (filters: MapFiltersState) => void;
   orgTypes: string[];
+  marketers: string[];
   orgCount: number;
 }
 
 const RATINGS = ['A', 'B', 'C', 'D'];
 
-const MapFilters = ({ filters, onChange, orgTypes, orgCount }: MapFiltersProps) => {
+const MapFilters = ({ filters, onChange, orgTypes, marketers, orgCount }: MapFiltersProps) => {
   const isMobile = useIsMobile();
   const [open, setOpen] = React.useState(!isMobile);
 
@@ -28,19 +29,37 @@ const MapFilters = ({ filters, onChange, orgTypes, orgCount }: MapFiltersProps) 
     onChange({ ...filters, ratings: next });
   };
 
+  const toggleMarketer = (m: string) => {
+    const next = filters.marketers.includes(m)
+      ? filters.marketers.filter(x => x !== m)
+      : [...filters.marketers, m];
+    onChange({ ...filters, marketers: next });
+  };
+
+  const activeCount =
+    filters.ratings.length +
+    filters.orgTypes.length +
+    filters.marketers.length +
+    (filters.lastVisit !== 'all' ? 1 : 0);
+
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
       <CollapsibleTrigger asChild>
         <Button variant="outline" size="sm" className="gap-2">
           <Filter className="h-4 w-4" />
           Filters
+          {activeCount > 0 && (
+            <span className="ml-0.5 inline-flex items-center justify-center rounded-full bg-primary text-primary-foreground text-[10px] font-semibold w-4 h-4">
+              {activeCount}
+            </span>
+          )}
           <ChevronDown className={`h-3 w-3 transition-transform ${open ? 'rotate-180' : ''}`} />
           {orgCount > 0 && (
             <span className="ml-1 text-xs text-muted-foreground">({orgCount})</span>
           )}
         </Button>
       </CollapsibleTrigger>
-      <CollapsibleContent className="absolute top-12 left-0 z-10 bg-card border rounded-lg shadow-lg p-4 space-y-4 w-64">
+      <CollapsibleContent className="absolute top-12 left-0 z-10 bg-card border rounded-lg shadow-lg p-4 space-y-4 w-64 max-h-[70vh] overflow-y-auto">
         <div>
           <Label className="text-xs font-semibold uppercase text-muted-foreground">Account Rating</Label>
           <div className="flex gap-3 mt-2">
@@ -86,6 +105,35 @@ const MapFilters = ({ filters, onChange, orgTypes, orgCount }: MapFiltersProps) 
               ))}
             </SelectContent>
           </Select>
+        </div>
+
+        <div>
+          <div className="flex items-center justify-between">
+            <Label className="text-xs font-semibold uppercase text-muted-foreground">Assigned Marketer</Label>
+            {filters.marketers.length > 0 && (
+              <button
+                type="button"
+                onClick={() => onChange({ ...filters, marketers: [] })}
+                className="text-[11px] text-muted-foreground hover:text-foreground underline"
+              >
+                Clear
+              </button>
+            )}
+          </div>
+          <div className="mt-2 space-y-1.5 max-h-48 overflow-y-auto pr-1">
+            {marketers.length === 0 && (
+              <p className="text-xs text-muted-foreground italic">No marketers assigned</p>
+            )}
+            {marketers.map(m => (
+              <label key={m} className="flex items-center gap-2 text-sm cursor-pointer">
+                <Checkbox
+                  checked={filters.marketers.includes(m)}
+                  onCheckedChange={() => toggleMarketer(m)}
+                />
+                <span>{m}</span>
+              </label>
+            ))}
+          </div>
         </div>
       </CollapsibleContent>
     </Collapsible>
