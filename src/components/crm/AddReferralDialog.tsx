@@ -214,10 +214,9 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
 
   // Step validation
   const validateStep = (step: number): boolean => {
-    if (step === 1) return !!formData.patient_name.trim() && !!formData.patient_phone.trim() && !!formData.patient_address.trim();
+    if (step === 1) return !!formData.patient_name.trim();
     if (step === 2) return !!formData.organization_id || showNewOrgForm;
     if (step === 3) {
-      if (!formData.diagnosis.trim() || !formData.insurance.trim()) return false;
       if (formData.status === 'closed' && !formData.reason_for_non_admittance.trim()) return false;
       return true;
     }
@@ -226,20 +225,11 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
 
   const handleNext = () => {
     if (currentStep === 1) {
-      const step1Required = { patient_name: 'Patient name is required', patient_phone: 'Patient phone is required', patient_address: 'Address is required' };
-      const newTouched: Record<string, boolean> = {};
-      const newErrors: Record<string, string> = {};
-      let hasError = false;
-      for (const [field, msg] of Object.entries(step1Required)) {
-        newTouched[field] = true;
-        if (!(formData[field as keyof typeof formData] as string)?.trim()) {
-          newErrors[field] = msg;
-          hasError = true;
-        }
+      if (!formData.patient_name?.trim()) {
+        setTouchedFields(prev => ({ ...prev, patient_name: true }));
+        setFieldErrors(prev => ({ ...prev, patient_name: 'Patient name is required' }));
+        return;
       }
-      setTouchedFields(prev => ({ ...prev, ...newTouched }));
-      setFieldErrors(prev => ({ ...prev, ...newErrors }));
-      if (hasError) return;
     }
     if (currentStep === 2 && !formData.organization_id && !showNewOrgForm) {
       setTouchedFields(prev => ({ ...prev, organization_id: true }));
@@ -247,25 +237,11 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
       return;
     }
     if (currentStep === 3) {
-      const step3Required = { diagnosis: 'Diagnosis is required', insurance: 'Insurance is required' };
-      const newTouched: Record<string, boolean> = {};
-      const newErrors: Record<string, string> = {};
-      let hasError = false;
-      for (const [field, msg] of Object.entries(step3Required)) {
-        newTouched[field] = true;
-        if (!(formData[field as keyof typeof formData] as string)?.trim()) {
-          newErrors[field] = msg;
-          hasError = true;
-        }
-      }
       if (formData.status === 'closed' && !formData.reason_for_non_admittance.trim()) {
-        newTouched.reason_for_non_admittance = true;
-        newErrors.reason_for_non_admittance = 'Close reason is required';
-        hasError = true;
+        setTouchedFields(prev => ({ ...prev, reason_for_non_admittance: true }));
+        setFieldErrors(prev => ({ ...prev, reason_for_non_admittance: 'Close reason is required' }));
+        return;
       }
-      setTouchedFields(prev => ({ ...prev, ...newTouched }));
-      setFieldErrors(prev => ({ ...prev, ...newErrors }));
-      if (hasError) return;
     }
     setCurrentStep(prev => Math.min(prev + 1, 4));
   };
