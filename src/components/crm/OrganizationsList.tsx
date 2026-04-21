@@ -229,9 +229,26 @@ const OrganizationsList = () => {
   };
 
   const sortedOrganizations = React.useMemo(() => {
-    if (!organizations || !sortConfig) return organizations;
+    let list = organizations || [];
 
-    return [...organizations].sort((a, b) => {
+    // Apply search filter
+    if (debouncedSearch.trim()) {
+      const q = debouncedSearch.toLowerCase();
+      list = list.filter((o: any) =>
+        (o.name || '').toLowerCase().includes(q) ||
+        (o.dba_name || '').toLowerCase().includes(q) ||
+        (o.contact_person || '').toLowerCase().includes(q) ||
+        (o.contact_email || '').toLowerCase().includes(q) ||
+        (o.phone || '').toLowerCase().includes(q) ||
+        (o.address || '').toLowerCase().includes(q) ||
+        (o.assigned_marketer || '').toLowerCase().includes(q) ||
+        (o.type || '').toLowerCase().includes(q)
+      );
+    }
+
+    if (!sortConfig) return list;
+
+    return [...list].sort((a, b) => {
       const aValue = a[sortConfig.field as keyof typeof a];
       const bValue = b[sortConfig.field as keyof typeof b];
       
@@ -248,7 +265,7 @@ const OrganizationsList = () => {
         ? (aValue as any) - (bValue as any)
         : (bValue as any) - (aValue as any);
     });
-  }, [organizations, sortConfig]);
+  }, [organizations, sortConfig, debouncedSearch]);
 
   // getRatingColor imported from AccountRatingBadge
 
@@ -374,6 +391,17 @@ const OrganizationsList = () => {
                   >
                     <Edit className="w-3 h-3" />
                   </Button>
+                  {isAdmin && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setDeletingOrgId(org.id)}
+                      className="text-destructive hover:text-destructive"
+                      title="Archive organization"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </Button>
+                  )}
                 </div>
               </TableCell>
             </TableRow>
