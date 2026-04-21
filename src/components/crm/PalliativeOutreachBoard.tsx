@@ -135,6 +135,7 @@ const PalliativeOutreachBoard = () => {
                 <TableHead><SortHeader label="Patient Name" field="patient_name" currentSort={sort} onSort={handleSort} /></TableHead>
                 <TableHead><SortHeader label="Assigned To" field="assigned_marketer" currentSort={sort} onSort={handleSort} /></TableHead>
                 <TableHead>PCP Provider</TableHead>
+                <TableHead><SortHeader label="Primary Care Co." field="pcp_company" currentSort={sort} onSort={handleSort} /></TableHead>
                 <TableHead><SortHeader label="Next Follow-up" field="next_followup_date" currentSort={sort} onSort={handleSort} /></TableHead>
                 <TableHead>Frequency</TableHead>
                 <TableHead>Location</TableHead>
