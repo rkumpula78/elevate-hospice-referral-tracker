@@ -11,7 +11,7 @@ type Mode = "self" | "admin-invite";
 
 interface SignupRequest {
   email: string;
-  password: string;
+  password?: string;
   first_name?: string;
   last_name?: string;
   mode?: Mode;
@@ -33,14 +33,20 @@ const handler = async (req: Request): Promise<Response> => {
       mode = "self",
     }: SignupRequest = await req.json();
 
-    if (!email || !password) {
+    if (!email) {
       return new Response(
-        JSON.stringify({ error: { message: "Email and password are required." } }),
+        JSON.stringify({ error: { message: "Email is required." } }),
         { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } },
       );
     }
 
-    // Validate email domain
+    if (mode === "self" && !password) {
+      return new Response(
+        JSON.stringify({ error: { message: "Password is required for self sign-up." } }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } },
+      );
+    }
+
     if (!email.toLowerCase().endsWith(allowedDomain)) {
       return new Response(
         JSON.stringify({
@@ -106,23 +112,76 @@ const handler = async (req: Request): Promise<Response> => {
         );
       }
 
-      // Invite email
+      // If a password is provided, create the user directly with email_confirm
+      if (password && password.trim().length > 0) {
+        const { data, error } = await adminClient.auth.admin.createUser({
+          email,
+          password,
+          email_confirm: true,
+          user_metadata: { first_name, last_name },
+        });
+
+        if (error) {
+          const errCode = (error as any)?.code;
+          const errMsg = (error as any)?.message || "Failed to create user.";
+          console.error("Admin createUser error:", error);
+
+          // If the user already exists, fall back to a password reset email
+          if (errCode === "email_exists" || /already.*registered|exists/i.test(errMsg)) {
+            const resetClient = createClient(supabaseUrl, anonKey);
+            const { error: resetErr } = await resetClient.auth.resetPasswordForEmail(email, {
+              redirectTo: emailRedirectTo,
+            });
+            if (resetErr) {
+              return new Response(
+                JSON.stringify({ error: { message: `User already exists. Failed to send password reset: ${resetErr.message}` } }),
+                { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } },
+              );
+            }
+            return new Response(
+              JSON.stringify({
+                message: "User already exists. Sent a password reset email instead.",
+                existing_user: true,
+              }),
+              { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } },
+            );
+          }
+
+          return new Response(
+            JSON.stringify({ error: { message: errMsg, code: errCode } }),
+            { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } },
+          );
+        }
+
+        return new Response(
+          JSON.stringify({
+            message: "User created successfully. They can sign in immediately with the password you provided.",
+            user: data.user,
+          }),
+          { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } },
+        );
+      }
+
+      // Otherwise send an invite email (no password set yet)
       const { data, error } = await adminClient.auth.admin.inviteUserByEmail(email, {
         redirectTo: emailRedirectTo,
         data: { first_name, last_name },
       });
 
       if (error) {
-        if ((error as any)?.code === "email_exists") {
+        const errCode = (error as any)?.code;
+        const errMsg = (error as any)?.message || "Failed to send invitation.";
+        console.error("Invite error:", error);
+
+        if (errCode === "email_exists" || /already.*registered|exists/i.test(errMsg)) {
           const resetClient = createClient(supabaseUrl, anonKey);
           const { error: resetErr } = await resetClient.auth.resetPasswordForEmail(email, {
             redirectTo: emailRedirectTo,
           });
 
           if (resetErr) {
-            console.error("Password reset fallback error:", resetErr);
             return new Response(
-              JSON.stringify({ error: { message: "Failed to send password reset email." } }),
+              JSON.stringify({ error: { message: `User already exists. Failed to send password reset: ${resetErr.message}` } }),
               { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } },
             );
           }
@@ -136,9 +195,8 @@ const handler = async (req: Request): Promise<Response> => {
           );
         }
 
-        console.error("Invite error:", error);
         return new Response(
-          JSON.stringify({ error: { message: "Failed to send invitation." } }),
+          JSON.stringify({ error: { message: errMsg, code: errCode } }),
           { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } },
         );
       }
@@ -156,7 +214,7 @@ const handler = async (req: Request): Promise<Response> => {
     const signupClient = createClient(supabaseUrl, anonKey);
     const { data, error } = await signupClient.auth.signUp({
       email,
-      password,
+      password: password!,
       options: {
         emailRedirectTo,
         data: { first_name, last_name },
@@ -166,7 +224,7 @@ const handler = async (req: Request): Promise<Response> => {
     if (error) {
       console.error("Signup error:", error);
       return new Response(
-        JSON.stringify({ error: { message: "Sign up failed. Please try again." } }),
+        JSON.stringify({ error: { message: error.message || "Sign up failed. Please try again." } }),
         { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } },
       );
     }
@@ -181,7 +239,7 @@ const handler = async (req: Request): Promise<Response> => {
   } catch (error: any) {
     console.error("Error in validate-signup function:", error);
     return new Response(
-      JSON.stringify({ error: { message: "An internal error occurred." } }),
+      JSON.stringify({ error: { message: error?.message || "An internal error occurred." } }),
       { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } },
     );
   }

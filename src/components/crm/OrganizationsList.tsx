@@ -1,11 +1,12 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { EmptyState } from '@/components/ui/empty-state';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, MapPin, User, Edit, ExternalLink, Users, Building, Calendar, Phone, AlertTriangle, CheckCircle, Clock, ArrowUpDown } from "lucide-react";
+import { Plus, MapPin, User, Edit, ExternalLink, Users, Building, Calendar, Phone, AlertTriangle, CheckCircle, Clock, ArrowUpDown, Search, X as XIcon, Trash2 } from "lucide-react";
 import { AccountRatingBadge, getRatingColor } from './AccountRatingBadge';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,6 +14,17 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ViewToggle } from "@/components/ui/view-toggle";
 import { SortHeader } from "@/components/ui/sort-header";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import EnhancedAddOrganizationDialog from './EnhancedAddOrganizationDialog';
 import EditOrganizationDialog from './EditOrganizationDialog';
 import OrganizationContactsDialog from './OrganizationContactsDialog';
@@ -23,6 +35,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 
 const OrganizationsList = () => {
   const { toast } = useToast();
+  const { isAdmin } = useAuth();
   const queryClient = useQueryClient();
   const [selectedType, setSelectedType] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
@@ -34,6 +47,53 @@ const OrganizationsList = () => {
   const [editingOrganizationId, setEditingOrganizationId] = useState<string | null>(null);
   const [contactsOrganization, setContactsOrganization] = useState<{id: string, name: string} | null>(null);
   const [showScheduleDialog, setShowScheduleDialog] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [deletingOrgId, setDeletingOrgId] = useState<string | null>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Debounce search
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(searchQuery), 300);
+    return () => clearTimeout(t);
+  }, [searchQuery]);
+
+  // Cmd/Ctrl+K to focus search
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, []);
+
+  // Soft-delete organization (set is_active=false)
+  const deleteOrgMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('organizations')
+        .update({ is_active: false })
+        .eq('id', id);
+      if (error) throw error;
+      // Audit log (best-effort)
+      await supabase.from('admin_audit_log').insert({
+        action: 'soft_delete_organization',
+        target_user_id: null,
+        details: { organization_id: id },
+      } as any).then(() => {}, () => {});
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['organizations'] });
+      toast({ title: 'Organization archived' });
+      setDeletingOrgId(null);
+    },
+    onError: (err: any) => {
+      toast({ title: 'Failed to archive organization', description: err?.message, variant: 'destructive' });
+    },
+  });
 
   const { data: organizations, isLoading } = useQuery({
     queryKey: ['organizations', selectedType, selectedStatus, selectedRating, selectedMarketer],
@@ -169,9 +229,26 @@ const OrganizationsList = () => {
   };
 
   const sortedOrganizations = React.useMemo(() => {
-    if (!organizations || !sortConfig) return organizations;
+    let list = organizations || [];
 
-    return [...organizations].sort((a, b) => {
+    // Apply search filter
+    if (debouncedSearch.trim()) {
+      const q = debouncedSearch.toLowerCase();
+      list = list.filter((o: any) =>
+        (o.name || '').toLowerCase().includes(q) ||
+        (o.dba_name || '').toLowerCase().includes(q) ||
+        (o.contact_person || '').toLowerCase().includes(q) ||
+        (o.contact_email || '').toLowerCase().includes(q) ||
+        (o.phone || '').toLowerCase().includes(q) ||
+        (o.address || '').toLowerCase().includes(q) ||
+        (o.assigned_marketer || '').toLowerCase().includes(q) ||
+        (o.type || '').toLowerCase().includes(q)
+      );
+    }
+
+    if (!sortConfig) return list;
+
+    return [...list].sort((a, b) => {
       const aValue = a[sortConfig.field as keyof typeof a];
       const bValue = b[sortConfig.field as keyof typeof b];
       
@@ -188,7 +265,7 @@ const OrganizationsList = () => {
         ? (aValue as any) - (bValue as any)
         : (bValue as any) - (aValue as any);
     });
-  }, [organizations, sortConfig]);
+  }, [organizations, sortConfig, debouncedSearch]);
 
   // getRatingColor imported from AccountRatingBadge
 
@@ -314,6 +391,17 @@ const OrganizationsList = () => {
                   >
                     <Edit className="w-3 h-3" />
                   </Button>
+                  {isAdmin && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setDeletingOrgId(org.id)}
+                      className="text-destructive hover:text-destructive"
+                      title="Archive organization"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </Button>
+                  )}
                 </div>
               </TableCell>
             </TableRow>
@@ -530,6 +618,17 @@ const OrganizationsList = () => {
                 <Edit className="w-3 h-3 mr-1" />
                 Edit
               </Button>
+              {isAdmin && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setDeletingOrgId(org.id)}
+                  className="text-destructive hover:text-destructive"
+                  title="Archive organization"
+                >
+                  <Trash2 className="w-3 h-3" />
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -642,18 +741,67 @@ const OrganizationsList = () => {
         </div>
       </div>
 
+      {/* Search bar */}
+      <div className="relative max-w-xl">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+        <Input
+          ref={searchInputRef}
+          type="text"
+          placeholder="Search organizations by name, contact, address... (Ctrl+K)"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="pl-9 pr-16"
+        />
+        {searchQuery && (
+          <button
+            type="button"
+            onClick={() => setSearchQuery('')}
+            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground"
+            aria-label="Clear search"
+          >
+            <XIcon className="w-4 h-4" />
+          </button>
+        )}
+      </div>
+      {debouncedSearch && (
+        <div className="text-xs text-muted-foreground -mt-2">
+          {sortedOrganizations?.length || 0} {sortedOrganizations?.length === 1 ? 'result' : 'results'} for "{debouncedSearch}"
+        </div>
+      )}
+
       {/* Organizations Display */}
       {(!sortedOrganizations || sortedOrganizations.length === 0) ? (
         <EmptyState
           icon={Building}
-          title="No organizations yet"
-          description="Add referral sources to build your territory"
-          actionLabel="Add Organization"
-          onAction={() => setShowAddDialog(true)}
+          title={debouncedSearch ? 'No matches found' : 'No organizations yet'}
+          description={debouncedSearch ? 'Try a different search term' : 'Add referral sources to build your territory'}
+          actionLabel={debouncedSearch ? undefined : 'Add Organization'}
+          onAction={debouncedSearch ? undefined : () => setShowAddDialog(true)}
         />
       ) : (
         view === 'list' ? renderListView() : renderCardView()
       )}
+
+      {/* Delete confirmation */}
+      <AlertDialog open={!!deletingOrgId} onOpenChange={(open) => !open && setDeletingOrgId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Archive this organization?</AlertDialogTitle>
+            <AlertDialogDescription>
+              The organization will be marked inactive and hidden from default views. Existing referrals are preserved. Admins can restore by editing and setting Active again.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive hover:bg-destructive/90"
+              onClick={() => deletingOrgId && deleteOrgMutation.mutate(deletingOrgId)}
+            >
+              Archive
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <EnhancedAddOrganizationDialog 
         open={showAddDialog} 
