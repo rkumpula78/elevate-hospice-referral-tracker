@@ -828,6 +828,19 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
                   />
                   <Label htmlFor="md_notified" className="text-gray-700">MD Notified of Admission</Label>
                 </div>
+                <div className="md:col-span-2">
+                  <Label htmlFor="patient_status_note" className="text-gray-700">
+                    Patient Status Note <span className="text-xs text-gray-500">(quick-glance summary)</span>
+                  </Label>
+                  <Textarea
+                    id="patient_status_note"
+                    name="patient_status_note"
+                    defaultValue={(referralData as any).patient_status_note || ''}
+                    placeholder="e.g., Declining, family considering hospice; PCP scheduling F2F next week"
+                    rows={2}
+                    className="bg-white border-gray-300 text-gray-900"
+                  />
+                </div>
               </div>
             </TabsContent>
 
