@@ -52,6 +52,7 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
   const [newComment, setNewComment] = useState('');
   const [comments, setComments] = useState<Comment[]>([]);
   const [phoneValue, setPhoneValue] = useState('');
+  const [statusValue, setStatusValue] = useState<string>('new_referral');
   
   // Refs for smart field focus
   const patientNameRef = useRef<HTMLInputElement>(null);
@@ -378,8 +379,8 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
     // Add comments to notes
     updateData.notes = JSON.stringify(comments);
 
-    // Validate closed reason
-    if (updateData.status === 'closed' && !updateData.closed_reason?.trim()) {
+    // Validate closed reason (db column is reason_for_non_admittance)
+    if (updateData.status === 'closed' && !(updateData.reason_for_non_admittance && String(updateData.reason_for_non_admittance).trim())) {
       toast({ title: 'Close reason is required for Closed status', variant: 'destructive' });
       return;
     }
@@ -442,7 +443,7 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
     ? `${(referralData as any).first_name} ${(referralData as any).last_name}` 
     : referralData?.patient_name || 'N/A';
 
-  const showReasonField = referralData.status === 'closed';
+  const showReasonField = statusValue === 'closed';
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -659,7 +660,7 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
                 </div>
                 <div>
                   <Label htmlFor="status" className="text-gray-700">Status</Label>
-                  <Select name="status" defaultValue={referralData.status || 'new_referral'}>
+                  <Select name="status" value={statusValue} onValueChange={setStatusValue}>
                     <SelectTrigger className="bg-white border-gray-300 text-gray-900">
                       <SelectValue />
                     </SelectTrigger>
@@ -689,8 +690,8 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
               {/* Conditional Close Reason */}
               {showReasonField && (
                 <div>
-                  <Label htmlFor="closed_reason" className="text-gray-700">Close Reason *</Label>
-                  <Select name="closed_reason" defaultValue={referralData?.closed_reason || ''}>
+                  <Label htmlFor="reason_for_non_admittance" className="text-gray-700">Close Reason *</Label>
+                  <Select name="reason_for_non_admittance" defaultValue={(referralData as any)?.reason_for_non_admittance || ''}>
                     <SelectTrigger className="bg-white border-gray-300 text-gray-900">
                       <SelectValue placeholder="Select reason" />
                     </SelectTrigger>
