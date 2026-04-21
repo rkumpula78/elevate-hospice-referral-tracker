@@ -115,6 +115,33 @@ const PalliativeOutreachBoard = () => {
 
   return (
     <div className="space-y-4">
+      {/* Search */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <Input
+          ref={searchInputRef}
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search by patient, marketer, PCP, company, city, or notes... (Ctrl+K)"
+          className="pl-10 pr-10"
+        />
+        {searchQuery && (
+          <button
+            type="button"
+            onClick={() => setSearchQuery('')}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+          >
+            <XIcon className="w-4 h-4" />
+          </button>
+        )}
+      </div>
+
+      {debouncedSearch && (
+        <p className="text-sm text-muted-foreground">
+          Showing <span className="font-medium text-foreground">{filtered.length}</span> of {referrals.length} patients
+        </p>
+      )}
+
       {/* Filters */}
       <div className="flex flex-wrap gap-3">
         <Select value={filterAssigned} onValueChange={setFilterAssigned}>
