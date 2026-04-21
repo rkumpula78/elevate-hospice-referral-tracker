@@ -1,18 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { SortHeader } from '@/components/ui/sort-header';
 import { differenceInDays, format, parseISO, isBefore } from 'date-fns';
 import { FOLLOWUP_FREQUENCIES, LOCATION_TYPES, getStatusBadgeColor, getStatusLabel } from '@/lib/constants';
-import { AlertCircle, Clock, Pencil } from 'lucide-react';
+import { AlertCircle, Clock, Pencil, Search, X as XIcon } from 'lucide-react';
 import QuickLogActivityDialog from '@/components/crm/QuickLogActivityDialog';
 import InlineStatusNote from '@/components/crm/InlineStatusNote';
+import { useDebounce } from '@/hooks/useDebounce';
 
 const PalliativeOutreachBoard = () => {
   const navigate = useNavigate();
@@ -22,6 +24,20 @@ const PalliativeOutreachBoard = () => {
   const [filterCompany, setFilterCompany] = useState('all');
   const [sort, setSort] = useState<{ field: string; direction: 'asc' | 'desc' }>({ field: 'next_followup_date', direction: 'asc' });
   const [quickLogRef, setQuickLogRef] = useState<{ id: string; name: string } | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearch = useDebounce(searchQuery, 300);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
 
   const { data: referrals = [], isLoading } = useQuery({
     queryKey: ['palliative-outreach-referrals'],
@@ -45,6 +61,14 @@ const PalliativeOutreachBoard = () => {
     if (filterFrequency !== 'all' && r.followup_frequency !== filterFrequency) return false;
     if (filterLocation !== 'all' && r.location_type !== filterLocation) return false;
     if (filterCompany !== 'all' && (r as any).pcp_company !== filterCompany) return false;
+    if (debouncedSearch.trim()) {
+      const q = debouncedSearch.toLowerCase();
+      const haystack = [
+        r.patient_name, r.assigned_marketer, r.pcp_provider,
+        (r as any).pcp_company, r.location_city, r.notes, (r as any).patient_status_note,
+      ].filter(Boolean).join(' ').toLowerCase();
+      if (!haystack.includes(q)) return false;
+    }
     return true;
   });
 
@@ -91,6 +115,33 @@ const PalliativeOutreachBoard = () => {
 
   return (
     <div className="space-y-4">
+      {/* Search */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <Input
+          ref={searchInputRef}
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search by patient, marketer, PCP, company, city, or notes... (Ctrl+K)"
+          className="pl-10 pr-10"
+        />
+        {searchQuery && (
+          <button
+            type="button"
+            onClick={() => setSearchQuery('')}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+          >
+            <XIcon className="w-4 h-4" />
+          </button>
+        )}
+      </div>
+
+      {debouncedSearch && (
+        <p className="text-sm text-muted-foreground">
+          Showing <span className="font-medium text-foreground">{filtered.length}</span> of {referrals.length} patients
+        </p>
+      )}
+
       {/* Filters */}
       <div className="flex flex-wrap gap-3">
         <Select value={filterAssigned} onValueChange={setFilterAssigned}>
