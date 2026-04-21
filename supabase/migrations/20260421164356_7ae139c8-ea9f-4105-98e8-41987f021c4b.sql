@@ -1,0 +1,1 @@
+ALTER TABLE public.referrals ADD COLUMN IF NOT EXISTS patient_status_note text;

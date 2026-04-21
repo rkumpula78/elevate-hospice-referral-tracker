@@ -2296,6 +2296,7 @@ export type Database = {
           patient_location: string | null
           patient_name: string
           patient_phone: string | null
+          patient_status_note: string | null
           pcp_company: string | null
           pcp_provider: string | null
           phone: string | null
@@ -2375,6 +2376,7 @@ export type Database = {
           patient_location?: string | null
           patient_name: string
           patient_phone?: string | null
+          patient_status_note?: string | null
           pcp_company?: string | null
           pcp_provider?: string | null
           phone?: string | null
@@ -2454,6 +2456,7 @@ export type Database = {
           patient_location?: string | null
           patient_name?: string
           patient_phone?: string | null
+          patient_status_note?: string | null
           pcp_company?: string | null
           pcp_provider?: string | null
           phone?: string | null
