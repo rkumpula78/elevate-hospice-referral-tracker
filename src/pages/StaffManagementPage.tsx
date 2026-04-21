@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
 import { Loader2, Plus, Pencil, Trash2, Users, Phone, Mail } from 'lucide-react';
-import { logAuditEvent } from '@/lib/auditLog';
+import { logAuditEvent, computeChanges } from '@/lib/auditLog';
 
 // Roles match what CareTeamSection expects (case-insensitive on read).
 const ROLE_OPTIONS = [
@@ -89,7 +89,7 @@ export default function StaffManagementPage() {
           action: 'update',
           tableName: 'staff',
           recordId: editing.id,
-          changes: { before: editing, after: payload },
+          changes: computeChanges(editing as unknown as Record<string, unknown>, payload as Record<string, unknown>),
         });
       } else {
         const { data, error } = await supabase.from('staff').insert(payload).select().single();
@@ -98,7 +98,6 @@ export default function StaffManagementPage() {
           action: 'create',
           tableName: 'staff',
           recordId: data.id,
-          changes: { after: payload },
         });
       }
     },
