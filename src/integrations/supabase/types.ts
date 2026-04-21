@@ -1699,6 +1699,7 @@ export type Database = {
           city: string | null
           created_at: string | null
           date_of_birth: string | null
+          deleted_at: string | null
           diagnosis: string | null
           discharge_date: string | null
           dme_needs: string | null
@@ -1752,6 +1753,7 @@ export type Database = {
           city?: string | null
           created_at?: string | null
           date_of_birth?: string | null
+          deleted_at?: string | null
           diagnosis?: string | null
           discharge_date?: string | null
           dme_needs?: string | null
@@ -1805,6 +1807,7 @@ export type Database = {
           city?: string | null
           created_at?: string | null
           date_of_birth?: string | null
+          deleted_at?: string | null
           diagnosis?: string | null
           discharge_date?: string | null
           dme_needs?: string | null

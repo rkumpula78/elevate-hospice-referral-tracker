@@ -366,6 +366,8 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
         updateData[key] = null;
       } else if (key === 'height' || key === 'weight') {
         updateData[key] = value ? parseInt(value as string) : null;
+      } else if (key === 'benefit_period_number') {
+        updateData[key] = value ? parseInt(value as string) : null;
       } else if (key === 'advanced_directive' || key === 'dnr_status') {
         updateData[key] = value === 'on';
       } else {
@@ -619,7 +621,7 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
                               </div>
                             )}
                             <Select 
-                              name="benefit_period" 
+                              name="benefit_period_number" 
                               defaultValue={calc ? calc.period.toString() : currentManual}
                             >
                               <SelectTrigger>
