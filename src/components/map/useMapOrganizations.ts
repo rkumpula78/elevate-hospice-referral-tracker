@@ -6,6 +6,7 @@ export interface MapFiltersState {
   ratings: string[];
   lastVisit: 'all' | 'overdue' | 'recent';
   orgTypes: string[];
+  marketers: string[];
 }
 
 export interface MapOrganization {
@@ -16,6 +17,7 @@ export interface MapOrganization {
   gps_latitude: number;
   gps_longitude: number;
   address: string | null;
+  assigned_marketer: string | null;
   ytd_referrals: number;
   last_visit_date: string | null;
 }
