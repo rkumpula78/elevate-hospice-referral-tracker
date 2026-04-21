@@ -298,6 +298,11 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
     }
   }, [referralData]);
 
+  // Sync status value when referralData loads
+  React.useEffect(() => {
+    if (referralData?.status) setStatusValue(referralData.status);
+  }, [referralData?.status]);
+
   const addComment = () => {
     if (!newComment.trim()) return;
     
