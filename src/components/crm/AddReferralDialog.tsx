@@ -52,10 +52,6 @@ const INITIAL_FORM = {
 
 const REQUIRED_FIELDS = [
   { key: 'patient_name', label: 'Patient Name', step: 1 },
-  { key: 'patient_phone', label: 'Patient Phone', step: 1 },
-  { key: 'patient_address', label: 'Address', step: 1 },
-  { key: 'diagnosis', label: 'Diagnosis', step: 3 },
-  { key: 'insurance', label: 'Insurance', step: 3 },
   { key: 'organization_id', label: 'Referral Source', step: 2 },
 ] as const;
 
