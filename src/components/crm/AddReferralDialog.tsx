@@ -167,13 +167,9 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
 
   const validateField = (field: string, value: any): string | null => {
     if (field === 'patient_name' && (!value || !value.trim())) return "Patient name is required";
-    if (field === 'patient_phone' && (!value || !value.trim())) return "Patient phone is required";
     if (field === 'patient_phone' && value?.trim()) {
       if (!/^\(\d{3}\) \d{3}-\d{4}$/.test(value)) return "Phone must be (XXX) XXX-XXXX";
     }
-    if (field === 'patient_address' && (!value || !value.trim())) return "Address is required";
-    if (field === 'diagnosis' && (!value || !value.trim())) return "Diagnosis is required";
-    if (field === 'insurance' && (!value || !value.trim())) return "Insurance is required";
     if (field === 'organization_id' && (!value || !value.trim())) return "Referral source is required";
     if (field === 'reason_for_non_admittance' && formData.status === 'closed' && (!value || !value.trim())) return "Close reason is required";
     return null;
