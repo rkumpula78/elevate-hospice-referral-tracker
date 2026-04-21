@@ -91,7 +91,6 @@ const ProtectedLayout = () => {
             </Routes>
           </div>
           <MobileFAB />
-          <ElevateOpsChat />
         </div>
       </SidebarProvider>
   );
