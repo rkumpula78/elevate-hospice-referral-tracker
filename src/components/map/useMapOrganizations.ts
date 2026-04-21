@@ -28,7 +28,7 @@ export function useMapOrganizations() {
     queryFn: async () => {
       const { data: orgs, error } = await supabase
         .from('organizations')
-        .select('id, name, type, account_rating, gps_latitude, gps_longitude, address')
+        .select('id, name, type, account_rating, gps_latitude, gps_longitude, address, assigned_marketer')
         .not('gps_latitude', 'is', null)
         .not('gps_longitude', 'is', null);
 
