@@ -19,6 +19,28 @@ interface SignupRequest {
 
 const allowedDomain = "@elevatehospiceaz.com";
 
+// Generate a strong random password (16 chars, mixed)
+function generateTempPassword(): string {
+  const upper = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+  const lower = "abcdefghijkmnpqrstuvwxyz";
+  const digits = "23456789";
+  const symbols = "!@#$%^&*";
+  const all = upper + lower + digits + symbols;
+  const pick = (set: string) => set[Math.floor(Math.random() * set.length)];
+  let pw = pick(upper) + pick(lower) + pick(digits) + pick(symbols);
+  for (let i = 0; i < 12; i++) pw += pick(all);
+  return pw.split("").sort(() => Math.random() - 0.5).join("");
+}
+
+// Always return 200 with structured body so the client can read errors.
+function respond(status: number, payload: Record<string, unknown>): Response {
+  // Use 200 for client-readable errors; only 5xx for true server failures.
+  return new Response(JSON.stringify(payload), {
+    status,
+    headers: { "Content-Type": "application/json", ...corsHeaders },
+  });
+}
+
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -34,26 +56,17 @@ const handler = async (req: Request): Promise<Response> => {
     }: SignupRequest = await req.json();
 
     if (!email) {
-      return new Response(
-        JSON.stringify({ error: { message: "Email is required." } }),
-        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } },
-      );
+      return respond(200, { error: { message: "Email is required." } });
     }
 
     if (mode === "self" && !password) {
-      return new Response(
-        JSON.stringify({ error: { message: "Password is required for self sign-up." } }),
-        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } },
-      );
+      return respond(200, { error: { message: "Password is required for self sign-up." } });
     }
 
     if (!email.toLowerCase().endsWith(allowedDomain)) {
-      return new Response(
-        JSON.stringify({
-          error: { message: `Only ${allowedDomain} email addresses are allowed to register.` },
-        }),
-        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } },
-      );
+      return respond(200, {
+        error: { message: `Only ${allowedDomain} email addresses are allowed to register.` },
+      });
     }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
@@ -61,20 +74,14 @@ const handler = async (req: Request): Promise<Response> => {
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
     if (!supabaseUrl || !anonKey) {
-      return new Response(
-        JSON.stringify({ error: { message: "Server configuration error." } }),
-        { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } },
-      );
+      return respond(500, { error: { message: "Server configuration error." } });
     }
 
     const emailRedirectTo = `https://elevate-hospice-referral-tracker.lovable.app/auth`;
 
     if (mode === "admin-invite") {
       if (!serviceRoleKey) {
-        return new Response(
-          JSON.stringify({ error: { message: "Server configuration error." } }),
-          { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } },
-        );
+        return respond(500, { error: { message: "Server configuration error." } });
       }
 
       // Verify caller is an admin
@@ -84,10 +91,7 @@ const handler = async (req: Request): Promise<Response> => {
       });
       const { data: userData, error: userErr } = await callerClient.auth.getUser();
       if (userErr || !userData?.user) {
-        return new Response(
-          JSON.stringify({ error: { message: "Unauthorized." } }),
-          { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } },
-        );
+        return respond(200, { error: { message: "Unauthorized. Please sign in again." } });
       }
 
       const adminClient = createClient(supabaseUrl, serviceRoleKey);
@@ -98,116 +102,66 @@ const handler = async (req: Request): Promise<Response> => {
 
       if (rolesErr) {
         console.error("Role check error:", rolesErr);
-        return new Response(
-          JSON.stringify({ error: { message: "Unable to verify permissions." } }),
-          { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } },
-        );
+        return respond(200, { error: { message: "Unable to verify permissions." } });
       }
 
       const isAdmin = (rolesData ?? []).some((r) => r.role === "admin");
       if (!isAdmin) {
-        return new Response(
-          JSON.stringify({ error: { message: "Forbidden." } }),
-          { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders } },
-        );
+        return respond(200, { error: { message: "Forbidden. Admin role required." } });
       }
 
-      // If a password is provided, create the user directly with email_confirm
-      if (password && password.trim().length > 0) {
-        const { data, error } = await adminClient.auth.admin.createUser({
-          email,
-          password,
-          email_confirm: true,
-          user_metadata: { first_name, last_name },
-        });
+      // ALWAYS use createUser (no email rate limits, no invite email needed).
+      // If admin didn't supply a password, generate a temporary one and return it
+      // so the admin can share it. The user can change it on first login.
+      const wasPasswordProvided = !!(password && password.trim().length > 0);
+      const finalPassword = wasPasswordProvided ? password! : generateTempPassword();
 
-        if (error) {
-          const errCode = (error as any)?.code;
-          const errMsg = (error as any)?.message || "Failed to create user.";
-          console.error("Admin createUser error:", error);
-
-          // If the user already exists, fall back to a password reset email
-          if (errCode === "email_exists" || /already.*registered|exists/i.test(errMsg)) {
-            const resetClient = createClient(supabaseUrl, anonKey);
-            const { error: resetErr } = await resetClient.auth.resetPasswordForEmail(email, {
-              redirectTo: emailRedirectTo,
-            });
-            if (resetErr) {
-              return new Response(
-                JSON.stringify({ error: { message: `User already exists. Failed to send password reset: ${resetErr.message}` } }),
-                { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } },
-              );
-            }
-            return new Response(
-              JSON.stringify({
-                message: "User already exists. Sent a password reset email instead.",
-                existing_user: true,
-              }),
-              { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } },
-            );
-          }
-
-          return new Response(
-            JSON.stringify({ error: { message: errMsg, code: errCode } }),
-            { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } },
-          );
-        }
-
-        return new Response(
-          JSON.stringify({
-            message: "User created successfully. They can sign in immediately with the password you provided.",
-            user: data.user,
-          }),
-          { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } },
-        );
-      }
-
-      // Otherwise send an invite email (no password set yet)
-      const { data, error } = await adminClient.auth.admin.inviteUserByEmail(email, {
-        redirectTo: emailRedirectTo,
-        data: { first_name, last_name },
+      const { data: createData, error: createErr } = await adminClient.auth.admin.createUser({
+        email,
+        password: finalPassword,
+        email_confirm: true,
+        user_metadata: { first_name, last_name },
       });
 
-      if (error) {
-        const errCode = (error as any)?.code;
-        const errMsg = (error as any)?.message || "Failed to send invitation.";
-        console.error("Invite error:", error);
+      if (createErr) {
+        const errCode = (createErr as any)?.code;
+        const errMsg = (createErr as any)?.message || "Failed to create user.";
+        console.error("Admin createUser error:", { code: errCode, message: errMsg });
 
+        // If the user already exists, try sending a password reset (no rate limit on reset for existing user)
         if (errCode === "email_exists" || /already.*registered|exists/i.test(errMsg)) {
           const resetClient = createClient(supabaseUrl, anonKey);
           const { error: resetErr } = await resetClient.auth.resetPasswordForEmail(email, {
             redirectTo: emailRedirectTo,
           });
-
           if (resetErr) {
-            return new Response(
-              JSON.stringify({ error: { message: `User already exists. Failed to send password reset: ${resetErr.message}` } }),
-              { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } },
-            );
+            return respond(200, {
+              error: {
+                message: `User ${email} already exists. Could not send password reset: ${resetErr.message}`,
+                code: "email_exists",
+              },
+            });
           }
-
-          return new Response(
-            JSON.stringify({
-              message: "User already exists. Sent a password reset email instead of an invitation.",
-              existing_user: true,
-            }),
-            { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } },
-          );
+          return respond(200, {
+            message: `User ${email} already exists. A password reset email has been sent instead.`,
+            existing_user: true,
+          });
         }
 
-        return new Response(
-          JSON.stringify({ error: { message: errMsg, code: errCode } }),
-          { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } },
-        );
+        // Pass through the real auth error so the UI can show it
+        return respond(200, {
+          error: { message: errMsg, code: errCode || "create_user_failed" },
+        });
       }
 
-      return new Response(
-        JSON.stringify({
-          message: "Invitation email sent. The user must accept the invite to finish setup.",
-          user: data.user,
-        }),
-        { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } },
-      );
+      return respond(200, {
+        message: wasPasswordProvided
+          ? "User created successfully. They can sign in immediately with the password you set."
+          : `User created successfully. Temporary password: ${finalPassword} — share this securely. The user should change it on first login.`,
+        user: createData.user,
+        // Surface the temp password explicitly so the UI can copy/display it
+        temp_password: wasPasswordProvided ? null : finalPassword,
+      });
     }
 
     // Self sign-up
@@ -223,25 +177,20 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (error) {
       console.error("Signup error:", error);
-      return new Response(
-        JSON.stringify({ error: { message: error.message || "Sign up failed. Please try again." } }),
-        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } },
-      );
+      return respond(200, {
+        error: { message: error.message || "Sign up failed. Please try again." },
+      });
     }
 
-    return new Response(
-      JSON.stringify({
-        message: "Account created. Please check your email for the confirmation link to finish signing up.",
-        user: data.user,
-      }),
-      { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } },
-    );
+    return respond(200, {
+      message: "Account created. Please check your email for the confirmation link to finish signing up.",
+      user: data.user,
+    });
   } catch (error: any) {
     console.error("Error in validate-signup function:", error);
-    return new Response(
-      JSON.stringify({ error: { message: error?.message || "An internal error occurred." } }),
-      { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } },
-    );
+    return respond(500, {
+      error: { message: error?.message || "An internal error occurred." },
+    });
   }
 };
 
