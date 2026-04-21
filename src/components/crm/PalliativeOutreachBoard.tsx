@@ -61,6 +61,14 @@ const PalliativeOutreachBoard = () => {
     if (filterFrequency !== 'all' && r.followup_frequency !== filterFrequency) return false;
     if (filterLocation !== 'all' && r.location_type !== filterLocation) return false;
     if (filterCompany !== 'all' && (r as any).pcp_company !== filterCompany) return false;
+    if (debouncedSearch.trim()) {
+      const q = debouncedSearch.toLowerCase();
+      const haystack = [
+        r.patient_name, r.assigned_marketer, r.pcp_provider,
+        (r as any).pcp_company, r.location_city, r.notes, (r as any).patient_status_note,
+      ].filter(Boolean).join(' ').toLowerCase();
+      if (!haystack.includes(q)) return false;
+    }
     return true;
   });
 
