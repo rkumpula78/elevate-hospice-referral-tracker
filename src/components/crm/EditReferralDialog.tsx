@@ -384,6 +384,28 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
     // Add comments to notes
     updateData.notes = JSON.stringify(comments);
 
+    // Strip fields that don't exist on the `referrals` table (patient-edit
+    // sections include some patient-only fields like attending_physician_contact,
+    // pcp_contact, responsible_party_email which would cause a schema-cache error).
+    const REFERRALS_COLUMNS = new Set([
+      'address','admission_date','admission_notes','advanced_directive','assessment_scheduled_date',
+      'assigned_marketer','attending_physician','benefit_period_number','caregiver_contact','caregiver_name',
+      'chaplain','closed_reason','cna','contact_date','date_of_birth','deleted_at','diagnosis','dme_needs',
+      'dnr_status','emergency_contact','emergency_phone','first_name','followup_frequency','funeral_arrangements',
+      'height','insurance','insurance_verification','last_name','location_city','location_type','marketer',
+      'md_notified','medicaid_number','medical_records_received','medicare_number','middle_name','msw_notes',
+      'next_followup_date','next_steps','notes','organization_id','patient_location','patient_name','patient_phone',
+      'patient_status_note','pcp_company','pcp_provider','phone','physician','primary_insurance','primary_rn',
+      'prior_hospice_info','priority','reason_for_non_admittance','referral_contact_email','referral_contact_person',
+      'referral_contact_phone','referral_date','referral_intake_coordinator','referral_source','referring_contact_name',
+      'referring_physician','responsible_party_contact','responsible_party_name','responsible_party_relationship',
+      'secondary_insurance','social_worker','special_medical_needs','spiritual_preferences','ssn','status',
+      'transport_needs','upcoming_appointments','weight',
+    ]);
+    Object.keys(updateData).forEach((k) => {
+      if (!REFERRALS_COLUMNS.has(k)) delete updateData[k];
+    });
+
     // Validate closed reason (db column is reason_for_non_admittance)
     if (updateData.status === 'closed' && !(updateData.reason_for_non_admittance && String(updateData.reason_for_non_admittance).trim())) {
       toast({ title: 'Close reason is required for Closed status', variant: 'destructive' });
