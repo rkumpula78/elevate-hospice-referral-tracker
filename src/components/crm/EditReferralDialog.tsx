@@ -131,14 +131,8 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
     enabled: open
   });
 
-  // Sample intake coordinators
-  const intakeCoordinators = [
-    'Maria Rodriguez',
-    'Jennifer Thompson',
-    'Robert Chen',
-    'Amanda Williams',
-    'Michael Foster'
-  ];
+  // Intake coordinators come from the same profiles list (managed via User Management)
+  const intakeCoordinators = marketers;
 
   // Fetch documents linked to this referral
   const { data: documents } = useQuery({
