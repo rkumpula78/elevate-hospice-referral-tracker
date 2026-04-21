@@ -18,6 +18,7 @@ const PalliativeOutreachBoard = () => {
   const [filterAssigned, setFilterAssigned] = useState('all');
   const [filterFrequency, setFilterFrequency] = useState('all');
   const [filterLocation, setFilterLocation] = useState('all');
+  const [filterCompany, setFilterCompany] = useState('all');
   const [sort, setSort] = useState<{ field: string; direction: 'asc' | 'desc' }>({ field: 'next_followup_date', direction: 'asc' });
   const [quickLogRef, setQuickLogRef] = useState<{ id: string; name: string } | null>(null);
 
