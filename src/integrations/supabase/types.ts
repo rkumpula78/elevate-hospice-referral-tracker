@@ -2329,6 +2329,7 @@ export type Database = {
           spiritual_preferences: string | null
           ssn: string | null
           status: Database["public"]["Enums"]["referral_status"] | null
+          teams_message_id: string | null
           transport_needs: string | null
           upcoming_appointments: string | null
           updated_at: string | null
@@ -2409,6 +2410,7 @@ export type Database = {
           spiritual_preferences?: string | null
           ssn?: string | null
           status?: Database["public"]["Enums"]["referral_status"] | null
+          teams_message_id?: string | null
           transport_needs?: string | null
           upcoming_appointments?: string | null
           updated_at?: string | null
@@ -2489,6 +2491,7 @@ export type Database = {
           spiritual_preferences?: string | null
           ssn?: string | null
           status?: Database["public"]["Enums"]["referral_status"] | null
+          teams_message_id?: string | null
           transport_needs?: string | null
           upcoming_appointments?: string | null
           updated_at?: string | null
