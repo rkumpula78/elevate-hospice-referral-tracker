@@ -47,7 +47,7 @@ export function StepPatientInfo({ formData, onFieldChange, fieldErrors, touchedF
         </div>
         <div>
           <Label htmlFor="patient_phone" className="text-base">
-            Patient Phone <span className="text-destructive">*</span>
+            Patient Phone <span className="text-xs text-muted-foreground font-normal">(optional)</span>
           </Label>
           <EnhancedInput
             id="patient_phone"
@@ -59,8 +59,7 @@ export function StepPatientInfo({ formData, onFieldChange, fieldErrors, touchedF
             onBlur={() => onFieldBlur('patient_phone')}
             disabled={disabled}
             className="h-12 text-base"
-            placeholder="(555) 123-4567"
-            required
+            placeholder="(555) 123-4567 — leave blank if unknown"
             isValid={touchedFields.patient_phone && !fieldErrors.patient_phone && !!formData.patient_phone}
             isInvalid={touchedFields.patient_phone && !!fieldErrors.patient_phone}
           />
@@ -73,7 +72,7 @@ export function StepPatientInfo({ formData, onFieldChange, fieldErrors, touchedF
         </div>
         <div>
           <Label htmlFor="patient_address" className="text-base">
-            Address <span className="text-destructive">*</span>
+            Address <span className="text-xs text-muted-foreground font-normal">(optional)</span>
           </Label>
           <EnhancedInput
             id="patient_address"
@@ -81,8 +80,7 @@ export function StepPatientInfo({ formData, onFieldChange, fieldErrors, touchedF
             value={formData.patient_address}
             onChange={(e) => onFieldChange('patient_address', e.target.value)}
             onBlur={() => onFieldBlur('patient_address')}
-            placeholder="e.g., 123 Main St, Phoenix, AZ 85001"
-            required
+            placeholder="123 Main St, Phoenix, AZ 85001 — leave blank if unknown"
             disabled={disabled}
             className="h-12 text-base"
             isValid={touchedFields.patient_address && !fieldErrors.patient_address && !!formData.patient_address}

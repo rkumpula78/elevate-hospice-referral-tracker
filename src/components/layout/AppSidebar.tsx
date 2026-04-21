@@ -258,6 +258,16 @@ const AppSidebar = () => {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 )}
+                {isAdmin && (
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={location.pathname === '/admin/staff'}>
+                      <Link to="/admin/staff" onClick={handleLinkClick} className={linkClass(location.pathname === '/admin/staff')}>
+                        <Shield className="w-5 h-5" />
+                        <span className={isMobile ? 'text-base' : ''}>Care Team Staff</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                )}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>

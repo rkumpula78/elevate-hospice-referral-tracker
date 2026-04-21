@@ -30,15 +30,14 @@ export function StepClinicalDetails({ formData, onFieldChange, fieldErrors, touc
       <h3 className="text-base font-semibold">Clinical Details</h3>
       <div className="space-y-4">
         <div>
-          <Label>Diagnosis <span className="text-destructive">*</span></Label>
+          <Label>Diagnosis <span className="text-xs text-muted-foreground font-normal">(optional)</span></Label>
           <EnhancedInput
             icon={<FileText className="w-4 h-4" />}
             value={formData.diagnosis}
             onChange={(e) => onFieldChange('diagnosis', e.target.value)}
             onBlur={() => onFieldBlur('diagnosis')}
-            placeholder="e.g., End-stage CHF"
+            placeholder="e.g., End-stage CHF — leave blank if unknown"
             disabled={disabled}
-            required
             isValid={touchedFields.diagnosis && !fieldErrors.diagnosis && !!formData.diagnosis}
             isInvalid={touchedFields.diagnosis && !!fieldErrors.diagnosis}
           />
@@ -49,15 +48,14 @@ export function StepClinicalDetails({ formData, onFieldChange, fieldErrors, touc
           )}
         </div>
         <div>
-          <Label>Insurance <span className="text-destructive">*</span></Label>
+          <Label>Insurance <span className="text-xs text-muted-foreground font-normal">(optional)</span></Label>
           <EnhancedInput
             icon={<Briefcase className="w-4 h-4" />}
             value={formData.insurance}
             onChange={(e) => onFieldChange('insurance', e.target.value)}
             onBlur={() => onFieldBlur('insurance')}
-            placeholder="e.g., Medicare Part A"
+            placeholder="e.g., Medicare Part A — leave blank if unknown"
             disabled={disabled}
-            required
             isValid={touchedFields.insurance && !fieldErrors.insurance && !!formData.insurance}
             isInvalid={touchedFields.insurance && !!fieldErrors.insurance}
           />

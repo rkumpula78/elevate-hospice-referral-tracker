@@ -52,10 +52,6 @@ const INITIAL_FORM = {
 
 const REQUIRED_FIELDS = [
   { key: 'patient_name', label: 'Patient Name', step: 1 },
-  { key: 'patient_phone', label: 'Patient Phone', step: 1 },
-  { key: 'patient_address', label: 'Address', step: 1 },
-  { key: 'diagnosis', label: 'Diagnosis', step: 3 },
-  { key: 'insurance', label: 'Insurance', step: 3 },
   { key: 'organization_id', label: 'Referral Source', step: 2 },
 ] as const;
 
@@ -171,13 +167,9 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
 
   const validateField = (field: string, value: any): string | null => {
     if (field === 'patient_name' && (!value || !value.trim())) return "Patient name is required";
-    if (field === 'patient_phone' && (!value || !value.trim())) return "Patient phone is required";
     if (field === 'patient_phone' && value?.trim()) {
       if (!/^\(\d{3}\) \d{3}-\d{4}$/.test(value)) return "Phone must be (XXX) XXX-XXXX";
     }
-    if (field === 'patient_address' && (!value || !value.trim())) return "Address is required";
-    if (field === 'diagnosis' && (!value || !value.trim())) return "Diagnosis is required";
-    if (field === 'insurance' && (!value || !value.trim())) return "Insurance is required";
     if (field === 'organization_id' && (!value || !value.trim())) return "Referral source is required";
     if (field === 'reason_for_non_admittance' && formData.status === 'closed' && (!value || !value.trim())) return "Close reason is required";
     return null;
@@ -222,10 +214,9 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
 
   // Step validation
   const validateStep = (step: number): boolean => {
-    if (step === 1) return !!formData.patient_name.trim() && !!formData.patient_phone.trim() && !!formData.patient_address.trim();
+    if (step === 1) return !!formData.patient_name.trim();
     if (step === 2) return !!formData.organization_id || showNewOrgForm;
     if (step === 3) {
-      if (!formData.diagnosis.trim() || !formData.insurance.trim()) return false;
       if (formData.status === 'closed' && !formData.reason_for_non_admittance.trim()) return false;
       return true;
     }
@@ -234,20 +225,11 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
 
   const handleNext = () => {
     if (currentStep === 1) {
-      const step1Required = { patient_name: 'Patient name is required', patient_phone: 'Patient phone is required', patient_address: 'Address is required' };
-      const newTouched: Record<string, boolean> = {};
-      const newErrors: Record<string, string> = {};
-      let hasError = false;
-      for (const [field, msg] of Object.entries(step1Required)) {
-        newTouched[field] = true;
-        if (!(formData[field as keyof typeof formData] as string)?.trim()) {
-          newErrors[field] = msg;
-          hasError = true;
-        }
+      if (!formData.patient_name?.trim()) {
+        setTouchedFields(prev => ({ ...prev, patient_name: true }));
+        setFieldErrors(prev => ({ ...prev, patient_name: 'Patient name is required' }));
+        return;
       }
-      setTouchedFields(prev => ({ ...prev, ...newTouched }));
-      setFieldErrors(prev => ({ ...prev, ...newErrors }));
-      if (hasError) return;
     }
     if (currentStep === 2 && !formData.organization_id && !showNewOrgForm) {
       setTouchedFields(prev => ({ ...prev, organization_id: true }));
@@ -255,25 +237,11 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
       return;
     }
     if (currentStep === 3) {
-      const step3Required = { diagnosis: 'Diagnosis is required', insurance: 'Insurance is required' };
-      const newTouched: Record<string, boolean> = {};
-      const newErrors: Record<string, string> = {};
-      let hasError = false;
-      for (const [field, msg] of Object.entries(step3Required)) {
-        newTouched[field] = true;
-        if (!(formData[field as keyof typeof formData] as string)?.trim()) {
-          newErrors[field] = msg;
-          hasError = true;
-        }
-      }
       if (formData.status === 'closed' && !formData.reason_for_non_admittance.trim()) {
-        newTouched.reason_for_non_admittance = true;
-        newErrors.reason_for_non_admittance = 'Close reason is required';
-        hasError = true;
+        setTouchedFields(prev => ({ ...prev, reason_for_non_admittance: true }));
+        setFieldErrors(prev => ({ ...prev, reason_for_non_admittance: 'Close reason is required' }));
+        return;
       }
-      setTouchedFields(prev => ({ ...prev, ...newTouched }));
-      setFieldErrors(prev => ({ ...prev, ...newErrors }));
-      if (hasError) return;
     }
     setCurrentStep(prev => Math.min(prev + 1, 4));
   };
