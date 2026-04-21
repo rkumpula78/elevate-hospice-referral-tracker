@@ -23,6 +23,7 @@ import SchedulePage from "./pages/SchedulePage";
 import CompliancePage from "./pages/CompliancePage";
 import SettingsPage from "./pages/SettingsPage";
 import AdminUsersPage from "./pages/AdminUsersPage";
+import StaffManagementPage from "./pages/StaffManagementPage";
 import OrganizationsPage from "./pages/OrganizationsPage";
 import PatientDetail from "./pages/PatientDetail";
 import ReferralDetail from "./pages/ReferralDetail";
@@ -82,6 +83,11 @@ const ProtectedLayout = () => {
               <Route path="admin/users" element={
                 <AdminRoute>
                   <AdminUsersPage />
+                </AdminRoute>
+              } />
+              <Route path="admin/staff" element={
+                <AdminRoute>
+                  <StaffManagementPage />
                 </AdminRoute>
               } />
               <Route path="patient/:id" element={<PatientDetail />} />
