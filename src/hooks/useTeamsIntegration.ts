@@ -211,7 +211,7 @@ export const useTeamsIntegration = () => {
         .from('referrals')
         .select('*')
         .eq('status', 'admitted')
-        .not('benefit_period_start', 'is', null);
+        .not('admission_date', 'is', null);
 
       if (!referrals?.length) return;
 
