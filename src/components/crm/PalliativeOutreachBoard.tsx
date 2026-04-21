@@ -140,6 +140,7 @@ const PalliativeOutreachBoard = () => {
                 <TableHead>Frequency</TableHead>
                 <TableHead>Location</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead className="min-w-[220px]">Patient Status</TableHead>
                 <TableHead>Last Note</TableHead>
                 <TableHead><SortHeader label="Days Since Update" field="updated_at" currentSort={sort} onSort={handleSort} /></TableHead>
                 <TableHead className="w-[80px]">Action</TableHead>
