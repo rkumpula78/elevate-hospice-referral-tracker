@@ -25,6 +25,7 @@ import { ReferralsFilterBar, ReferralFilters } from './ReferralsFilterBar';
 import { BulkActionsToolbar } from './BulkActionsToolbar';
 import PullToRefresh from 'react-simple-pull-to-refresh';
 import { Link } from 'react-router-dom';
+import InlineStatusNote from './InlineStatusNote';
 
 import { REFERRAL_STATUSES, getStatusBadgeColor, getStatusLabel, normalizeStatus, type ReferralStatusValue } from '@/lib/constants';
 
@@ -630,6 +631,7 @@ const ReferralsList = ({ initialFilter, defaultView = 'card' }: ReferralsListPro
             <TableHead>
               <SortHeader label="Date" field="referral_date" currentSort={sortConfig} onSort={handleSort} />
             </TableHead>
+            <TableHead className="min-w-[240px]">Patient Status</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -678,6 +680,13 @@ const ReferralsList = ({ initialFilter, defaultView = 'card' }: ReferralsListPro
               <TableCell>{referral.assigned_marketer || 'Unassigned'}</TableCell>
               <TableCell>
                 {referral.referral_date ? new Date(referral.referral_date).toLocaleDateString() : 'N/A'}
+              </TableCell>
+              <TableCell className="max-w-[300px] align-top">
+                <InlineStatusNote
+                  referralId={referral.id}
+                  value={(referral as any).patient_status_note}
+                  invalidateKeys={[['referrals']]}
+                />
               </TableCell>
               <TableCell>
                 <div className="flex space-x-2">
