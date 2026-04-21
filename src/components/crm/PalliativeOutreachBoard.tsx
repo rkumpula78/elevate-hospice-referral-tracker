@@ -18,6 +18,7 @@ const PalliativeOutreachBoard = () => {
   const [filterAssigned, setFilterAssigned] = useState('all');
   const [filterFrequency, setFilterFrequency] = useState('all');
   const [filterLocation, setFilterLocation] = useState('all');
+  const [filterCompany, setFilterCompany] = useState('all');
   const [sort, setSort] = useState<{ field: string; direction: 'asc' | 'desc' }>({ field: 'next_followup_date', direction: 'asc' });
   const [quickLogRef, setQuickLogRef] = useState<{ id: string; name: string } | null>(null);
 
@@ -26,7 +27,7 @@ const PalliativeOutreachBoard = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('referrals')
-        .select('id, patient_name, assigned_marketer, pcp_provider, next_followup_date, followup_frequency, location_type, location_city, status, notes, updated_at')
+        .select('id, patient_name, assigned_marketer, pcp_provider, pcp_company, next_followup_date, followup_frequency, location_type, location_city, status, notes, updated_at')
         .in('status', ['palliative_outreach', 'not_appropriate'] as any[])
         .order('next_followup_date', { ascending: true, nullsFirst: false });
 
@@ -36,11 +37,13 @@ const PalliativeOutreachBoard = () => {
   });
 
   const uniqueAssigned = [...new Set(referrals.map(r => r.assigned_marketer).filter(Boolean))];
+  const uniqueCompanies = [...new Set(referrals.map((r: any) => r.pcp_company).filter(Boolean))].sort();
 
   const filtered = referrals.filter(r => {
     if (filterAssigned !== 'all' && r.assigned_marketer !== filterAssigned) return false;
     if (filterFrequency !== 'all' && r.followup_frequency !== filterFrequency) return false;
     if (filterLocation !== 'all' && r.location_type !== filterLocation) return false;
+    if (filterCompany !== 'all' && (r as any).pcp_company !== filterCompany) return false;
     return true;
   });
 
@@ -110,6 +113,13 @@ const PalliativeOutreachBoard = () => {
             {LOCATION_TYPES.map(l => <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>)}
           </SelectContent>
         </Select>
+        <Select value={filterCompany} onValueChange={setFilterCompany}>
+          <SelectTrigger className="w-[180px]"><SelectValue placeholder="Primary Care Co." /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All PC Companies</SelectItem>
+            {uniqueCompanies.map(c => <SelectItem key={c as string} value={c as string}>{c as string}</SelectItem>)}
+          </SelectContent>
+        </Select>
       </div>
 
       {sorted.length === 0 ? (
@@ -125,6 +135,7 @@ const PalliativeOutreachBoard = () => {
                 <TableHead><SortHeader label="Patient Name" field="patient_name" currentSort={sort} onSort={handleSort} /></TableHead>
                 <TableHead><SortHeader label="Assigned To" field="assigned_marketer" currentSort={sort} onSort={handleSort} /></TableHead>
                 <TableHead>PCP Provider</TableHead>
+                <TableHead><SortHeader label="Primary Care Co." field="pcp_company" currentSort={sort} onSort={handleSort} /></TableHead>
                 <TableHead><SortHeader label="Next Follow-up" field="next_followup_date" currentSort={sort} onSort={handleSort} /></TableHead>
                 <TableHead>Frequency</TableHead>
                 <TableHead>Location</TableHead>
@@ -148,6 +159,7 @@ const PalliativeOutreachBoard = () => {
                     <TableCell className="font-medium">{ref.patient_name}</TableCell>
                     <TableCell>{ref.assigned_marketer || '—'}</TableCell>
                     <TableCell>{ref.pcp_provider || '—'}</TableCell>
+                    <TableCell>{(ref as any).pcp_company || '—'}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
                         {isOverdue && <AlertCircle className="w-4 h-4 text-red-500" />}

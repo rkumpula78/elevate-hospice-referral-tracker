@@ -764,6 +764,17 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
                   <p className="text-xs text-muted-foreground mt-1">DoctorCare or external PCP following this patient</p>
                 </div>
                 <div>
+                  <Label htmlFor="pcp_company" className="text-gray-700">Primary Care Company</Label>
+                  <Input
+                    id="pcp_company"
+                    name="pcp_company"
+                    defaultValue={(referralData as any).pcp_company || ''}
+                    placeholder="e.g., DoctorCare, Optum, HonorHealth"
+                    className="bg-white border-gray-300 text-gray-900"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">Practice or facility the PCP is affiliated with</p>
+                </div>
+                <div>
                   <Label htmlFor="next_followup_date" className="text-gray-700">Next Follow-up Date</Label>
                   <Input
                     id="next_followup_date"
