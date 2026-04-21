@@ -148,7 +148,22 @@ export default function AdminUsersPage() {
       }
       if (data?.error) throw new Error(data.error.message || 'Failed to create user');
 
-      toast.success(data?.message || (newUserPassword ? 'User created successfully' : 'Invitation sent!'));
+      // If a temp password was generated, show it prominently so the admin can copy and share it
+      if (data?.temp_password) {
+        toast.success(`User created. Temporary password: ${data.temp_password}`, {
+          duration: 30000,
+          description: 'Copy this password and share it securely. The user should change it on first login.',
+          action: {
+            label: 'Copy',
+            onClick: () => {
+              navigator.clipboard.writeText(data.temp_password);
+              toast.success('Password copied to clipboard');
+            },
+          },
+        });
+      } else {
+        toast.success(data?.message || 'User created successfully');
+      }
 
       const newUserId: string | undefined = data?.user?.id;
 
