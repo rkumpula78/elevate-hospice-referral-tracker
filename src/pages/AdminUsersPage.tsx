@@ -105,13 +105,18 @@ export default function AdminUsersPage() {
   };
 
   const handleAddUser = async () => {
-    if (!newUserEmail || !newUserPassword) {
-      toast.error('Email and password are required');
+    if (!newUserEmail) {
+      toast.error('Email is required');
       return;
     }
 
     if (!newUserEmail.endsWith('@elevatehospiceaz.com')) {
       toast.error('Only @elevatehospiceaz.com email addresses are allowed');
+      return;
+    }
+
+    if (newUserPassword && newUserPassword.length < 8) {
+      toast.error('Password must be at least 8 characters');
       return;
     }
 
@@ -122,16 +127,28 @@ export default function AdminUsersPage() {
         body: {
           mode: 'admin-invite',
           email: newUserEmail,
-          password: newUserPassword,
+          // Only include password if non-empty — empty triggers invite flow
+          ...(newUserPassword ? { password: newUserPassword } : {}),
           first_name: newUserFirstName,
           last_name: newUserLastName,
         },
       });
 
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error.message);
+      // Surface real error messages from edge function
+      if (error) {
+        const ctx = (error as any)?.context;
+        let detail = (error as any)?.message || 'Failed to create user';
+        if (ctx) {
+          try {
+            const body = typeof ctx === 'string' ? JSON.parse(ctx) : ctx;
+            if (body?.error?.message) detail = body.error.message;
+          } catch { /* ignore */ }
+        }
+        throw new Error(detail);
+      }
+      if (data?.error) throw new Error(data.error.message || 'Failed to create user');
 
-      toast.success(data?.existing_user ? 'Password reset sent (user exists)' : 'Invitation sent!');
+      toast.success(data?.message || (newUserPassword ? 'User created successfully' : 'Invitation sent!'));
 
       const newUserId: string | undefined = data?.user?.id;
 
@@ -142,7 +159,7 @@ export default function AdminUsersPage() {
         if (newUserRole === 'admin') {
           const { error: roleError } = await supabase
             .from('user_roles')
-            .insert({ user_id: newUserId, role: 'admin', assigned_by: currentUser?.id });
+            .insert({ user_id: newUserId, role: 'admin' });
 
           if (roleError) console.error('Role assignment error:', roleError);
 
@@ -426,12 +443,13 @@ export default function AdminUsersPage() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="password">Password</Label>
+                      <Label htmlFor="password">Password <span className="text-muted-foreground text-xs">(optional — leave blank to send invite email)</span></Label>
                       <Input
                         id="password"
                         type="password"
                         value={newUserPassword}
                         onChange={(e) => setNewUserPassword(e.target.value)}
+                        placeholder="Leave empty to send invite"
                       />
                     </div>
                     <div className="space-y-2">
