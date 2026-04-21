@@ -47,6 +47,53 @@ const OrganizationsList = () => {
   const [editingOrganizationId, setEditingOrganizationId] = useState<string | null>(null);
   const [contactsOrganization, setContactsOrganization] = useState<{id: string, name: string} | null>(null);
   const [showScheduleDialog, setShowScheduleDialog] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [deletingOrgId, setDeletingOrgId] = useState<string | null>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Debounce search
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(searchQuery), 300);
+    return () => clearTimeout(t);
+  }, [searchQuery]);
+
+  // Cmd/Ctrl+K to focus search
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, []);
+
+  // Soft-delete organization (set is_active=false)
+  const deleteOrgMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('organizations')
+        .update({ is_active: false })
+        .eq('id', id);
+      if (error) throw error;
+      // Audit log (best-effort)
+      await supabase.from('admin_audit_log').insert({
+        action: 'soft_delete_organization',
+        target_user_id: null,
+        details: { organization_id: id },
+      } as any).then(() => {}, () => {});
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['organizations'] });
+      toast({ title: 'Organization archived' });
+      setDeletingOrgId(null);
+    },
+    onError: (err: any) => {
+      toast({ title: 'Failed to archive organization', description: err?.message, variant: 'destructive' });
+    },
+  });
 
   const { data: organizations, isLoading } = useQuery({
     queryKey: ['organizations', selectedType, selectedStatus, selectedRating, selectedMarketer],
