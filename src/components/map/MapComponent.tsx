@@ -28,7 +28,7 @@ const MapComponent = () => {
   const [routeStops, setRouteStops] = useState<MapOrganization[]>([]);
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
   const { toast } = useToast();
-  const { organizations, orgTypes, isLoading: orgsLoading } = useMapOrganizations();
+  const { organizations, orgTypes, marketers, isLoading: orgsLoading } = useMapOrganizations();
 
   const filteredOrgs = filterOrganizations(organizations, filters);
 
@@ -326,6 +326,7 @@ const MapComponent = () => {
                 filters={filters}
                 onChange={setFilters}
                 orgTypes={orgTypes}
+                marketers={marketers}
                 orgCount={filteredOrgs.length}
               />
             )}

@@ -89,9 +89,18 @@ export function useMapOrganizations() {
     },
   });
 
+  const marketers = Array.from(
+    new Set(
+      (orgsQuery.data || [])
+        .map(o => o.assigned_marketer)
+        .filter((m): m is string => !!m && m.trim() !== '')
+    )
+  ).sort();
+
   return {
     organizations: orgsQuery.data || [],
     orgTypes: orgTypesQuery.data || [],
+    marketers,
     isLoading: orgsQuery.isLoading,
     error: orgsQuery.error,
   };
