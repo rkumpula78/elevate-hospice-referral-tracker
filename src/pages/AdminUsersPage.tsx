@@ -148,7 +148,22 @@ export default function AdminUsersPage() {
       }
       if (data?.error) throw new Error(data.error.message || 'Failed to create user');
 
-      toast.success(data?.message || (newUserPassword ? 'User created successfully' : 'Invitation sent!'));
+      // If a temp password was generated, show it prominently so the admin can copy and share it
+      if (data?.temp_password) {
+        toast.success(`User created. Temporary password: ${data.temp_password}`, {
+          duration: 30000,
+          description: 'Copy this password and share it securely. The user should change it on first login.',
+          action: {
+            label: 'Copy',
+            onClick: () => {
+              navigator.clipboard.writeText(data.temp_password);
+              toast.success('Password copied to clipboard');
+            },
+          },
+        });
+      } else {
+        toast.success(data?.message || 'User created successfully');
+      }
 
       const newUserId: string | undefined = data?.user?.id;
 
@@ -443,14 +458,17 @@ export default function AdminUsersPage() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="password">Password <span className="text-muted-foreground text-xs">(optional — leave blank to send invite email)</span></Label>
+                      <Label htmlFor="password">Password <span className="text-muted-foreground text-xs">(optional — leave blank to auto-generate one)</span></Label>
                       <Input
                         id="password"
-                        type="password"
+                        type="text"
                         value={newUserPassword}
                         onChange={(e) => setNewUserPassword(e.target.value)}
-                        placeholder="Leave empty to send invite"
+                        placeholder="Leave blank to auto-generate"
                       />
+                      <p className="text-xs text-muted-foreground">
+                        If left blank, a temporary password will be generated and shown to you to share securely with the user.
+                      </p>
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="role">Role</Label>
