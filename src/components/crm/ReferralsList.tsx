@@ -34,9 +34,10 @@ const statusOptions = REFERRAL_STATUSES;
 interface ReferralsListProps {
   initialFilter?: string | null;
   defaultView?: 'card' | 'list';
+  excludePalliative?: boolean;
 }
 
-const ReferralsList = ({ initialFilter, defaultView = 'card' }: ReferralsListProps) => {
+const ReferralsList = ({ initialFilter, defaultView = 'card', excludePalliative = false }: ReferralsListProps) => {
   const { toast: showToast } = useToast();
   const queryClient = useQueryClient();
   const isTabletOrMobile = useIsTabletOrMobile();
@@ -94,7 +95,7 @@ const ReferralsList = ({ initialFilter, defaultView = 'card' }: ReferralsListPro
   }, []);
 
   const { data: referrals, isLoading, refetch } = useQuery({
-    queryKey: ['referrals', filters],
+    queryKey: ['referrals', filters, excludePalliative],
     queryFn: async () => {
       let query = supabase
         .from('referrals')
@@ -104,6 +105,9 @@ const ReferralsList = ({ initialFilter, defaultView = 'card' }: ReferralsListPro
 
       if (filters.statuses.length > 0) {
         query = query.in('status', filters.statuses as any);
+      } else if (excludePalliative) {
+        // Exclude palliative outreach by default in main referrals pipeline
+        query = query.not('status', 'in', '(palliative_outreach,not_appropriate)');
       }
       if (filters.priorities.length > 0) {
         query = query.in('priority', filters.priorities);

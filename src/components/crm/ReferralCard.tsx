@@ -113,6 +113,7 @@ const ReferralCard = ({
   };
 
   const isUrgent = referral.priority === 'urgent';
+  const isPalliative = referral.status === 'palliative_outreach' || referral.status === 'not_appropriate';
   const priorityBadge = getPriorityBadge(referral.priority || 'routine');
 
   const nextStage = nextStageLabel;
@@ -129,8 +130,16 @@ const ReferralCard = ({
       "modern-card group relative overflow-hidden transition-all duration-300 ease-out cursor-pointer max-w-full",
       "hover:scale-[1.02] hover:shadow-lg hover:-translate-y-1",
       isUrgent && "border-2 border-red-500 shadow-lg shadow-red-100 hover:shadow-red-200",
+      isPalliative && "border-l-4 border-l-amber-500",
       isSelected && "border-2 border-primary shadow-lg shadow-primary/20"
     )}>
+      {isPalliative && (
+        <div className="absolute top-3 right-3 z-10">
+          <Badge className="bg-amber-100 text-amber-800 border-amber-300 text-[10px] font-bold">
+            PALLIATIVE
+          </Badge>
+        </div>
+      )}
       {/* Selection Checkbox */}
       {onSelectChange && (
         <div className="absolute top-3 left-3 z-20">

@@ -106,19 +106,22 @@ const ReferralsPage = () => {
 
         <TabsContent value="pipeline">
           {pipelineView === 'kanban' ? (
-            <ReferralKanban referrals={allReferrals} />
+            <ReferralKanban referrals={allReferrals.filter((r: any) => r.status !== 'palliative_outreach' && r.status !== 'not_appropriate')} />
           ) : (
             <MobileOptimizedCard 
               title="Referral Pipeline"
-              description="Manage incoming referrals and track their progress"
+              description="Hospice referrals only. Palliative outreach is in its own tab."
               className="bg-background"
             >
-              <ReferralsList initialFilter={filter} defaultView="list" />
+              <ReferralsList initialFilter={filter} defaultView="list" excludePalliative />
             </MobileOptimizedCard>
           )}
         </TabsContent>
 
         <TabsContent value="palliative">
+          <p className="text-sm text-muted-foreground mb-2">
+            Palliative Outreach tracks pre-hospice patients. Convert to Hospice by changing status to <strong>Admitted</strong>.
+          </p>
           {pipelineView === 'kanban' ? (
             <PalliativeOutreachKanban />
           ) : (
