@@ -73,8 +73,9 @@ const MyDayView = () => {
     queryFn: async () => {
       const { data } = await supabase
         .from('referrals')
-        .select('id, first_name, last_name, referral_date, created_at, organizations(name)')
+        .select('id, first_name, last_name, patient_name, referral_date, created_at, organizations(name)')
         .eq('status', 'new_referral')
+        .is('deleted_at', null)
         .order('created_at', { ascending: false })
         .limit(10);
       return data || [];
@@ -166,10 +167,19 @@ const MyDayView = () => {
     await queryClient.invalidateQueries({ queryKey: ['my-day-stats'] });
   };
 
-  const redactLastName = (first: string | null, last: string | null) => {
-    const f = first || 'Unknown';
-    const l = last ? last.charAt(0) + '.' : '';
-    return `${f} ${l}`.trim();
+  const redactLastName = (first: string | null, last: string | null, fullName?: string | null) => {
+    if (first || last) {
+      const f = first || '';
+      const l = last ? last.charAt(0) + '.' : '';
+      return `${f} ${l}`.trim();
+    }
+    if (fullName && fullName.trim()) {
+      const parts = fullName.trim().split(/\s+/);
+      const f = parts[0];
+      const l = parts.length > 1 ? parts[parts.length - 1].charAt(0) + '.' : '';
+      return `${f} ${l}`.trim();
+    }
+    return 'Unknown';
   };
 
   const content = (
@@ -322,11 +332,11 @@ const MyDayView = () => {
                 <div
                   key={ref.id}
                   className="flex items-center justify-between p-2 rounded-md hover:bg-accent/50 cursor-pointer transition-colors"
-                  onClick={() => navigate(`/referrals/${ref.id}`)}
+                  onClick={() => navigate(`/referral/${ref.id}`)}
                 >
                   <div className="min-w-0">
                     <p className="text-sm font-medium truncate">
-                      {redactLastName(ref.first_name, ref.last_name)}
+                      {redactLastName(ref.first_name, ref.last_name, ref.patient_name)}
                     </p>
                     <p className="text-xs text-muted-foreground truncate">
                       {org?.name || 'Unknown source'} · {ref.referral_date ? format(parseISO(ref.referral_date), 'MMM d') : 'No date'}
