@@ -6,6 +6,7 @@ import { MobileOptimizedCard } from "@/components/ui/mobile-card";
 import ReferralsList from "@/components/crm/ReferralsList";
 import ReferralKanban from "@/components/crm/ReferralKanban";
 import PalliativeOutreachBoard from "@/components/crm/PalliativeOutreachBoard";
+import PalliativeOutreachKanban from "@/components/crm/PalliativeOutreachKanban";
 import AddReferralDialog from "@/components/crm/AddReferralDialog";
 import PageLayout from "@/components/layout/PageLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -118,13 +119,17 @@ const ReferralsPage = () => {
         </TabsContent>
 
         <TabsContent value="palliative">
-          <MobileOptimizedCard
-            title="Palliative Outreach"
-            description="Patients being followed for potential future hospice conversion"
-            className="bg-background"
-          >
-            <PalliativeOutreachBoard />
-          </MobileOptimizedCard>
+          {pipelineView === 'kanban' ? (
+            <PalliativeOutreachKanban />
+          ) : (
+            <MobileOptimizedCard
+              title="Palliative Outreach"
+              description="Patients being followed for potential future hospice conversion"
+              className="bg-background"
+            >
+              <PalliativeOutreachBoard />
+            </MobileOptimizedCard>
+          )}
         </TabsContent>
       </Tabs>
 
