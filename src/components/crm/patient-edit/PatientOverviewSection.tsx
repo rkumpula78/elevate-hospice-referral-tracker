@@ -4,7 +4,9 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp, UserCog } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 interface PatientOverviewSectionProps {
   patient: any;
@@ -13,13 +15,49 @@ interface PatientOverviewSectionProps {
 }
 
 const PatientOverviewSection = ({ patient, isOpen, onToggle }: PatientOverviewSectionProps) => {
+  const { data: marketers = [] } = useQuery({
+    queryKey: ['marketers'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('first_name, last_name')
+        .not('first_name', 'is', null)
+        .not('last_name', 'is', null)
+        .order('first_name');
+      if (error) throw error;
+      return (data || []).map((m: any) => `${m.first_name} ${m.last_name}`);
+    },
+  });
+
   return (
     <Collapsible open={isOpen} onOpenChange={onToggle}>
       <CollapsibleTrigger className="flex items-center justify-between w-full p-4 bg-gray-50 rounded-lg hover:bg-gray-100">
         <h3 className="text-lg font-medium">1. Patient Overview</h3>
         {isOpen ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
       </CollapsibleTrigger>
-      <CollapsibleContent className="p-4 border border-gray-200 rounded-b-lg">
+      <CollapsibleContent className="p-4 border border-gray-200 rounded-b-lg space-y-4">
+        {/* Assigned Marketer — highlighted at top for quick edit */}
+        <div className="rounded-lg border-2 border-primary/30 bg-primary/5 p-3">
+          <Label htmlFor="assigned_marketer" className="text-sm font-semibold flex items-center gap-1.5 mb-1.5">
+            <UserCog className="w-4 h-4 text-primary" />
+            Assigned Marketer
+          </Label>
+          <Select name="assigned_marketer" defaultValue={patient?.assigned_marketer || 'none'}>
+            <SelectTrigger className="bg-background">
+              <SelectValue placeholder="Select marketer" />
+            </SelectTrigger>
+            <SelectContent className="z-[100] bg-background">
+              <SelectItem value="none">Unassigned</SelectItem>
+              {marketers.map((m: string) => (
+                <SelectItem key={m} value={m}>{m}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <p className="text-[11px] text-muted-foreground mt-1">
+            Syncs with the originating referral's assigned marketer.
+          </p>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <div>
             <Label htmlFor="first_name">First Name</Label>

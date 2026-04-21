@@ -1692,6 +1692,7 @@ export type Database = {
           address: string | null
           admission_date: string | null
           advanced_directive: boolean | null
+          assigned_marketer: string | null
           attending_physician: string | null
           caregiver_contact: string | null
           caregiver_name: string | null
@@ -1744,6 +1745,7 @@ export type Database = {
           address?: string | null
           admission_date?: string | null
           advanced_directive?: boolean | null
+          assigned_marketer?: string | null
           attending_physician?: string | null
           caregiver_contact?: string | null
           caregiver_name?: string | null
@@ -1796,6 +1798,7 @@ export type Database = {
           address?: string | null
           admission_date?: string | null
           advanced_directive?: boolean | null
+          assigned_marketer?: string | null
           attending_physician?: string | null
           caregiver_contact?: string | null
           caregiver_name?: string | null

@@ -151,6 +151,12 @@ const PatientDetail = () => {
                   </p>
                 </div>
               )}
+              <div>
+                <p className="text-sm text-gray-600">Assigned Marketer</p>
+                <p className="font-medium">
+                  {(patient as any).assigned_marketer || <span className="italic text-muted-foreground">Unassigned</span>}
+                </p>
+              </div>
             </CardContent>
           </Card>
 

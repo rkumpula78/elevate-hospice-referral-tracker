@@ -213,6 +213,8 @@ const EditPatientDialog = ({ open, onOpenChange, patientId }: EditPatientDialogP
         updateData[key] = value ? parseInt(value as string) : null;
       } else if (key === 'date_of_birth' && value === '') {
         updateData[key] = null; // Ensure empty date is stored as null
+      } else if (key === 'assigned_marketer') {
+        updateData[key] = value === 'none' || value === '' ? null : value;
       }
       else {
         updateData[key] = value;
