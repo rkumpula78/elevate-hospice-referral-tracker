@@ -6,6 +6,7 @@ export interface MapFiltersState {
   ratings: string[];
   lastVisit: 'all' | 'overdue' | 'recent';
   orgTypes: string[];
+  marketers: string[];
 }
 
 export interface MapOrganization {
@@ -16,6 +17,7 @@ export interface MapOrganization {
   gps_latitude: number;
   gps_longitude: number;
   address: string | null;
+  assigned_marketer: string | null;
   ytd_referrals: number;
   last_visit_date: string | null;
 }
@@ -26,7 +28,7 @@ export function useMapOrganizations() {
     queryFn: async () => {
       const { data: orgs, error } = await supabase
         .from('organizations')
-        .select('id, name, type, account_rating, gps_latitude, gps_longitude, address')
+        .select('id, name, type, account_rating, gps_latitude, gps_longitude, address, assigned_marketer')
         .not('gps_latitude', 'is', null)
         .not('gps_longitude', 'is', null);
 
@@ -68,6 +70,7 @@ export function useMapOrganizations() {
         gps_latitude: Number(org.gps_latitude),
         gps_longitude: Number(org.gps_longitude),
         address: org.address,
+        assigned_marketer: (org as any).assigned_marketer ?? null,
         ytd_referrals: refCountMap[org.id] || 0,
         last_visit_date: lastVisitMap[org.id] || null,
       })) as MapOrganization[];
@@ -86,9 +89,18 @@ export function useMapOrganizations() {
     },
   });
 
+  const marketers = Array.from(
+    new Set(
+      (orgsQuery.data || [])
+        .map(o => o.assigned_marketer)
+        .filter((m): m is string => !!m && m.trim() !== '')
+    )
+  ).sort();
+
   return {
     organizations: orgsQuery.data || [],
     orgTypes: orgTypesQuery.data || [],
+    marketers,
     isLoading: orgsQuery.isLoading,
     error: orgsQuery.error,
   };
@@ -101,6 +113,10 @@ export function filterOrganizations(orgs: MapOrganization[], filters: MapFilters
     }
     if (filters.orgTypes.length > 0 && !filters.orgTypes.includes(org.type)) {
       return false;
+    }
+    if (filters.marketers && filters.marketers.length > 0) {
+      const m = org.assigned_marketer || '__unassigned__';
+      if (!filters.marketers.includes(m)) return false;
     }
     if (filters.lastVisit === 'overdue') {
       if (!org.last_visit_date) return true;

@@ -23,12 +23,12 @@ const MapComponent = () => {
   const map = useRef<mapboxgl.Map | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
-  const [filters, setFilters] = useState<MapFiltersState>({ ratings: [], lastVisit: 'all', orgTypes: [] });
+  const [filters, setFilters] = useState<MapFiltersState>({ ratings: [], lastVisit: 'all', orgTypes: [], marketers: [] });
   const [routeActive, setRouteActive] = useState(false);
   const [routeStops, setRouteStops] = useState<MapOrganization[]>([]);
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
   const { toast } = useToast();
-  const { organizations, orgTypes, isLoading: orgsLoading } = useMapOrganizations();
+  const { organizations, orgTypes, marketers, isLoading: orgsLoading } = useMapOrganizations();
 
   const filteredOrgs = filterOrganizations(organizations, filters);
 
@@ -326,6 +326,7 @@ const MapComponent = () => {
                 filters={filters}
                 onChange={setFilters}
                 orgTypes={orgTypes}
+                marketers={marketers}
                 orgCount={filteredOrgs.length}
               />
             )}
