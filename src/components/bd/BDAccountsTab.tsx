@@ -1,11 +1,11 @@
 import React, { useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { differenceInDays, format, isPast, parseISO } from 'date-fns';
-import { Search, Check, Plus, ChevronDown, X } from 'lucide-react';
+import { Search, Check, Plus, ChevronDown, X, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,9 +17,10 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Textarea } from '@/components/ui/textarea';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import LogVisitSheet from './LogVisitSheet';
+
+const MARKETER = 'John Guerrero';
+const PAGE_SIZE = 25;
 
 const STATUS_ORDER_KEY: Record<string, number> = {
   pre_referral: 0, active_conversation: 1, active_referrer: 2, contacted: 3, cold: 4, lost_inactive: 5,
@@ -28,44 +29,61 @@ const STATUS_ORDER_KEY: Record<string, number> = {
 const STATUS_OPTIONS = [
   { key: 'cold', label: 'Cold', chip: 'bg-gray-200 text-gray-800' },
   { key: 'contacted', label: 'Contacted', chip: 'bg-blue-100 text-blue-800' },
-  { key: 'active_conversation', label: 'Active Conversation', chip: 'bg-teal-100 text-teal-800' },
+  { key: 'active_conversation', label: 'Active', chip: 'bg-teal-100 text-teal-800' },
   { key: 'pre_referral', label: 'Pre-Referral', chip: 'bg-purple-100 text-purple-800' },
   { key: 'active_referrer', label: 'Active Referrer', chip: 'bg-green-100 text-green-800' },
-  { key: 'lost_inactive', label: 'Lost / Inactive', chip: 'bg-red-100 text-red-800' },
+  { key: 'lost_inactive', label: 'Lost', chip: 'bg-red-100 text-red-800' },
 ];
-const STATUS_BY_KEY = Object.fromEntries(STATUS_OPTIONS.map(s => [s.key, s]));
 
 const TIER_FILTERS = [
   { key: 'all', label: 'All' },
-  { key: 'A', label: 'A - ALFs' },
-  { key: 'B', label: 'B - Home Health' },
-  { key: 'C', label: 'C - SNFs' },
-  { key: 'D', label: 'D - Physicians' },
-  { key: 'E', label: 'E - DD Homes (Deferred)' },
+  { key: 'A', label: 'A — ALFs' },
+  { key: 'B', label: 'B — DD Homes' },
+  { key: 'C', label: 'C — SNFs' },
+  { key: 'D', label: 'D — Physicians' },
 ];
 
 const TIER_CHIP: Record<string, string> = {
-  A: 'bg-amber-100 text-amber-800 border-amber-300',
-  B: 'bg-blue-100 text-blue-800 border-blue-300',
-  C: 'bg-teal-100 text-teal-800 border-teal-300',
-  D: 'bg-purple-100 text-purple-800 border-purple-300',
-  E: 'bg-gray-100 text-gray-700 border-gray-300',
+  A: 'bg-blue-100 text-blue-800 border-blue-300',
+  B: 'bg-teal-100 text-teal-800 border-teal-300',
+  C: 'bg-purple-100 text-purple-800 border-purple-300',
+  D: 'bg-amber-100 text-amber-800 border-amber-300',
 };
 
-const PRIORITY_CHIP: Record<string, string> = {
-  high: 'bg-red-100 text-red-800 border-red-200',
-  medium: 'bg-amber-100 text-amber-800 border-amber-200',
-  low: 'bg-gray-100 text-gray-700 border-gray-200',
+const RATING_CHIP: Record<string, string> = {
+  A: 'bg-green-100 text-green-800 border-green-200',
+  B: 'bg-teal-100 text-teal-800 border-teal-200',
+  C: 'bg-gray-100 text-gray-700 border-gray-200',
+  D: 'bg-gray-100 text-gray-700 border-gray-200',
 };
 
-const PAGE_SIZE = 25;
+const ANNELI_OPTIONS = [
+  { key: 'not_yet', label: 'Not Yet' },
+  { key: 'booked', label: 'Booked' },
+  { key: 'delivered', label: 'Delivered' },
+];
 
-const lastVisitLabel = (date: string | null) => {
-  if (!date) return { text: 'Never', stale: true };
+const anneliDisplay = (s: string | null | undefined) => {
+  if (s === 'booked') return 'Booked';
+  if (s === 'delivered') return '✓';
+  return '—';
+};
+
+// Best-effort city extraction from address ("123 Main St, Surprise, AZ 85374")
+const cityFromAddress = (addr: string | null | undefined): string => {
+  if (!addr) return '';
+  const parts = addr.split(',').map(p => p.trim()).filter(Boolean);
+  if (parts.length >= 3) return parts[parts.length - 2];
+  if (parts.length === 2) return parts[1];
+  return '';
+};
+
+const lastContactLabel = (date: string | null) => {
+  if (!date) return { text: 'Never', days: Infinity };
   const days = differenceInDays(new Date(), parseISO(date));
-  if (days <= 0) return { text: 'Today', stale: false };
-  if (days === 1) return { text: '1 day ago', stale: false };
-  return { text: `${days} days ago`, stale: days > 14 };
+  if (days <= 0) return { text: 'Today', days: 0 };
+  if (days === 1) return { text: '1 day ago', days: 1 };
+  return { text: `${days} days ago`, days };
 };
 
 const BDAccountsTab: React.FC = () => {
@@ -77,38 +95,66 @@ const BDAccountsTab: React.FC = () => {
   const [page, setPage] = useState(0);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  const { data = [], isLoading } = useQuery({
-    queryKey: ['bd-accounts-tab'],
+  const { data: rows = [], isLoading } = useQuery({
+    queryKey: ['bd-orgs-tab'],
     queryFn: async () => {
-      const { data, error } = await (supabase as any).from('bd_accounts').select('*');
+      const { data: orgs, error } = await supabase
+        .from('organizations')
+        .select(`id, name, type, address, phone, bd_tier, bd_status, account_rating,
+                 last_contact_date, next_followup_date, anneli_covisit_status,
+                 competitive_landscape, decision_maker_name, decision_maker_title,
+                 partnership_priority_level`)
+        .eq('assigned_marketer', MARKETER)
+        .eq('is_active', true);
       if (error) throw error;
-      return data as any[];
+
+      const ids = (orgs || []).map((o: any) => o.id);
+      const counts: Record<string, number> = {};
+      if (ids.length > 0) {
+        const { data: acts } = await (supabase as any)
+          .from('bd_activities')
+          .select('organization_id')
+          .in('organization_id', ids);
+        (acts || []).forEach((a: any) => {
+          counts[a.organization_id] = (counts[a.organization_id] || 0) + 1;
+        });
+      }
+      return (orgs || []).map((o: any) => ({
+        ...o,
+        city: cityFromAddress(o.address),
+        visit_count: counts[o.id] || 0,
+      }));
     },
   });
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return data
-      .filter(a => tier === 'all' || a.tier === tier)
-      .filter(a => statuses.length === 0 || statuses.includes(a.status))
-      .filter(a => priority === 'all' || a.priority === priority)
-      .filter(a => !q
-        || (a.account_name || '').toLowerCase().includes(q)
-        || (a.city || '').toLowerCase().includes(q))
-      .sort((a, b) => {
-        const sa = STATUS_ORDER_KEY[a.status] ?? 99;
-        const sb = STATUS_ORDER_KEY[b.status] ?? 99;
+    return rows
+      .filter((a: any) => tier === 'all' || a.bd_tier === tier)
+      .filter((a: any) => statuses.length === 0 || statuses.includes(a.bd_status))
+      .filter((a: any) => {
+        if (priority === 'all') return true;
+        const p = (a.partnership_priority_level || '').toLowerCase();
+        return p === priority;
+      })
+      .filter((a: any) => !q
+        || (a.name || '').toLowerCase().includes(q)
+        || (a.city || '').toLowerCase().includes(q)
+        || (a.address || '').toLowerCase().includes(q))
+      .sort((a: any, b: any) => {
+        const sa = STATUS_ORDER_KEY[a.bd_status] ?? 99;
+        const sb = STATUS_ORDER_KEY[b.bd_status] ?? 99;
         if (sa !== sb) return sa - sb;
-        const da = a.last_visit_date ? new Date(a.last_visit_date).getTime() : 0;
-        const db = b.last_visit_date ? new Date(b.last_visit_date).getTime() : 0;
+        const da = a.last_contact_date ? new Date(a.last_contact_date).getTime() : 0;
+        const db = b.last_contact_date ? new Date(b.last_contact_date).getTime() : 0;
         return da - db;
       });
-  }, [data, tier, statuses, priority, search]);
+  }, [rows, tier, statuses, priority, search]);
 
   const summary = useMemo(() => {
     const counts: Record<string, number> = {};
     STATUS_OPTIONS.forEach(s => { counts[s.key] = 0; });
-    filtered.forEach(a => { if (counts[a.status] !== undefined) counts[a.status]++; });
+    filtered.forEach((a: any) => { if (counts[a.bd_status] !== undefined) counts[a.bd_status]++; });
     return counts;
   }, [filtered]);
 
@@ -117,12 +163,12 @@ const BDAccountsTab: React.FC = () => {
 
   React.useEffect(() => { setPage(0); }, [tier, statuses, priority, search]);
 
-  const updateStatus = async (id: string, newStatus: string) => {
-    const { error } = await (supabase as any).from('bd_accounts').update({ status: newStatus }).eq('id', id);
+  const updateField = async (id: string, updates: Record<string, any>) => {
+    const { error } = await supabase.from('organizations').update(updates).eq('id', id);
     if (error) { toast.error(error.message); return; }
-    toast.success('Status updated');
-    qc.invalidateQueries({ queryKey: ['bd-accounts-tab'] });
-    qc.invalidateQueries({ queryKey: ['bd-weekly-dashboard'] });
+    toast.success('Updated');
+    qc.invalidateQueries({ queryKey: ['bd-orgs-tab'] });
+    qc.invalidateQueries({ queryKey: ['bd-org-detail', id] });
   };
 
   return (
@@ -155,9 +201,9 @@ const BDAccountsTab: React.FC = () => {
                 <DropdownMenuCheckboxItem
                   key={s.key}
                   checked={statuses.includes(s.key)}
-                  onCheckedChange={(checked) => {
-                    setStatuses(prev => checked ? [...prev, s.key] : prev.filter(x => x !== s.key));
-                  }}
+                  onCheckedChange={(checked) =>
+                    setStatuses(prev => checked ? [...prev, s.key] : prev.filter(x => x !== s.key))
+                  }
                 >
                   {s.label}
                 </DropdownMenuCheckboxItem>
@@ -214,21 +260,22 @@ const BDAccountsTab: React.FC = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Account</TableHead>
+                  <TableHead>Name</TableHead>
                   <TableHead>Tier</TableHead>
                   <TableHead>City</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Last Visit</TableHead>
-                  <TableHead>Next Step</TableHead>
+                  <TableHead>BD Status</TableHead>
+                  <TableHead className="text-center">Visits</TableHead>
+                  <TableHead>Last Contact</TableHead>
+                  <TableHead>Follow-Up Due</TableHead>
                   <TableHead className="text-center">Anneli</TableHead>
                   <TableHead>Priority</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {pageRows.map(a => {
-                  const lv = lastVisitLabel(a.last_visit_date);
-                  const lvHighlight = lv.stale && a.status !== 'cold' && a.status !== 'lost_inactive';
-                  const nextOverdue = a.next_step_date && isPast(parseISO(a.next_step_date));
+                {pageRows.map((a: any) => {
+                  const lc = lastContactLabel(a.last_contact_date);
+                  const lcStale = lc.days > 14 && a.bd_status !== 'cold' && a.bd_status !== 'lost_inactive';
+                  const followOverdue = a.next_followup_date && isPast(parseISO(a.next_followup_date));
                   return (
                     <TableRow key={a.id} className="hover:bg-muted/40">
                       <TableCell>
@@ -236,20 +283,23 @@ const BDAccountsTab: React.FC = () => {
                           className="font-medium text-primary hover:underline text-left"
                           onClick={() => setSelectedId(a.id)}
                         >
-                          {a.account_name}
+                          {a.name}
                         </button>
                       </TableCell>
                       <TableCell>
-                        {a.tier ? (
-                          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${TIER_CHIP[a.tier] || 'bg-muted'}`}>
-                            {a.tier}
+                        {a.bd_tier ? (
+                          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${TIER_CHIP[a.bd_tier] || 'bg-muted'}`}>
+                            {a.bd_tier}
                           </span>
                         ) : '—'}
                       </TableCell>
                       <TableCell>{a.city || '—'}</TableCell>
                       <TableCell onClick={(e) => e.stopPropagation()}>
-                        <Select value={a.status} onValueChange={(v) => updateStatus(a.id, v)}>
-                          <SelectTrigger className="h-8 w-[170px] text-xs">
+                        <Select
+                          value={a.bd_status || 'cold'}
+                          onValueChange={(v) => updateField(a.id, { bd_status: v })}
+                        >
+                          <SelectTrigger className="h-8 w-[160px] text-xs">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -259,21 +309,22 @@ const BDAccountsTab: React.FC = () => {
                           </SelectContent>
                         </Select>
                       </TableCell>
-                      <TableCell className={cn(lvHighlight && 'text-red-600 font-semibold')}>
-                        {lv.text}
+                      <TableCell className="text-center">{a.visit_count}</TableCell>
+                      <TableCell className={cn(lcStale && 'text-red-600 font-semibold')}>
+                        {lc.text}
                       </TableCell>
-                      <TableCell className={cn(nextOverdue && 'text-amber-600 font-semibold')}>
-                        {a.next_step_date ? format(parseISO(a.next_step_date), 'MMM d') : '—'}
+                      <TableCell className={cn(followOverdue && 'text-amber-600 font-semibold')}>
+                        {a.next_followup_date ? format(parseISO(a.next_followup_date), 'MMM d') : '—'}
                       </TableCell>
-                      <TableCell className="text-center">
-                        {a.anneli_covisit_status === 'completed' || a.anneli_covisit_status === 'yes'
-                          ? <Check className="w-4 h-4 text-green-600 inline" />
-                          : '—'}
+                      <TableCell className="text-center text-sm">
+                        {anneliDisplay(a.anneli_covisit_status)}
                       </TableCell>
                       <TableCell>
-                        <span className={`text-xs px-2 py-0.5 rounded-full border capitalize ${PRIORITY_CHIP[a.priority] || 'bg-muted'}`}>
-                          {a.priority || '—'}
-                        </span>
+                        {a.account_rating ? (
+                          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${RATING_CHIP[a.account_rating] || 'bg-muted'}`}>
+                            {a.account_rating}
+                          </span>
+                        ) : '—'}
                       </TableCell>
                     </TableRow>
                   );
@@ -297,60 +348,56 @@ const BDAccountsTab: React.FC = () => {
         </div>
       )}
 
-      <AccountDetailPanel
-        accountId={selectedId}
-        onClose={() => setSelectedId(null)}
-      />
+      <AccountDetailPanel orgId={selectedId} onClose={() => setSelectedId(null)} />
     </div>
   );
 };
 
 /* ====================== Account Detail Panel ====================== */
 
-const AccountDetailPanel: React.FC<{ accountId: string | null; onClose: () => void }> = ({ accountId, onClose }) => {
+const AccountDetailPanel: React.FC<{ orgId: string | null; onClose: () => void }> = ({ orgId, onClose }) => {
   const qc = useQueryClient();
-  const open = !!accountId;
+  const open = !!orgId;
   const [logOpen, setLogOpen] = useState(false);
-  const [linkOpen, setLinkOpen] = useState(false);
-  const [orgSearch, setOrgSearch] = useState('');
   const [notesDraft, setNotesDraft] = useState<string | null>(null);
   const [editingDM, setEditingDM] = useState(false);
   const [dmName, setDmName] = useState('');
   const [dmTitle, setDmTitle] = useState('');
+  const [headerDraft, setHeaderDraft] = useState<{ name: string; address: string; phone: string } | null>(null);
 
-  const { data: account } = useQuery({
-    queryKey: ['bd-account-detail', accountId],
-    enabled: !!accountId,
+  const { data: org } = useQuery({
+    queryKey: ['bd-org-detail', orgId],
+    enabled: !!orgId,
     queryFn: async () => {
-      const { data, error } = await (supabase as any).from('bd_accounts').select('*').eq('id', accountId).single();
+      const { data, error } = await supabase.from('organizations').select('*').eq('id', orgId).single();
       if (error) throw error;
       return data as any;
     },
   });
 
   const { data: activities = [] } = useQuery({
-    queryKey: ['bd-account-activities', accountId],
-    enabled: !!accountId,
+    queryKey: ['bd-org-activities', orgId],
+    enabled: !!orgId,
     queryFn: async () => {
       const { data, error } = await (supabase as any)
         .from('bd_activities')
         .select('*')
-        .eq('account_id', accountId)
+        .eq('organization_id', orgId)
         .order('activity_date', { ascending: false })
-        .limit(50);
+        .limit(100);
       if (error) throw error;
       return data as any[];
     },
   });
 
   const { data: refs = [] } = useQuery({
-    queryKey: ['bd-account-referrals', account?.referring_org_id],
-    enabled: !!account?.referring_org_id,
+    queryKey: ['bd-org-referrals', orgId],
+    enabled: !!orgId,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('referrals')
         .select('id, patient_name, status, referral_date, created_at')
-        .eq('organization_id', account.referring_org_id)
+        .eq('organization_id', orgId)
         .is('deleted_at', null)
         .order('created_at', { ascending: false })
         .limit(50);
@@ -359,47 +406,39 @@ const AccountDetailPanel: React.FC<{ accountId: string | null; onClose: () => vo
     },
   });
 
-  const { data: orgOptions = [] } = useQuery({
-    queryKey: ['bd-org-search', orgSearch],
-    enabled: linkOpen,
-    queryFn: async () => {
-      let q = supabase.from('organizations').select('id, name, type').eq('is_active', true).limit(50);
-      if (orgSearch.trim()) q = q.ilike('name', `%${orgSearch.trim()}%`);
-      const { data, error } = await q;
-      if (error) throw error;
-      return data as any[];
-    },
-  });
-
   React.useEffect(() => {
     setNotesDraft(null);
     setEditingDM(false);
-    if (account) {
-      setDmName(account.decision_maker_name || '');
-      setDmTitle(account.decision_maker_title || '');
+    setHeaderDraft(null);
+    if (org) {
+      setDmName(org.decision_maker_name || '');
+      setDmTitle(org.decision_maker_title || '');
     }
-  }, [account?.id]); // eslint-disable-line
+  }, [org?.id]); // eslint-disable-line
 
   const patch = async (updates: Record<string, any>) => {
-    if (!accountId) return;
-    const { error } = await (supabase as any).from('bd_accounts').update(updates).eq('id', accountId);
-    if (error) { toast.error(error.message); return; }
-    qc.invalidateQueries({ queryKey: ['bd-account-detail', accountId] });
-    qc.invalidateQueries({ queryKey: ['bd-accounts-tab'] });
+    if (!orgId) return;
+    const { error } = await supabase.from('organizations').update(updates).eq('id', orgId);
+    if (error) { toast.error(error.message); return false; }
+    qc.invalidateQueries({ queryKey: ['bd-org-detail', orgId] });
+    qc.invalidateQueries({ queryKey: ['bd-orgs-tab'] });
+    return true;
   };
 
   const saveNotes = async () => {
     if (notesDraft === null) return;
-    await patch({ notes: notesDraft });
-    toast.success('Notes saved');
+    if (await patch({ partnership_notes: notesDraft })) toast.success('Notes saved');
     setNotesDraft(null);
   };
 
-  const linkOrg = async (orgId: string) => {
-    await patch({ referring_org_id: orgId });
-    toast.success('Organization linked');
-    setLinkOpen(false);
-    qc.invalidateQueries({ queryKey: ['bd-account-referrals'] });
+  const saveHeader = async () => {
+    if (!headerDraft) return;
+    if (await patch({
+      name: headerDraft.name,
+      address: headerDraft.address || null,
+      phone: headerDraft.phone || null,
+    })) toast.success('Saved');
+    setHeaderDraft(null);
   };
 
   return (
@@ -407,36 +446,55 @@ const AccountDetailPanel: React.FC<{ accountId: string | null; onClose: () => vo
       <Sheet open={open} onOpenChange={(o) => !o && onClose()}>
         <SheetContent side="right" className="w-full sm:max-w-2xl p-0 flex flex-col" aria-describedby={undefined}>
           <SheetHeader className="px-6 py-4 border-b shrink-0">
-            <SheetTitle>{account?.account_name || 'Account'}</SheetTitle>
+            <SheetTitle>{org?.name || 'Account'}</SheetTitle>
             <SheetDescription className="sr-only">Account detail</SheetDescription>
           </SheetHeader>
 
-          {!account ? (
+          {!org ? (
             <div className="p-6 space-y-3"><Skeleton className="h-24" /><Skeleton className="h-40" /></div>
           ) : (
             <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
-              {/* Header */}
+              {/* Header — inline editable */}
               <div className="space-y-3">
-                <div className="flex flex-wrap items-center gap-2">
-                  {account.tier && (
-                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${TIER_CHIP[account.tier] || ''}`}>
-                      Tier {account.tier}
-                    </span>
-                  )}
-                  {account.account_type && <Badge variant="outline">{account.account_type}</Badge>}
-                </div>
-                <div className="text-sm text-muted-foreground space-y-0.5">
-                  {account.address && <div>{account.address}</div>}
-                  {account.city && <div>{account.city}</div>}
-                  {account.phone && (
-                    <a href={`tel:${account.phone}`} className="text-blue-600 hover:underline">{account.phone}</a>
-                  )}
-                </div>
+                {headerDraft ? (
+                  <div className="space-y-2">
+                    <Input value={headerDraft.name} onChange={(e) => setHeaderDraft({ ...headerDraft, name: e.target.value })} placeholder="Name" />
+                    <Input value={headerDraft.address} onChange={(e) => setHeaderDraft({ ...headerDraft, address: e.target.value })} placeholder="Address" />
+                    <Input value={headerDraft.phone} onChange={(e) => setHeaderDraft({ ...headerDraft, phone: e.target.value })} placeholder="Phone" />
+                    <div className="flex gap-2">
+                      <Button size="sm" onClick={saveHeader}>Save</Button>
+                      <Button size="sm" variant="outline" onClick={() => setHeaderDraft(null)}>Cancel</Button>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    className="text-left w-full text-sm text-muted-foreground space-y-0.5 hover:bg-muted/40 rounded p-2 -m-2"
+                    onClick={() => setHeaderDraft({ name: org.name || '', address: org.address || '', phone: org.phone || '' })}
+                  >
+                    {org.address && <div>{org.address}</div>}
+                    {!org.address && <div className="italic">Click to add address…</div>}
+                    {org.phone && (
+                      <a href={`tel:${org.phone}`} onClick={(e) => e.stopPropagation()} className="text-blue-600 hover:underline">{org.phone}</a>
+                    )}
+                  </button>
+                )}
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-xs text-muted-foreground">Status</label>
-                    <Select value={account.status} onValueChange={(v) => patch({ status: v })}>
+                    <label className="text-xs text-muted-foreground">Tier</label>
+                    <Select value={org.bd_tier || ''} onValueChange={(v) => patch({ bd_tier: v })}>
+                      <SelectTrigger className="h-9 mt-1"><SelectValue placeholder="—" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="A">A — ALFs</SelectItem>
+                        <SelectItem value="B">B — DD Homes</SelectItem>
+                        <SelectItem value="C">C — SNFs</SelectItem>
+                        <SelectItem value="D">D — Physicians</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <label className="text-xs text-muted-foreground">BD Status</label>
+                    <Select value={org.bd_status || 'cold'} onValueChange={(v) => patch({ bd_status: v })}>
                       <SelectTrigger className="h-9 mt-1"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         {STATUS_OPTIONS.map(s => <SelectItem key={s.key} value={s.key}>{s.label}</SelectItem>)}
@@ -444,20 +502,28 @@ const AccountDetailPanel: React.FC<{ accountId: string | null; onClose: () => vo
                     </Select>
                   </div>
                   <div>
-                    <label className="text-xs text-muted-foreground">Priority</label>
-                    <div className="flex gap-1 mt-1">
-                      {['high', 'medium', 'low'].map(p => (
-                        <Button
-                          key={p}
-                          size="sm"
-                          variant={account.priority === p ? 'default' : 'outline'}
-                          className="capitalize flex-1"
-                          onClick={() => patch({ priority: p })}
-                        >
-                          {p}
-                        </Button>
-                      ))}
-                    </div>
+                    <label className="text-xs text-muted-foreground">Priority (Rating)</label>
+                    <Select value={org.account_rating || ''} onValueChange={(v) => patch({ account_rating: v })}>
+                      <SelectTrigger className="h-9 mt-1"><SelectValue placeholder="—" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="A">A</SelectItem>
+                        <SelectItem value="B">B</SelectItem>
+                        <SelectItem value="C">C</SelectItem>
+                        <SelectItem value="D">D</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <label className="text-xs text-muted-foreground">Anneli Co-Visit</label>
+                    <Select
+                      value={org.anneli_covisit_status || 'not_yet'}
+                      onValueChange={(v) => patch({ anneli_covisit_status: v })}
+                    >
+                      <SelectTrigger className="h-9 mt-1"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {ANNELI_OPTIONS.map(o => <SelectItem key={o.key} value={o.key}>{o.label}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
 
@@ -469,10 +535,15 @@ const AccountDetailPanel: React.FC<{ accountId: string | null; onClose: () => vo
                       <Button size="sm" variant="ghost" onClick={() => setEditingDM(true)}>Edit</Button>
                     ) : (
                       <div className="flex gap-1">
-                        <Button size="sm" variant="ghost" onClick={() => { setEditingDM(false); setDmName(account.decision_maker_name || ''); setDmTitle(account.decision_maker_title || ''); }}>Cancel</Button>
+                        <Button size="sm" variant="ghost" onClick={() => {
+                          setEditingDM(false);
+                          setDmName(org.decision_maker_name || '');
+                          setDmTitle(org.decision_maker_title || '');
+                        }}>Cancel</Button>
                         <Button size="sm" onClick={async () => {
-                          await patch({ decision_maker_name: dmName || null, decision_maker_title: dmTitle || null });
-                          toast.success('Decision maker updated');
+                          if (await patch({ decision_maker_name: dmName || null, decision_maker_title: dmTitle || null })) {
+                            toast.success('Decision maker updated');
+                          }
                           setEditingDM(false);
                         }}>Save</Button>
                       </div>
@@ -485,24 +556,26 @@ const AccountDetailPanel: React.FC<{ accountId: string | null; onClose: () => vo
                     </div>
                   ) : (
                     <div className="text-sm">
-                      <div className="font-medium">{account.decision_maker_name || '—'}</div>
-                      {account.decision_maker_title && (
-                        <div className="text-muted-foreground">{account.decision_maker_title}</div>
+                      <div className="font-medium">{org.decision_maker_name || '—'}</div>
+                      {org.decision_maker_title && (
+                        <div className="text-muted-foreground">{org.decision_maker_title}</div>
                       )}
                     </div>
                   )}
                 </div>
               </div>
 
-              {/* Competitive risk */}
-              {account.competitive_risk && (
-                <div className="border-l-4 border-yellow-500 bg-yellow-50 px-3 py-2 rounded-md">
-                  <div className="text-xs font-semibold text-yellow-800 uppercase mb-1">Competitive Risk</div>
-                  <div className="text-sm text-yellow-900">{account.competitive_risk}</div>
+              {/* Competitive Intel */}
+              {org.competitive_landscape && (
+                <div className="border-l-4 border-amber-500 bg-amber-50 px-3 py-2 rounded-md">
+                  <div className="text-xs font-semibold text-amber-800 uppercase mb-1 flex items-center gap-1">
+                    <AlertTriangle className="w-3.5 h-3.5" /> Competitive Intel
+                  </div>
+                  <div className="text-sm text-amber-900 whitespace-pre-wrap">{org.competitive_landscape}</div>
                 </div>
               )}
 
-              {/* Activity timeline */}
+              {/* Activity Timeline */}
               <section>
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-sm font-semibold">Activity Timeline</h3>
@@ -530,54 +603,30 @@ const AccountDetailPanel: React.FC<{ accountId: string | null; onClose: () => vo
                               a.outcome === 'no_show' && 'bg-amber-100 text-amber-800 border-amber-200',
                             )}>{a.outcome.replace('_', ' ')}</span>
                           )}
-                          {a.anneli_present && <Badge className="text-xs bg-purple-100 text-purple-800 border-purple-200">Anneli</Badge>}
+                          {a.anneli_present && <span className="w-2 h-2 rounded-full bg-purple-500" title="Anneli present" />}
                         </div>
-                        {a.notes && <p className="text-muted-foreground">{a.notes}</p>}
+                        {a.notes && <p className="text-muted-foreground whitespace-pre-wrap">{a.notes}</p>}
                       </li>
                     ))}
                   </ul>
                 )}
               </section>
 
-              {/* Referral attribution */}
+              {/* Referral History */}
               <section>
-                <h3 className="text-sm font-semibold mb-3">
-                  Referral Attribution {account.referring_org_id && <span className="text-muted-foreground font-normal">({refs.length})</span>}
-                </h3>
-                {!account.referring_org_id ? (
-                  <Popover open={linkOpen} onOpenChange={setLinkOpen}>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" size="sm">Link to CRM Organization</Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="p-0 w-[320px]" align="start">
-                      <Command shouldFilter={false}>
-                        <CommandInput placeholder="Search organizations…" value={orgSearch} onValueChange={setOrgSearch} />
-                        <CommandList>
-                          <CommandEmpty>No matches</CommandEmpty>
-                          <CommandGroup>
-                            {orgOptions.map(o => (
-                              <CommandItem key={o.id} value={o.id} onSelect={() => linkOrg(o.id)}>
-                                <div>
-                                  <div className="font-medium">{o.name}</div>
-                                  {o.type && <div className="text-xs text-muted-foreground">{o.type}</div>}
-                                </div>
-                              </CommandItem>
-                            ))}
-                          </CommandGroup>
-                        </CommandList>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
-                ) : refs.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No referrals attributed yet</p>
+                <h3 className="text-sm font-semibold mb-3">Referral History</h3>
+                {refs.length === 0 ? (
+                  <p className="text-sm text-muted-foreground italic">No referrals yet — this account is in the pipeline</p>
                 ) : (
                   <ul className="space-y-2">
                     {refs.map(r => (
                       <li key={r.id} className="flex items-center justify-between border rounded-md px-3 py-2 text-sm">
                         <div className="min-w-0">
-                          <div className="font-medium truncate">{r.patient_name || `Patient — ${r.referral_date || format(parseISO(r.created_at), 'MMM d')}`}</div>
+                          <div className="font-medium truncate">{r.patient_name || 'Patient'}</div>
                           <div className="text-xs text-muted-foreground">
-                            {r.referral_date ? format(parseISO(r.referral_date), 'MMM d, yyyy') : format(parseISO(r.created_at), 'MMM d, yyyy')}
+                            {r.referral_date
+                              ? format(parseISO(r.referral_date), 'MMM d, yyyy')
+                              : format(parseISO(r.created_at), 'MMM d, yyyy')}
                           </div>
                         </div>
                         <Badge variant="outline" className="capitalize">{(r.status || '').replace(/_/g, ' ')}</Badge>
@@ -589,9 +638,9 @@ const AccountDetailPanel: React.FC<{ accountId: string | null; onClose: () => vo
 
               {/* Notes */}
               <section>
-                <h3 className="text-sm font-semibold mb-2">Notes / Intel</h3>
+                <h3 className="text-sm font-semibold mb-2">Notes</h3>
                 <Textarea
-                  value={notesDraft ?? account.notes ?? ''}
+                  value={notesDraft ?? org.partnership_notes ?? ''}
                   onChange={(e) => setNotesDraft(e.target.value)}
                   onBlur={saveNotes}
                   onKeyDown={(e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) saveNotes(); }}
@@ -610,11 +659,12 @@ const AccountDetailPanel: React.FC<{ accountId: string | null; onClose: () => vo
         onOpenChange={(o) => {
           setLogOpen(o);
           if (!o) {
-            qc.invalidateQueries({ queryKey: ['bd-account-activities', accountId] });
-            qc.invalidateQueries({ queryKey: ['bd-account-detail', accountId] });
+            qc.invalidateQueries({ queryKey: ['bd-org-activities', orgId] });
+            qc.invalidateQueries({ queryKey: ['bd-org-detail', orgId] });
+            qc.invalidateQueries({ queryKey: ['bd-orgs-tab'] });
           }
         }}
-        initial={accountId ? { account_id: accountId } : null}
+        initial={orgId ? ({ account_id: orgId } as any) : null}
       />
     </>
   );
