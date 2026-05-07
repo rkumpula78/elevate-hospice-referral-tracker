@@ -58,7 +58,7 @@ const primaryItems = [
   { title: "Schedule", url: "/schedule", icon: Calendar },
   { title: "Territory Map", url: "/map", icon: MapPin },
   { title: "Story Library", url: "/stories", icon: BookOpen },
-  
+  { title: "BD Dashboard", url: "/bd-dashboard", icon: TrendingUp },
 ];
 
 const insightsItems = [
