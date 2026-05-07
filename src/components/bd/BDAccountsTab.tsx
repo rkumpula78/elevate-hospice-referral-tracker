@@ -38,9 +38,10 @@ const STATUS_OPTIONS = [
 const TIER_FILTERS = [
   { key: 'all', label: 'All' },
   { key: 'A', label: 'A — ALFs' },
-  { key: 'B', label: 'B — DD Homes' },
+  { key: 'B', label: 'B — Home Health' },
   { key: 'C', label: 'C — SNFs' },
   { key: 'D', label: 'D — Physicians' },
+  { key: 'E', label: 'E — DD Homes (Deferred)' },
 ];
 
 const TIER_CHIP: Record<string, string> = {
@@ -48,6 +49,7 @@ const TIER_CHIP: Record<string, string> = {
   B: 'bg-teal-100 text-teal-800 border-teal-300',
   C: 'bg-purple-100 text-purple-800 border-purple-300',
   D: 'bg-amber-100 text-amber-800 border-amber-300',
+  E: 'bg-gray-100 text-gray-700 border-gray-300',
 };
 
 const RATING_CHIP: Record<string, string> = {
@@ -130,7 +132,8 @@ const BDAccountsTab: React.FC = () => {
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return rows
-      .filter((a: any) => tier === 'all' || a.bd_tier === tier)
+      // 'All' hides Tier E (deferred); user must explicitly select E to see them.
+      .filter((a: any) => tier === 'all' ? a.bd_tier !== 'E' : a.bd_tier === tier)
       .filter((a: any) => statuses.length === 0 || statuses.includes(a.bd_status))
       .filter((a: any) => {
         if (priority === 'all') return true;
