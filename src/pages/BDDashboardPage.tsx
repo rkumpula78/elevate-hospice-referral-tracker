@@ -264,7 +264,4 @@ const BDDashboardPage = () => {
     </PageLayout>
   );
 };
-
-import BDAccountsTab from '@/components/bd/BDAccountsTab';
-
 export default BDDashboardPage;
