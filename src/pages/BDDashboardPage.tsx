@@ -252,7 +252,7 @@ const BDDashboardPage = () => {
       {/* Floating Action Button */}
       <Button
         onClick={() => setLogOpen(true)}
-        className="fixed bottom-6 right-6 z-40 h-14 w-14 sm:h-auto sm:w-auto sm:px-5 sm:py-3 rounded-full shadow-xl"
+        className="fixed bottom-6 right-6 z-40 h-14 w-14 sm:h-auto sm:w-auto sm:px-5 sm:py-3 rounded-full shadow-xl bg-teal-600 hover:bg-teal-700 text-white"
         size="lg"
         aria-label="Log Visit"
       >
