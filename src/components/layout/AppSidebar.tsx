@@ -55,7 +55,7 @@ const NotificationBadge = ({ count }: { count: number }) => {
 const primaryItems = [
   { title: "My Day", url: "/my-day", icon: Sunrise },
   { title: "Referrals", url: "/referrals", icon: Phone },
-  { title: "Accounts", url: "/organizations", icon: Building },
+  { title: "Organizations", url: "/organizations", icon: Building },
   { title: "Schedule", url: "/schedule", icon: Calendar },
   { title: "BD Dashboard", url: "/bd-dashboard", icon: TrendingUp },
 ];

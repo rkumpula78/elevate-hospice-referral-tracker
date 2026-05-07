@@ -35,7 +35,7 @@ const OUTCOMES = [
 
 export type BDActivityRecord = {
   id?: string;
-  account_id?: string;
+  organization_id?: string;
   activity_date?: string;
   activity_type?: string;
   anneli_present?: boolean;
@@ -73,7 +73,7 @@ const LogVisitSheet: React.FC<LogVisitSheetProps> = ({ open, onOpenChange, initi
   useEffect(() => {
     if (!open) return;
     setActivityDate(initial?.activity_date || todayISO());
-    setAccountId(initial?.account_id || '');
+    setAccountId(initial?.organization_id || '');
     setActivityType(initial?.activity_type || '');
     setAnneliPresent(!!initial?.anneli_present);
     setOutcome(initial?.outcome || '');
@@ -88,13 +88,20 @@ const LogVisitSheet: React.FC<LogVisitSheetProps> = ({ open, onOpenChange, initi
   }, [activityType]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const { data: accounts = [] } = useQuery({
-    queryKey: ['bd-accounts-for-log', user?.id, isAdmin],
+    queryKey: ['bd-orgs-for-log'],
     queryFn: async () => {
-      let q = (supabase as any).from('bd_accounts').select('id, account_name, tier, city, owner_user_id');
-      if (!isAdmin && user?.id) q = q.or(`owner_user_id.eq.${user.id},owner_user_id.is.null`);
-      const { data, error } = await q.order('account_name');
+      const { data, error } = await supabase
+        .from('organizations')
+        .select('id, name, bd_tier, address')
+        .eq('is_active', true)
+        .order('name');
       if (error) throw error;
-      return data as any[];
+      return (data || []).map((o: any) => ({
+        id: o.id,
+        account_name: o.name,
+        tier: o.bd_tier,
+        city: (o.address || '').split(',').map((s: string) => s.trim())[1] || '',
+      }));
     },
     enabled: open,
   });
@@ -103,14 +110,14 @@ const LogVisitSheet: React.FC<LogVisitSheetProps> = ({ open, onOpenChange, initi
   const isBackdated = activityDate !== todayISO();
 
   const handleSave = async () => {
-    if (!accountId) { toast.error('Please select an account'); return; }
+    if (!accountId) { toast.error('Please select an organization'); return; }
     if (!activityType) { toast.error('Please select an activity type'); return; }
     if (!outcome) { toast.error('Please select an outcome'); return; }
 
     setSaving(true);
     try {
       const payload: any = {
-        account_id: accountId,
+        organization_id: accountId,
         activity_date: activityDate,
         activity_type: activityType,
         anneli_present: anneliPresent,
@@ -133,7 +140,9 @@ const LogVisitSheet: React.FC<LogVisitSheetProps> = ({ open, onOpenChange, initi
       toast.success(editing ? 'Visit updated ✓' : 'Visit logged ✓');
       qc.invalidateQueries({ queryKey: ['bd-weekly-dashboard'] });
       qc.invalidateQueries({ queryKey: ['bd-recent-activity'] });
-      qc.invalidateQueries({ queryKey: ['bd-accounts-list'] });
+      qc.invalidateQueries({ queryKey: ['bd-orgs-tab'] });
+      qc.invalidateQueries({ queryKey: ['bd-org-detail', accountId] });
+      qc.invalidateQueries({ queryKey: ['bd-org-activities', accountId] });
       onOpenChange(false);
     } catch (e: any) {
       toast.error(e?.message || 'Failed to save visit');

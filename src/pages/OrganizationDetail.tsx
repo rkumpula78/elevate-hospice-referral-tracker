@@ -20,6 +20,7 @@ import AIQuickHelp from '@/components/dashboard/AIQuickHelp';
 import AccountGrowthCard from '@/components/crm/AccountGrowthCard';
 import StrategicActionsManager from '@/components/crm/StrategicActionsManager';
 import QuickLogActivitySheet from '@/components/crm/QuickLogActivitySheet';
+import BDPipelineCard from '@/components/bd/BDPipelineCard';
 
 const OrganizationDetail = () => {
   const { id } = useParams();
@@ -438,6 +439,8 @@ const OrganizationDetail = () => {
               </CardContent>
             </Card>
           </div>
+
+          <BDPipelineCard organization={organization} />
 
           {/* Intelligence Notes */}
           {(organization.competitive_landscape || organization.financial_health_notes || organization.expansion_plans || organization.regulatory_notes) && (

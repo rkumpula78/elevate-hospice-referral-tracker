@@ -1,7 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { differenceInDays, format, isPast, parseISO } from 'date-fns';
-import { Search, Check, Plus, ChevronDown, X, AlertTriangle } from 'lucide-react';
+import { Search, Check, Plus, ChevronDown, X, AlertTriangle, ExternalLink } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
@@ -282,12 +283,22 @@ const BDAccountsTab: React.FC = () => {
                   return (
                     <TableRow key={a.id} className="hover:bg-muted/40">
                       <TableCell>
-                        <button
-                          className="font-medium text-primary hover:underline text-left"
-                          onClick={() => setSelectedId(a.id)}
-                        >
-                          {a.name}
-                        </button>
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            className="font-medium text-primary hover:underline text-left"
+                            onClick={() => setSelectedId(a.id)}
+                          >
+                            {a.name}
+                          </button>
+                          <Link
+                            to={`/organizations/${a.id}`}
+                            className="text-muted-foreground hover:text-primary"
+                            title="Open full profile"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <ExternalLink className="w-3.5 h-3.5" />
+                          </Link>
+                        </div>
                       </TableCell>
                       <TableCell>
                         {a.bd_tier ? (
