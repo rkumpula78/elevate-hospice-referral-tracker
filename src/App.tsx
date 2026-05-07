@@ -38,6 +38,7 @@ import KPIPage from "./pages/KPIPage";
 import AskElevateAIPage from "./pages/AskElevateAIPage";
 import StoryLibraryPage from "./pages/StoryLibraryPage";
 import BDDashboardPage from "./pages/BDDashboardPage";
+import MyDayPage from "./pages/MyDayPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -65,7 +66,8 @@ const ProtectedLayout = () => {
         <AppSidebar />
           <div className="flex-1 overflow-y-auto min-h-0">
             <Routes>
-              <Route index element={<Navigate to="/dashboard" replace />} />
+              <Route index element={<Navigate to="/my-day" replace />} />
+              <Route path="my-day" element={<MyDayPage />} />
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="referrals" element={<ReferralsPage />} />
               <Route path="patients" element={<PatientsPage />} />
