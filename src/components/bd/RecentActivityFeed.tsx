@@ -53,7 +53,7 @@ const RecentActivityFeed: React.FC = () => {
         .limit(10);
       if (error) throw error;
 
-      const ids = Array.from(new Set((data || []).map((r: any) => r.organization_id).filter(Boolean)));
+      const ids = Array.from(new Set((data || []).map((r: any) => r.organization_id).filter(Boolean))) as string[];
       let accounts: Record<string, any> = {};
       if (ids.length) {
         const { data: accs } = await supabase
