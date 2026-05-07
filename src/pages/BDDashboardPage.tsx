@@ -155,7 +155,6 @@ const BDDashboardPage = () => {
             )}
           </section>
 
-          <RecentActivityFeed />
 
           {/* Section 2 */}
           <section>
