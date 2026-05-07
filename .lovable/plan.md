@@ -1,64 +1,132 @@
 
+# Plan: Simplify & Focus the Elevate CRM
 
-## Fix bundle: search, duplicates, schema error, admin promotions
+After reviewing the codebase, the core problem isn't missing features — it's **too many of them**, with three parallel "activity logging" systems and overlapping navigation. The app today has 18+ top-level pages, two account systems (`bd_accounts` + `organizations`), and three activity tables (`bd_activities`, `activity_communications`, plus inline activity logs on contacts).
 
-### 1. Organizations search (top bar)
-Add a debounced search input to `OrganizationsList.tsx` mirroring the Referrals search pattern (Ctrl/Cmd+K focus, X clear, result counter). Searches across: name, dba_name, contact_person, contact_email, phone, address, assigned_marketer, type.
+A marketer should be able to: see what to do today → drive to it → log it in 60 seconds → see the pipeline move. Everything else is decoration.
 
-### 2. Fix "benefit_period column not found" save error
-**Root cause**: In `EditReferralDialog.tsx` line ~622, the Status/Notes tab `<Select>` is named `name="benefit_period"` but the database column is `benefit_period_number`. The form submit handler reads `formData.get('benefit_period')` and writes that key directly to Supabase.
-**Fix**: Rename the `<Select name="benefit_period">` to `name="benefit_period_number"` and ensure the submit handler coerces it to integer (matches `AddReferralDialog` pattern).
+---
 
-### 3. Close-reason required for Closed status (Edit dialog)
-The wizard already enforces this (`StepClinicalDetails`), but `EditReferralDialog` has no Close Reason field. Add a conditional `<Select name="reason_for_non_admittance">` with the same options (Patient Choice, Not Appropriate, Lost Contact, Deceased) that appears only when status === 'closed', and block submit with a toast if empty.
+## Guiding principles
 
-### 4. Duplicate-prevention on Add (Org + Patient/Referral)
-- **Organizations** (`EnhancedAddOrganizationDialog`): on name blur (and before submit), query `organizations` for fuzzy name matches (`ilike %name%`). If matches found, show a "Possible duplicates" panel listing them with "Use this one" links and a "Continue anyway" confirm checkbox required to proceed.
-- **Referrals/Patients** (wizard `StepPatientInfo` already has duplicate detection on patient name blur per memory): tighten so the Next button is disabled until the user explicitly acknowledges any matches via a "Not a duplicate, continue" checkbox.
+1. **One source of truth per concept.** One accounts table, one activity table, one place to log a visit.
+2. **Two personas, two homes.** Marketer = "My Day". Leadership/John = "BD Dashboard". Everything else is a drill-down.
+3. **Cut anything not used weekly.** Hide vs delete: hide first behind admin/feature flag; delete after 2 weeks of disuse.
+4. **Mobile-first stays.** The FAB + 60-second visit log is the heartbeat.
 
-### 5. Allow deleting duplicates
-Add a row-level "Delete" action (trash icon, admin/healthcare-staff only) to:
-- `OrganizationsList.tsx` list + card views — soft delete via `is_active = false` (or hard delete admin-only), with confirm AlertDialog.
-- `PatientsList.tsx` — soft delete (`deleted_at = now()`) with confirm AlertDialog.
-- Referrals already support bulk delete; add single-row delete to `ReferralCard` overflow menu for parity.
+---
 
-All deletes write to `admin_audit_log` and invalidate React Query caches.
+## Part 1 — Consolidate the data model
 
-### 6. Differentiate Palliative Outreach vs Referrals (visual + label)
-- Add a colored left border + "Palliative" pill badge (amber) on any referral card whose status is `palliative_outreach` or `not_appropriate` so they stand out anywhere they appear (Referrals list, Kanban, Dashboard, Search results).
-- In the Referrals page, the Palliative tab already filters separately; add a short helper line under the tab header explaining: *"Palliative Outreach tracks pre-hospice patients. Convert to Hospice by changing status to Admitted."*
-- In the global Referrals list, exclude `palliative_outreach`/`not_appropriate` by default (with a toggle to include them) so the two pipelines are clearly separated.
+**Accounts:** Retire `bd_accounts` as a separate table. Migrate `tier`, `next_step`, `next_step_date`, `anneli_covisit_status` onto `organizations` (most fields already exist). Backfill the 18 known matches; create `organizations` rows for the remaining ~91 BD accounts with `assigned_marketer = 'John Guerrero'`. Keep Tier E ("DD Homes — Deferred") as a filter, not a separate workspace.
 
-### 7. Make Bethany & Jodie admins
-Insert into `user_roles` (admin role) for:
-- Bethany Odenbrett — `b1057a58-9e99-4d06-9276-0435d603dffd`
-- Jodie Ramsey — `3da8b92a-8b9e-4972-9b41-605db069c231`
+**Activities:** Standardize on `bd_activities` for all visit/call/email logging (it's the simpler, newer schema). Migrate any still-useful rows from `activity_communications` then deprecate that table for new writes. The org detail's "Activity Log" tab reads from `bd_activities` going forward.
 
-Logged in `admin_audit_log` with action `assign_admin_role`.
+**Result:** One Accounts page, one Activity stream, one Log Visit form everywhere.
 
-### 8. Fix "Create User Edge function returned an error"
-Investigation: `AdminUsersPage.handleAddUser` calls `validate-signup` with both `password` and `mode: 'admin-invite'`, but the admin-invite branch only does `inviteUserByEmail` (which sends an invite — no password is set, and Supabase invite may reject when the email already has a pending invite, returning a generic 400 surfaced as "Edge function returned an error").
+---
 
-Fix:
-- Update `validate-signup` admin-invite branch to: (a) if `password` is provided, use `adminClient.auth.admin.createUser({ email, password, email_confirm: true, user_metadata })` instead of `inviteUserByEmail`, so admins can directly create a working account; (b) return clearer error messages (currently generic "Failed to send invitation").
-- Update the dialog to show the real error string from the function response.
-- Make the "Password" field optional in the Add User dialog: if empty → invite flow; if provided → direct create flow.
+## Part 2 — Collapse the navigation
 
-### Technical notes
-- All RLS already permits authenticated users for org/referral writes; no new policies needed.
-- Soft-delete columns: `organizations.is_active` (existing), `patients.deleted_at` (verify exists, add migration if missing), `referrals.deleted_at` (existing).
-- Edge function changes redeploy automatically.
-- No schema changes needed for the `benefit_period` fix — it's purely a frontend field-name bug.
+Current sidebar has 11 visible items + 2 admin. Proposed:
 
-### Files to edit
-- `src/components/crm/OrganizationsList.tsx` (search, delete action)
-- `src/components/crm/EnhancedAddOrganizationDialog.tsx` (duplicate check)
-- `src/components/crm/EditReferralDialog.tsx` (rename benefit_period field, add close reason)
-- `src/components/crm/PatientsList.tsx` (delete action)
-- `src/components/crm/ReferralCard.tsx` + `ReferralKanban.tsx` (palliative styling, delete)
-- `src/components/crm/referral-wizard/StepPatientInfo.tsx` (duplicate gate)
-- `src/pages/ReferralsPage.tsx` (default-exclude palliative from main list, helper text)
-- `src/pages/AdminUsersPage.tsx` (better error surfacing, optional password)
-- `supabase/functions/validate-signup/index.ts` (createUser path, error clarity)
-- New migration: assign admin role to Bethany & Jodie; add `patients.deleted_at` if missing.
+```text
+PRIMARY (always visible)
+  My Day         (default landing — personalized for the signed-in marketer)
+  Referrals      (pipeline + kanban)
+  Accounts       (was: Organizations + BD Accounts merged)
+  Schedule       (calendar + route map combined)
+  BD Dashboard   (weekly review — leadership view)
 
+TOOLS (collapsible)
+  Territory Map
+  Story Library
+  Ask Elevate AI
+
+INSIGHTS (collapsible, leadership)
+  KPI Dashboard
+  Analytics
+  Reports
+
+ADMIN (admin-only)
+  Users · Care Team Staff · Settings
+```
+
+Removed/merged:
+- **Patients** → folded into Referrals (a referral *is* a patient record; the separate page duplicates).
+- **Marketing** → merged into Story Library (both are content libraries).
+- **Compliance** → moved into Reports as a tab.
+- **Training** → kept but moved under Tools (not used daily).
+- **Map + Schedule** → combined; the "route this week" view belongs next to the calendar.
+
+Net: 11 → 5 primary items.
+
+---
+
+## Part 3 — Unify "Log Activity" 
+
+Today there are **four** entry points: BD `LogVisitSheet`, `QuickLogActivityDialog`, `QuickLogActivitySheet`, `MobileQuickActivitySheet`. Pick one (the BD `LogVisitSheet`, it's the cleanest), make it the single component, and mount it behind:
+- the global FAB (mobile + desktop, all pages)
+- the "+ Log Visit" button on Account detail (pre-fills org)
+- the recent-activity feed row → edit mode
+
+Delete the other three components.
+
+---
+
+## Part 4 — Sharpen "My Day" (the marketer's home)
+
+Today `MyDayView` exists but the default route is the generic `Dashboard`. Make **My Day** the landing page for non-admins. It shows, in order:
+
+1. **Today's route** — 3–6 accounts to visit, one-tap call/navigate/log.
+2. **Overdue follow-ups** — count + list, one-tap dismiss or reschedule.
+3. **Goal progress this week** — visits, co-visits, CRM same-day %.
+4. **New referrals assigned to me** — quick-glance card.
+
+Everything else from the old Dashboard (census, growth metrics, alerts) moves to the **BD Dashboard** (leadership) or is dropped.
+
+---
+
+## Part 5 — Sharpen "BD Dashboard" (leadership)
+
+Already mostly built. Tighten:
+- Remove the "Recent Activity Feed" from this page (it belongs on Accounts/Org detail).
+- Keep: weekly metrics, pipeline-by-tier table, referral attribution, referral mix.
+- Add a "Stuck accounts" widget: pre_referral status with no contact > 21 days.
+
+---
+
+## Part 6 — Cleanup checklist (code-level)
+
+- Delete: `bd_accounts` table + `BDAccountsTab` references to it (already migrating).
+- Delete components: `QuickLogActivityDialog`, `QuickLogActivitySheet`, `MobileQuickActivitySheet`, `MobileQuickReferralSheet` (consolidate into BD `LogVisitSheet` + `MobileFAB`).
+- Delete pages: `PatientsPage`, `MarketingPage`, `CompliancePage` (content moved).
+- Delete `PatientDetail` route — referral detail covers it.
+- Audit `src/components/crm/` — there are 50+ components, many duplicates (e.g. `EditOrganizationDialog` + `EnhancedEditOrganizationDialog` + `EnhancedAddOrganizationDialog`). Keep the "Enhanced" versions, delete the originals.
+- Audit `src/components/dashboard/` — drop widgets not used in My Day or BD Dashboard.
+
+Estimated removal: ~30 component files, 3 pages, 1 table, ~3000 LOC.
+
+---
+
+## Part 7 — Rollout order
+
+1. **Migration**: backfill `organizations` from `bd_accounts`, add missing columns, switch BDAccountsTab to read from `organizations` only. *(Already partially done.)*
+2. **Nav refactor**: collapse sidebar to the 5+groups structure above; make `/my-day` the default.
+3. **Activity consolidation**: route all log-visit entry points through `LogVisitSheet`; remove duplicates.
+4. **Page deletions**: remove Patients/Marketing/Compliance pages and routes.
+5. **Component cleanup**: delete duplicates from `crm/` and `dashboard/`.
+6. **Polish**: stuck-accounts widget on BD Dashboard, My Day priority sort.
+
+Each step ships independently and is reversible.
+
+---
+
+## Open questions before I start
+
+1. **Patients page** — confirm OK to remove? Anyone using it standalone (vs always navigating from a referral)?
+2. **Training** — is this actively used, or can it move to Settings/Admin?
+3. **Tier E (DD Homes)** — keep as filter only, or fully archive (hide unless toggled)?
+4. **Default landing** — make My Day the landing for marketers, BD Dashboard for John, current Dashboard for admins? Or one landing for everyone?
+
+Answer these and I'll execute Parts 1–7 in order.
