@@ -3,10 +3,10 @@ import { Link, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { getQueueLength } from '@/lib/offlineQueue';
-import { 
-  LayoutDashboard, 
-  Building, 
-  Phone, 
+import {
+  LayoutDashboard,
+  Building,
+  Phone,
   Calendar,
   FileText,
   BarChart3,
@@ -16,10 +16,11 @@ import {
   Activity,
   ChevronDown,
   TrendingUp,
-  Megaphone,
   MapPin,
+  BookOpen,
   Sparkles,
-  BookOpen
+  GraduationCap,
+  Sunrise,
 } from "lucide-react";
 import {
   Sidebar,
@@ -52,20 +53,24 @@ const NotificationBadge = ({ count }: { count: number }) => {
 };
 
 const primaryItems = [
-  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
+  { title: "My Day", url: "/my-day", icon: Sunrise },
   { title: "Referrals", url: "/referrals", icon: Phone },
-  { title: "Organizations", url: "/organizations", icon: Building },
+  { title: "Accounts", url: "/organizations", icon: Building },
   { title: "Schedule", url: "/schedule", icon: Calendar },
+  { title: "BD Dashboard", url: "/bd-dashboard", icon: TrendingUp },
+];
+
+const toolsItems = [
   { title: "Territory Map", url: "/map", icon: MapPin },
   { title: "Story Library", url: "/stories", icon: BookOpen },
-  { title: "BD Dashboard", url: "/bd-dashboard", icon: TrendingUp },
+  { title: "Ask Elevate AI", url: "/ask-elevate", icon: Sparkles },
+  { title: "Training", url: "/training", icon: GraduationCap },
 ];
 
 const insightsItems = [
   { title: "KPI Dashboard", url: "/kpi", icon: Activity },
   { title: "Analytics", url: "/analytics", icon: BarChart3 },
   { title: "Reports", url: "/reports", icon: FileText },
-  { title: "Marketing", url: "/marketing", icon: Megaphone },
 ];
 
 const AppSidebar = () => {
