@@ -264,63 +264,6 @@ const BDDashboardPage = () => {
   );
 };
 
-const BDAccountsTab = () => {
-  const { data, isLoading } = useQuery({
-    queryKey: ['bd-accounts-list'],
-    queryFn: async () => {
-      const { data, error } = await (supabase as any)
-        .from('bd_accounts')
-        .select('*')
-        .order('tier', { ascending: true })
-        .order('account_name', { ascending: true });
-      if (error) throw error;
-      return data as any[];
-    },
-  });
-
-  if (isLoading) return <Skeleton className="h-64" />;
-  const rows = data || [];
-
-  return (
-    <Card>
-      <CardContent className="p-0 overflow-x-auto">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Account</TableHead>
-              <TableHead>Tier</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>City</TableHead>
-              <TableHead>Decision Maker</TableHead>
-              <TableHead>Last Visit</TableHead>
-              <TableHead>Next Step</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {rows.length === 0 ? (
-              <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">No BD accounts yet</TableCell></TableRow>
-            ) : rows.map(r => (
-              <TableRow key={r.id}>
-                <TableCell className="font-medium">{r.account_name}</TableCell>
-                <TableCell><Badge variant="outline">{r.tier || '—'}</Badge></TableCell>
-                <TableCell>{r.status || '—'}</TableCell>
-                <TableCell>{r.city || '—'}</TableCell>
-                <TableCell>
-                  {r.decision_maker_name || '—'}
-                  {r.decision_maker_title && <div className="text-xs text-muted-foreground">{r.decision_maker_title}</div>}
-                </TableCell>
-                <TableCell>{r.last_visit_date ? format(new Date(r.last_visit_date), 'MMM d, yyyy') : '—'}</TableCell>
-                <TableCell>
-                  {r.next_step || '—'}
-                  {r.next_step_date && <div className="text-xs text-muted-foreground">{format(new Date(r.next_step_date), 'MMM d')}</div>}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
-  );
-};
+import BDAccountsTab from '@/components/bd/BDAccountsTab';
 
 export default BDDashboardPage;
