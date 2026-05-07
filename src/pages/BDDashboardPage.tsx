@@ -155,6 +155,8 @@ const BDDashboardPage = () => {
             )}
           </section>
 
+          <RecentActivityFeed />
+
           {/* Section 2 */}
           <section>
             <h2 className="text-lg font-semibold mb-3">Pipeline by Tier</h2>
@@ -245,6 +247,19 @@ const BDDashboardPage = () => {
           <BDAccountsTab />
         </TabsContent>
       </Tabs>
+
+      {/* Floating Action Button */}
+      <Button
+        onClick={() => setLogOpen(true)}
+        className="fixed bottom-6 right-6 z-40 h-14 w-14 sm:h-auto sm:w-auto sm:px-5 sm:py-3 rounded-full shadow-xl"
+        size="lg"
+        aria-label="Log Visit"
+      >
+        <Plus className="w-6 h-6 sm:mr-2" />
+        <span className="hidden sm:inline">Log Visit</span>
+      </Button>
+
+      <LogVisitSheet open={logOpen} onOpenChange={setLogOpen} />
     </PageLayout>
   );
 };
