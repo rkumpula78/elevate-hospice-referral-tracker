@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { startOfMonth, startOfWeek, format } from 'date-fns';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, Plus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import PageLayout from '@/components/layout/PageLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -12,6 +12,8 @@ import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, Cell } from 'recharts';
+import LogVisitSheet from '@/components/bd/LogVisitSheet';
+import RecentActivityFeed from '@/components/bd/RecentActivityFeed';
 
 type PipelineRow = { tier: string; status: string; cnt: number };
 
@@ -59,6 +61,7 @@ const MetricCard = ({
 const BDDashboardPage = () => {
   const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
   const monthStart = startOfMonth(new Date());
+  const [logOpen, setLogOpen] = useState(false);
 
   const { data, isLoading, refetch, isFetching } = useQuery({
     queryKey: ['bd-weekly-dashboard'],
@@ -152,6 +155,8 @@ const BDDashboardPage = () => {
             )}
           </section>
 
+          <RecentActivityFeed />
+
           {/* Section 2 */}
           <section>
             <h2 className="text-lg font-semibold mb-3">Pipeline by Tier</h2>
@@ -242,6 +247,19 @@ const BDDashboardPage = () => {
           <BDAccountsTab />
         </TabsContent>
       </Tabs>
+
+      {/* Floating Action Button */}
+      <Button
+        onClick={() => setLogOpen(true)}
+        className="fixed bottom-6 right-6 z-40 h-14 w-14 sm:h-auto sm:w-auto sm:px-5 sm:py-3 rounded-full shadow-xl"
+        size="lg"
+        aria-label="Log Visit"
+      >
+        <Plus className="w-6 h-6 sm:mr-2" />
+        <span className="hidden sm:inline">Log Visit</span>
+      </Button>
+
+      <LogVisitSheet open={logOpen} onOpenChange={setLogOpen} />
     </PageLayout>
   );
 };
