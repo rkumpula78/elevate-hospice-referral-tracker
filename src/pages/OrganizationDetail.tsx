@@ -440,6 +440,8 @@ const OrganizationDetail = () => {
             </Card>
           </div>
 
+          <BDPipelineCard organization={organization} />
+
           {/* Intelligence Notes */}
           {(organization.competitive_landscape || organization.financial_health_notes || organization.expansion_plans || organization.regulatory_notes) && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
