@@ -82,6 +82,8 @@ const AppSidebar = () => {
 
   const insightsActive = insightsItems.some(i => location.pathname === i.url);
   const [insightsOpen, setInsightsOpen] = useState(insightsActive);
+  const toolsActive = toolsItems.some(i => location.pathname === i.url);
+  const [toolsOpen, setToolsOpen] = useState(toolsActive);
 
   // Offline queue badge
   const [pendingCount, setPendingCount] = useState(getQueueLength());
