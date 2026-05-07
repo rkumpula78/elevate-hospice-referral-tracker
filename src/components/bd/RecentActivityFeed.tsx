@@ -48,21 +48,21 @@ const RecentActivityFeed: React.FC = () => {
     queryFn: async () => {
       const { data, error } = await (supabase as any)
         .from('bd_activities')
-        .select('id, account_id, activity_date, activity_type, anneli_present, outcome, notes, next_step, next_step_date, logged_at')
+        .select('id, organization_id, activity_date, activity_type, anneli_present, outcome, notes, next_step, next_step_date, logged_at')
         .order('logged_at', { ascending: false })
         .limit(10);
       if (error) throw error;
 
-      const ids = Array.from(new Set((data || []).map((r: any) => r.account_id).filter(Boolean)));
+      const ids = Array.from(new Set((data || []).map((r: any) => r.organization_id).filter(Boolean)));
       let accounts: Record<string, any> = {};
       if (ids.length) {
-        const { data: accs } = await (supabase as any)
-          .from('bd_accounts')
-          .select('id, account_name')
+        const { data: accs } = await supabase
+          .from('organizations')
+          .select('id, name')
           .in('id', ids);
-        (accs || []).forEach((a: any) => { accounts[a.id] = a; });
+        (accs || []).forEach((a: any) => { accounts[a.id] = { id: a.id, account_name: a.name }; });
       }
-      return (data || []).map((r: any) => ({ ...r, account: accounts[r.account_id] }));
+      return (data || []).map((r: any) => ({ ...r, account: accounts[r.organization_id] }));
     },
   });
 
