@@ -61,6 +61,7 @@ const MetricCard = ({
 const BDDashboardPage = () => {
   const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
   const monthStart = startOfMonth(new Date());
+  const [logOpen, setLogOpen] = useState(false);
 
   const { data, isLoading, refetch, isFetching } = useQuery({
     queryKey: ['bd-weekly-dashboard'],
