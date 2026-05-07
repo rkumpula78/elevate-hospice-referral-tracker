@@ -200,7 +200,7 @@ const AppSidebar = () => {
                           <span className="relative">
                             <item.icon className="w-5 h-5" />
                             {item.url === '/referrals' && <NotificationBadge count={newReferralCount} />}
-                            {item.url === '/dashboard' && <NotificationBadge count={overdueCount} />}
+                            {item.url === '/my-day' && <NotificationBadge count={overdueCount} />}
                           </span>
                           <span className={isMobile ? 'text-base' : ''}>{item.title}</span>
                         </Link>
@@ -208,6 +208,42 @@ const AppSidebar = () => {
                     </SidebarMenuItem>
                   );
                 })}
+
+                {/* Tools collapsible group */}
+                <Collapsible open={toolsOpen || toolsActive} onOpenChange={setToolsOpen}>
+                  <SidebarMenuItem>
+                    <CollapsibleTrigger asChild>
+                      <button
+                        className={`flex items-center gap-3 rounded-lg transition-all touch-manipulation w-full ${
+                          isMobile ? 'px-3 py-3 min-h-[44px]' : 'px-3 py-2'
+                        } ${
+                          toolsActive
+                            ? 'text-sidebar-primary-foreground font-medium'
+                            : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+                        }`}
+                      >
+                        <Sparkles className="w-5 h-5" />
+                        <span className={`flex-1 text-left ${isMobile ? 'text-base' : ''}`}>Tools</span>
+                        <ChevronDown className={`w-4 h-4 transition-transform ${toolsOpen || toolsActive ? 'rotate-180' : ''}`} />
+                      </button>
+                    </CollapsibleTrigger>
+                  </SidebarMenuItem>
+                  <CollapsibleContent>
+                    {toolsItems.map((item) => {
+                      const isActive = location.pathname === item.url;
+                      return (
+                        <SidebarMenuItem key={item.title}>
+                          <SidebarMenuButton asChild isActive={isActive}>
+                            <Link to={item.url} onClick={handleLinkClick} className={`${linkClass(isActive)} ml-4`}>
+                              <item.icon className="w-4 h-4" />
+                              <span className={isMobile ? 'text-base' : 'text-sm'}>{item.title}</span>
+                            </Link>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      );
+                    })}
+                  </CollapsibleContent>
+                </Collapsible>
 
                 {/* Insights collapsible group */}
                 <Collapsible open={insightsOpen || insightsActive} onOpenChange={setInsightsOpen}>
@@ -222,7 +258,7 @@ const AppSidebar = () => {
                             : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                         }`}
                       >
-                        <TrendingUp className="w-5 h-5" />
+                        <BarChart3 className="w-5 h-5" />
                         <span className={`flex-1 text-left ${isMobile ? 'text-base' : ''}`}>Insights</span>
                         <ChevronDown className={`w-4 h-4 transition-transform ${insightsOpen || insightsActive ? 'rotate-180' : ''}`} />
                       </button>
