@@ -14,6 +14,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, Cell } from 'recharts';
 import LogVisitSheet from '@/components/bd/LogVisitSheet';
 import RecentActivityFeed from '@/components/bd/RecentActivityFeed';
+import BDAccountsTab from '@/components/bd/BDAccountsTab';
 
 type PipelineRow = { tier: string; status: string; cnt: number };
 
