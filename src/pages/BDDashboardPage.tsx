@@ -76,9 +76,9 @@ const BDDashboardPage = () => {
         supabase.from('referrals').select('referral_source').is('deleted_at', null),
       ]);
 
-      // Filter referrals this month to those linked to bd_accounts orgs
-      const { data: bdOrgs } = await (supabase as any).from('bd_accounts').select('referring_org_id').not('referring_org_id', 'is', null);
-      const orgSet = new Set((bdOrgs || []).map((r: any) => r.referring_org_id));
+      // Filter referrals this month to those linked to BD pipeline orgs (bd_tier set)
+      const { data: bdOrgs } = await supabase.from('organizations').select('id').not('bd_tier', 'is', null);
+      const orgSet = new Set((bdOrgs || []).map((r: any) => r.id));
       const refsMonth = (refMonthRes.data || []).filter((r: any) => orgSet.has(r.organization_id)).length;
 
       // Top 5 sources
@@ -135,7 +135,7 @@ const BDDashboardPage = () => {
       <Tabs defaultValue="dashboard" className="w-full">
         <TabsList>
           <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-          <TabsTrigger value="accounts">Accounts</TabsTrigger>
+          <TabsTrigger value="accounts">My Pipeline</TabsTrigger>
         </TabsList>
 
         <TabsContent value="dashboard" className="space-y-6">
