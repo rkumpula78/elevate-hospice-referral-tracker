@@ -20,6 +20,7 @@ import AIQuickHelp from '@/components/dashboard/AIQuickHelp';
 import AccountGrowthCard from '@/components/crm/AccountGrowthCard';
 import StrategicActionsManager from '@/components/crm/StrategicActionsManager';
 import QuickLogActivitySheet from '@/components/crm/QuickLogActivitySheet';
+import BDPipelineCard from '@/components/bd/BDPipelineCard';
 
 const OrganizationDetail = () => {
   const { id } = useParams();
