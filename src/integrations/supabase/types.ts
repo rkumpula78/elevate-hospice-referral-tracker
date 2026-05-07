@@ -222,141 +222,52 @@ export type Database = {
         }
         Relationships: []
       }
-      bd_accounts: {
-        Row: {
-          account_name: string
-          account_type: string
-          address: string | null
-          anneli_covisit_status: string | null
-          city: string | null
-          competitive_risk: string | null
-          created_at: string | null
-          decision_maker_email: string | null
-          decision_maker_name: string | null
-          decision_maker_title: string | null
-          first_referral_date: string | null
-          id: string
-          last_visit_date: string | null
-          next_step: string | null
-          next_step_date: string | null
-          notes: string | null
-          owner_user_id: string | null
-          phone: string | null
-          priority: string | null
-          referring_org_id: string | null
-          status: string
-          tier: string
-          updated_at: string | null
-        }
-        Insert: {
-          account_name: string
-          account_type: string
-          address?: string | null
-          anneli_covisit_status?: string | null
-          city?: string | null
-          competitive_risk?: string | null
-          created_at?: string | null
-          decision_maker_email?: string | null
-          decision_maker_name?: string | null
-          decision_maker_title?: string | null
-          first_referral_date?: string | null
-          id?: string
-          last_visit_date?: string | null
-          next_step?: string | null
-          next_step_date?: string | null
-          notes?: string | null
-          owner_user_id?: string | null
-          phone?: string | null
-          priority?: string | null
-          referring_org_id?: string | null
-          status?: string
-          tier: string
-          updated_at?: string | null
-        }
-        Update: {
-          account_name?: string
-          account_type?: string
-          address?: string | null
-          anneli_covisit_status?: string | null
-          city?: string | null
-          competitive_risk?: string | null
-          created_at?: string | null
-          decision_maker_email?: string | null
-          decision_maker_name?: string | null
-          decision_maker_title?: string | null
-          first_referral_date?: string | null
-          id?: string
-          last_visit_date?: string | null
-          next_step?: string | null
-          next_step_date?: string | null
-          notes?: string | null
-          owner_user_id?: string | null
-          phone?: string | null
-          priority?: string | null
-          referring_org_id?: string | null
-          status?: string
-          tier?: string
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "bd_accounts_referring_org_id_fkey"
-            columns: ["referring_org_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       bd_activities: {
         Row: {
-          account_id: string
           activity_date: string
           activity_type: string
           anneli_present: boolean | null
-          attendees: string[] | null
           id: string
           logged_at: string | null
           logged_by_user_id: string | null
           next_step: string | null
           next_step_date: string | null
           notes: string | null
+          organization_id: string
           outcome: string | null
         }
         Insert: {
-          account_id: string
           activity_date?: string
           activity_type: string
           anneli_present?: boolean | null
-          attendees?: string[] | null
           id?: string
           logged_at?: string | null
           logged_by_user_id?: string | null
           next_step?: string | null
           next_step_date?: string | null
           notes?: string | null
+          organization_id: string
           outcome?: string | null
         }
         Update: {
-          account_id?: string
           activity_date?: string
           activity_type?: string
           anneli_present?: boolean | null
-          attendees?: string[] | null
           id?: string
           logged_at?: string | null
           logged_by_user_id?: string | null
           next_step?: string | null
           next_step_date?: string | null
           notes?: string | null
+          organization_id?: string
           outcome?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "bd_activities_account_id_fkey"
-            columns: ["account_id"]
+            foreignKeyName: "bd_activities_organization_id_fkey"
+            columns: ["organization_id"]
             isOneToOne: false
-            referencedRelation: "bd_accounts"
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -1339,7 +1250,10 @@ export type Database = {
           account_rating: string | null
           address: string | null
           after_hours_contact: string | null
+          anneli_covisit_status: string | null
           assigned_marketer: string | null
+          bd_status: string | null
+          bd_tier: string | null
           bed_count: number | null
           competition_level: string | null
           competitive_landscape: string | null
@@ -1397,7 +1311,10 @@ export type Database = {
           account_rating?: string | null
           address?: string | null
           after_hours_contact?: string | null
+          anneli_covisit_status?: string | null
           assigned_marketer?: string | null
+          bd_status?: string | null
+          bd_tier?: string | null
           bed_count?: number | null
           competition_level?: string | null
           competitive_landscape?: string | null
@@ -1455,7 +1372,10 @@ export type Database = {
           account_rating?: string | null
           address?: string | null
           after_hours_contact?: string | null
+          anneli_covisit_status?: string | null
           assigned_marketer?: string | null
+          bd_status?: string | null
+          bd_tier?: string | null
           bed_count?: number | null
           competition_level?: string | null
           competitive_landscape?: string | null

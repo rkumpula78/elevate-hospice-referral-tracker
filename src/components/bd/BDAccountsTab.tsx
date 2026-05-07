@@ -38,9 +38,10 @@ const STATUS_BY_KEY = Object.fromEntries(STATUS_OPTIONS.map(s => [s.key, s]));
 const TIER_FILTERS = [
   { key: 'all', label: 'All' },
   { key: 'A', label: 'A - ALFs' },
-  { key: 'B', label: 'B - DD Homes' },
+  { key: 'B', label: 'B - Home Health' },
   { key: 'C', label: 'C - SNFs' },
   { key: 'D', label: 'D - Physicians' },
+  { key: 'E', label: 'E - DD Homes (Deferred)' },
 ];
 
 const TIER_CHIP: Record<string, string> = {
@@ -48,6 +49,7 @@ const TIER_CHIP: Record<string, string> = {
   B: 'bg-blue-100 text-blue-800 border-blue-300',
   C: 'bg-teal-100 text-teal-800 border-teal-300',
   D: 'bg-purple-100 text-purple-800 border-purple-300',
+  E: 'bg-gray-100 text-gray-700 border-gray-300',
 };
 
 const PRIORITY_CHIP: Record<string, string> = {
