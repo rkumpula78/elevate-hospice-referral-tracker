@@ -3,10 +3,10 @@ import { Link, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { getQueueLength } from '@/lib/offlineQueue';
-import { 
-  LayoutDashboard, 
-  Building, 
-  Phone, 
+import {
+  LayoutDashboard,
+  Building,
+  Phone,
   Calendar,
   FileText,
   BarChart3,
@@ -16,10 +16,11 @@ import {
   Activity,
   ChevronDown,
   TrendingUp,
-  Megaphone,
   MapPin,
+  BookOpen,
   Sparkles,
-  BookOpen
+  GraduationCap,
+  Sunrise,
 } from "lucide-react";
 import {
   Sidebar,
@@ -52,20 +53,24 @@ const NotificationBadge = ({ count }: { count: number }) => {
 };
 
 const primaryItems = [
-  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
+  { title: "My Day", url: "/my-day", icon: Sunrise },
   { title: "Referrals", url: "/referrals", icon: Phone },
-  { title: "Organizations", url: "/organizations", icon: Building },
+  { title: "Accounts", url: "/organizations", icon: Building },
   { title: "Schedule", url: "/schedule", icon: Calendar },
+  { title: "BD Dashboard", url: "/bd-dashboard", icon: TrendingUp },
+];
+
+const toolsItems = [
   { title: "Territory Map", url: "/map", icon: MapPin },
   { title: "Story Library", url: "/stories", icon: BookOpen },
-  { title: "BD Dashboard", url: "/bd-dashboard", icon: TrendingUp },
+  { title: "Ask Elevate AI", url: "/ask-elevate", icon: Sparkles },
+  { title: "Training", url: "/training", icon: GraduationCap },
 ];
 
 const insightsItems = [
   { title: "KPI Dashboard", url: "/kpi", icon: Activity },
   { title: "Analytics", url: "/analytics", icon: BarChart3 },
   { title: "Reports", url: "/reports", icon: FileText },
-  { title: "Marketing", url: "/marketing", icon: Megaphone },
 ];
 
 const AppSidebar = () => {
@@ -77,6 +82,8 @@ const AppSidebar = () => {
 
   const insightsActive = insightsItems.some(i => location.pathname === i.url);
   const [insightsOpen, setInsightsOpen] = useState(insightsActive);
+  const toolsActive = toolsItems.some(i => location.pathname === i.url);
+  const [toolsOpen, setToolsOpen] = useState(toolsActive);
 
   // Offline queue badge
   const [pendingCount, setPendingCount] = useState(getQueueLength());
@@ -193,7 +200,7 @@ const AppSidebar = () => {
                           <span className="relative">
                             <item.icon className="w-5 h-5" />
                             {item.url === '/referrals' && <NotificationBadge count={newReferralCount} />}
-                            {item.url === '/dashboard' && <NotificationBadge count={overdueCount} />}
+                            {item.url === '/my-day' && <NotificationBadge count={overdueCount} />}
                           </span>
                           <span className={isMobile ? 'text-base' : ''}>{item.title}</span>
                         </Link>
@@ -201,6 +208,42 @@ const AppSidebar = () => {
                     </SidebarMenuItem>
                   );
                 })}
+
+                {/* Tools collapsible group */}
+                <Collapsible open={toolsOpen || toolsActive} onOpenChange={setToolsOpen}>
+                  <SidebarMenuItem>
+                    <CollapsibleTrigger asChild>
+                      <button
+                        className={`flex items-center gap-3 rounded-lg transition-all touch-manipulation w-full ${
+                          isMobile ? 'px-3 py-3 min-h-[44px]' : 'px-3 py-2'
+                        } ${
+                          toolsActive
+                            ? 'text-sidebar-primary-foreground font-medium'
+                            : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+                        }`}
+                      >
+                        <Sparkles className="w-5 h-5" />
+                        <span className={`flex-1 text-left ${isMobile ? 'text-base' : ''}`}>Tools</span>
+                        <ChevronDown className={`w-4 h-4 transition-transform ${toolsOpen || toolsActive ? 'rotate-180' : ''}`} />
+                      </button>
+                    </CollapsibleTrigger>
+                  </SidebarMenuItem>
+                  <CollapsibleContent>
+                    {toolsItems.map((item) => {
+                      const isActive = location.pathname === item.url;
+                      return (
+                        <SidebarMenuItem key={item.title}>
+                          <SidebarMenuButton asChild isActive={isActive}>
+                            <Link to={item.url} onClick={handleLinkClick} className={`${linkClass(isActive)} ml-4`}>
+                              <item.icon className="w-4 h-4" />
+                              <span className={isMobile ? 'text-base' : 'text-sm'}>{item.title}</span>
+                            </Link>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      );
+                    })}
+                  </CollapsibleContent>
+                </Collapsible>
 
                 {/* Insights collapsible group */}
                 <Collapsible open={insightsOpen || insightsActive} onOpenChange={setInsightsOpen}>
@@ -215,7 +258,7 @@ const AppSidebar = () => {
                             : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                         }`}
                       >
-                        <TrendingUp className="w-5 h-5" />
+                        <BarChart3 className="w-5 h-5" />
                         <span className={`flex-1 text-left ${isMobile ? 'text-base' : ''}`}>Insights</span>
                         <ChevronDown className={`w-4 h-4 transition-transform ${insightsOpen || insightsActive ? 'rotate-180' : ''}`} />
                       </button>
