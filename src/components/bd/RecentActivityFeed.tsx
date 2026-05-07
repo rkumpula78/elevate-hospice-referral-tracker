@@ -91,8 +91,8 @@ const RecentActivityFeed: React.FC = () => {
             <ul className="divide-y">
               {data!.map((row: any) => {
                 const isExpanded = expanded[row.id];
-                const truncated = (row.notes || '').length > 60 && !isExpanded;
-                const displayNotes = truncated ? `${row.notes.slice(0, 60)}…` : row.notes;
+                const truncated = (row.notes || '').length > 80 && !isExpanded;
+                const displayNotes = truncated ? `${row.notes.slice(0, 80)}…` : row.notes;
                 return (
                   <li key={row.id} className="px-4 py-3 hover:bg-muted/30 transition-colors">
                     <div className="flex items-start gap-3">
@@ -123,7 +123,7 @@ const RecentActivityFeed: React.FC = () => {
                         {row.notes && (
                           <p className="text-sm text-muted-foreground">
                             {displayNotes}
-                            {(row.notes || '').length > 60 && (
+                            {(row.notes || '').length > 80 && (
                               <button
                                 className="ml-1 text-xs text-primary hover:underline"
                                 onClick={(e) => { e.stopPropagation(); setExpanded(s => ({ ...s, [row.id]: !isExpanded })); }}
