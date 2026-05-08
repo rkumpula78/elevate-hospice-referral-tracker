@@ -2,6 +2,7 @@ import { useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { clearQueue } from '@/lib/offlineQueue';
 
 const IDLE_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes
 const WARNING_TIMEOUT_MS = 25 * 60 * 1000; // 25 minutes
@@ -13,6 +14,14 @@ export const useSessionTimeout = () => {
   const warningShownRef = useRef(false);
 
   const signOutAndRedirect = useCallback(async () => {
+    try {
+      clearQueue();
+      localStorage.removeItem('searchHistory');
+      localStorage.removeItem('savedSearches');
+      localStorage.removeItem('filterPresets');
+    } catch {
+      // ignore
+    }
     await supabase.auth.signOut();
     navigate('/auth', { replace: true });
     toast({
