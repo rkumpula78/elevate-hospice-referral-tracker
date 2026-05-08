@@ -158,6 +158,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signOut = async () => {
     clearQueue(); // Remove any queued data from localStorage on logout
+    // Clear any PHI-adjacent client-side state (HIPAA: shared workstations)
+    try {
+      localStorage.removeItem('searchHistory');
+      localStorage.removeItem('savedSearches');
+      localStorage.removeItem('filterPresets');
+    } catch {
+      // ignore storage errors
+    }
     await supabase.auth.signOut();
   };
 
