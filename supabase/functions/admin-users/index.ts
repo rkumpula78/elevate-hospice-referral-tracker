@@ -389,6 +389,52 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
+    // SET-ACCESS: Disable (ban) or re-enable a user's ability to log in
+    if (action === "set-access") {
+      if (!userId || typeof enabled !== "boolean") {
+        return new Response(
+          JSON.stringify({ error: { message: "userId and enabled (boolean) are required" } }),
+          { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        );
+      }
+
+      if (userId === userData.user.id && enabled === false) {
+        return new Response(
+          JSON.stringify({ error: { message: "Cannot revoke access to your own account" } }),
+          { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        );
+      }
+
+      // 876000h = 100 years; effectively permanent until restored
+      const ban_duration = enabled ? "none" : "876000h";
+
+      const { error: banError } = await adminClient.auth.admin.updateUserById(userId, {
+        ban_duration,
+      } as any);
+
+      if (banError) {
+        console.error("Set access error:", banError);
+        return new Response(
+          JSON.stringify({ error: { message: "Failed to update access" } }),
+          { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        );
+      }
+
+      await adminClient.from("admin_audit_log").insert({
+        admin_user_id: userData.user.id,
+        action: enabled ? "enable_user" : "disable_user",
+        target_user_id: userId,
+        details: { note: enabled ? "Access restored by admin" : "Access revoked by admin" },
+      });
+
+      return new Response(
+        JSON.stringify({ message: enabled ? "Access restored" : "Access revoked" }),
+        { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+
+
     return new Response(
       JSON.stringify({ error: { message: "Invalid action" } }),
       { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
