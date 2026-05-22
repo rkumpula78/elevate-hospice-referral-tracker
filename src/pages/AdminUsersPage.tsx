@@ -661,6 +661,30 @@ export default function AdminUsersPage() {
                             <Mail className="w-4 h-4" />
                           )}
                         </Button>
+                        {user.status !== 'pending' && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => {
+                              if (user.status === 'disabled') {
+                                setUserAccess(user.id, user.email, true);
+                              } else {
+                                setRevokeConfirmUser(user);
+                              }
+                            }}
+                            disabled={user.id === currentUser?.id || accessUserId === user.id}
+                            title={user.status === 'disabled' ? 'Restore access' : 'Revoke access'}
+                            className={user.status === 'disabled' ? 'text-green-600 hover:text-green-700' : 'text-amber-600 hover:text-amber-700'}
+                          >
+                            {accessUserId === user.id ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : user.status === 'disabled' ? (
+                              <Unlock className="w-4 h-4" />
+                            ) : (
+                              <Lock className="w-4 h-4" />
+                            )}
+                          </Button>
+                        )}
                         <Button
                           size="sm"
                           variant="ghost"
