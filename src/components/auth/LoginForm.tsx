@@ -54,9 +54,16 @@ const LoginForm = ({ onToggleMode, isSignUp }: LoginFormProps) => {
 
       if (error) {
         console.error('Authentication error:', error);
+        const raw = error.message || '';
+        let friendly = raw || 'An error occurred during authentication';
+        if (/email not confirmed|not.*authenticated/i.test(raw)) {
+          friendly = "Your email hasn't been confirmed yet. Please contact your administrator to confirm your account, or check your inbox for the original verification email.";
+        } else if (/invalid login credentials/i.test(raw)) {
+          friendly = 'Incorrect email or password. If you forgot your password, ask an admin to reset it.';
+        }
         toast({
-          title: "Authentication Error",
-          description: error.message || "An error occurred during authentication",
+          title: "Can't sign in",
+          description: friendly,
           variant: "destructive"
         });
       } else if (isSignUp) {

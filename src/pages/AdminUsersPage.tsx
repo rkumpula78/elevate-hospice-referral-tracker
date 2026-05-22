@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from 'sonner';
-import { UserPlus, Trash2, Shield, ShieldOff, Mail, RefreshCw, Loader2, KeyRound, Pencil } from 'lucide-react';
+import { UserPlus, Trash2, Shield, ShieldOff, Mail, RefreshCw, Loader2, KeyRound, Pencil, CheckCircle2 } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
 interface AuthUser {
@@ -37,6 +37,7 @@ export default function AdminUsersPage() {
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
   const [resendingEmail, setResendingEmail] = useState<string | null>(null);
+  const [confirmingUserId, setConfirmingUserId] = useState<string | null>(null);
   const [deletingUser, setDeletingUser] = useState(false);
   const [passwordDialogUser, setPasswordDialogUser] = useState<UserWithRoles | null>(null);
   const [newPassword, setNewPassword] = useState('');
@@ -287,6 +288,26 @@ export default function AdminUsersPage() {
       setResendingEmail(null);
     }
   };
+
+  const confirmEmail = async (userId: string, email: string) => {
+    try {
+      setConfirmingUserId(userId);
+      const { data, error } = await supabase.functions.invoke('admin-users', {
+        body: { action: 'confirm-email', userId },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error.message);
+      toast.success(`${email} can now log in`);
+      loadUsers();
+    } catch (error: any) {
+      console.error('Error confirming email:', error);
+      toast.error(error.message || 'Failed to confirm email');
+    } finally {
+      setConfirmingUserId(null);
+    }
+  };
+
+
 
   const handleSetPassword = async () => {
     if (!passwordDialogUser || !newPassword) return;
@@ -588,6 +609,22 @@ export default function AdminUsersPage() {
                         >
                           <KeyRound className="w-4 h-4" />
                         </Button>
+                        {user.status === 'pending' && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => confirmEmail(user.id, user.email)}
+                            disabled={confirmingUserId === user.id}
+                            title="Confirm email (unblock login without sending an email)"
+                            className="text-green-600 hover:text-green-700"
+                          >
+                            {confirmingUserId === user.id ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <CheckCircle2 className="w-4 h-4" />
+                            )}
+                          </Button>
+                        )}
                         <Button
                           size="sm"
                           variant="ghost"

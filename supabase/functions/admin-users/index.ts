@@ -8,7 +8,7 @@ const corsHeaders = {
 };
 
 interface AdminRequest {
-  action: "list" | "delete" | "resend-invite" | "set-password" | "update-user";
+  action: "list" | "delete" | "resend-invite" | "set-password" | "update-user" | "confirm-email";
   userId?: string;
   email?: string;
   password?: string;
@@ -77,7 +77,7 @@ const handler = async (req: Request): Promise<Response> => {
     const { action, userId, email, password, first_name, last_name, staff_type }: AdminRequest = requestBody;
 
     // Validate action
-    const validActions = ["list", "delete", "resend-invite", "set-password", "update-user"];
+    const validActions = ["list", "delete", "resend-invite", "set-password", "update-user", "confirm-email"];
     if (!action || !validActions.includes(action)) {
       return new Response(
         JSON.stringify({ error: { message: "Invalid action" } }),
@@ -350,6 +350,40 @@ const handler = async (req: Request): Promise<Response> => {
 
       return new Response(
         JSON.stringify({ message: "User updated successfully" }),
+        { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    // CONFIRM-EMAIL: Manually mark a user's email as confirmed so they can log in
+    if (action === "confirm-email") {
+      if (!userId) {
+        return new Response(
+          JSON.stringify({ error: { message: "userId is required" } }),
+          { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        );
+      }
+
+      const { error: confirmError } = await adminClient.auth.admin.updateUserById(userId, {
+        email_confirm: true,
+      });
+
+      if (confirmError) {
+        console.error("Confirm email error:", confirmError);
+        return new Response(
+          JSON.stringify({ error: { message: "Failed to confirm email" } }),
+          { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        );
+      }
+
+      await adminClient.from("admin_audit_log").insert({
+        admin_user_id: userData.user.id,
+        action: "confirm_email",
+        target_user_id: userId,
+        details: { note: "Email manually confirmed by admin" },
+      });
+
+      return new Response(
+        JSON.stringify({ message: "Email confirmed — user can now log in" }),
         { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
