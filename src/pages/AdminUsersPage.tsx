@@ -723,6 +723,30 @@ export default function AdminUsersPage() {
         </AlertDialogContent>
       </AlertDialog>
 
+      <AlertDialog open={!!revokeConfirmUser} onOpenChange={(open) => !open && setRevokeConfirmUser(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Revoke Access</AlertDialogTitle>
+            <AlertDialogDescription>
+              Revoke login access for <strong>{revokeConfirmUser?.email}</strong>? They will be unable to sign in until access is restored. Their account, roles, and history are preserved — this is reversible at any time.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={accessUserId === revokeConfirmUser?.id}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => revokeConfirmUser && setUserAccess(revokeConfirmUser.id, revokeConfirmUser.email, false)}
+              disabled={accessUserId === revokeConfirmUser?.id}
+              className="bg-amber-600 hover:bg-amber-700"
+            >
+              {accessUserId === revokeConfirmUser?.id && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              Revoke Access
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+
+
       <Dialog open={!!editUser} onOpenChange={(open) => { if (!open) setEditUser(null); }}>
         <DialogContent>
           <DialogHeader>
