@@ -87,7 +87,7 @@ export const ReferralsFilterBar = ({
     },
   });
 
-  const statusOptions: MultiSelectOption[] = [
+  const statusOptions: MultiSelectOption[] = statusOptionsProp ?? [
     { label: 'New', value: 'new_referral' },
     { label: 'In Progress', value: 'in_progress' },
     { label: 'Assessment', value: 'assessment' },
