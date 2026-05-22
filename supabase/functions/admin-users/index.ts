@@ -77,7 +77,7 @@ const handler = async (req: Request): Promise<Response> => {
     const { action, userId, email, password, first_name, last_name, staff_type }: AdminRequest = requestBody;
 
     // Validate action
-    const validActions = ["list", "delete", "resend-invite", "set-password", "update-user"];
+    const validActions = ["list", "delete", "resend-invite", "set-password", "update-user", "confirm-email"];
     if (!action || !validActions.includes(action)) {
       return new Response(
         JSON.stringify({ error: { message: "Invalid action" } }),
