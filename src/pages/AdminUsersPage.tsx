@@ -289,6 +289,26 @@ export default function AdminUsersPage() {
     }
   };
 
+  const confirmEmail = async (userId: string, email: string) => {
+    try {
+      setConfirmingUserId(userId);
+      const { data, error } = await supabase.functions.invoke('admin-users', {
+        body: { action: 'confirm-email', userId },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error.message);
+      toast.success(`${email} can now log in`);
+      loadUsers();
+    } catch (error: any) {
+      console.error('Error confirming email:', error);
+      toast.error(error.message || 'Failed to confirm email');
+    } finally {
+      setConfirmingUserId(null);
+    }
+  };
+
+
+
   const handleSetPassword = async () => {
     if (!passwordDialogUser || !newPassword) return;
 
