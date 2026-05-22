@@ -309,6 +309,27 @@ export default function AdminUsersPage() {
     }
   };
 
+  const setUserAccess = async (userId: string, email: string, enabled: boolean) => {
+    try {
+      setAccessUserId(userId);
+      const { data, error } = await supabase.functions.invoke('admin-users', {
+        body: { action: 'set-access', userId, enabled },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error.message);
+      toast.success(enabled ? `Access restored for ${email}` : `Access revoked for ${email}`);
+      setRevokeConfirmUser(null);
+      loadUsers();
+    } catch (error: any) {
+      console.error('Error updating access:', error);
+      toast.error(error.message || 'Failed to update access');
+    } finally {
+      setAccessUserId(null);
+    }
+  };
+
+
+
 
 
   const handleSetPassword = async () => {
