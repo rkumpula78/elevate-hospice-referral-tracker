@@ -609,6 +609,22 @@ export default function AdminUsersPage() {
                         >
                           <KeyRound className="w-4 h-4" />
                         </Button>
+                        {user.status === 'pending' && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => confirmEmail(user.id, user.email)}
+                            disabled={confirmingUserId === user.id}
+                            title="Confirm email (unblock login without sending an email)"
+                            className="text-green-600 hover:text-green-700"
+                          >
+                            {confirmingUserId === user.id ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <CheckCircle2 className="w-4 h-4" />
+                            )}
+                          </Button>
+                        )}
                         <Button
                           size="sm"
                           variant="ghost"
