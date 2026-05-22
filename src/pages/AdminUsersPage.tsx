@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from 'sonner';
-import { UserPlus, Trash2, Shield, ShieldOff, Mail, RefreshCw, Loader2, KeyRound, Pencil, CheckCircle2 } from 'lucide-react';
+import { UserPlus, Trash2, Shield, ShieldOff, Mail, RefreshCw, Loader2, KeyRound, Pencil, CheckCircle2, Lock, Unlock } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
 interface AuthUser {
@@ -38,6 +38,8 @@ export default function AdminUsersPage() {
   const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
   const [resendingEmail, setResendingEmail] = useState<string | null>(null);
   const [confirmingUserId, setConfirmingUserId] = useState<string | null>(null);
+  const [accessUserId, setAccessUserId] = useState<string | null>(null);
+  const [revokeConfirmUser, setRevokeConfirmUser] = useState<UserWithRoles | null>(null);
   const [deletingUser, setDeletingUser] = useState(false);
   const [passwordDialogUser, setPasswordDialogUser] = useState<UserWithRoles | null>(null);
   const [newPassword, setNewPassword] = useState('');
@@ -306,6 +308,27 @@ export default function AdminUsersPage() {
       setConfirmingUserId(null);
     }
   };
+
+  const setUserAccess = async (userId: string, email: string, enabled: boolean) => {
+    try {
+      setAccessUserId(userId);
+      const { data, error } = await supabase.functions.invoke('admin-users', {
+        body: { action: 'set-access', userId, enabled },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error.message);
+      toast.success(enabled ? `Access restored for ${email}` : `Access revoked for ${email}`);
+      setRevokeConfirmUser(null);
+      loadUsers();
+    } catch (error: any) {
+      console.error('Error updating access:', error);
+      toast.error(error.message || 'Failed to update access');
+    } finally {
+      setAccessUserId(null);
+    }
+  };
+
+
 
 
 
@@ -638,6 +661,30 @@ export default function AdminUsersPage() {
                             <Mail className="w-4 h-4" />
                           )}
                         </Button>
+                        {user.status !== 'pending' && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => {
+                              if (user.status === 'disabled') {
+                                setUserAccess(user.id, user.email, true);
+                              } else {
+                                setRevokeConfirmUser(user);
+                              }
+                            }}
+                            disabled={user.id === currentUser?.id || accessUserId === user.id}
+                            title={user.status === 'disabled' ? 'Restore access' : 'Revoke access'}
+                            className={user.status === 'disabled' ? 'text-green-600 hover:text-green-700' : 'text-amber-600 hover:text-amber-700'}
+                          >
+                            {accessUserId === user.id ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : user.status === 'disabled' ? (
+                              <Unlock className="w-4 h-4" />
+                            ) : (
+                              <Lock className="w-4 h-4" />
+                            )}
+                          </Button>
+                        )}
                         <Button
                           size="sm"
                           variant="ghost"
@@ -675,6 +722,30 @@ export default function AdminUsersPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <AlertDialog open={!!revokeConfirmUser} onOpenChange={(open) => !open && setRevokeConfirmUser(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Revoke Access</AlertDialogTitle>
+            <AlertDialogDescription>
+              Revoke login access for <strong>{revokeConfirmUser?.email}</strong>? They will be unable to sign in until access is restored. Their account, roles, and history are preserved — this is reversible at any time.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={accessUserId === revokeConfirmUser?.id}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => revokeConfirmUser && setUserAccess(revokeConfirmUser.id, revokeConfirmUser.email, false)}
+              disabled={accessUserId === revokeConfirmUser?.id}
+              className="bg-amber-600 hover:bg-amber-700"
+            >
+              {accessUserId === revokeConfirmUser?.id && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              Revoke Access
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+
 
       <Dialog open={!!editUser} onOpenChange={(open) => { if (!open) setEditUser(null); }}>
         <DialogContent>

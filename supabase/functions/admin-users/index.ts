@@ -8,13 +8,14 @@ const corsHeaders = {
 };
 
 interface AdminRequest {
-  action: "list" | "delete" | "resend-invite" | "set-password" | "update-user" | "confirm-email";
+  action: "list" | "delete" | "resend-invite" | "set-password" | "update-user" | "confirm-email" | "set-access";
   userId?: string;
   email?: string;
   password?: string;
   first_name?: string;
   last_name?: string;
   staff_type?: string;
+  enabled?: boolean;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -74,10 +75,10 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    const { action, userId, email, password, first_name, last_name, staff_type }: AdminRequest = requestBody;
+    const { action, userId, email, password, first_name, last_name, staff_type, enabled }: AdminRequest = requestBody;
 
     // Validate action
-    const validActions = ["list", "delete", "resend-invite", "set-password", "update-user", "confirm-email"];
+    const validActions = ["list", "delete", "resend-invite", "set-password", "update-user", "confirm-email", "set-access"];
     if (!action || !validActions.includes(action)) {
       return new Response(
         JSON.stringify({ error: { message: "Invalid action" } }),
@@ -387,6 +388,52 @@ const handler = async (req: Request): Promise<Response> => {
         { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
+
+    // SET-ACCESS: Disable (ban) or re-enable a user's ability to log in
+    if (action === "set-access") {
+      if (!userId || typeof enabled !== "boolean") {
+        return new Response(
+          JSON.stringify({ error: { message: "userId and enabled (boolean) are required" } }),
+          { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        );
+      }
+
+      if (userId === userData.user.id && enabled === false) {
+        return new Response(
+          JSON.stringify({ error: { message: "Cannot revoke access to your own account" } }),
+          { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        );
+      }
+
+      // 876000h = 100 years; effectively permanent until restored
+      const ban_duration = enabled ? "none" : "876000h";
+
+      const { error: banError } = await adminClient.auth.admin.updateUserById(userId, {
+        ban_duration,
+      } as any);
+
+      if (banError) {
+        console.error("Set access error:", banError);
+        return new Response(
+          JSON.stringify({ error: { message: "Failed to update access" } }),
+          { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        );
+      }
+
+      await adminClient.from("admin_audit_log").insert({
+        admin_user_id: userData.user.id,
+        action: enabled ? "enable_user" : "disable_user",
+        target_user_id: userId,
+        details: { note: enabled ? "Access restored by admin" : "Access revoked by admin" },
+      });
+
+      return new Response(
+        JSON.stringify({ message: enabled ? "Access restored" : "Access revoked" }),
+        { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+
 
     return new Response(
       JSON.stringify({ error: { message: "Invalid action" } }),
