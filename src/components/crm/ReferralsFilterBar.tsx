@@ -251,22 +251,24 @@ export const ReferralsFilterBar = ({
   return (
     <div className="space-y-4 bg-muted/30 p-4 rounded-lg border">
       {/* Quick Filter Presets */}
-      <div className="flex flex-wrap gap-2 pb-3 border-b">
-        <span className="text-xs font-medium text-muted-foreground flex items-center">
-          Quick Filters:
-        </span>
-        {quickPresets.map((preset) => (
-          <Badge
-            key={preset.label}
-            variant="outline"
-            className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors"
-            onClick={preset.apply}
-          >
-            <preset.icon className="w-3 h-3 mr-1" />
-            {preset.label}
-          </Badge>
-        ))}
-      </div>
+      {showQuickPresets && (
+        <div className="flex flex-wrap gap-2 pb-3 border-b">
+          <span className="text-xs font-medium text-muted-foreground flex items-center">
+            Quick Filters:
+          </span>
+          {quickPresets.map((preset) => (
+            <Badge
+              key={preset.label}
+              variant="outline"
+              className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors"
+              onClick={preset.apply}
+            >
+              <preset.icon className="w-3 h-3 mr-1" />
+              {preset.label}
+            </Badge>
+          ))}
+        </div>
+      )}
 
       {/* Filter Controls */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
