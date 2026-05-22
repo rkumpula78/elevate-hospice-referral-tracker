@@ -490,6 +490,39 @@ export type Database = {
         }
         Relationships: []
       }
+      comp_visits: {
+        Row: {
+          completed_by: string | null
+          completed_date: string
+          created_at: string | null
+          id: string
+          notes: string | null
+          patient_id: string
+          patient_name: string | null
+          visit_type: string | null
+        }
+        Insert: {
+          completed_by?: string | null
+          completed_date: string
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          patient_id: string
+          patient_name?: string | null
+          visit_type?: string | null
+        }
+        Update: {
+          completed_by?: string | null
+          completed_date?: string
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          patient_id?: string
+          patient_name?: string | null
+          visit_type?: string | null
+        }
+        Relationships: []
+      }
       competitive_analysis: {
         Row: {
           competitor_name: string
@@ -1771,6 +1804,7 @@ export type Database = {
           height: number | null
           id: string
           insurance: string | null
+          last_comp_date: string | null
           last_name: string
           latitude: number | null
           longitude: number | null
@@ -1825,6 +1859,7 @@ export type Database = {
           height?: number | null
           id?: string
           insurance?: string | null
+          last_comp_date?: string | null
           last_name: string
           latitude?: number | null
           longitude?: number | null
@@ -1879,6 +1914,7 @@ export type Database = {
           height?: number | null
           id?: string
           insurance?: string | null
+          last_comp_date?: string | null
           last_name?: string
           latitude?: number | null
           longitude?: number | null
@@ -3123,6 +3159,7 @@ export type Database = {
         | "social_worker"
         | "chaplain"
         | "aide"
+        | "lpn"
       patient_status:
         | "active"
         | "discharged"
@@ -3308,6 +3345,7 @@ export const Constants = {
         "social_worker",
         "chaplain",
         "aide",
+        "lpn",
       ],
       patient_status: [
         "active",
