@@ -6,7 +6,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { SortHeader } from '@/components/ui/sort-header';
 import { differenceInDays, format, parseISO, isBefore } from 'date-fns';
@@ -15,13 +14,23 @@ import { AlertCircle, Clock, Pencil, Search, X as XIcon } from 'lucide-react';
 import QuickLogActivityDialog from '@/components/crm/QuickLogActivityDialog';
 import InlineStatusNote from '@/components/crm/InlineStatusNote';
 import { useDebounce } from '@/hooks/useDebounce';
+import { ReferralsFilterBar, ReferralFilters } from '@/components/crm/ReferralsFilterBar';
+
+const PALLIATIVE_STATUS_OPTIONS = [
+  { label: 'Palliative Outreach', value: 'palliative_outreach' },
+  { label: 'Not Appropriate', value: 'not_appropriate' },
+];
 
 const PalliativeOutreachBoard = () => {
   const navigate = useNavigate();
-  const [filterAssigned, setFilterAssigned] = useState('all');
-  const [filterFrequency, setFilterFrequency] = useState('all');
-  const [filterLocation, setFilterLocation] = useState('all');
-  const [filterCompany, setFilterCompany] = useState('all');
+  const [filters, setFilters] = useState<ReferralFilters>({
+    statuses: [],
+    priorities: [],
+    facilities: [],
+    insurances: [],
+    marketers: [],
+    dateRange: undefined,
+  });
   const [sort, setSort] = useState<{ field: string; direction: 'asc' | 'desc' }>({ field: 'next_followup_date', direction: 'asc' });
   const [quickLogRef, setQuickLogRef] = useState<{ id: string; name: string } | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -44,7 +53,8 @@ const PalliativeOutreachBoard = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('referrals')
-        .select('id, patient_name, assigned_marketer, pcp_provider, pcp_company, next_followup_date, followup_frequency, location_type, location_city, status, notes, patient_status_note, updated_at')
+        .select('id, patient_name, assigned_marketer, pcp_provider, pcp_company, next_followup_date, followup_frequency, location_type, location_city, status, notes, patient_status_note, updated_at, priority, insurance, organization_id, referral_date, organizations(name)')
+        .is('deleted_at', null)
         .in('status', ['palliative_outreach', 'not_appropriate'] as any[])
         .order('next_followup_date', { ascending: true, nullsFirst: false });
 
@@ -53,30 +63,31 @@ const PalliativeOutreachBoard = () => {
     },
   });
 
-  const uniqueAssigned = [...new Set(referrals.map(r => r.assigned_marketer).filter(Boolean))];
-  const uniqueCompanies = [...new Set(referrals.map((r: any) => r.pcp_company).filter(Boolean))].sort();
+  const filtered = useMemo(() => {
+    return referrals.filter((r: any) => {
+      if (filters.statuses.length > 0 && !filters.statuses.includes(r.status)) return false;
+      if (filters.priorities.length > 0 && !filters.priorities.includes(r.priority)) return false;
+      if (filters.facilities.length > 0 && !filters.facilities.includes(r.organization_id)) return false;
+      if (filters.insurances.length > 0 && !filters.insurances.includes(r.insurance)) return false;
+      if (filters.marketers.length > 0 && !filters.marketers.includes(r.assigned_marketer)) return false;
+      if (filters.dateRange?.from && r.referral_date && new Date(r.referral_date) < filters.dateRange.from) return false;
+      if (filters.dateRange?.to && r.referral_date && new Date(r.referral_date) > filters.dateRange.to) return false;
+      if (debouncedSearch.trim()) {
+        const q = debouncedSearch.toLowerCase();
+        const haystack = [
+          r.patient_name, r.assigned_marketer, r.pcp_provider,
+          r.pcp_company, r.location_city, r.notes, r.patient_status_note,
+        ].filter(Boolean).join(' ').toLowerCase();
+        if (!haystack.includes(q)) return false;
+      }
+      return true;
+    });
+  }, [referrals, filters, debouncedSearch]);
 
-  const filtered = referrals.filter(r => {
-    if (filterAssigned !== 'all' && r.assigned_marketer !== filterAssigned) return false;
-    if (filterFrequency !== 'all' && r.followup_frequency !== filterFrequency) return false;
-    if (filterLocation !== 'all' && r.location_type !== filterLocation) return false;
-    if (filterCompany !== 'all' && (r as any).pcp_company !== filterCompany) return false;
-    if (debouncedSearch.trim()) {
-      const q = debouncedSearch.toLowerCase();
-      const haystack = [
-        r.patient_name, r.assigned_marketer, r.pcp_provider,
-        (r as any).pcp_company, r.location_city, r.notes, (r as any).patient_status_note,
-      ].filter(Boolean).join(' ').toLowerCase();
-      if (!haystack.includes(q)) return false;
-    }
-    return true;
-  });
-
-  const sorted = [...filtered].sort((a, b) => {
+  const sorted = [...filtered].sort((a: any, b: any) => {
     const dir = sort.direction === 'asc' ? 1 : -1;
-    const field = sort.field;
-    const aVal = (a as any)[field];
-    const bVal = (b as any)[field];
+    const aVal = a[sort.field];
+    const bVal = b[sort.field];
     if (aVal == null && bVal == null) return 0;
     if (aVal == null) return 1;
     if (bVal == null) return -1;
@@ -136,43 +147,15 @@ const PalliativeOutreachBoard = () => {
         )}
       </div>
 
-      {debouncedSearch && (
-        <p className="text-sm text-muted-foreground">
-          Showing <span className="font-medium text-foreground">{filtered.length}</span> of {referrals.length} patients
-        </p>
-      )}
-
-      {/* Filters */}
-      <div className="flex flex-wrap gap-3">
-        <Select value={filterAssigned} onValueChange={setFilterAssigned}>
-          <SelectTrigger className="w-[180px]"><SelectValue placeholder="Assigned To" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Assigned</SelectItem>
-            {uniqueAssigned.map(a => <SelectItem key={a} value={a!}>{a}</SelectItem>)}
-          </SelectContent>
-        </Select>
-        <Select value={filterFrequency} onValueChange={setFilterFrequency}>
-          <SelectTrigger className="w-[160px]"><SelectValue placeholder="Frequency" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Frequencies</SelectItem>
-            {FOLLOWUP_FREQUENCIES.map(f => <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>)}
-          </SelectContent>
-        </Select>
-        <Select value={filterLocation} onValueChange={setFilterLocation}>
-          <SelectTrigger className="w-[160px]"><SelectValue placeholder="Location" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Locations</SelectItem>
-            {LOCATION_TYPES.map(l => <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>)}
-          </SelectContent>
-        </Select>
-        <Select value={filterCompany} onValueChange={setFilterCompany}>
-          <SelectTrigger className="w-[180px]"><SelectValue placeholder="Primary Care Co." /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All PC Companies</SelectItem>
-            {uniqueCompanies.map(c => <SelectItem key={c as string} value={c as string}>{c as string}</SelectItem>)}
-          </SelectContent>
-        </Select>
-      </div>
+      {/* Pipeline-style filter bar */}
+      <ReferralsFilterBar
+        filters={filters}
+        onFiltersChange={setFilters}
+        totalCount={referrals.length}
+        filteredCount={filtered.length}
+        statusOptions={PALLIATIVE_STATUS_OPTIONS}
+        showQuickPresets={false}
+      />
 
       {sorted.length === 0 ? (
         <div className="text-center py-12 text-muted-foreground">
@@ -199,7 +182,7 @@ const PalliativeOutreachBoard = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {sorted.map(ref => {
+              {sorted.map((ref: any) => {
                 const isOverdue = ref.next_followup_date && isBefore(parseISO(ref.next_followup_date), today);
                 const daysSinceUpdate = ref.updated_at ? differenceInDays(today, parseISO(ref.updated_at)) : null;
 
@@ -212,7 +195,7 @@ const PalliativeOutreachBoard = () => {
                     <TableCell className="font-medium">{ref.patient_name}</TableCell>
                     <TableCell>{ref.assigned_marketer || '—'}</TableCell>
                     <TableCell>{ref.pcp_provider || '—'}</TableCell>
-                    <TableCell>{(ref as any).pcp_company || '—'}</TableCell>
+                    <TableCell>{ref.pcp_company || '—'}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
                         {isOverdue && <AlertCircle className="w-4 h-4 text-red-500" />}
@@ -233,7 +216,7 @@ const PalliativeOutreachBoard = () => {
                     <TableCell className="max-w-[280px] align-top">
                       <InlineStatusNote
                         referralId={ref.id}
-                        value={(ref as any).patient_status_note}
+                        value={ref.patient_status_note}
                         invalidateKeys={[['palliative-outreach-referrals']]}
                       />
                     </TableCell>
