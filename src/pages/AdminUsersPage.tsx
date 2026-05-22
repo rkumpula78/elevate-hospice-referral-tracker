@@ -37,6 +37,7 @@ export default function AdminUsersPage() {
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
   const [resendingEmail, setResendingEmail] = useState<string | null>(null);
+  const [confirmingUserId, setConfirmingUserId] = useState<string | null>(null);
   const [deletingUser, setDeletingUser] = useState(false);
   const [passwordDialogUser, setPasswordDialogUser] = useState<UserWithRoles | null>(null);
   const [newPassword, setNewPassword] = useState('');
