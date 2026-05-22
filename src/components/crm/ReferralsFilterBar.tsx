@@ -26,6 +26,8 @@ interface ReferralsFilterBarProps {
   onFiltersChange: (filters: ReferralFilters) => void;
   totalCount: number;
   filteredCount: number;
+  statusOptions?: MultiSelectOption[];
+  showQuickPresets?: boolean;
 }
 
 export const ReferralsFilterBar = ({
@@ -33,6 +35,8 @@ export const ReferralsFilterBar = ({
   onFiltersChange,
   totalCount,
   filteredCount,
+  statusOptions: statusOptionsProp,
+  showQuickPresets = true,
 }: ReferralsFilterBarProps) => {
   const { toast } = useToast();
 
