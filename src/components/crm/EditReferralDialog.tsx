@@ -314,7 +314,7 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
       id: Date.now().toString(),
       text: newComment.trim(),
       timestamp: new Date().toISOString(),
-      author: 'Current User'
+      author: user?.email || 'Current User'
     };
     
     setComments(prev => [...prev, comment]);
