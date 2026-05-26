@@ -18,6 +18,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { calculateBenefitPeriod } from '@/lib/benefitPeriodLogic';
 import { notifyStatusChange } from '@/lib/webhookNotifier';
+import { useAuth } from '@/hooks/useAuth';
 
 // Import patient edit sections
 import PatientOverviewSection from './patient-edit/PatientOverviewSection';
@@ -47,12 +48,15 @@ interface Comment {
 
 const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDialogProps) => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const [uploading, setUploading] = useState(false);
   const [newComment, setNewComment] = useState('');
   const [comments, setComments] = useState<Comment[]>([]);
   const [phoneValue, setPhoneValue] = useState('');
   const [statusValue, setStatusValue] = useState<string>('new_referral');
+  const newCommentRef = useRef<string>('');
+  useEffect(() => { newCommentRef.current = newComment; }, [newComment]);
   
   // Refs for smart field focus
   const patientNameRef = useRef<HTMLInputElement>(null);
@@ -310,7 +314,7 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
       id: Date.now().toString(),
       text: newComment.trim(),
       timestamp: new Date().toISOString(),
-      author: 'Current User'
+      author: user?.email || 'Current User'
     };
     
     setComments(prev => [...prev, comment]);
@@ -381,8 +385,20 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
       }
     }
 
+    // Flush any pending un-added comment so notes typed in the box but not
+    // explicitly added with the "+" button are not lost on save.
+    const pending = (newCommentRef.current || '').trim();
+    const finalComments = pending
+      ? [...comments, {
+          id: Date.now().toString(),
+          text: pending,
+          timestamp: new Date().toISOString(),
+          author: user?.email || 'Current User',
+        }]
+      : comments;
+
     // Add comments to notes
-    updateData.notes = JSON.stringify(comments);
+    updateData.notes = JSON.stringify(finalComments);
 
     // Strip fields that don't exist on the `referrals` table (patient-edit
     // sections include some patient-only fields like attending_physician_contact,
