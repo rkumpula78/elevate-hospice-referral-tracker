@@ -53,6 +53,8 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
   const [comments, setComments] = useState<Comment[]>([]);
   const [phoneValue, setPhoneValue] = useState('');
   const [statusValue, setStatusValue] = useState<string>('new_referral');
+  const newCommentRef = useRef<string>('');
+  useEffect(() => { newCommentRef.current = newComment; }, [newComment]);
   
   // Refs for smart field focus
   const patientNameRef = useRef<HTMLInputElement>(null);
