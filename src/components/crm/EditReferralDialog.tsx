@@ -385,8 +385,20 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
       }
     }
 
+    // Flush any pending un-added comment so notes typed in the box but not
+    // explicitly added with the "+" button are not lost on save.
+    const pending = (newCommentRef.current || '').trim();
+    const finalComments = pending
+      ? [...comments, {
+          id: Date.now().toString(),
+          text: pending,
+          timestamp: new Date().toISOString(),
+          author: user?.email || 'Current User',
+        }]
+      : comments;
+
     // Add comments to notes
-    updateData.notes = JSON.stringify(comments);
+    updateData.notes = JSON.stringify(finalComments);
 
     // Strip fields that don't exist on the `referrals` table (patient-edit
     // sections include some patient-only fields like attending_physician_contact,
