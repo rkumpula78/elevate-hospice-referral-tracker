@@ -48,6 +48,7 @@ interface Comment {
 
 const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDialogProps) => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const [uploading, setUploading] = useState(false);
   const [newComment, setNewComment] = useState('');
