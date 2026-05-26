@@ -18,6 +18,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { calculateBenefitPeriod } from '@/lib/benefitPeriodLogic';
 import { notifyStatusChange } from '@/lib/webhookNotifier';
+import { useAuth } from '@/hooks/useAuth';
 
 // Import patient edit sections
 import PatientOverviewSection from './patient-edit/PatientOverviewSection';
