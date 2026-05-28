@@ -351,8 +351,8 @@ const ReferralDetail = () => {
             <ReferralActivityLog referralId={id!} />
           </div>
 
-          {/* Medicare Eligibility — compact */}
-          <ReferralEligibility referralId={id!} compact />
+
+
 
           {/* Family Contacts Section */}
           <Card className="lg:col-span-2">
