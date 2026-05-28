@@ -43,7 +43,7 @@ const parseAddress = (full?: string | null) => {
   return { street, city, state, zip };
 };
 
-const ReferralEligibility = ({ referralId }: ReferralEligibilityProps) => {
+const ReferralEligibility = ({ referralId, compact = false }: ReferralEligibilityProps) => {
   const queryClient = useQueryClient();
   const [showDialog, setShowDialog] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
