@@ -340,10 +340,13 @@ const ReferralDetail = () => {
             <StatusTimeline referralId={id!} currentStatus={referral.status} />
           </div>
 
-          {/* Medicare Eligibility Section */}
+          {/* Structured Activity Log */}
           <div className="lg:col-span-2">
-            <ReferralEligibility referralId={id!} />
+            <ReferralActivityLog referralId={id!} />
           </div>
+
+          {/* Medicare Eligibility — compact */}
+          <ReferralEligibility referralId={id!} compact />
 
           {/* Family Contacts Section */}
           <Card className="lg:col-span-2">
@@ -351,9 +354,6 @@ const ReferralDetail = () => {
               <ReferralFamilyContacts referralId={id!} />
             </CardContent>
           </Card>
-
-          {/* Structured Activity Log */}
-          <ReferralActivityLog referralId={id!} />
         </div>
 
         <EditReferralDialog
