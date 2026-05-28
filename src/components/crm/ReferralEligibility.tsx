@@ -16,6 +16,7 @@ import { format } from 'date-fns';
 
 interface ReferralEligibilityProps {
   referralId: string;
+  compact?: boolean;
 }
 
 // Best-effort split of a free-text address into street/city/state/zip.
