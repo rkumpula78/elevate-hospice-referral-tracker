@@ -1789,6 +1789,7 @@ export type Database = {
           caregiver_contact: string | null
           caregiver_name: string | null
           city: string | null
+          comp_visit_interval_days: number | null
           created_at: string | null
           date_of_birth: string | null
           deleted_at: string | null
@@ -1831,6 +1832,7 @@ export type Database = {
           transport_needs: string | null
           upcoming_appointments: string | null
           updated_at: string | null
+          visits_per_week: number | null
           weight: number | null
           zip: string | null
         }
@@ -1844,6 +1846,7 @@ export type Database = {
           caregiver_contact?: string | null
           caregiver_name?: string | null
           city?: string | null
+          comp_visit_interval_days?: number | null
           created_at?: string | null
           date_of_birth?: string | null
           deleted_at?: string | null
@@ -1886,6 +1889,7 @@ export type Database = {
           transport_needs?: string | null
           upcoming_appointments?: string | null
           updated_at?: string | null
+          visits_per_week?: number | null
           weight?: number | null
           zip?: string | null
         }
@@ -1899,6 +1903,7 @@ export type Database = {
           caregiver_contact?: string | null
           caregiver_name?: string | null
           city?: string | null
+          comp_visit_interval_days?: number | null
           created_at?: string | null
           date_of_birth?: string | null
           deleted_at?: string | null
@@ -1941,6 +1946,7 @@ export type Database = {
           transport_needs?: string | null
           upcoming_appointments?: string | null
           updated_at?: string | null
+          visits_per_week?: number | null
           weight?: number | null
           zip?: string | null
         }

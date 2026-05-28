@@ -158,6 +158,60 @@ const ReferralDetail = () => {
                   <a href={`tel:${referral.patient_phone}`} className="text-blue-600 hover:underline">{referral.patient_phone}</a>
                 </div>
               )}
+              {referral.date_of_birth && (
+                <div>
+                  <p className="text-sm text-gray-600">Date of Birth</p>
+                  <p className="font-medium">{new Date(referral.date_of_birth).toLocaleDateString()}</p>
+                </div>
+              )}
+              {referral.address && (
+                <div>
+                  <p className="text-sm text-gray-600">Address</p>
+                  <p className="font-medium whitespace-pre-line">{referral.address}</p>
+                </div>
+              )}
+              {(referral.location_type || referral.location_city || referral.patient_location) && (
+                <div>
+                  <p className="text-sm text-gray-600">Location</p>
+                  <p className="font-medium">
+                    {[referral.location_type, referral.location_city, referral.patient_location]
+                      .filter(Boolean)
+                      .join(' • ')}
+                  </p>
+                </div>
+              )}
+              {(referral.caregiver_name || referral.caregiver_contact) && (
+                <div>
+                  <p className="text-sm text-gray-600">Primary Caregiver</p>
+                  <p className="font-medium">
+                    {referral.caregiver_name}
+                    {referral.caregiver_contact && (
+                      <>
+                        {referral.caregiver_name ? ' — ' : ''}
+                        <a href={`tel:${referral.caregiver_contact}`} className="text-blue-600 hover:underline">
+                          {referral.caregiver_contact}
+                        </a>
+                      </>
+                    )}
+                  </p>
+                </div>
+              )}
+              {(referral.emergency_contact || referral.emergency_phone) && (
+                <div>
+                  <p className="text-sm text-gray-600">Emergency Contact</p>
+                  <p className="font-medium">
+                    {referral.emergency_contact}
+                    {referral.emergency_phone && (
+                      <>
+                        {referral.emergency_contact ? ' — ' : ''}
+                        <a href={`tel:${referral.emergency_phone}`} className="text-blue-600 hover:underline">
+                          {referral.emergency_phone}
+                        </a>
+                      </>
+                    )}
+                  </p>
+                </div>
+              )}
               {referral.diagnosis && (
                 <div>
                   <p className="text-sm text-gray-600">Diagnosis</p>
@@ -168,6 +222,12 @@ const ReferralDetail = () => {
                 <div>
                   <p className="text-sm text-gray-600">Insurance</p>
                   <p className="font-medium">{referral.insurance}</p>
+                </div>
+              )}
+              {referral.medicare_number && (
+                <div>
+                  <p className="text-sm text-gray-600">Policy / Medicare #</p>
+                  <p className="font-medium">{referral.medicare_number}</p>
                 </div>
               )}
               {referral.priority && (
