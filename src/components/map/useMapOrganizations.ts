@@ -89,13 +89,25 @@ export function useMapOrganizations() {
     },
   });
 
-  const marketers = Array.from(
-    new Set(
-      (orgsQuery.data || [])
-        .map(o => o.assigned_marketer)
-        .filter((m): m is string => !!m && m.trim() !== '')
-    )
-  ).sort();
+  const marketersQuery = useQuery({
+    queryKey: ['profile-marketers'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('first_name, last_name, staff_type')
+        .eq('staff_type', 'marketer')
+        .not('first_name', 'is', null);
+      if (error) throw error;
+      return (data || [])
+        .map((p: any) => `${p.first_name ?? ''} ${p.last_name ?? ''}`.trim())
+        .filter((n: string) => n.length > 0)
+        .sort();
+    },
+  });
+
+  const marketers = marketersQuery.data || [];
+
+
 
   return {
     organizations: orgsQuery.data || [],
