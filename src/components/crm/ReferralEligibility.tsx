@@ -214,6 +214,136 @@ const ReferralEligibility = ({ referralId, compact = false }: ReferralEligibilit
     );
   }
 
+  const renderDialog = () => (
+    <Dialog open={showDialog} onOpenChange={setShowDialog}>
+      <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>{editingId ? 'Edit' : 'Add'} Medicare Eligibility</DialogTitle>
+          <DialogDescription>
+            Beneficiary fields are pre-filled from the referral record where available. Update as needed from NGS or your Medicare verification source.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-6">
+          <div>
+            <h4 className="text-sm font-semibold mb-3">Beneficiary Information</h4>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label htmlFor="medicare_number">Medicare Number (MBI)</Label>
+                <Input id="medicare_number" value={formData.medicare_number || ''} onChange={e => updateField('medicare_number', e.target.value)} />
+              </div>
+              <div>
+                <Label htmlFor="sex">Sex</Label>
+                <Select value={formData.sex || ''} onValueChange={v => updateField('sex', v)}>
+                  <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Male">Male</SelectItem>
+                    <SelectItem value="Female">Female</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="dob">Date of Birth</Label>
+                <Input id="dob" type="date" value={formData.date_of_birth || ''} onChange={e => updateField('date_of_birth', e.target.value)} />
+              </div>
+              <div>
+                <Label htmlFor="dod">Date of Death</Label>
+                <Input id="dod" type="date" value={formData.date_of_death || ''} onChange={e => updateField('date_of_death', e.target.value)} />
+              </div>
+              <div className="col-span-2">
+                <Label htmlFor="b_address">Address</Label>
+                <Input id="b_address" value={formData.beneficiary_address || ''} onChange={e => updateField('beneficiary_address', e.target.value)} />
+              </div>
+              <div className="col-span-2 grid grid-cols-3 gap-2">
+                <div>
+                  <Label htmlFor="b_city">City</Label>
+                  <Input id="b_city" value={formData.beneficiary_city || ''} onChange={e => updateField('beneficiary_city', e.target.value)} />
+                </div>
+                <div>
+                  <Label htmlFor="b_state">State</Label>
+                  <Input id="b_state" value={formData.beneficiary_state || ''} onChange={e => updateField('beneficiary_state', e.target.value)} maxLength={2} />
+                </div>
+                <div>
+                  <Label htmlFor="b_zip">ZIP</Label>
+                  <Input id="b_zip" value={formData.beneficiary_zip || ''} onChange={e => updateField('beneficiary_zip', e.target.value)} />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div>
+            <h4 className="text-sm font-semibold mb-3">Coverage Flags</h4>
+            <div className="space-y-3">
+              <div className="flex items-start gap-3">
+                <Checkbox id="hospice_election" checked={formData.hospice_election_exists} onCheckedChange={v => updateField('hospice_election_exists', v)} />
+                <div className="flex-1">
+                  <Label htmlFor="hospice_election" className="cursor-pointer">Prior Hospice Election on File</Label>
+                  {formData.hospice_election_exists && (
+                    <Textarea className="mt-2" placeholder="Hospice election details..." value={formData.hospice_election_notes || ''} onChange={e => updateField('hospice_election_notes', e.target.value)} />
+                  )}
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <Checkbox id="ma_active" checked={formData.medicare_advantage_active} onCheckedChange={v => updateField('medicare_advantage_active', v)} />
+                <div className="flex-1">
+                  <Label htmlFor="ma_active" className="cursor-pointer">Medicare Advantage Active</Label>
+                  {formData.medicare_advantage_active && (
+                    <Textarea className="mt-2" placeholder="MA plan details..." value={formData.medicare_advantage_notes || ''} onChange={e => updateField('medicare_advantage_notes', e.target.value)} />
+                  )}
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <Checkbox id="msp_active" checked={formData.msp_active} onCheckedChange={v => updateField('msp_active', v)} />
+                <div className="flex-1">
+                  <Label htmlFor="msp_active" className="cursor-pointer">Medicare Secondary Payer (MSP)</Label>
+                  {formData.msp_active && (
+                    <Textarea className="mt-2" placeholder="MSP details..." value={formData.msp_notes || ''} onChange={e => updateField('msp_notes', e.target.value)} />
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+          <div>
+            <h4 className="text-sm font-semibold mb-3">Verification</h4>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label htmlFor="verified_by">Verified By</Label>
+                <Input id="verified_by" value={formData.eligibility_verified_by || ''} onChange={e => updateField('eligibility_verified_by', e.target.value)} />
+              </div>
+              <div>
+                <Label htmlFor="v_source">Source</Label>
+                <Select value={formData.verification_source || 'NGS'} onValueChange={v => updateField('verification_source', v)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="NGS">NGS</SelectItem>
+                    <SelectItem value="HETS">HETS</SelectItem>
+                    <SelectItem value="Availity">Availity</SelectItem>
+                    <SelectItem value="Manual">Manual</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="span_start">Eligibility Span Start</Label>
+                <Input id="span_start" type="date" value={formData.eligibility_span_start || ''} onChange={e => updateField('eligibility_span_start', e.target.value)} />
+              </div>
+              <div>
+                <Label htmlFor="span_end">Eligibility Span End</Label>
+                <Input id="span_end" type="date" value={formData.eligibility_span_end || ''} onChange={e => updateField('eligibility_span_end', e.target.value)} />
+              </div>
+            </div>
+            <div className="mt-3">
+              <Label htmlFor="elig_notes">Notes</Label>
+              <Textarea id="elig_notes" value={formData.notes || ''} onChange={e => updateField('notes', e.target.value)} placeholder="Additional eligibility notes..." />
+            </div>
+          </div>
+          <Button onClick={() => saveMutation.mutate()} className="w-full" disabled={saveMutation.isPending}>
+            {saveMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+            {editingId ? 'Update Eligibility' : 'Save Eligibility'}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+
   if (compact) {
     return (
       <>
