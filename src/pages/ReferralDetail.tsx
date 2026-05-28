@@ -245,34 +245,40 @@ const ReferralDetail = () => {
             </CardContent>
           </Card>
 
-          {referral.organizations && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Building2 className="w-5 h-5" />
-                  <span>Referring Organization</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <p className="font-medium">{referral.organizations.name}</p>
-                  <p className="text-sm text-gray-600">{referral.organizations.type}</p>
-                </div>
-                {referral.organizations.contact_person && (
+          {/* Right column: Referring Org (compact) + Medicare Eligibility (compact) */}
+          <div className="space-y-4">
+            {referral.organizations && (
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <Building2 className="w-4 h-4" />
+                    <span>Referring Organization</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-0 space-y-2 text-sm">
                   <div>
-                    <p className="text-sm text-gray-600">Contact Person</p>
-                    <p className="font-medium">{referral.organizations.contact_person}</p>
+                    <p className="font-medium">{referral.organizations.name}</p>
+                    <p className="text-xs text-muted-foreground">{referral.organizations.type}</p>
                   </div>
-                )}
-                {referral.organizations.phone && (
-                  <div className="flex items-center space-x-2">
-                    <Phone className="w-4 h-4 text-muted-foreground" />
-                    <a href={`tel:${referral.organizations.phone}`} className="text-blue-600 hover:underline">{referral.organizations.phone}</a>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
+                  {referral.organizations.contact_person && (
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-xs text-muted-foreground">Contact</span>
+                      <span className="font-medium truncate">{referral.organizations.contact_person}</span>
+                    </div>
+                  )}
+                  {referral.organizations.phone && (
+                    <div className="flex items-center gap-2">
+                      <Phone className="w-3.5 h-3.5 text-muted-foreground" />
+                      <a href={`tel:${referral.organizations.phone}`} className="text-blue-600 hover:underline">{referral.organizations.phone}</a>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            <ReferralEligibility referralId={id!} compact />
+          </div>
+
 
           {referral.admission_date && (
             <BenefitPeriodTracker
