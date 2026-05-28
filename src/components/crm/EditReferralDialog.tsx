@@ -768,24 +768,26 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
                   )}
                 </div>
 
-                <div className="flex space-x-2">
+                <div className="space-y-2">
                   <CharacterCounterTextarea
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)}
                     placeholder="Add a new comment..."
                     rows={2}
-                    maxLength={500}
-                    className="flex-1 bg-white border-gray-300 text-gray-900"
+                    maxLength={2000}
+                    className="w-full bg-white border-gray-300 text-gray-900"
                   />
-                  <Button
-                    type="button"
-                    onClick={addComment}
-                    disabled={!newComment.trim()}
-                    size="sm"
-                    className="self-end"
-                  >
-                    <Plus className="w-4 h-4" />
-                  </Button>
+                  <div className="flex justify-end">
+                    <Button
+                      type="button"
+                      onClick={addComment}
+                      disabled={!newComment.trim()}
+                      size="sm"
+                    >
+                      <Plus className="w-4 h-4 mr-1" />
+                      Add Comment
+                    </Button>
+                  </div>
                 </div>
               </div>
             </TabsContent>
