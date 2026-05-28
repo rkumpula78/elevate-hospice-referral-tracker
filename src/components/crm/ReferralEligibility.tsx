@@ -214,6 +214,74 @@ const ReferralEligibility = ({ referralId, compact = false }: ReferralEligibilit
     );
   }
 
+  if (compact) {
+    return (
+      <>
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center justify-between text-base">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="h-4 w-4" />
+                Medicare Eligibility
+              </div>
+              {eligibility ? (
+                <Button size="sm" variant="ghost" className="h-8 px-2" onClick={openEditDialog}>
+                  <Edit className="h-3.5 w-3.5" />
+                </Button>
+              ) : (
+                <Button size="sm" variant="outline" className="h-8" onClick={openCreateDialog}>
+                  <Plus className="h-3.5 w-3.5 mr-1" />
+                  Add
+                </Button>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            {eligibility ? (
+              <div className="space-y-2">
+                <div className="flex flex-wrap gap-1.5">
+                  {eligibility.hospice_election_exists ? (
+                    <Badge variant="destructive" className="flex items-center gap-1 text-xs">
+                      <AlertTriangle className="h-3 w-3" />
+                      Prior Hospice
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline" className="flex items-center gap-1 text-xs text-green-700 border-green-300 bg-green-50">
+                      <CheckCircle className="h-3 w-3" />
+                      No Prior Hospice
+                    </Badge>
+                  )}
+                  {eligibility.medicare_advantage_active && (
+                    <Badge variant="secondary" className="flex items-center gap-1 text-xs">
+                      <AlertTriangle className="h-3 w-3" />
+                      MA Active
+                    </Badge>
+                  )}
+                  {eligibility.msp_active && (
+                    <Badge variant="secondary" className="text-xs">MSP</Badge>
+                  )}
+                </div>
+                {eligibility.medicare_number && (
+                  <div className="text-xs">
+                    <span className="text-muted-foreground">MBI: </span>
+                    <span className="font-medium">{eligibility.medicare_number}</span>
+                  </div>
+                )}
+                <div className="text-xs text-muted-foreground">
+                  Verified {eligibility.eligibility_verified_date ? format(new Date(eligibility.eligibility_verified_date), 'MMM dd, yyyy') : '—'}
+                  {eligibility.verification_source && ` · ${eligibility.verification_source}`}
+                </div>
+              </div>
+            ) : (
+              <p className="text-xs text-muted-foreground">No eligibility data recorded yet.</p>
+            )}
+          </CardContent>
+        </Card>
+        {renderDialog()}
+      </>
+    );
+  }
+
   return (
     <>
       <Card>
