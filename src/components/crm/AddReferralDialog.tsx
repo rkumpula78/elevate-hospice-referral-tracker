@@ -161,6 +161,8 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
 
   // Validation
   const requiredFieldsCompleted = REQUIRED_FIELDS.filter(f => {
+    // Treat new-org form with a name as satisfying the organization requirement
+    if (f.key === 'organization_id' && showNewOrgForm && newOrgName.trim().length > 0) return true;
     const val = formData[f.key as keyof typeof formData];
     return typeof val === 'string' ? val.trim().length > 0 : !!val;
   }).length;
