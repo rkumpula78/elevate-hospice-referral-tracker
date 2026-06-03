@@ -33,6 +33,7 @@ const TYPE_ICON_MAP: Record<string, string> = {
   'Presentation': '📊',
   'Call': '📞',
   'Meeting': '🤝',
+  'Email': '✉️',
 };
 
 const QuickLogActivitySheet = ({ organizationId, organizationName, accountRating, trigger }: QuickLogActivitySheetProps) => {
