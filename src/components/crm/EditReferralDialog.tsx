@@ -221,22 +221,7 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
     }
   });
 
-  // Upload document mutation
-  const uploadDocumentMutation = useMutation({
-    mutationFn: async ({ file, documentType }: { file: File; documentType: string }) => {
-      setUploading(true);
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${referralId}/${Date.now()}-${file.name}`;
-      
-      // Upload file to storage
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('patient-documents')
-        .upload(fileName, file);
-      
-      if (uploadError) throw uploadError;
-
-      // Create document record
-  // Upload document mutation
+  
   const uploadDocumentMutation = useMutation({
     mutationFn: async ({ file, documentType }: { file: File; documentType: string }) => {
       if (!linkedPatientId) {
