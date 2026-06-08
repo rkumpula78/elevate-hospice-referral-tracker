@@ -236,10 +236,25 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
       if (uploadError) throw uploadError;
 
       // Create document record
+  // Upload document mutation
+  const uploadDocumentMutation = useMutation({
+    mutationFn: async ({ file, documentType }: { file: File; documentType: string }) => {
+      if (!linkedPatientId) {
+        throw new Error('Documents can only be uploaded after the referral has been admitted.');
+      }
+      setUploading(true);
+      const fileName = `${linkedPatientId}/${Date.now()}-${file.name}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('patient-documents')
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
       const { data: docData, error: dbError } = await supabase
         .from('patient_documents')
         .insert({
-          patient_id: referralId,
+          patient_id: linkedPatientId,
           file_name: file.name,
           file_path: fileName,
           file_size: file.size,
@@ -248,12 +263,12 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
         })
         .select()
         .single();
-      
+
       if (dbError) throw dbError;
       return docData;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['referral-documents', referralId] });
+      queryClient.invalidateQueries({ queryKey: ['referral-documents', linkedPatientId] });
       toast({ title: 'Document uploaded successfully' });
       setUploading(false);
     },
@@ -262,16 +277,6 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
       setUploading(false);
     }
   });
-
-  // Delete document mutation
-  const deleteDocumentMutation = useMutation({
-    mutationFn: async (document: any) => {
-      // Delete from storage
-      const { error: storageError } = await supabase.storage
-        .from('patient-documents')
-        .remove([document.file_path]);
-      
-      if (storageError) throw storageError;
 
       // Delete from database
       const { error: dbError } = await supabase
