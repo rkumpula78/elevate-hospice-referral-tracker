@@ -139,20 +139,36 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
   // Intake coordinators come from the same profiles list (managed via User Management)
   const intakeCoordinators = marketers;
 
-  // Fetch documents linked to this referral
-  const { data: documents } = useQuery({
-    queryKey: ['referral-documents', referralId],
+  // Resolve the patient record linked to this referral (created on admission)
+  const { data: linkedPatient } = useQuery({
+    queryKey: ['referral-linked-patient', referralId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('patient_documents')
-        .select('*')
-        .eq('patient_id', referralId)
-        .order('created_at', { ascending: false });
-      
+        .from('patients')
+        .select('id')
+        .eq('referral_id', referralId)
+        .maybeSingle();
       if (error) throw error;
       return data;
     },
-    enabled: open && !!referralId
+    enabled: open && !!referralId,
+  });
+  const linkedPatientId = linkedPatient?.id ?? null;
+
+  // Fetch documents linked to this referral's patient record
+  const { data: documents } = useQuery({
+    queryKey: ['referral-documents', linkedPatientId],
+    queryFn: async () => {
+      if (!linkedPatientId) return [];
+      const { data, error } = await supabase
+        .from('patient_documents')
+        .select('*')
+        .eq('patient_id', linkedPatientId)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+    enabled: open && !!linkedPatientId,
   });
 
   // Mutation for updating referral data
