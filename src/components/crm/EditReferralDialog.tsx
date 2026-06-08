@@ -278,16 +278,22 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
     }
   });
 
-      // Delete from database
+  // Delete document mutation
+  const deleteDocumentMutation = useMutation({
+    mutationFn: async (doc: any) => {
+      const { error: storageError } = await supabase.storage
+        .from('patient-documents')
+        .remove([doc.file_path]);
+      if (storageError) throw storageError;
+
       const { error: dbError } = await supabase
         .from('patient_documents')
         .delete()
-        .eq('id', document.id);
-      
+        .eq('id', doc.id);
       if (dbError) throw dbError;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['referral-documents', referralId] });
+      queryClient.invalidateQueries({ queryKey: ['referral-documents', linkedPatientId] });
       toast({ title: 'Document deleted successfully' });
     },
     onError: (error) => {
