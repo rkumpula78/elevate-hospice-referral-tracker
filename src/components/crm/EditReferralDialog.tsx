@@ -139,20 +139,36 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
   // Intake coordinators come from the same profiles list (managed via User Management)
   const intakeCoordinators = marketers;
 
-  // Fetch documents linked to this referral
-  const { data: documents } = useQuery({
-    queryKey: ['referral-documents', referralId],
+  // Resolve the patient record linked to this referral (created on admission)
+  const { data: linkedPatient } = useQuery({
+    queryKey: ['referral-linked-patient', referralId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('patient_documents')
-        .select('*')
-        .eq('patient_id', referralId)
-        .order('created_at', { ascending: false });
-      
+        .from('patients')
+        .select('id')
+        .eq('referral_id', referralId)
+        .maybeSingle();
       if (error) throw error;
       return data;
     },
-    enabled: open && !!referralId
+    enabled: open && !!referralId,
+  });
+  const linkedPatientId = linkedPatient?.id ?? null;
+
+  // Fetch documents linked to this referral's patient record
+  const { data: documents } = useQuery({
+    queryKey: ['referral-documents', linkedPatientId],
+    queryFn: async () => {
+      if (!linkedPatientId) return [];
+      const { data, error } = await supabase
+        .from('patient_documents')
+        .select('*')
+        .eq('patient_id', linkedPatientId)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+    enabled: open && !!linkedPatientId,
   });
 
   // Mutation for updating referral data
@@ -205,25 +221,25 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
     }
   });
 
-  // Upload document mutation
+  
   const uploadDocumentMutation = useMutation({
     mutationFn: async ({ file, documentType }: { file: File; documentType: string }) => {
+      if (!linkedPatientId) {
+        throw new Error('Documents can only be uploaded after the referral has been admitted.');
+      }
       setUploading(true);
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${referralId}/${Date.now()}-${file.name}`;
-      
-      // Upload file to storage
-      const { data: uploadData, error: uploadError } = await supabase.storage
+      const fileName = `${linkedPatientId}/${Date.now()}-${file.name}`;
+
+      const { error: uploadError } = await supabase.storage
         .from('patient-documents')
         .upload(fileName, file);
-      
+
       if (uploadError) throw uploadError;
 
-      // Create document record
       const { data: docData, error: dbError } = await supabase
         .from('patient_documents')
         .insert({
-          patient_id: referralId,
+          patient_id: linkedPatientId,
           file_name: file.name,
           file_path: fileName,
           file_size: file.size,
@@ -232,12 +248,12 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
         })
         .select()
         .single();
-      
+
       if (dbError) throw dbError;
       return docData;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['referral-documents', referralId] });
+      queryClient.invalidateQueries({ queryKey: ['referral-documents', linkedPatientId] });
       toast({ title: 'Document uploaded successfully' });
       setUploading(false);
     },
@@ -249,24 +265,20 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
 
   // Delete document mutation
   const deleteDocumentMutation = useMutation({
-    mutationFn: async (document: any) => {
-      // Delete from storage
+    mutationFn: async (doc: any) => {
       const { error: storageError } = await supabase.storage
         .from('patient-documents')
-        .remove([document.file_path]);
-      
+        .remove([doc.file_path]);
       if (storageError) throw storageError;
 
-      // Delete from database
       const { error: dbError } = await supabase
         .from('patient_documents')
         .delete()
-        .eq('id', document.id);
-      
+        .eq('id', doc.id);
       if (dbError) throw dbError;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['referral-documents', referralId] });
+      queryClient.invalidateQueries({ queryKey: ['referral-documents', linkedPatientId] });
       toast({ title: 'Document deleted successfully' });
     },
     onError: (error) => {
