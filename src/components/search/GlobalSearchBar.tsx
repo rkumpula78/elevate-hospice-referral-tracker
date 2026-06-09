@@ -21,6 +21,8 @@ interface SearchResult {
     referrals: any[];
     patients: any[];
     organizations: any[];
+    contacts: any[];
+    staff: any[];
   };
   response?: string;
   suggestedAction?: {
