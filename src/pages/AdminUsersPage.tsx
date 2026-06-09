@@ -796,9 +796,15 @@ export default function AdminUsersPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="marketer">Marketer</SelectItem>
+                  <SelectItem value="marketer">Marketer / Liaison</SelectItem>
                   <SelectItem value="intake_coordinator">Intake Coordinator</SelectItem>
-                  <SelectItem value="admin">Admin</SelectItem>
+                  <SelectItem value="rn">Registered Nurse (RN)</SelectItem>
+                  <SelectItem value="np">Nurse Practitioner (NP)</SelectItem>
+                  <SelectItem value="cna">CNA / HHA</SelectItem>
+                  <SelectItem value="sw">Social Worker</SelectItem>
+                  <SelectItem value="chaplain">Chaplain</SelectItem>
+                  <SelectItem value="admin">Admin / Office</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
                 </SelectContent>
               </Select>
             </div>
