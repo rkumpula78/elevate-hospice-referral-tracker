@@ -93,11 +93,11 @@ const GlobalSearchBar = () => {
     localStorage.setItem('searchHistory', JSON.stringify(newHistory));
   };
 
-  const { data: searchResults, isLoading } = useQuery({
+  const { data: searchResults, isLoading, isError, error } = useQuery({
     queryKey: ['search', debouncedSearchQuery, advancedCriteria],
     queryFn: async () => {
       if (!debouncedSearchQuery.trim() && !advancedCriteria) return null;
-      
+
       const isAi = detectAiQuery(debouncedSearchQuery);
       setIsAiQuery(isAi);
 
@@ -106,18 +106,57 @@ const GlobalSearchBar = () => {
         saveToHistory(debouncedSearchQuery);
       }
 
+      // Regular (non-AI) search runs directly against the DB with RLS.
+      // This avoids edge-function auth pitfalls and is faster.
+      if (!isAi && !advancedCriteria) {
+        const q = debouncedSearchQuery.trim().replace(/[%_\\]/g, '');
+        const like = `%${q}%`;
+        const [refRes, patRes, orgRes] = await Promise.all([
+          supabase
+            .from('referrals')
+            .select('id, patient_name, status, diagnosis, organizations(name)')
+            .or(`patient_name.ilike.${like},first_name.ilike.${like},last_name.ilike.${like}`)
+            .is('deleted_at', null)
+            .limit(10),
+          supabase
+            .from('patients')
+            .select('id, first_name, last_name, status, diagnosis')
+            .or(`first_name.ilike.${like},last_name.ilike.${like}`)
+            .is('deleted_at', null)
+            .limit(10),
+          supabase
+            .from('organizations')
+            .select('id, name, type, contact_person, assigned_marketer')
+            .or(`name.ilike.${like},contact_person.ilike.${like}`)
+            .eq('is_active', true)
+            .limit(10),
+        ]);
+
+        return {
+          type: 'search_results',
+          results: {
+            referrals: refRes.data || [],
+            patients: patRes.data || [],
+            organizations: orgRes.data || [],
+          },
+        } as SearchResult;
+      }
+
+      // AI mode still uses the edge function
       const { data, error } = await supabase.functions.invoke('ai-search', {
-        body: { 
+        body: {
           query: debouncedSearchQuery,
-          searchType: isAi ? 'ai' : 'regular',
-          advancedCriteria
-        }
+          searchType: 'ai',
+          advancedCriteria,
+        },
       });
 
       if (error) throw error;
       return data as SearchResult;
     },
-    enabled: debouncedSearchQuery.length > 2 || !!advancedCriteria
+    enabled: debouncedSearchQuery.length > 2 || !!advancedCriteria,
+    retry: false,
+    staleTime: 15_000,
   });
 
   // Close results when clicking outside
