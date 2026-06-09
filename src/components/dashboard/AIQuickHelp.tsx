@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { MessageSquare, X, Sparkles, Building2, Users, Loader2, Copy, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
@@ -121,17 +122,16 @@ const AIQuickHelp: React.FC<AIQuickHelpProps> = ({
       </Button>
 
       {/* Modal */}
-      {isOpen && (
-        <div 
-          className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4"
+      {isOpen && createPortal(
+        <div
+          className="fixed inset-0 bg-black/80 flex items-center justify-center z-[100] p-4 overflow-y-auto"
           onClick={(e) => {
-            // Close if clicking on backdrop (not the modal content)
             if (e.target === e.currentTarget) {
               setIsOpen(false);
             }
           }}
         >
-          <div className="w-full max-w-2xl max-h-[90vh] overflow-hidden bg-white shadow-2xl rounded-lg">
+          <div className="w-full max-w-2xl my-auto max-h-[90vh] overflow-hidden bg-white shadow-2xl rounded-lg">
             {/* Header */}
             <div className="border-b border-gray-200 p-4 flex items-center justify-between bg-white">
               <div className="flex items-center gap-2">
