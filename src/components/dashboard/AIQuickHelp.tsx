@@ -14,15 +14,13 @@ interface AIQuickHelpProps {
   variant?: 'default' | 'sidebar';
 }
 
-const AIQuickHelp: React.FC<AIQuickHelpProps> = ({ 
+const AIQuickHelpInner: React.FC<AIQuickHelpProps> = ({ 
   contactName = '', 
   organizationName = '',
   contextData = {},
   fullWidth = false,
   variant = 'default'
 }) => {
-  const { user } = useAuth();
-  if (!canUseAskElevateAI(user)) return null;
   const [isOpen, setIsOpen] = useState(false);
   const [context, setContext] = useState<'family' | 'referral'>('family');
   const [situation, setSituation] = useState('');
