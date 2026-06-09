@@ -75,7 +75,9 @@ const ResponsiblePartySection = ({ patient, isOpen, onToggle }: ResponsibleParty
             </Select>
           </div>
           <div>
-            <Label htmlFor="emergency_contact">Emergency Contact Name</Label>
+            <Label htmlFor="emergency_contact">
+              Emergency Contact Name <span className="text-red-500">*</span>
+            </Label>
             <Input
               id="emergency_contact"
               name="emergency_contact"
@@ -84,7 +86,9 @@ const ResponsiblePartySection = ({ patient, isOpen, onToggle }: ResponsibleParty
             />
           </div>
           <div>
-            <Label htmlFor="emergency_phone">Emergency Contact Phone</Label>
+            <Label htmlFor="emergency_phone">
+              Emergency Contact Phone <span className="text-red-500">*</span>
+            </Label>
             <Input
               id="emergency_phone"
               name="emergency_phone"
