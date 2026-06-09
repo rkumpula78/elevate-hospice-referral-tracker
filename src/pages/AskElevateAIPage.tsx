@@ -54,7 +54,14 @@ function getPageContext(pathname: string): Record<string, string> | null {
   return { currentPage: "ask-elevate", source: pathname };
 }
 
-export default function AskElevateAIPage() {
+export default function AskElevateAIPageGate() {
+  const { user, loading } = useAuth();
+  if (loading) return null;
+  if (!canUseAskElevateAI(user)) return <Navigate to="/" replace />;
+  return <AskElevateAIPageInner />;
+}
+
+function AskElevateAIPageInner() {
   const { user, displayName } = useAuth();
   const location = useLocation();
 
