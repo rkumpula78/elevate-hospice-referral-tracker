@@ -3,6 +3,8 @@ import { createPortal } from 'react-dom';
 import { MessageSquare, X, Sparkles, Building2, Users, Loader2, Copy, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { canUseAskElevateAI } from '@/lib/featureFlags';
 
 interface AIQuickHelpProps {
   contactName?: string;
@@ -12,7 +14,7 @@ interface AIQuickHelpProps {
   variant?: 'default' | 'sidebar';
 }
 
-const AIQuickHelp: React.FC<AIQuickHelpProps> = ({ 
+const AIQuickHelpInner: React.FC<AIQuickHelpProps> = ({ 
   contactName = '', 
   organizationName = '',
   contextData = {},
@@ -356,4 +358,10 @@ const AIQuickHelp: React.FC<AIQuickHelpProps> = ({
   );
 };
 
-export default AIQuickHelp; 
+const AIQuickHelp: React.FC<AIQuickHelpProps> = (props) => {
+  const { user } = useAuth();
+  if (!canUseAskElevateAI(user)) return null;
+  return <AIQuickHelpInner {...props} />;
+};
+
+export default AIQuickHelp;

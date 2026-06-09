@@ -1,6 +1,7 @@
 import ElevateOpsChat from "@/components/chat/ElevateOpsChat";
 import { useAuth } from "@/hooks/useAuth";
-import { useLocation } from "react-router-dom";
+import { canUseAskElevateAI } from "@/lib/featureFlags";
+import { Navigate, useLocation } from "react-router-dom";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Send, Bot, User, Loader2, RotateCcw, ChevronDown, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -53,7 +54,14 @@ function getPageContext(pathname: string): Record<string, string> | null {
   return { currentPage: "ask-elevate", source: pathname };
 }
 
-export default function AskElevateAIPage() {
+export default function AskElevateAIPageGate() {
+  const { user, loading } = useAuth();
+  if (loading) return null;
+  if (!canUseAskElevateAI(user)) return <Navigate to="/" replace />;
+  return <AskElevateAIPageInner />;
+}
+
+function AskElevateAIPageInner() {
   const { user, displayName } = useAuth();
   const location = useLocation();
 

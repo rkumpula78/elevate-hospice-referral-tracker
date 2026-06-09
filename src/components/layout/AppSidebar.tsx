@@ -36,6 +36,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/useAuth";
+import { canUseAskElevateAI } from "@/lib/featureFlags";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import GlobalSearchBar from "@/components/search/GlobalSearchBar";
@@ -60,10 +61,10 @@ const primaryItems = [
   { title: "BD Dashboard", url: "/bd-dashboard", icon: TrendingUp },
 ];
 
-const toolsItems = [
+const baseToolsItems = [
   { title: "Territory Map", url: "/map", icon: MapPin },
   { title: "Story Library", url: "/stories", icon: BookOpen },
-  { title: "Ask Elevate AI", url: "/ask-elevate", icon: Sparkles },
+  { title: "Ask Elevate AI", url: "/ask-elevate", icon: Sparkles, restricted: "askElevateAI" as const },
   { title: "Training", url: "/training", icon: GraduationCap },
 ];
 
@@ -79,6 +80,10 @@ const AppSidebar = () => {
   const isMobile = useIsMobile();
   const isTabletOrMobile = useIsTabletOrMobile();
   const { setOpenMobile, openMobile, isMobile: sidebarIsMobile } = useSidebar();
+
+  const toolsItems = baseToolsItems.filter(
+    (item) => item.restricted !== "askElevateAI" || canUseAskElevateAI(user)
+  );
 
   const insightsActive = insightsItems.some(i => location.pathname === i.url);
   const [insightsOpen, setInsightsOpen] = useState(insightsActive);
