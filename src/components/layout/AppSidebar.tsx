@@ -81,6 +81,10 @@ const AppSidebar = () => {
   const isTabletOrMobile = useIsTabletOrMobile();
   const { setOpenMobile, openMobile, isMobile: sidebarIsMobile } = useSidebar();
 
+  const toolsItems = baseToolsItems.filter(
+    (item) => item.restricted !== "askElevateAI" || canUseAskElevateAI(user)
+  );
+
   const insightsActive = insightsItems.some(i => location.pathname === i.url);
   const [insightsOpen, setInsightsOpen] = useState(insightsActive);
   const toolsActive = toolsItems.some(i => location.pathname === i.url);
