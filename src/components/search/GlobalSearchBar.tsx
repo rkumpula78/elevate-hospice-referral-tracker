@@ -110,7 +110,7 @@ const GlobalSearchBar = () => {
       const { data, error } = await supabase.functions.invoke('ai-search', {
         body: { 
           query: debouncedSearchQuery,
-          searchType: isAi ? 'ai' : 'search',
+          searchType: isAi ? 'ai' : 'regular',
           advancedCriteria
         }
       });
