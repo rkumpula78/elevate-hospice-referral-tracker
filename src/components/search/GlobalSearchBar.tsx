@@ -49,15 +49,14 @@ const GlobalSearchBar = () => {
   // Debounce search query
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
-  // Detect if this looks like an AI query
+  // Detect if this looks like an AI query (intentionally narrow — broad
+  // patterns were swallowing plain name lookups and routing them to the AI
+  // branch, which returns text instead of clickable patient rows).
   const detectAiQuery = (query: string) => {
     const aiPatterns = [
-      /^(show me|find|what|how many|list|display)/i,
-      /\b(all|pending|admitted|scheduled|from|last|this)\b/i,
-      /add.*referral|create.*referral|new.*referral/i,
-      /schedule.*visit|create.*visit|new.*visit/i,
-      /add.*organization|create.*organization|new.*organization/i,
-      /quick.*add|add.*new/i
+      /^(show me|find me|what|how many|how do i|list all|display all)\b/i,
+      /\?\s*$/, // ends with a question mark
+      /\b(add|create|new|schedule)\s+(a\s+)?(referral|visit|organization|facility)\b/i,
     ];
     return aiPatterns.some(pattern => pattern.test(query));
   };
@@ -110,7 +109,7 @@ const GlobalSearchBar = () => {
       const { data, error } = await supabase.functions.invoke('ai-search', {
         body: { 
           query: debouncedSearchQuery,
-          searchType: isAi ? 'ai' : 'search',
+          searchType: isAi ? 'ai' : 'regular',
           advancedCriteria
         }
       });
