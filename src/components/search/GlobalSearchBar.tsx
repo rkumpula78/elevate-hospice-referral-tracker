@@ -498,9 +498,76 @@ const GlobalSearchBar = () => {
                     </div>
                   )}
 
+                  {/* Contacts (Providers, etc.) */}
+                  {searchResults.results.contacts?.length > 0 && (
+                    <div className="border-b border-gray-200">
+                      <div className="px-4 py-2 bg-gray-50 text-xs font-medium text-gray-700 flex items-center">
+                        <Stethoscope className="h-3 w-3 mr-1" />
+                        Contacts &amp; Providers
+                      </div>
+                      {searchResults.results.contacts.map((c) => (
+                        <div
+                          key={c.id}
+                          className="px-4 py-3 hover:bg-muted/50 cursor-pointer border-b last:border-b-0 bg-background transition-colors"
+                          onClick={() => handleResultClick('contact', c.organization_id)}
+                        >
+                          <div className="flex justify-between items-start">
+                            <div className="flex-1">
+                              <p className="font-medium text-sm text-foreground">
+                                {highlightMatch(`${c.first_name || ''} ${c.last_name || ''}`.trim(), debouncedSearchQuery)}
+                              </p>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                {c.title && <>{highlightMatch(c.title, debouncedSearchQuery)} • </>}
+                                {c.organizations?.name || ''}
+                              </p>
+                              {(c.email || c.direct_phone) && (
+                                <p className="text-xs text-muted-foreground">
+                                  {c.email && highlightMatch(c.email, debouncedSearchQuery)}
+                                  {c.email && c.direct_phone && ' • '}
+                                  {c.direct_phone}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Staff */}
+                  {searchResults.results.staff?.length > 0 && (
+                    <div>
+                      <div className="px-4 py-2 bg-gray-50 text-xs font-medium text-gray-700 flex items-center">
+                        <UserCog className="h-3 w-3 mr-1" />
+                        Staff
+                      </div>
+                      {searchResults.results.staff.map((s) => (
+                        <div
+                          key={s.id}
+                          className="px-4 py-3 hover:bg-muted/50 cursor-pointer border-b last:border-b-0 bg-background transition-colors"
+                          onClick={() => handleResultClick('staff', s.id)}
+                        >
+                          <div className="flex justify-between items-start">
+                            <div className="flex-1">
+                              <p className="font-medium text-sm text-foreground">
+                                {highlightMatch(s.name || '', debouncedSearchQuery)}
+                              </p>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                {s.role && highlightMatch(s.role, debouncedSearchQuery)}
+                                {s.email && <> • {highlightMatch(s.email, debouncedSearchQuery)}</>}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
                   {searchResults.results.referrals.length === 0 && 
                    searchResults.results.patients.length === 0 && 
-                   searchResults.results.organizations.length === 0 && (
+                   searchResults.results.organizations.length === 0 &&
+                   (searchResults.results.contacts?.length || 0) === 0 &&
+                   (searchResults.results.staff?.length || 0) === 0 && (
                     <div className="p-4 text-center bg-background">
                       <p className="text-sm text-foreground">No results found for "{debouncedSearchQuery}"</p>
                       <p className="text-xs mt-1 text-muted-foreground">Try a different search term or use Advanced Search</p>
