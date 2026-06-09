@@ -16,9 +16,15 @@ import InlineStatusNote from '@/components/crm/InlineStatusNote';
 import { useDebounce } from '@/hooks/useDebounce';
 import { ReferralsFilterBar, ReferralFilters } from '@/components/crm/ReferralsFilterBar';
 
+const PALLIATIVE_STATUSES = ['palliative_outreach', 'not_appropriate', 'declined', 'lost_to_followup', 'closed', 'admitted'];
+
 const PALLIATIVE_STATUS_OPTIONS = [
   { label: 'Palliative Outreach', value: 'palliative_outreach' },
   { label: 'Not Appropriate', value: 'not_appropriate' },
+  { label: 'Declined', value: 'declined' },
+  { label: 'Lost to Follow-up', value: 'lost_to_followup' },
+  { label: 'Closed', value: 'closed' },
+  { label: 'Converted to Hospice', value: 'admitted' },
 ];
 
 const PalliativeOutreachBoard = () => {
