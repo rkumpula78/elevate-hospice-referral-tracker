@@ -16,6 +16,8 @@ import InlineStatusNote from '@/components/crm/InlineStatusNote';
 import { useDebounce } from '@/hooks/useDebounce';
 import { ReferralsFilterBar, ReferralFilters } from '@/components/crm/ReferralsFilterBar';
 
+const PALLIATIVE_STATUSES = ['palliative_outreach', 'not_appropriate'];
+
 const PALLIATIVE_STATUS_OPTIONS = [
   { label: 'Palliative Outreach', value: 'palliative_outreach' },
   { label: 'Not Appropriate', value: 'not_appropriate' },
@@ -55,7 +57,7 @@ const PalliativeOutreachBoard = () => {
         .from('referrals')
         .select('id, patient_name, assigned_marketer, pcp_provider, pcp_company, next_followup_date, followup_frequency, location_type, location_city, status, notes, patient_status_note, updated_at, priority, insurance, organization_id, referral_date, organizations(name)')
         .is('deleted_at', null)
-        .in('status', ['palliative_outreach', 'not_appropriate'] as any[])
+        .in('status', PALLIATIVE_STATUSES as any[])
         .order('next_followup_date', { ascending: true, nullsFirst: false });
 
       if (error) throw error;

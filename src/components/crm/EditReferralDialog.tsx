@@ -214,6 +214,9 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['referrals'] });
       queryClient.invalidateQueries({ queryKey: ['referral', referralId] });
+      queryClient.invalidateQueries({ queryKey: ['palliative-outreach-referrals'] });
+      queryClient.invalidateQueries({ queryKey: ['palliative-outreach-kanban'] });
+      queryClient.invalidateQueries({ queryKey: ['referral-kanban'] });
       toast({ title: 'Information updated successfully' });
     },
     onError: (error) => {
