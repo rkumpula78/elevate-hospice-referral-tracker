@@ -358,4 +358,10 @@ const AIQuickHelpInner: React.FC<AIQuickHelpProps> = ({
   );
 };
 
-export default AIQuickHelp; 
+const AIQuickHelp: React.FC<AIQuickHelpProps> = (props) => {
+  const { user } = useAuth();
+  if (!canUseAskElevateAI(user)) return null;
+  return <AIQuickHelpInner {...props} />;
+};
+
+export default AIQuickHelp;
