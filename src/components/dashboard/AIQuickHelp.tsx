@@ -349,7 +349,8 @@ const AIQuickHelp: React.FC<AIQuickHelpProps> = ({
               )}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

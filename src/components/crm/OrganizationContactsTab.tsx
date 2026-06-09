@@ -520,6 +520,7 @@ const OrganizationContactsTab = ({ organizationId, organizationName }: Organizat
                         <SelectContent>
                           <SelectItem value="referral_source">Referral Source</SelectItem>
                           <SelectItem value="physician">Physician</SelectItem>
+                          <SelectItem value="nurse_practitioner">Nurse Practitioner</SelectItem>
                           <SelectItem value="discharge_planner">Discharge Planner</SelectItem>
                           <SelectItem value="case_manager">Case Manager</SelectItem>
                           <SelectItem value="social_worker">Social Worker</SelectItem>
