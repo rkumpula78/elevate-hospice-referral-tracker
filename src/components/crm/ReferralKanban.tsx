@@ -55,6 +55,8 @@ const ReferralKanban = ({ referrals }: ReferralKanbanProps) => {
       queryClient.invalidateQueries({ queryKey: ['referrals'] });
       queryClient.invalidateQueries({ queryKey: ['referrals-kanban'] });
       queryClient.invalidateQueries({ queryKey: ['palliative-outreach-count'] });
+      queryClient.invalidateQueries({ queryKey: ['palliative-outreach-referrals'] });
+      queryClient.invalidateQueries({ queryKey: ['palliative-outreach-kanban'] });
       toast({ title: `✅ Moved to ${getStatusLabel(vars.status)}` });
     },
     onError: (_err, _vars, context) => {
