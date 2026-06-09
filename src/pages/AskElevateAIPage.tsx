@@ -1,6 +1,7 @@
 import ElevateOpsChat from "@/components/chat/ElevateOpsChat";
 import { useAuth } from "@/hooks/useAuth";
-import { useLocation } from "react-router-dom";
+import { canUseAskElevateAI } from "@/lib/featureFlags";
+import { Navigate, useLocation } from "react-router-dom";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Send, Bot, User, Loader2, RotateCcw, ChevronDown, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
