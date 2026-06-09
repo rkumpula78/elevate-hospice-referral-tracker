@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, MessageCircle, User, Building2, FileText, ExternalLink, Plus, X, Filter } from 'lucide-react';
+import { Search, MessageCircle, User, Building2, FileText, ExternalLink, Plus, X, Filter, UserCog, Stethoscope } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -21,6 +21,8 @@ interface SearchResult {
     referrals: any[];
     patients: any[];
     organizations: any[];
+    contacts: any[];
+    staff: any[];
   };
   response?: string;
   suggestedAction?: {
@@ -111,23 +113,34 @@ const GlobalSearchBar = () => {
       if (!isAi && !advancedCriteria) {
         const q = debouncedSearchQuery.trim().replace(/[%_\\]/g, '');
         const like = `%${q}%`;
-        const [refRes, patRes, orgRes] = await Promise.all([
+        const [refRes, patRes, orgRes, contactRes, staffRes] = await Promise.all([
           supabase
             .from('referrals')
-            .select('id, patient_name, status, diagnosis, organizations(name)')
-            .or(`patient_name.ilike.${like},first_name.ilike.${like},last_name.ilike.${like}`)
+            .select('id, patient_name, status, diagnosis, referring_physician, organizations(name)')
+            .or(`patient_name.ilike.${like},first_name.ilike.${like},last_name.ilike.${like},referring_physician.ilike.${like},diagnosis.ilike.${like}`)
             .is('deleted_at', null)
             .limit(10),
           supabase
             .from('patients')
             .select('id, first_name, last_name, status, diagnosis')
-            .or(`first_name.ilike.${like},last_name.ilike.${like}`)
+            .or(`first_name.ilike.${like},last_name.ilike.${like},diagnosis.ilike.${like}`)
             .is('deleted_at', null)
             .limit(10),
           supabase
             .from('organizations')
             .select('id, name, type, contact_person, assigned_marketer')
-            .or(`name.ilike.${like},contact_person.ilike.${like}`)
+            .or(`name.ilike.${like},contact_person.ilike.${like},type.ilike.${like}`)
+            .eq('is_active', true)
+            .limit(10),
+          supabase
+            .from('organization_contacts')
+            .select('id, first_name, last_name, title, email, direct_phone, specialty, organization_id, organizations(name)')
+            .or(`first_name.ilike.${like},last_name.ilike.${like},title.ilike.${like},email.ilike.${like},specialty.ilike.${like}`)
+            .limit(10),
+          supabase
+            .from('staff')
+            .select('id, name, role, email, phone')
+            .or(`name.ilike.${like},role.ilike.${like},email.ilike.${like}`)
             .eq('is_active', true)
             .limit(10),
         ]);
@@ -138,6 +151,8 @@ const GlobalSearchBar = () => {
             referrals: refRes.data || [],
             patients: patRes.data || [],
             organizations: orgRes.data || [],
+            contacts: contactRes.data || [],
+            staff: staffRes.data || [],
           },
         } as SearchResult;
       }
@@ -198,7 +213,9 @@ const GlobalSearchBar = () => {
   const totalResults = searchResults?.results 
     ? (searchResults.results.referrals?.length || 0) + 
       (searchResults.results.patients?.length || 0) + 
-      (searchResults.results.organizations?.length || 0)
+      (searchResults.results.organizations?.length || 0) +
+      (searchResults.results.contacts?.length || 0) +
+      (searchResults.results.staff?.length || 0)
     : 0;
   
   // Highlight matched text in results
@@ -214,7 +231,6 @@ const GlobalSearchBar = () => {
   };
 
   const handleResultClick = (type: string, id: string) => {
-    // Navigate to the specific item - Fixed organization route
     switch (type) {
       case 'referral':
         navigate(`/referral/${id}`);
@@ -223,7 +239,14 @@ const GlobalSearchBar = () => {
         navigate(`/patient/${id}`);
         break;
       case 'organization':
-        navigate(`/organizations/${id}`); // Fixed: changed from /organization to /organizations
+        navigate(`/organizations/${id}`);
+        break;
+      case 'contact':
+        // Contacts live inside their organization
+        navigate(`/organizations/${id}`);
+        break;
+      case 'staff':
+        navigate(`/admin/staff`);
         break;
       default:
         console.log(`Unknown type: ${type}`);
@@ -262,7 +285,7 @@ const GlobalSearchBar = () => {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4 z-10" />
           <Input
             type="text"
-            placeholder="Search referrals by name, MRN, facility..."
+            placeholder="Search patients, referrals, contacts, staff, organizations..."
             value={searchQuery}
             onChange={handleInputChange}
             className="pl-10 pr-20 py-2 w-full text-sm bg-background"
@@ -475,9 +498,76 @@ const GlobalSearchBar = () => {
                     </div>
                   )}
 
+                  {/* Contacts (Providers, etc.) */}
+                  {searchResults.results.contacts?.length > 0 && (
+                    <div className="border-b border-gray-200">
+                      <div className="px-4 py-2 bg-gray-50 text-xs font-medium text-gray-700 flex items-center">
+                        <Stethoscope className="h-3 w-3 mr-1" />
+                        Contacts &amp; Providers
+                      </div>
+                      {searchResults.results.contacts.map((c) => (
+                        <div
+                          key={c.id}
+                          className="px-4 py-3 hover:bg-muted/50 cursor-pointer border-b last:border-b-0 bg-background transition-colors"
+                          onClick={() => handleResultClick('contact', c.organization_id)}
+                        >
+                          <div className="flex justify-between items-start">
+                            <div className="flex-1">
+                              <p className="font-medium text-sm text-foreground">
+                                {highlightMatch(`${c.first_name || ''} ${c.last_name || ''}`.trim(), debouncedSearchQuery)}
+                              </p>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                {c.title && <>{highlightMatch(c.title, debouncedSearchQuery)} • </>}
+                                {c.organizations?.name || ''}
+                              </p>
+                              {(c.email || c.direct_phone) && (
+                                <p className="text-xs text-muted-foreground">
+                                  {c.email && highlightMatch(c.email, debouncedSearchQuery)}
+                                  {c.email && c.direct_phone && ' • '}
+                                  {c.direct_phone}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Staff */}
+                  {searchResults.results.staff?.length > 0 && (
+                    <div>
+                      <div className="px-4 py-2 bg-gray-50 text-xs font-medium text-gray-700 flex items-center">
+                        <UserCog className="h-3 w-3 mr-1" />
+                        Staff
+                      </div>
+                      {searchResults.results.staff.map((s) => (
+                        <div
+                          key={s.id}
+                          className="px-4 py-3 hover:bg-muted/50 cursor-pointer border-b last:border-b-0 bg-background transition-colors"
+                          onClick={() => handleResultClick('staff', s.id)}
+                        >
+                          <div className="flex justify-between items-start">
+                            <div className="flex-1">
+                              <p className="font-medium text-sm text-foreground">
+                                {highlightMatch(s.name || '', debouncedSearchQuery)}
+                              </p>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                {s.role && highlightMatch(s.role, debouncedSearchQuery)}
+                                {s.email && <> • {highlightMatch(s.email, debouncedSearchQuery)}</>}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
                   {searchResults.results.referrals.length === 0 && 
                    searchResults.results.patients.length === 0 && 
-                   searchResults.results.organizations.length === 0 && (
+                   searchResults.results.organizations.length === 0 &&
+                   (searchResults.results.contacts?.length || 0) === 0 &&
+                   (searchResults.results.staff?.length || 0) === 0 && (
                     <div className="p-4 text-center bg-background">
                       <p className="text-sm text-foreground">No results found for "{debouncedSearchQuery}"</p>
                       <p className="text-xs mt-1 text-muted-foreground">Try a different search term or use Advanced Search</p>
