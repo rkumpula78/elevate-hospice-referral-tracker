@@ -116,19 +116,22 @@ const OrganizationContactsTab = ({ organizationId, organizationName }: Organizat
 
   const isLoading = contactsLoading || orgLoading;
 
+  // Normalize empty strings to null for nullable/check-constrained fields
+  const normalizeContactData = (data: any) => {
+    const out: any = { ...data };
+    ['role_in_referral', 'role_in_referral_process', 'influence_level', 'preferred_contact_method', 'best_contact_time', 'gender', 'communication_style']
+      .forEach((k) => { if (out[k] === '') out[k] = null; });
+    out.years_in_position = data.years_in_position ? parseInt(data.years_in_position) : null;
+    out.last_contact_date = data.last_contact_date || null;
+    out.next_followup_date = data.next_followup_date || null;
+    out.referral_conversion_rate = data.referral_conversion_rate ? parseFloat(data.referral_conversion_rate) : null;
+    return out;
+  };
+
   // Add contact mutation
   const addContactMutation = useMutation({
     mutationFn: async (contactData: any) => {
-      // Convert empty strings to null for date fields
-      const processedData = {
-        ...contactData,
-        organization_id: organizationId,
-        years_in_position: contactData.years_in_position ? parseInt(contactData.years_in_position) : null,
-        last_contact_date: contactData.last_contact_date || null,
-        next_followup_date: contactData.next_followup_date || null,
-        referral_conversion_rate: contactData.referral_conversion_rate ? parseFloat(contactData.referral_conversion_rate) : null
-      };
-      
+      const processedData = { ...normalizeContactData(contactData), organization_id: organizationId };
       const { error } = await supabase
         .from('organization_contacts')
         .insert([processedData]);
@@ -148,15 +151,7 @@ const OrganizationContactsTab = ({ organizationId, organizationName }: Organizat
   // Update contact mutation
   const updateContactMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: any }) => {
-      // Convert empty strings to null for date fields
-      const processedData = {
-        ...data,
-        years_in_position: data.years_in_position ? parseInt(data.years_in_position) : null,
-        last_contact_date: data.last_contact_date || null,
-        next_followup_date: data.next_followup_date || null,
-        referral_conversion_rate: data.referral_conversion_rate ? parseFloat(data.referral_conversion_rate) : null
-      };
-      
+      const processedData = normalizeContactData(data);
       const { error } = await supabase
         .from('organization_contacts')
         .update(processedData)
