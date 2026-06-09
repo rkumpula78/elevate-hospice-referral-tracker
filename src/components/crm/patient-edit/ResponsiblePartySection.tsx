@@ -21,9 +21,14 @@ const ResponsiblePartySection = ({ patient, isOpen, onToggle }: ResponsibleParty
         {isOpen ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
       </CollapsibleTrigger>
       <CollapsibleContent className="p-4 border border-gray-200 rounded-b-lg">
+        <p className="text-xs text-muted-foreground mb-3">
+          Fields marked <span className="text-red-500 font-semibold">*</span> are required to admit a referral.
+        </p>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <div>
-            <Label htmlFor="responsible_party_name">Responsible Party Name</Label>
+            <Label htmlFor="responsible_party_name">
+              Responsible Party Name <span className="text-red-500">*</span>
+            </Label>
             <Input
               id="responsible_party_name"
               name="responsible_party_name"
@@ -70,7 +75,9 @@ const ResponsiblePartySection = ({ patient, isOpen, onToggle }: ResponsibleParty
             </Select>
           </div>
           <div>
-            <Label htmlFor="emergency_contact">Emergency Contact Name</Label>
+            <Label htmlFor="emergency_contact">
+              Emergency Contact Name <span className="text-red-500">*</span>
+            </Label>
             <Input
               id="emergency_contact"
               name="emergency_contact"
@@ -79,7 +86,9 @@ const ResponsiblePartySection = ({ patient, isOpen, onToggle }: ResponsibleParty
             />
           </div>
           <div>
-            <Label htmlFor="emergency_phone">Emergency Contact Phone</Label>
+            <Label htmlFor="emergency_phone">
+              Emergency Contact Phone <span className="text-red-500">*</span>
+            </Label>
             <Input
               id="emergency_phone"
               name="emergency_phone"

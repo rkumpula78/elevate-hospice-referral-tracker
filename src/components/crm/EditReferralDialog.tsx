@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
-import { Plus, User, Phone, FileText, Briefcase, Building, AlertTriangle, MapPin } from 'lucide-react';
+import { Plus, User, Phone, FileText, Briefcase, Building, AlertTriangle, MapPin, CheckCircle2, XCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { calculateBenefitPeriod } from '@/lib/benefitPeriodLogic';
@@ -552,7 +552,9 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
                   </div>
                 </div>
                 <div>
-                  <Label htmlFor="diagnosis" className="text-gray-700">Diagnosis</Label>
+                  <Label htmlFor="diagnosis" className="text-gray-700">
+                    Diagnosis <span className="text-red-500" title="Required to admit">*</span>
+                  </Label>
                   <EnhancedInput
                     id="diagnosis"
                     name="diagnosis"
@@ -564,7 +566,9 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
                   />
                 </div>
                 <div>
-                  <Label htmlFor="insurance" className="text-gray-700">Insurance</Label>
+                  <Label htmlFor="insurance" className="text-gray-700">
+                    Insurance <span className="text-red-500" title="Required to admit">*</span>
+                  </Label>
                   <EnhancedInput
                     id="insurance"
                     name="insurance"
@@ -575,7 +579,9 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
                   />
                 </div>
                 <div>
-                  <Label htmlFor="referring_physician" className="text-gray-700">Referring Physician</Label>
+                  <Label htmlFor="referring_physician" className="text-gray-700">
+                    Referring Physician <span className="text-red-500" title="Required to admit">*</span>
+                  </Label>
                   <EnhancedInput
                     id="referring_physician"
                     name="referring_physician"
@@ -741,6 +747,62 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
                   </Select>
                 </div>
               </div>
+
+              {/* Admission Readiness Checklist */}
+              {statusValue === 'admitted' && referralData?.status !== 'admitted' && (() => {
+                const checklist = [
+                  { key: 'patient_name', label: 'Patient Name', value: referralData?.patient_name },
+                  { key: 'address', label: 'Address', value: (referralData as any)?.address },
+                  { key: 'date_of_birth', label: 'Date of Birth', value: (referralData as any)?.date_of_birth },
+                  { key: 'diagnosis', label: 'Primary Diagnosis', value: referralData?.diagnosis },
+                  { key: 'insurance', label: 'Insurance', value: referralData?.insurance || (referralData as any)?.primary_insurance },
+                  { key: 'physician', label: 'Physician', value: (referralData as any)?.physician || referralData?.referring_physician },
+                  { key: 'emergency_contact', label: 'Emergency Contact', value: (referralData as any)?.emergency_contact },
+                  { key: 'emergency_phone', label: 'Emergency Phone', value: (referralData as any)?.emergency_phone },
+                  { key: 'responsible_party_name', label: 'Responsible Party', value: (referralData as any)?.responsible_party_name },
+                ];
+                const missing = checklist.filter(f => !f.value || (typeof f.value === 'string' && !f.value.trim()));
+                const ready = missing.length === 0;
+                return (
+                  <div className={`rounded-lg border p-4 ${ready ? 'border-green-300 bg-green-50' : 'border-amber-300 bg-amber-50'}`}>
+                    <div className="flex items-center gap-2 mb-2">
+                      {ready ? (
+                        <CheckCircle2 className="w-5 h-5 text-green-600" />
+                      ) : (
+                        <AlertTriangle className="w-5 h-5 text-amber-600" />
+                      )}
+                      <h4 className={`font-semibold ${ready ? 'text-green-900' : 'text-amber-900'}`}>
+                        Admission Readiness Checklist
+                      </h4>
+                      <Badge variant="outline" className="ml-auto">
+                        {checklist.length - missing.length}/{checklist.length} complete
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-gray-700 mb-3">
+                      {ready
+                        ? 'All required fields are complete. Click Save Changes to admit.'
+                        : 'Fill these fields (in Patient Info tab) and save to admit. Saved values are checked below.'}
+                    </p>
+                    <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-sm">
+                      {checklist.map(f => {
+                        const ok = !!(f.value && (typeof f.value !== 'string' || f.value.trim()));
+                        return (
+                          <li key={f.key} className="flex items-center gap-2">
+                            {ok ? (
+                              <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />
+                            ) : (
+                              <XCircle className="w-4 h-4 text-red-500 shrink-0" />
+                            )}
+                            <span className={ok ? 'text-gray-700' : 'text-red-700 font-medium'}>
+                              {f.label}
+                            </span>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                );
+              })()}
 
               {/* Conditional Close Reason */}
               {showReasonField && (
