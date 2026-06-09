@@ -84,7 +84,7 @@ const PatientOverviewSection = ({ patient, isOpen, onToggle }: PatientOverviewSe
             />
           </div>
           <div>
-            <Label htmlFor="date_of_birth">Date of Birth</Label>
+            <Label htmlFor="date_of_birth">Date of Birth <span className="text-red-500">*</span></Label>
             <Input
               id="date_of_birth"
               name="date_of_birth"
