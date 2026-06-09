@@ -113,23 +113,34 @@ const GlobalSearchBar = () => {
       if (!isAi && !advancedCriteria) {
         const q = debouncedSearchQuery.trim().replace(/[%_\\]/g, '');
         const like = `%${q}%`;
-        const [refRes, patRes, orgRes] = await Promise.all([
+        const [refRes, patRes, orgRes, contactRes, staffRes] = await Promise.all([
           supabase
             .from('referrals')
-            .select('id, patient_name, status, diagnosis, organizations(name)')
-            .or(`patient_name.ilike.${like},first_name.ilike.${like},last_name.ilike.${like}`)
+            .select('id, patient_name, status, diagnosis, referring_physician, organizations(name)')
+            .or(`patient_name.ilike.${like},first_name.ilike.${like},last_name.ilike.${like},referring_physician.ilike.${like},diagnosis.ilike.${like}`)
             .is('deleted_at', null)
             .limit(10),
           supabase
             .from('patients')
             .select('id, first_name, last_name, status, diagnosis')
-            .or(`first_name.ilike.${like},last_name.ilike.${like}`)
+            .or(`first_name.ilike.${like},last_name.ilike.${like},diagnosis.ilike.${like}`)
             .is('deleted_at', null)
             .limit(10),
           supabase
             .from('organizations')
             .select('id, name, type, contact_person, assigned_marketer')
-            .or(`name.ilike.${like},contact_person.ilike.${like}`)
+            .or(`name.ilike.${like},contact_person.ilike.${like},type.ilike.${like}`)
+            .eq('is_active', true)
+            .limit(10),
+          supabase
+            .from('organization_contacts')
+            .select('id, first_name, last_name, title, email, direct_phone, specialty, organization_id, organizations(name)')
+            .or(`first_name.ilike.${like},last_name.ilike.${like},title.ilike.${like},email.ilike.${like},specialty.ilike.${like}`)
+            .limit(10),
+          supabase
+            .from('staff')
+            .select('id, name, role, email, phone')
+            .or(`name.ilike.${like},role.ilike.${like},email.ilike.${like}`)
             .eq('is_active', true)
             .limit(10),
         ]);
@@ -140,6 +151,8 @@ const GlobalSearchBar = () => {
             referrals: refRes.data || [],
             patients: patRes.data || [],
             organizations: orgRes.data || [],
+            contacts: contactRes.data || [],
+            staff: staffRes.data || [],
           },
         } as SearchResult;
       }
