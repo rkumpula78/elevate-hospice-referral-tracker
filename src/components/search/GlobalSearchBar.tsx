@@ -329,6 +329,11 @@ const GlobalSearchBar = () => {
                   <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
                   <p className="mt-2 text-sm text-muted-foreground">Searching...</p>
                 </div>
+              ) : isError ? (
+                <div className="p-4 text-center bg-background">
+                  <p className="text-sm text-destructive">Search failed. Please try again.</p>
+                  <p className="text-xs mt-1 text-muted-foreground">{(error as Error)?.message || 'If this keeps happening, sign out and sign back in.'}</p>
+                </div>
               ) : searchResults?.type === 'ai_response' ? (
                 <div className="p-4 border-l-4 border-blue-500 bg-blue-50">
                   <div className="flex items-start space-x-2">
