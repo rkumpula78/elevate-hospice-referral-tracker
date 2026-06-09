@@ -12,6 +12,20 @@ interface InlineStatusNoteProps {
   placeholder?: string;
 }
 
+// Helper: run an async fn with one retry on transient network errors
+async function withNetworkRetry<T>(fn: () => Promise<T>): Promise<T> {
+  try {
+    return await fn();
+  } catch (err: any) {
+    const msg = String(err?.message || err || '');
+    if (/failed to fetch|network|aborted|load failed/i.test(msg)) {
+      await new Promise((r) => setTimeout(r, 600));
+      return await fn();
+    }
+    throw err;
+  }
+}
+
 const InlineStatusNote: React.FC<InlineStatusNoteProps> = ({
   referralId,
   value,
@@ -23,29 +37,71 @@ const InlineStatusNote: React.FC<InlineStatusNoteProps> = ({
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(value || '');
   const [saving, setSaving] = useState(false);
+  const [lastSaved, setLastSaved] = useState<string>(value || '');
   const ref = useRef<HTMLTextAreaElement>(null);
+  const debounceRef = useRef<number | null>(null);
+  const inFlightRef = useRef<boolean>(false);
 
-  useEffect(() => { setDraft(value || ''); }, [value]);
+  useEffect(() => {
+    setDraft(value || '');
+    setLastSaved(value || '');
+  }, [value]);
   useEffect(() => { if (editing) ref.current?.focus(); }, [editing]);
 
-  const save = async () => {
-    if ((draft || '') === (value || '')) {
-      setEditing(false);
-      return;
-    }
+  const persist = async (text: string): Promise<boolean> => {
+    if (text === lastSaved) return true;
+    if (inFlightRef.current) return false;
+    inFlightRef.current = true;
     setSaving(true);
-    const { error } = await supabase
-      .from('referrals')
-      .update({ patient_status_note: draft || null } as any)
-      .eq('id', referralId);
-    setSaving(false);
-    if (error) {
-      toast({ title: 'Failed to save status', description: error.message, variant: 'destructive' });
-      return;
+    try {
+      const result = await withNetworkRetry(async () => {
+        const { error } = await supabase
+          .from('referrals')
+          .update({ patient_status_note: text || null } as any)
+          .eq('id', referralId);
+        if (error) throw error;
+      });
+      void result;
+      setLastSaved(text);
+      invalidateKeys.forEach((k) => queryClient.invalidateQueries({ queryKey: k }));
+      return true;
+    } catch (error: any) {
+      toast({
+        title: 'Failed to save status',
+        description: (error?.message || 'Please try again.') + ' Your text is preserved — click into the field and press Enter to retry.',
+        variant: 'destructive',
+      });
+      return false;
+    } finally {
+      inFlightRef.current = false;
+      setSaving(false);
     }
-    invalidateKeys.forEach((k) => queryClient.invalidateQueries({ queryKey: k }));
-    toast({ title: '✅ Status updated' });
-    setEditing(false);
+  };
+
+  // Debounced auto-save while typing so saves complete even if the user clicks elsewhere
+  useEffect(() => {
+    if (!editing) return;
+    if (draft === lastSaved) return;
+    if (debounceRef.current) window.clearTimeout(debounceRef.current);
+    debounceRef.current = window.setTimeout(() => {
+      void persist(draft);
+    }, 700);
+    return () => {
+      if (debounceRef.current) window.clearTimeout(debounceRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draft, editing]);
+
+  const handleBlurSave = async () => {
+    if (debounceRef.current) {
+      window.clearTimeout(debounceRef.current);
+      debounceRef.current = null;
+    }
+    const ok = await persist(draft);
+    if (ok) {
+      if (draft !== value) toast({ title: '✅ Status updated' });
+      setEditing(false);
+    }
   };
 
   if (editing) {
@@ -55,17 +111,21 @@ const InlineStatusNote: React.FC<InlineStatusNoteProps> = ({
           ref={ref}
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
-          onBlur={save}
+          onBlur={handleBlurSave}
           onKeyDown={(e) => {
-            if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); save(); }
-            if (e.key === 'Escape') { setDraft(value || ''); setEditing(false); }
+            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); void handleBlurSave(); }
+            if (e.key === 'Escape') { setDraft(lastSaved); setEditing(false); }
           }}
           rows={2}
           className="min-h-[44px] text-sm resize-y"
           placeholder={placeholder}
         />
         <div className="pt-1">
-          {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin text-muted-foreground" /> : <Check className="w-3.5 h-3.5 text-muted-foreground" />}
+          {saving
+            ? <Loader2 className="w-3.5 h-3.5 animate-spin text-muted-foreground" />
+            : draft === lastSaved
+              ? <Check className="w-3.5 h-3.5 text-green-600" />
+              : <Check className="w-3.5 h-3.5 text-muted-foreground" />}
         </div>
       </div>
     );
