@@ -213,7 +213,9 @@ const GlobalSearchBar = () => {
   const totalResults = searchResults?.results 
     ? (searchResults.results.referrals?.length || 0) + 
       (searchResults.results.patients?.length || 0) + 
-      (searchResults.results.organizations?.length || 0)
+      (searchResults.results.organizations?.length || 0) +
+      (searchResults.results.contacts?.length || 0) +
+      (searchResults.results.staff?.length || 0)
     : 0;
   
   // Highlight matched text in results
