@@ -36,6 +36,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/useAuth";
+import { canUseAskElevateAI } from "@/lib/featureFlags";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import GlobalSearchBar from "@/components/search/GlobalSearchBar";
