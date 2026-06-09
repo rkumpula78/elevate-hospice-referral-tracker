@@ -61,7 +61,7 @@ const PalliativeOutreachBoard = () => {
         .from('referrals')
         .select('id, patient_name, assigned_marketer, pcp_provider, pcp_company, next_followup_date, followup_frequency, location_type, location_city, status, notes, patient_status_note, updated_at, priority, insurance, organization_id, referral_date, organizations(name)')
         .is('deleted_at', null)
-        .in('status', ['palliative_outreach', 'not_appropriate'] as any[])
+        .in('status', PALLIATIVE_STATUSES as any[])
         .order('next_followup_date', { ascending: true, nullsFirst: false });
 
       if (error) throw error;
