@@ -155,7 +155,7 @@ const PatientOverviewSection = ({ patient, isOpen, onToggle }: PatientOverviewSe
             />
           </div>
           <div className="md:col-span-2">
-            <Label htmlFor="address">Patient Address</Label>
+            <Label htmlFor="address">Patient Address <span className="text-red-500">*</span></Label>
             <Input
               id="address"
               name="address"
