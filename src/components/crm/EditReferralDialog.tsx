@@ -552,7 +552,9 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
                   </div>
                 </div>
                 <div>
-                  <Label htmlFor="diagnosis" className="text-gray-700">Diagnosis</Label>
+                  <Label htmlFor="diagnosis" className="text-gray-700">
+                    Diagnosis <span className="text-red-500" title="Required to admit">*</span>
+                  </Label>
                   <EnhancedInput
                     id="diagnosis"
                     name="diagnosis"
@@ -564,7 +566,9 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
                   />
                 </div>
                 <div>
-                  <Label htmlFor="insurance" className="text-gray-700">Insurance</Label>
+                  <Label htmlFor="insurance" className="text-gray-700">
+                    Insurance <span className="text-red-500" title="Required to admit">*</span>
+                  </Label>
                   <EnhancedInput
                     id="insurance"
                     name="insurance"
@@ -575,7 +579,9 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
                   />
                 </div>
                 <div>
-                  <Label htmlFor="referring_physician" className="text-gray-700">Referring Physician</Label>
+                  <Label htmlFor="referring_physician" className="text-gray-700">
+                    Referring Physician <span className="text-red-500" title="Required to admit">*</span>
+                  </Label>
                   <EnhancedInput
                     id="referring_physician"
                     name="referring_physician"
