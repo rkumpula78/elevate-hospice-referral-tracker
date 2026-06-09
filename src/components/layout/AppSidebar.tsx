@@ -60,10 +60,10 @@ const primaryItems = [
   { title: "BD Dashboard", url: "/bd-dashboard", icon: TrendingUp },
 ];
 
-const toolsItems = [
+const baseToolsItems = [
   { title: "Territory Map", url: "/map", icon: MapPin },
   { title: "Story Library", url: "/stories", icon: BookOpen },
-  { title: "Ask Elevate AI", url: "/ask-elevate", icon: Sparkles },
+  { title: "Ask Elevate AI", url: "/ask-elevate", icon: Sparkles, restricted: "askElevateAI" as const },
   { title: "Training", url: "/training", icon: GraduationCap },
 ];
 
