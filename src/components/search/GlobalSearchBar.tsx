@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, MessageCircle, User, Building2, FileText, ExternalLink, Plus, X, Filter } from 'lucide-react';
+import { Search, MessageCircle, User, Building2, FileText, ExternalLink, Plus, X, Filter, UserCog, Stethoscope } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
