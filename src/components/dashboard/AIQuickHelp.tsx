@@ -21,6 +21,8 @@ const AIQuickHelp: React.FC<AIQuickHelpProps> = ({
   fullWidth = false,
   variant = 'default'
 }) => {
+  const { user } = useAuth();
+  if (!canUseAskElevateAI(user)) return null;
   const [isOpen, setIsOpen] = useState(false);
   const [context, setContext] = useState<'family' | 'referral'>('family');
   const [situation, setSituation] = useState('');
