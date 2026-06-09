@@ -285,7 +285,7 @@ const GlobalSearchBar = () => {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4 z-10" />
           <Input
             type="text"
-            placeholder="Search referrals by name, MRN, facility..."
+            placeholder="Search patients, referrals, contacts, staff, organizations..."
             value={searchQuery}
             onChange={handleInputChange}
             className="pl-10 pr-20 py-2 w-full text-sm bg-background"
