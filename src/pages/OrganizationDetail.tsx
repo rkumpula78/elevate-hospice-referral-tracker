@@ -201,6 +201,12 @@ const OrganizationDetail = () => {
               >
                 Referrals
               </TabsTrigger>
+              <TabsTrigger 
+                value="activity"
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:font-bold data-[state=active]:border-b-[3px] data-[state=active]:border-primary bg-background border border-border text-foreground hover:bg-muted h-12 text-sm md:text-base font-medium rounded-lg shadow-sm transition-all px-4 min-w-[44px] whitespace-nowrap"
+              >
+                Activity
+              </TabsTrigger>
 
               {/* Secondary tabs - visible on desktop, grouped in "More" on mobile */}
               {!isMobile && (
