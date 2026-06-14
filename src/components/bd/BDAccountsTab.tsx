@@ -468,6 +468,23 @@ const AccountDetailPanel: React.FC<{ orgId: string | null; onClose: () => void }
     setNotesDraft(null);
   };
 
+  const saveNoteAsActivity = async () => {
+    if (!orgId || !notesDraft || !notesDraft.trim()) return;
+    const { data: userData } = await supabase.auth.getUser();
+    const { error } = await (supabase as any).from('bd_activities').insert({
+      organization_id: orgId,
+      activity_type: 'note',
+      activity_date: new Date().toISOString().slice(0, 10),
+      notes: notesDraft.trim(),
+      logged_by_user_id: userData.user?.id ?? null,
+    });
+    if (error) { toast.error(error.message); return; }
+    toast.success('Note posted to timeline');
+    setNotesDraft(null);
+    qc.invalidateQueries({ queryKey: ['bd-org-activities', orgId] });
+    qc.invalidateQueries({ queryKey: ['bd-org-detail', orgId] });
+  };
+
   const saveHeader = async () => {
     if (!headerDraft) return;
     if (await patch({
