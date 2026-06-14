@@ -1,0 +1,2 @@
+ALTER TABLE public.bd_activities DROP CONSTRAINT bd_activities_activity_type_check;
+ALTER TABLE public.bd_activities ADD CONSTRAINT bd_activities_activity_type_check CHECK (activity_type = ANY (ARRAY['cold_visit'::text, 'followup_visit'::text, 'call'::text, 'email'::text, 'in_service'::text, 'covisit_anneli'::text, 'educational_event'::text, 'note'::text]));

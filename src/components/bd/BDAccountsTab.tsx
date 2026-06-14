@@ -673,18 +673,32 @@ const AccountDetailPanel: React.FC<{ orgId: string | null; onClose: () => void }
                 )}
               </section>
 
-              {/* Notes */}
+              {/* Add Note — posts to Activity Timeline */}
               <section>
-                <h3 className="text-sm font-semibold mb-2">Notes</h3>
+                <h3 className="text-sm font-semibold mb-2">Add Note</h3>
                 <Textarea
-                  value={notesDraft ?? org.partnership_notes ?? ''}
+                  value={notesDraft ?? ''}
                   onChange={(e) => setNotesDraft(e.target.value)}
-                  onBlur={saveNotes}
-                  onKeyDown={(e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) saveNotes(); }}
-                  placeholder="Click to add notes…"
-                  rows={4}
+                  onKeyDown={(e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) saveNoteAsActivity(); }}
+                  placeholder="Add a quick note — it will appear in the Activity Timeline above…"
+                  rows={3}
                 />
-                <p className="text-xs text-muted-foreground mt-1">Saves on blur or ⌘/Ctrl+Enter</p>
+                <div className="flex items-center justify-between mt-2">
+                  <p className="text-xs text-muted-foreground">⌘/Ctrl+Enter to post</p>
+                  <Button
+                    size="sm"
+                    onClick={saveNoteAsActivity}
+                    disabled={!notesDraft || !notesDraft.trim()}
+                  >
+                    Post Note
+                  </Button>
+                </div>
+                {org.partnership_notes && (
+                  <div className="mt-4 p-3 rounded-md bg-muted/40 border">
+                    <div className="text-xs font-medium text-muted-foreground uppercase mb-1">Legacy Notes</div>
+                    <div className="text-sm whitespace-pre-wrap">{org.partnership_notes}</div>
+                  </div>
+                )}
               </section>
             </div>
           )}
