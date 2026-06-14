@@ -20,7 +20,6 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '
 import { Textarea } from '@/components/ui/textarea';
 import LogVisitSheet from './LogVisitSheet';
 
-const MARKETER = 'John Guerrero';
 const PAGE_SIZE = 25;
 
 const STATUS_ORDER_KEY: Record<string, number> = {
@@ -94,6 +93,7 @@ const BDAccountsTab: React.FC = () => {
   const [tier, setTier] = useState('all');
   const [statuses, setStatuses] = useState<string[]>([]);
   const [priority, setPriority] = useState('all');
+  const [marketer, setMarketer] = useState<string>('all');
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(0);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -106,8 +106,7 @@ const BDAccountsTab: React.FC = () => {
         .select(`id, name, type, address, phone, bd_tier, bd_status, account_rating,
                  last_contact_date, next_followup_date, anneli_covisit_status,
                  competitive_landscape, decision_maker_name, decision_maker_title,
-                 partnership_priority_level`)
-        .eq('assigned_marketer', MARKETER)
+                 partnership_priority_level, assigned_marketer`)
         .eq('is_active', true);
       if (error) throw error;
 
@@ -130,6 +129,15 @@ const BDAccountsTab: React.FC = () => {
     },
   });
 
+  const marketerOptions = useMemo(() => {
+    const set = new Set<string>();
+    rows.forEach((r: any) => {
+      const m = (r.assigned_marketer || '').trim();
+      if (m) set.add(m);
+    });
+    return Array.from(set).sort();
+  }, [rows]);
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return rows
@@ -141,6 +149,7 @@ const BDAccountsTab: React.FC = () => {
         const p = (a.partnership_priority_level || '').toLowerCase();
         return p === priority;
       })
+      .filter((a: any) => marketer === 'all' || (a.assigned_marketer || '') === marketer)
       .filter((a: any) => !q
         || (a.name || '').toLowerCase().includes(q)
         || (a.city || '').toLowerCase().includes(q)
@@ -153,7 +162,7 @@ const BDAccountsTab: React.FC = () => {
         const db = b.last_contact_date ? new Date(b.last_contact_date).getTime() : 0;
         return da - db;
       });
-  }, [rows, tier, statuses, priority, search]);
+  }, [rows, tier, statuses, priority, marketer, search]);
 
   const summary = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -165,7 +174,8 @@ const BDAccountsTab: React.FC = () => {
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const pageRows = filtered.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE);
 
-  React.useEffect(() => { setPage(0); }, [tier, statuses, priority, search]);
+  React.useEffect(() => { setPage(0); }, [tier, statuses, priority, marketer, search]);
+
 
   const updateField = async (id: string, updates: Record<string, any>) => {
     const { error } = await supabase.from('organizations').update(updates).eq('id', id);
@@ -231,6 +241,19 @@ const BDAccountsTab: React.FC = () => {
               {p}
             </Button>
           ))}
+
+          <Select value={marketer} onValueChange={setMarketer}>
+            <SelectTrigger className="h-8 w-[180px] text-xs rounded-full">
+              <SelectValue placeholder="Marketer" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Marketers</SelectItem>
+              {marketerOptions.map(m => (
+                <SelectItem key={m} value={m}>{m}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
 
           <div className="relative flex-1 min-w-[200px] max-w-sm ml-auto">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />

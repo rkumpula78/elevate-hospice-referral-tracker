@@ -21,6 +21,7 @@ import AccountGrowthCard from '@/components/crm/AccountGrowthCard';
 import StrategicActionsManager from '@/components/crm/StrategicActionsManager';
 import QuickLogActivitySheet from '@/components/crm/QuickLogActivitySheet';
 import BDPipelineCard from '@/components/bd/BDPipelineCard';
+import ActivityCommunicationsLog from '@/components/crm/ActivityCommunicationsLog';
 
 const OrganizationDetail = () => {
   const { id } = useParams();
@@ -168,7 +169,7 @@ const OrganizationDetail = () => {
             <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none md:hidden" />
           )}
           <div ref={scrollRef} className="overflow-x-auto scrollbar-hide">
-            <TabsList className="inline-flex md:grid md:grid-cols-4 lg:grid-cols-8 gap-2 bg-transparent h-auto p-1 w-max md:w-full">
+            <TabsList className="inline-flex md:grid md:grid-cols-5 lg:grid-cols-9 gap-2 bg-transparent h-auto p-1 w-max md:w-full">
               {/* Primary tabs - always visible */}
               <TabsTrigger 
                 value="overview" 
@@ -199,6 +200,12 @@ const OrganizationDetail = () => {
                 className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:font-bold data-[state=active]:border-b-[3px] data-[state=active]:border-primary bg-background border border-border text-foreground hover:bg-muted h-12 text-sm md:text-base font-medium rounded-lg shadow-sm transition-all px-4 min-w-[44px] whitespace-nowrap"
               >
                 Referrals
+              </TabsTrigger>
+              <TabsTrigger 
+                value="activity"
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:font-bold data-[state=active]:border-b-[3px] data-[state=active]:border-primary bg-background border border-border text-foreground hover:bg-muted h-12 text-sm md:text-base font-medium rounded-lg shadow-sm transition-all px-4 min-w-[44px] whitespace-nowrap"
+              >
+                Activity
               </TabsTrigger>
 
               {/* Secondary tabs - visible on desktop, grouped in "More" on mobile */}
@@ -442,6 +449,12 @@ const OrganizationDetail = () => {
 
           <BDPipelineCard organization={organization} />
 
+          {/* Activity & Communications - inline on Overview for visibility */}
+          <ActivityCommunicationsLog
+            organizationId={id!}
+            title="Recent Activity & Communications"
+          />
+
           {/* Intelligence Notes */}
           {(organization.competitive_landscape || organization.financial_health_notes || organization.expansion_plans || organization.regulatory_notes) && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -566,6 +579,15 @@ const OrganizationDetail = () => {
             </Card>
           )}
         </TabsContent>
+
+        <TabsContent value="activity">
+          <ActivityCommunicationsLog
+            organizationId={id!}
+            title="Activity & Communications Log"
+          />
+        </TabsContent>
+
+
 
         <TabsContent value="growth" className="space-y-6">
           <AccountGrowthCard 
