@@ -169,7 +169,7 @@ const OrganizationDetail = () => {
             <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none md:hidden" />
           )}
           <div ref={scrollRef} className="overflow-x-auto scrollbar-hide">
-            <TabsList className="inline-flex md:grid md:grid-cols-4 lg:grid-cols-8 gap-2 bg-transparent h-auto p-1 w-max md:w-full">
+            <TabsList className="inline-flex md:grid md:grid-cols-5 lg:grid-cols-9 gap-2 bg-transparent h-auto p-1 w-max md:w-full">
               {/* Primary tabs - always visible */}
               <TabsTrigger 
                 value="overview" 
