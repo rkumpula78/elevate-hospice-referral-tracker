@@ -129,14 +129,21 @@ const BDAccountsTab: React.FC = () => {
     },
   });
 
-  const marketerOptions = useMemo(() => {
-    const set = new Set<string>();
-    rows.forEach((r: any) => {
-      const m = (r.assigned_marketer || '').trim();
-      if (m) set.add(m);
-    });
-    return Array.from(set).sort();
-  }, [rows]);
+  // Marketer list is sourced from active users (profiles), so adding/removing
+  // a user via User Management automatically updates this dropdown.
+  const { data: marketerOptions = [] } = useQuery({
+    queryKey: ['bd-marketer-options'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('first_name, last_name')
+        .order('first_name');
+      if (error) throw error;
+      return (data || [])
+        .map((p: any) => `${p.first_name || ''} ${p.last_name || ''}`.trim())
+        .filter(Boolean);
+    },
+  });
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
