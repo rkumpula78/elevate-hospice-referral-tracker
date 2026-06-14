@@ -580,6 +580,15 @@ const OrganizationDetail = () => {
           )}
         </TabsContent>
 
+        <TabsContent value="activity">
+          <ActivityCommunicationsLog
+            organizationId={id!}
+            title="Activity & Communications Log"
+          />
+        </TabsContent>
+
+
+
         <TabsContent value="growth" className="space-y-6">
           <AccountGrowthCard 
             organization={organization}
