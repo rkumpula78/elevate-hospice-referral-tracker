@@ -20,7 +20,6 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '
 import { Textarea } from '@/components/ui/textarea';
 import LogVisitSheet from './LogVisitSheet';
 
-const MARKETER = 'John Guerrero';
 const PAGE_SIZE = 25;
 
 const STATUS_ORDER_KEY: Record<string, number> = {
