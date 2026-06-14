@@ -93,6 +93,7 @@ const BDAccountsTab: React.FC = () => {
   const [tier, setTier] = useState('all');
   const [statuses, setStatuses] = useState<string[]>([]);
   const [priority, setPriority] = useState('all');
+  const [marketer, setMarketer] = useState<string>('all');
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(0);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -105,8 +106,7 @@ const BDAccountsTab: React.FC = () => {
         .select(`id, name, type, address, phone, bd_tier, bd_status, account_rating,
                  last_contact_date, next_followup_date, anneli_covisit_status,
                  competitive_landscape, decision_maker_name, decision_maker_title,
-                 partnership_priority_level`)
-        .eq('assigned_marketer', MARKETER)
+                 partnership_priority_level, assigned_marketer`)
         .eq('is_active', true);
       if (error) throw error;
 
