@@ -242,6 +242,19 @@ const BDAccountsTab: React.FC = () => {
             </Button>
           ))}
 
+          <Select value={marketer} onValueChange={setMarketer}>
+            <SelectTrigger className="h-8 w-[180px] text-xs rounded-full">
+              <SelectValue placeholder="Marketer" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Marketers</SelectItem>
+              {marketerOptions.map(m => (
+                <SelectItem key={m} value={m}>{m}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+
           <div className="relative flex-1 min-w-[200px] max-w-sm ml-auto">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
