@@ -129,6 +129,15 @@ const BDAccountsTab: React.FC = () => {
     },
   });
 
+  const marketerOptions = useMemo(() => {
+    const set = new Set<string>();
+    rows.forEach((r: any) => {
+      const m = (r.assigned_marketer || '').trim();
+      if (m) set.add(m);
+    });
+    return Array.from(set).sort();
+  }, [rows]);
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return rows
@@ -140,6 +149,7 @@ const BDAccountsTab: React.FC = () => {
         const p = (a.partnership_priority_level || '').toLowerCase();
         return p === priority;
       })
+      .filter((a: any) => marketer === 'all' || (a.assigned_marketer || '') === marketer)
       .filter((a: any) => !q
         || (a.name || '').toLowerCase().includes(q)
         || (a.city || '').toLowerCase().includes(q)
@@ -152,7 +162,7 @@ const BDAccountsTab: React.FC = () => {
         const db = b.last_contact_date ? new Date(b.last_contact_date).getTime() : 0;
         return da - db;
       });
-  }, [rows, tier, statuses, priority, search]);
+  }, [rows, tier, statuses, priority, marketer, search]);
 
   const summary = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -164,7 +174,8 @@ const BDAccountsTab: React.FC = () => {
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const pageRows = filtered.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE);
 
-  React.useEffect(() => { setPage(0); }, [tier, statuses, priority, search]);
+  React.useEffect(() => { setPage(0); }, [tier, statuses, priority, marketer, search]);
+
 
   const updateField = async (id: string, updates: Record<string, any>) => {
     const { error } = await supabase.from('organizations').update(updates).eq('id', id);
