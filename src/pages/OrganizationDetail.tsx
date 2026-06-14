@@ -449,6 +449,12 @@ const OrganizationDetail = () => {
 
           <BDPipelineCard organization={organization} />
 
+          {/* Activity & Communications - inline on Overview for visibility */}
+          <ActivityCommunicationsLog
+            organizationId={id!}
+            title="Recent Activity & Communications"
+          />
+
           {/* Intelligence Notes */}
           {(organization.competitive_landscape || organization.financial_health_notes || organization.expansion_plans || organization.regulatory_notes) && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
