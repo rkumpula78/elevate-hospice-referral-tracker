@@ -21,6 +21,7 @@ import {
   Sparkles,
   GraduationCap,
   Sunrise,
+  CalendarRange,
 } from "lucide-react";
 import {
   Sidebar,
@@ -58,6 +59,7 @@ const primaryItems = [
   { title: "Referrals", url: "/referrals", icon: Phone },
   { title: "Organizations", url: "/organizations", icon: Building },
   { title: "Schedule", url: "/schedule", icon: Calendar },
+  { title: "Weekly Activity", url: "/weekly-activity", icon: CalendarRange },
   { title: "BD Dashboard", url: "/bd-dashboard", icon: TrendingUp },
 ];
 
