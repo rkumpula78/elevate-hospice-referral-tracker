@@ -39,6 +39,7 @@ import AskElevateAIPage from "./pages/AskElevateAIPage";
 import StoryLibraryPage from "./pages/StoryLibraryPage";
 import BDDashboardPage from "./pages/BDDashboardPage";
 import MyDayPage from "./pages/MyDayPage";
+import WeeklyActivityPage from "./pages/WeeklyActivityPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -83,6 +84,7 @@ const ProtectedLayout = () => {
               <Route path="ask-elevate" element={<AskElevateAIPage />} />
               <Route path="stories" element={<StoryLibraryPage />} />
               <Route path="bd-dashboard" element={<BDDashboardPage />} />
+              <Route path="weekly-activity" element={<WeeklyActivityPage />} />
               <Route path="settings" element={<SettingsPage />} />
               <Route path="admin/users" element={
                 <AdminRoute>
