@@ -31,7 +31,7 @@ const PalliativeOutreachKanban = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('referrals')
-        .select('id, patient_name, first_name, last_name, assigned_marketer, pcp_provider, pcp_company, next_followup_date, status, updated_at, priority, organizations(name)')
+        .select('id, patient_name, first_name, last_name, assigned_marketer, pcp_provider, pcp_company, next_followup_date, status, updated_at, priority, organizations!organization_id(name)')
         .in('status', ['palliative_outreach', 'not_appropriate', 'admitted'] as any[])
         .is('deleted_at', null)
         .order('updated_at', { ascending: false });

@@ -17,7 +17,7 @@ const MonthlyAdmissionsWidget = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('referrals')
-        .select('id, patient_name, admission_date, referral_date, benefit_period_number, organization_id, organizations(name), referral_source')
+        .select('id, patient_name, admission_date, referral_date, benefit_period_number, organization_id, organizations!organization_id(name), referral_source')
         .eq('status', 'admitted')
         .gte('admission_date', thisMonth.toISOString())
         .order('admission_date', { ascending: false });

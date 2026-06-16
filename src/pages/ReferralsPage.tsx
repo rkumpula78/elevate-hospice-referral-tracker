@@ -50,7 +50,7 @@ const ReferralsPage = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('referrals')
-        .select('*, organizations(name, type)')
+        .select('*, organizations!organization_id(name, type)')
         .is('deleted_at', null)
         .order('referral_date', { ascending: false });
       if (error) throw error;

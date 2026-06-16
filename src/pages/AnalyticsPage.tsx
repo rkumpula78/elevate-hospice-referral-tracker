@@ -52,7 +52,7 @@ const AnalyticsPage = () => {
         // Response time previous
         supabase.from('referrals').select('referral_date, contact_date').not('contact_date', 'is', null).gte('created_at', sixtyDaysAgo.toISOString()).lt('created_at', thirtyDaysAgo.toISOString()),
         // Top organizations by referral count
-        supabase.from('referrals').select('organization_id, organizations(name)').not('organization_id', 'is', null),
+        supabase.from('referrals').select('organization_id, organizations!organization_id(name)').not('organization_id', 'is', null),
         // Last 6 months of referrals for trend chart
         supabase.from('referrals').select('created_at').gte('created_at', subMonths(now, 6).toISOString()),
       ]);

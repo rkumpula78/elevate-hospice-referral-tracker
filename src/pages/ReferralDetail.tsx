@@ -51,14 +51,15 @@ const ReferralDetail = () => {
         .from('referrals')
         .select(`
           *,
-          organizations(name, type, contact_person, phone)
+          organizations!referrals_organization_id_fkey(id, name, type, contact_person, phone, address),
+          facility_organization:organizations!referrals_facility_organization_id_fkey(id, name, type, address)
         `)
         .eq('id', id)
         .is('deleted_at', null)
         .single();
 
       if (error) throw error;
-      return data;
+      return data as any;
     },
     enabled: !!id
   });
@@ -265,31 +266,80 @@ const ReferralDetail = () => {
               </CardContent>
             </Card>
 
-            {referral.organizations && (
+            {(referral.organizations || referral.facility_organization || referral.address || referral.location_type) && (
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="flex items-center gap-2 text-base">
                     <Building2 className="w-4 h-4" />
-                    <span>Referring Organization</span>
+                    <span>Source & Residence</span>
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="pt-0 space-y-2 text-sm">
+                <CardContent className="pt-0 space-y-4 text-sm">
+                  {referral.organizations && (
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">Referring Organization</p>
+                      <button
+                        type="button"
+                        onClick={() => navigate(`/organizations/${referral.organizations.id}`)}
+                        className="text-left font-medium text-blue-600 hover:underline"
+                      >
+                        {referral.organizations.name}
+                      </button>
+                      {referral.organizations.type && (
+                        <p className="text-xs text-muted-foreground">{referral.organizations.type}</p>
+                      )}
+                      {referral.organizations.address && (
+                        <p className="text-xs text-muted-foreground whitespace-pre-line">{referral.organizations.address}</p>
+                      )}
+                      {referral.organizations.contact_person && (
+                        <p className="text-xs mt-1"><span className="text-muted-foreground">Contact: </span>{referral.organizations.contact_person}</p>
+                      )}
+                      {referral.organizations.phone && (
+                        <div className="flex items-center gap-2 mt-1">
+                          <Phone className="w-3.5 h-3.5 text-muted-foreground" />
+                          <a href={`tel:${referral.organizations.phone}`} className="text-blue-600 hover:underline">{referral.organizations.phone}</a>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   <div>
-                    <p className="font-medium">{referral.organizations.name}</p>
-                    <p className="text-xs text-muted-foreground">{referral.organizations.type}</p>
+                    <p className="text-xs text-muted-foreground mb-1">Patient Residence</p>
+                    {referral.facility_organization ? (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => navigate(`/organizations/${referral.facility_organization.id}`)}
+                          className="text-left font-medium text-blue-600 hover:underline"
+                        >
+                          {referral.facility_organization.name}
+                        </button>
+                        {referral.facility_organization.type && (
+                          <p className="text-xs text-muted-foreground">{referral.facility_organization.type}</p>
+                        )}
+                        {referral.facility_organization.address && (
+                          <p className="text-xs text-muted-foreground whitespace-pre-line">{referral.facility_organization.address}</p>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        <p className="font-medium">
+                          {referral.location_type
+                            ? referral.location_type.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase())
+                            : 'Private Home'}
+                        </p>
+                        {referral.address && (
+                          <p className="text-xs text-muted-foreground whitespace-pre-line">{referral.address}</p>
+                        )}
+                        {!referral.address && referral.location_city && (
+                          <p className="text-xs text-muted-foreground">{referral.location_city}</p>
+                        )}
+                        {!referral.address && !referral.location_city && (
+                          <p className="text-xs text-muted-foreground italic">No address on file</p>
+                        )}
+                      </>
+                    )}
                   </div>
-                  {referral.organizations.contact_person && (
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-xs text-muted-foreground">Contact</span>
-                      <span className="font-medium truncate">{referral.organizations.contact_person}</span>
-                    </div>
-                  )}
-                  {referral.organizations.phone && (
-                    <div className="flex items-center gap-2">
-                      <Phone className="w-3.5 h-3.5 text-muted-foreground" />
-                      <a href={`tel:${referral.organizations.phone}`} className="text-blue-600 hover:underline">{referral.organizations.phone}</a>
-                    </div>
-                  )}
                 </CardContent>
               </Card>
             )}

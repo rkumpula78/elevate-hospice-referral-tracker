@@ -99,7 +99,7 @@ const ReferralsList = ({ initialFilter, defaultView = 'card', excludePalliative 
     queryFn: async () => {
       let query = supabase
         .from('referrals')
-        .select('*, organizations(name, type)')
+        .select('*, organizations!organization_id(name, type)')
         .is('deleted_at', null)
         .order('referral_date', { ascending: false });
 
@@ -179,7 +179,7 @@ const ReferralsList = ({ initialFilter, defaultView = 'card', excludePalliative 
       if (status === 'admitted') {
         const { data: referralData } = await supabase
           .from('referrals')
-          .select('*, organizations(name)')
+          .select('*, organizations!organization_id(name)')
           .eq('id', id)
           .single();
 

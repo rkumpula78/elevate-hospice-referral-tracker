@@ -73,7 +73,7 @@ const MyDayView = () => {
     queryFn: async () => {
       const { data } = await supabase
         .from('referrals')
-        .select('id, first_name, last_name, patient_name, referral_date, created_at, organizations(name)')
+        .select('id, first_name, last_name, patient_name, referral_date, created_at, organizations!organization_id(name)')
         .eq('status', 'new_referral')
         .is('deleted_at', null)
         .order('created_at', { ascending: false })

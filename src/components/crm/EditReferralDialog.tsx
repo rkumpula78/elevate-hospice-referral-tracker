@@ -114,7 +114,7 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
     queryFn: async () => {
       const { data, error } = await supabase
         .from('referrals')
-        .select('*, organizations(name)')
+        .select('*, organizations!organization_id(name)')
         .eq('id', referralId)
         .single();
       
@@ -890,7 +890,6 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
                 </p>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
                 <div>
                   <Label htmlFor="referring_contact_name" className="text-gray-700">Clinician/Contact Name at Referring Org</Label>
                   <Input

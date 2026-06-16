@@ -223,7 +223,7 @@ const Dashboard = () => {
         .from('activity_communications')
         .select(`
           *,
-          organizations(name)
+          organizations!organization_id(name)
         `)
         .order('activity_date', { ascending: false })
         .limit(10);
@@ -242,7 +242,7 @@ const Dashboard = () => {
         .from('activity_communications')
         .select(`
           *,
-          organizations(name, phone)
+          organizations!organization_id(name, phone)
         `)
         .eq('follow_up_required', true)
         .eq('follow_up_completed', false)

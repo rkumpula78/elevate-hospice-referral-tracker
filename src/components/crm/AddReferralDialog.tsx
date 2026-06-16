@@ -90,7 +90,7 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
     
     let query = supabase
       .from('referrals')
-      .select('id, patient_name, status, created_at, organizations(name)')
+      .select('id, patient_name, status, created_at, organizations!organization_id(name)')
       .ilike('patient_name', `%${trimmed}%`)
       .limit(5);
 
@@ -101,7 +101,7 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
     if (phone && phone.trim().length >= 10) {
       const { data: phoneMatches } = await supabase
         .from('referrals')
-        .select('id, patient_name, status, created_at, organizations(name)')
+        .select('id, patient_name, status, created_at, organizations!organization_id(name)')
         .eq('patient_phone', phone)
         .limit(5);
       

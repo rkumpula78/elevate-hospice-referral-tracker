@@ -17,7 +17,7 @@ const SourcePerformanceChart = () => {
         .select(`
           organization_id,
           status,
-          organizations!inner(name)
+          organizations!organization_id!inner(name)
         `)
         .order('created_at', { ascending: false });
 

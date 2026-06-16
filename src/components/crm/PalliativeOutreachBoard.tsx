@@ -55,7 +55,7 @@ const PalliativeOutreachBoard = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('referrals')
-        .select('id, patient_name, assigned_marketer, pcp_provider, pcp_company, next_followup_date, followup_frequency, location_type, location_city, status, notes, patient_status_note, updated_at, priority, insurance, organization_id, referral_date, organizations(name)')
+        .select('id, patient_name, assigned_marketer, pcp_provider, pcp_company, next_followup_date, followup_frequency, location_type, location_city, status, notes, patient_status_note, updated_at, priority, insurance, organization_id, referral_date, organizations!organization_id(name)')
         .is('deleted_at', null)
         .in('status', PALLIATIVE_STATUSES as any[])
         .order('next_followup_date', { ascending: true, nullsFirst: false });
