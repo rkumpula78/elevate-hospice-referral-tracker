@@ -24,6 +24,21 @@ const EnhancedOrganizationProfile = ({ organizationId }: EnhancedOrganizationPro
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState<any>({});
 
+  // App users for the marketer dropdown
+  const { data: appUsers = [] } = useQuery({
+    queryKey: ['profiles-for-org-profile'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('first_name, last_name')
+        .not('first_name', 'is', null)
+        .not('last_name', 'is', null)
+        .order('first_name');
+      if (error) throw error;
+      return (data || []).map(p => `${p.first_name} ${p.last_name}`.trim()).filter(Boolean);
+    },
+  });
+
   // Fetch organization data
   const { data: organization, isLoading } = useQuery({
     queryKey: ['organization-profile', organizationId],
@@ -266,11 +281,20 @@ const EnhancedOrganizationProfile = ({ organizationId }: EnhancedOrganizationPro
             <div>
               <Label htmlFor="assigned_marketer">Key Account Manager/Liaison</Label>
               {isEditing ? (
-                <Input
-                  id="assigned_marketer"
-                  value={formData.assigned_marketer || ''}
-                  onChange={(e) => setFormData(prev => ({ ...prev, assigned_marketer: e.target.value }))}
-                />
+                <Select
+                  value={formData.assigned_marketer || 'unassigned'}
+                  onValueChange={(v) => setFormData((prev: any) => ({ ...prev, assigned_marketer: v === 'unassigned' ? null : v }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select person" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="unassigned">Unassigned</SelectItem>
+                    {appUsers.map(name => (
+                      <SelectItem key={name} value={name}>{name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               ) : (
                 <div className="flex items-center gap-2">
                   <User className="w-4 h-4 text-gray-500" />
@@ -278,13 +302,13 @@ const EnhancedOrganizationProfile = ({ organizationId }: EnhancedOrganizationPro
                 </div>
               )}
             </div>
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
                 {isEditing ? (
                   <Checkbox
                     id="contract_on_file"
                     checked={formData.contract_on_file || false}
-                    onCheckedChange={(checked) => setFormData(prev => ({ ...prev, contract_on_file: !!checked }))}
+                    onCheckedChange={(checked) => setFormData((prev: any) => ({ ...prev, contract_on_file: !!checked }))}
                   />
                 ) : (
                   <div className="flex items-center gap-2">
@@ -294,6 +318,41 @@ const EnhancedOrganizationProfile = ({ organizationId }: EnhancedOrganizationPro
                 )}
                 {isEditing && <Label htmlFor="contract_on_file">Contract/Agreement on File</Label>}
               </div>
+              {isEditing && formData.contract_on_file && (
+                <div className="pl-6 space-y-1.5 text-sm">
+                  {[
+                    { value: 'patient_care', label: 'Patient Care in Facility' },
+                    { value: 'gip', label: 'General Inpatient (GIP)' },
+                    { value: 'respite', label: 'Respite Care' },
+                  ].map(t => {
+                    const types: string[] = formData.contract_types || [];
+                    return (
+                      <div key={t.value} className="flex items-center gap-2">
+                        <Checkbox
+                          id={`ct-${t.value}`}
+                          checked={types.includes(t.value)}
+                          onCheckedChange={(chk) => {
+                            const updated = chk
+                              ? [...types, t.value]
+                              : types.filter((x: string) => x !== t.value);
+                            setFormData((prev: any) => ({ ...prev, contract_types: updated }));
+                          }}
+                        />
+                        <Label htmlFor={`ct-${t.value}`} className="font-normal">{t.label}</Label>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+              {!isEditing && organization?.contract_on_file && (organization as any).contract_types?.length > 0 && (
+                <div className="pl-6 flex flex-wrap gap-1">
+                  {((organization as any).contract_types as string[]).map((t: string) => (
+                    <span key={t} className="text-xs bg-muted px-1.5 py-0.5 rounded">
+                      {t === 'patient_care' ? 'Patient Care' : t === 'gip' ? 'GIP' : 'Respite'}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
