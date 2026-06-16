@@ -17,6 +17,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import type { Database } from "@/integrations/supabase/types";
 import { formatPhoneNumber } from "@/lib/formatters";
 import { getStatusLabel, getStatusBadgeColor } from "@/lib/constants";
+import { fetchIntakeCoordinatorNames, fetchMarketerNames } from "@/lib/staffOptions";
 
 import { ReferralWizardStepper } from "./referral-wizard/ReferralWizardStepper";
 import { StepPatientInfo } from "./referral-wizard/StepPatientInfo";
@@ -141,22 +142,12 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
 
   const { data: marketers = [] } = useQuery({
     queryKey: ['marketers'],
-    queryFn: async () => {
-      const { data, error } = await supabase.from('profiles').select('id, first_name, last_name, staff_type').not('first_name', 'is', null).not('last_name', 'is', null).order('first_name');
-      if (error) throw error;
-      const names = (data || []).filter(m => m.staff_type === 'marketer' || m.staff_type === 'admin').map(m => `${m.first_name} ${m.last_name}`);
-      return [...new Set(names)];
-    }
+    queryFn: fetchMarketerNames
   });
 
   const { data: intakeCoordinators = [] } = useQuery({
     queryKey: ['intake-coordinators'],
-    queryFn: async () => {
-      const { data, error } = await supabase.from('profiles').select('id, first_name, last_name, staff_type').not('first_name', 'is', null).not('last_name', 'is', null).order('first_name');
-      if (error) throw error;
-      const names = (data || []).filter(m => m.staff_type === 'intake_coordinator' || m.staff_type === 'admin').map(m => `${m.first_name} ${m.last_name}`);
-      return [...new Set(names)];
-    }
+    queryFn: fetchIntakeCoordinatorNames
   });
 
   // Validation
