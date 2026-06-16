@@ -891,7 +891,6 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                <div>
                   <Label htmlFor="referring_contact_name" className="text-gray-700">Clinician/Contact Name at Referring Org</Label>
                   <Input
                     id="referring_contact_name"
