@@ -36,11 +36,14 @@ interface MentionTextareaProps {
   id?: string;
 }
 
+// Stable empty reference — avoids infinite useEffect loop when query is loading
+const EMPTY_PROFILES: Profile[] = [];
+
 const MentionTextarea = ({ value, onChange, onMentionsChange, placeholder, rows = 3, className, id }: MentionTextareaProps) => {
   const ref = useRef<HTMLTextAreaElement>(null);
   const [query, setQuery] = useState<string | null>(null);
 
-  const { data: profiles = [] } = useQuery({
+  const { data: profiles = EMPTY_PROFILES } = useQuery({
     queryKey: ['mentionable-profiles'],
     queryFn: async () => {
       const { data, error } = await supabase
