@@ -122,6 +122,16 @@ const WeeklyActivityPage: React.FC = () => {
         return am.toLowerCase().includes(marketerNameForReferralMatch.toLowerCase());
       });
 
+      // referral activity log entries (phone calls, visits, notes logged from referral detail page)
+      let logQ = supabase
+        .from('referral_activity_log')
+        .select('id, referral_id, activity_type, note_text, created_by, created_at')
+        .gte('created_at', `${startISO}T00:00:00`)
+        .lte('created_at', `${endISO}T23:59:59`);
+      if (activeProfile?.email) logQ = logQ.eq('created_by', activeProfile.email);
+      const { data: activityLogs, error: lErr } = await logQ;
+      if (lErr) throw lErr;
+
       // day notes
       let noteQ = (supabase as any)
         .from('marketer_day_notes')
@@ -140,7 +150,7 @@ const WeeklyActivityPage: React.FC = () => {
         (o || []).forEach((x: any) => { orgs[x.id] = x; });
       }
 
-      return { activities: activities || [], referrals: referrals || [], history: filteredHistory, notes: notes || [], orgs };
+      return { activities: activities || [], referrals: referrals || [], history: filteredHistory, activityLogs: activityLogs || [], notes: notes || [], orgs };
     },
   });
 
@@ -215,10 +225,10 @@ const WeeklyActivityPage: React.FC = () => {
 
   // Group activities by day
   const byDay = useMemo(() => {
-    const map: Record<string, { activities: any[]; referrals: any[]; history: any[]; notes: any[] }> = {};
+    const map: Record<string, { activities: any[]; referrals: any[]; history: any[]; activityLogs: any[]; notes: any[] }> = {};
     days.forEach((d) => {
       const key = format(d, 'yyyy-MM-dd');
-      map[key] = { activities: [], referrals: [], history: [], notes: [] };
+      map[key] = { activities: [], referrals: [], history: [], activityLogs: [], notes: [] };
     });
     weekData?.activities.forEach((a: any) => {
       if (map[a.activity_date]) map[a.activity_date].activities.push(a);
@@ -230,6 +240,10 @@ const WeeklyActivityPage: React.FC = () => {
     weekData?.history.forEach((h: any) => {
       const key = format(parseISO(h.changed_at), 'yyyy-MM-dd');
       if (map[key]) map[key].history.push(h);
+    });
+    weekData?.activityLogs?.forEach((l: any) => {
+      const key = format(parseISO(l.created_at), 'yyyy-MM-dd');
+      if (map[key]) map[key].activityLogs.push(l);
     });
     weekData?.notes.forEach((n: any) => {
       if (map[n.note_date]) map[n.note_date].notes.push(n);
@@ -246,6 +260,7 @@ const WeeklyActivityPage: React.FC = () => {
       emails: acts.filter((a: any) => a.activity_type === 'email').length,
       newReferrals: (weekData?.referrals || []).length,
       admits: (weekData?.history || []).filter((h: any) => h.new_status === 'admitted').length,
+      patientUpdates: (weekData?.activityLogs || []).length,
     };
   }, [weekData]);
 
@@ -340,13 +355,14 @@ const WeeklyActivityPage: React.FC = () => {
 
         {/* Totals strip */}
         <Card>
-          <CardContent className="p-4 grid grid-cols-2 md:grid-cols-5 gap-4">
+          <CardContent className="p-4 grid grid-cols-2 md:grid-cols-6 gap-4">
             {[
               { label: 'Visits', value: totals.visits },
               { label: 'Calls', value: totals.calls },
               { label: 'Emails', value: totals.emails },
               { label: 'New Referrals', value: totals.newReferrals },
               { label: 'Admits', value: totals.admits },
+              { label: 'Patient Updates', value: totals.patientUpdates },
             ].map((t) => (
               <div key={t.label} className="text-center">
                 <div className="text-2xl font-bold">{t.value}</div>
@@ -417,7 +433,7 @@ const WeeklyActivityPage: React.FC = () => {
               const key = format(d, 'yyyy-MM-dd');
               const data = byDay[key];
               const isToday = isSameDay(d, new Date());
-              const empty = data.activities.length + data.referrals.length + data.history.length + data.notes.length === 0;
+              const empty = data.activities.length + data.referrals.length + data.history.length + data.activityLogs.length + data.notes.length === 0;
 
               // Group activities by category
               const groups: Record<string, any[]> = {};
@@ -503,6 +519,27 @@ const WeeklyActivityPage: React.FC = () => {
                               <Link to={`/referral/${h.referral_id}`} className="text-primary hover:underline">
                                 {h.referrals?.patient_name || 'Unknown'}
                               </Link>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {data.activityLogs.length > 0 && (
+                      <div>
+                        <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">
+                          Patient Updates ({data.activityLogs.length})
+                        </div>
+                        <ul className="space-y-1">
+                          {data.activityLogs.map((l: any) => (
+                            <li key={l.id} className="text-sm flex items-start gap-2 bg-muted/40 px-2 py-1.5 rounded">
+                              <Badge variant="outline" className="text-[10px] shrink-0 mt-0.5">
+                                {l.activity_type?.replace(/_/g, ' ')}
+                              </Badge>
+                              <Link to={`/referral/${l.referral_id}`} className="text-primary hover:underline font-medium text-xs">
+                                Referral
+                              </Link>
+                              <span className="text-xs text-muted-foreground truncate">{l.note_text}</span>
                             </li>
                           ))}
                         </ul>
