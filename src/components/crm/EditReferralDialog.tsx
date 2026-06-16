@@ -32,6 +32,7 @@ import { EnhancedInput } from '@/components/ui/enhanced-input';
 import { CharacterCounterTextarea } from '@/components/ui/character-counter-textarea';
 import { formatPhoneNumber } from '@/lib/formatters';
 import { REFERRAL_STATUSES, FOLLOWUP_FREQUENCIES, LOCATION_TYPES } from '@/lib/constants';
+import { fetchIntakeCoordinatorNames, fetchMarketerNames } from '@/lib/staffOptions';
 
 interface EditReferralDialogProps {
   open: boolean;
@@ -122,22 +123,15 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
   // Fetch marketers from profiles table
   const { data: marketers = [] } = useQuery({
     queryKey: ['marketers'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id, first_name, last_name, email')
-        .not('first_name', 'is', null)
-        .not('last_name', 'is', null)
-        .order('first_name');
-      
-      if (error) throw error;
-      return (data || []).map(m => `${m.first_name} ${m.last_name}`);
-    },
+    queryFn: fetchMarketerNames,
     enabled: open
   });
 
-  // Intake coordinators come from the same profiles list (managed via User Management)
-  const intakeCoordinators = marketers;
+  const { data: intakeCoordinators = [] } = useQuery({
+    queryKey: ['intake-coordinators'],
+    queryFn: fetchIntakeCoordinatorNames,
+    enabled: open
+  });
 
   // Resolve the patient record linked to this referral (created on admission)
   const { data: linkedPatient } = useQuery({
