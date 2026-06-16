@@ -202,7 +202,7 @@ const OrganizationDetail = () => {
               >
                 Referrals
               </TabsTrigger>
-              {organization.type === 'skilled_nursing' && (
+              {(organization.type === 'skilled_nursing' || organization.type === 'nursing_home') && (
                 <TabsTrigger 
                   value="contracts"
                   className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:font-bold data-[state=active]:border-b-[3px] data-[state=active]:border-primary bg-background border border-border text-foreground hover:bg-muted h-12 text-sm md:text-base font-medium rounded-lg shadow-sm transition-all px-4 min-w-[44px] whitespace-nowrap"
@@ -601,7 +601,7 @@ const OrganizationDetail = () => {
           />
         </TabsContent>
 
-        {organization.type === 'skilled_nursing' && (
+        {(organization.type === 'skilled_nursing' || organization.type === 'nursing_home') && (
           <TabsContent value="contracts" className="space-y-6">
             <SNFContractsTab organization={organization} />
           </TabsContent>
