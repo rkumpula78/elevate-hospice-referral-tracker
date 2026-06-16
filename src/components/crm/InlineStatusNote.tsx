@@ -104,22 +104,30 @@ const InlineStatusNote: React.FC<InlineStatusNoteProps> = ({
     }
   };
 
+  const MAX = 50;
+
   if (editing) {
     return (
       <div className="flex items-start gap-1" onClick={(e) => e.stopPropagation()}>
-        <Textarea
-          ref={ref}
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          onBlur={handleBlurSave}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); void handleBlurSave(); }
-            if (e.key === 'Escape') { setDraft(lastSaved); setEditing(false); }
-          }}
-          rows={2}
-          className="min-h-[44px] text-sm resize-y"
-          placeholder={placeholder}
-        />
+        <div className="flex-1">
+          <Textarea
+            ref={ref}
+            value={draft}
+            onChange={(e) => setDraft(e.target.value.slice(0, MAX))}
+            onBlur={handleBlurSave}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); void handleBlurSave(); }
+              if (e.key === 'Escape') { setDraft(lastSaved); setEditing(false); }
+            }}
+            rows={2}
+            maxLength={MAX}
+            className="min-h-[44px] text-sm resize-none"
+            placeholder={placeholder}
+          />
+          <p className={`text-[10px] mt-0.5 text-right ${draft.length >= MAX ? 'text-destructive font-medium' : 'text-muted-foreground'}`}>
+            {draft.length}/{MAX}
+          </p>
+        </div>
         <div className="pt-1">
           {saving
             ? <Loader2 className="w-3.5 h-3.5 animate-spin text-muted-foreground" />

@@ -29,7 +29,6 @@ import AppointmentSection from './patient-edit/AppointmentSection';
 import NextStepsSection from './patient-edit/NextStepsSection';
 import DocumentsSection from './patient-edit/DocumentsSection';
 import { EnhancedInput } from '@/components/ui/enhanced-input';
-import { CharacterCounterTextarea } from '@/components/ui/character-counter-textarea';
 import { formatPhoneNumber } from '@/lib/formatters';
 import { REFERRAL_STATUSES, FOLLOWUP_FREQUENCIES, LOCATION_TYPES } from '@/lib/constants';
 import { fetchIntakeCoordinatorNames, fetchMarketerNames } from '@/lib/staffOptions';
@@ -47,17 +46,37 @@ interface Comment {
   author: string;
 }
 
+const STATUS_NOTE_MAX = 50;
+
+// Controlled textarea for patient_status_note with 50-char limit + counter
+const StatusNoteField = ({ defaultValue }: { defaultValue: string }) => {
+  const [val, setVal] = React.useState(defaultValue.slice(0, STATUS_NOTE_MAX));
+  return (
+    <div>
+      <Textarea
+        id="patient_status_note"
+        name="patient_status_note"
+        value={val}
+        onChange={(e) => setVal(e.target.value.slice(0, STATUS_NOTE_MAX))}
+        maxLength={STATUS_NOTE_MAX}
+        placeholder="e.g., Declining, family meeting scheduled"
+        rows={2}
+        className="bg-white border-gray-300 text-gray-900 resize-none"
+      />
+      <p className={`text-[11px] mt-0.5 text-right ${val.length >= STATUS_NOTE_MAX ? 'text-destructive font-medium' : 'text-muted-foreground'}`}>
+        {val.length}/{STATUS_NOTE_MAX}
+      </p>
+    </div>
+  );
+};
+
 const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDialogProps) => {
   const { toast } = useToast();
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [uploading, setUploading] = useState(false);
-  const [newComment, setNewComment] = useState('');
-  const [comments, setComments] = useState<Comment[]>([]);
   const [phoneValue, setPhoneValue] = useState('');
   const [statusValue, setStatusValue] = useState<string>('new_referral');
-  const newCommentRef = useRef<string>('');
-  useEffect(() => { newCommentRef.current = newComment; }, [newComment]);
   
   // Refs for smart field focus
   const patientNameRef = useRef<HTMLInputElement>(null);
@@ -283,52 +302,11 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
     }
   });
 
-  // Parse existing notes into comments when data loads
-  React.useEffect(() => {
-    if (referralData?.notes) {
-      try {
-        const parsedComments = JSON.parse(referralData.notes);
-        if (Array.isArray(parsedComments)) {
-          setComments(parsedComments);
-        } else {
-          setComments([{
-            id: '1',
-            text: referralData.notes,
-            timestamp: referralData.created_at || new Date().toISOString(),
-            author: 'System'
-          }]);
-        }
-      } catch {
-        if (referralData.notes.trim()) {
-          setComments([{
-            id: '1',
-            text: referralData.notes,
-            timestamp: referralData.created_at || new Date().toISOString(),
-            author: 'System'
-          }]);
-        }
-      }
-    }
-  }, [referralData]);
 
   // Sync status value when referralData loads
   React.useEffect(() => {
     if (referralData?.status) setStatusValue(referralData.status);
   }, [referralData?.status]);
-
-  const addComment = () => {
-    if (!newComment.trim()) return;
-    
-    const comment: Comment = {
-      id: Date.now().toString(),
-      text: newComment.trim(),
-      timestamp: new Date().toISOString(),
-      author: user?.email || 'Current User'
-    };
-    
-    setComments(prev => [...prev, comment]);
-    setNewComment('');
-  };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, documentType: string) => {
     const file = e.target.files?.[0];
@@ -393,21 +371,6 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
         updateData[key] = value;
       }
     }
-
-    // Flush any pending un-added comment so notes typed in the box but not
-    // explicitly added with the "+" button are not lost on save.
-    const pending = (newCommentRef.current || '').trim();
-    const finalComments = pending
-      ? [...comments, {
-          id: Date.now().toString(),
-          text: pending,
-          timestamp: new Date().toISOString(),
-          author: user?.email || 'Current User',
-        }]
-      : comments;
-
-    // Add comments to notes
-    updateData.notes = JSON.stringify(finalComments);
 
     // Strip fields that don't exist on the `referrals` table (patient-edit
     // sections include some patient-only fields like attending_physician_contact,
@@ -819,47 +782,12 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
                 </div>
               )}
 
-              {/* Running Comments Section */}
-              <div className="space-y-4">
-                <Label className="text-gray-700">Running Comments</Label>
-                
-                <div className="space-y-3 max-h-60 overflow-y-auto border rounded-lg p-3 bg-gray-50">
-                  {comments.length === 0 ? (
-                    <p className="text-sm text-gray-500 italic">No comments yet</p>
-                  ) : (
-                    comments.map((comment) => (
-                      <div key={comment.id} className="border-b pb-2 last:border-b-0">
-                        <div className="flex justify-between items-start text-xs text-gray-500 mb-1">
-                          <span className="font-medium">{comment.author}</span>
-                          <span>{format(new Date(comment.timestamp), 'MMM dd, yyyy HH:mm')}</span>
-                        </div>
-                        <p className="text-sm text-gray-900">{comment.text}</p>
-                      </div>
-                    ))
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <CharacterCounterTextarea
-                    value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
-                    placeholder="Add a new comment..."
-                    rows={2}
-                    maxLength={2000}
-                    className="w-full bg-white border-gray-300 text-gray-900"
-                  />
-                  <div className="flex justify-end">
-                    <Button
-                      type="button"
-                      onClick={addComment}
-                      disabled={!newComment.trim()}
-                      size="sm"
-                    >
-                      <Plus className="w-4 h-4 mr-1" />
-                      Add Comment
-                    </Button>
-                  </div>
-                </div>
+              {/* Activity Log pointer */}
+              <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 space-y-1">
+                <p className="text-sm font-medium text-blue-900">Longer notes &amp; visit updates</p>
+                <p className="text-sm text-blue-700">
+                  Use the <span className="font-semibold">Activity Log</span> on the patient's detail page to add detailed visit notes, updates, and @mention teammates. Save this dialog first, then open the referral to log an activity.
+                </p>
               </div>
             </TabsContent>
 
@@ -943,16 +871,10 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
                 </div>
                 <div className="md:col-span-2">
                   <Label htmlFor="patient_status_note" className="text-gray-700">
-                    Patient Status Note <span className="text-xs text-gray-500">(quick-glance summary)</span>
+                    Follow-up / Status Note{' '}
+                    <span className="text-xs text-gray-500 font-normal">— shown on referrals list &amp; palliative board (50 chars max)</span>
                   </Label>
-                  <Textarea
-                    id="patient_status_note"
-                    name="patient_status_note"
-                    defaultValue={(referralData as any).patient_status_note || ''}
-                    placeholder="e.g., Declining, family considering hospice; PCP scheduling F2F next week"
-                    rows={2}
-                    className="bg-white border-gray-300 text-gray-900"
-                  />
+                  <StatusNoteField defaultValue={(referralData as any).patient_status_note || ''} />
                 </div>
               </div>
             </TabsContent>
