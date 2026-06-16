@@ -51,14 +51,15 @@ const ReferralDetail = () => {
         .from('referrals')
         .select(`
           *,
-          organizations(name, type, contact_person, phone)
+          organizations!referrals_organization_id_fkey(id, name, type, contact_person, phone, address),
+          facility_organization:organizations!referrals_facility_organization_id_fkey(id, name, type, address)
         `)
         .eq('id', id)
         .is('deleted_at', null)
         .single();
 
       if (error) throw error;
-      return data;
+      return data as any;
     },
     enabled: !!id
   });
