@@ -32,6 +32,7 @@ import { EnhancedInput } from '@/components/ui/enhanced-input';
 import { formatPhoneNumber } from '@/lib/formatters';
 import { REFERRAL_STATUSES, FOLLOWUP_FREQUENCIES, LOCATION_TYPES } from '@/lib/constants';
 import { fetchIntakeCoordinatorNames, fetchMarketerNames } from '@/lib/staffOptions';
+import MentionTextarea from '@/components/crm/MentionTextarea';
 
 interface EditReferralDialogProps {
   open: boolean;
@@ -45,6 +46,84 @@ interface Comment {
   timestamp: string;
   author: string;
 }
+
+const ACTIVITY_TYPES = [
+  { value: 'phone_call', label: 'Phone Call' },
+  { value: 'in_person_visit', label: 'In-Person Visit' },
+  { value: 'voicemail', label: 'Voicemail Left' },
+  { value: 'email', label: 'Email' },
+  { value: 'chart_review', label: 'Chart Review' },
+  { value: 'status_update', label: 'Status Update' },
+  { value: 'other', label: 'Other' },
+];
+
+// Inline activity log entry — saves directly to referral_activity_log without closing the dialog
+const InlineActivityEntry = ({ referralId, userEmail }: { referralId: string; userEmail: string }) => {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [note, setNote] = React.useState('');
+  const [mentionedUserIds, setMentionedUserIds] = React.useState<string[]>([]);
+  const [activityType, setActivityType] = React.useState('status_update');
+  const [saving, setSaving] = React.useState(false);
+
+  const handleSave = async () => {
+    if (!note.trim()) return;
+    setSaving(true);
+    const { error } = await supabase
+      .from('referral_activity_log')
+      .insert({
+        referral_id: referralId,
+        activity_type: activityType,
+        note_text: note.trim(),
+        created_by: userEmail,
+        mentioned_user_ids: mentionedUserIds,
+      } as any);
+    setSaving(false);
+    if (error) {
+      toast({ title: 'Error saving note', description: error.message, variant: 'destructive' });
+    } else {
+      toast({ title: '✅ Activity logged' });
+      setNote('');
+      setMentionedUserIds([]);
+      queryClient.invalidateQueries({ queryKey: ['referral-activity-log', referralId] });
+    }
+  };
+
+  return (
+    <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 space-y-3">
+      <div className="flex items-center gap-2">
+        <span className="text-sm font-medium text-gray-800">Log Activity</span>
+        <Select value={activityType} onValueChange={setActivityType}>
+          <SelectTrigger className="h-7 w-auto text-xs border-gray-300 bg-white">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {ACTIVITY_TYPES.map(t => (
+              <SelectItem key={t.value} value={t.value} className="text-xs">{t.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <MentionTextarea
+        value={note}
+        onChange={setNote}
+        onMentionsChange={setMentionedUserIds}
+        placeholder="Add a note... type @ to mention a teammate"
+        rows={3}
+      />
+      <div className="flex justify-end">
+        <Button
+          type="button"
+          size="sm"
+          disabled={!note.trim() || saving}
+          onClick={handleSave}
+        >
+          {saving ? 'Saving…' : 'Log Activity'}
+        </Button>
+      </div>
+    </div>
+  );
+};
 
 const STATUS_NOTE_MAX = 50;
 
@@ -784,13 +863,8 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
                 </div>
               )}
 
-              {/* Activity Log pointer */}
-              <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 space-y-1">
-                <p className="text-sm font-medium text-blue-900">Longer notes &amp; visit updates</p>
-                <p className="text-sm text-blue-700">
-                  Use the <span className="font-semibold">Activity Log</span> on the patient's detail page to add detailed visit notes, updates, and @mention teammates. Save this dialog first, then open the referral to log an activity.
-                </p>
-              </div>
+              {/* Inline Activity Log entry */}
+              <InlineActivityEntry referralId={referralId} userEmail={user?.email || 'Unknown'} />
             </TabsContent>
 
             <TabsContent value="followup" className="space-y-4 bg-white">
