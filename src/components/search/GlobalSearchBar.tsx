@@ -116,7 +116,7 @@ const GlobalSearchBar = () => {
         const [refRes, patRes, orgRes, contactRes, staffRes] = await Promise.all([
           supabase
             .from('referrals')
-            .select('id, patient_name, status, diagnosis, referring_physician, organizations(name)')
+            .select('id, patient_name, status, diagnosis, referring_physician, organizations!organization_id(name)')
             .or(`patient_name.ilike.${like},first_name.ilike.${like},last_name.ilike.${like},referring_physician.ilike.${like},diagnosis.ilike.${like}`)
             .is('deleted_at', null)
             .limit(10),
@@ -134,7 +134,7 @@ const GlobalSearchBar = () => {
             .limit(10),
           supabase
             .from('organization_contacts')
-            .select('id, first_name, last_name, title, email, direct_phone, specialty, organization_id, organizations(name)')
+            .select('id, first_name, last_name, title, email, direct_phone, specialty, organization_id, organizations!organization_id(name)')
             .or(`first_name.ilike.${like},last_name.ilike.${like},title.ilike.${like},email.ilike.${like},specialty.ilike.${like}`)
             .limit(10),
           supabase

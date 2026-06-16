@@ -114,7 +114,7 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
     queryFn: async () => {
       const { data, error } = await supabase
         .from('referrals')
-        .select('*, organizations(name)')
+        .select('*, organizations!organization_id(name)')
         .eq('id', referralId)
         .single();
       

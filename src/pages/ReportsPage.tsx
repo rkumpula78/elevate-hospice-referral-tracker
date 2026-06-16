@@ -63,7 +63,7 @@ const ReportsPage = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('referrals')
-        .select(`organization_id, status, organizations!inner(name)`)
+        .select(`organization_id, status, organizations!organization_id!inner(name)`)
         .gte('created_at', start.toISOString())
         .lte('created_at', end.toISOString());
 

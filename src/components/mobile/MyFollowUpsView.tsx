@@ -24,7 +24,7 @@ const MyFollowUpsView = () => {
     queryFn: async () => {
       let query = supabase
         .from('referrals')
-        .select('id, patient_name, patient_phone, assigned_marketer, next_followup_date, status, diagnosis, organizations(name)')
+        .select('id, patient_name, patient_phone, assigned_marketer, next_followup_date, status, diagnosis, organizations!organization_id(name)')
         .not('next_followup_date', 'is', null)
         .in('status', ['palliative_outreach', 'not_appropriate', 'contacted', 'assessment_scheduled', 'new_referral'] as any[])
         .order('next_followup_date', { ascending: true });
