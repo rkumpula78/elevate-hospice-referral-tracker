@@ -43,6 +43,21 @@ serve(async (req) => {
       )
     }
 
+    // Validate each coordinate is a finite numeric [lon, lat] within bounds
+    for (const c of coordinates) {
+      if (
+        !Array.isArray(c) || c.length !== 2 ||
+        typeof c[0] !== 'number' || typeof c[1] !== 'number' ||
+        !Number.isFinite(c[0]) || !Number.isFinite(c[1]) ||
+        c[0] < -180 || c[0] > 180 || c[1] < -90 || c[1] > 90
+      ) {
+        return new Response(
+          JSON.stringify({ error: 'Invalid coordinate values' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+    }
+
     const mapboxToken = Deno.env.get('MAPBOX_PUBLIC_TOKEN');
     if (!mapboxToken) {
       return new Response(
