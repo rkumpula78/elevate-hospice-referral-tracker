@@ -27,7 +27,7 @@ interface PatientOverviewSectionProps {
 
 const PatientOverviewSection = ({ patient, isOpen, onToggle }: PatientOverviewSectionProps) => {
   // Referring org state
-  const [orgId, setOrgId] = useState<string>(patient?.organization_id || '');
+  const [orgId, setOrgId] = useState<string>(patient?.organization_id || 'none');
   const [showNewOrg, setShowNewOrg] = useState(false);
   const [newOrgName, setNewOrgName] = useState('');
   const [newOrgType, setNewOrgType] = useState<string>('other');
@@ -37,7 +37,7 @@ const PatientOverviewSection = ({ patient, isOpen, onToggle }: PatientOverviewSe
   const [residenceType, setResidenceType] = useState<'home' | 'facility'>(
     patient?.facility_organization_id ? 'facility' : 'home'
   );
-  const [facilityOrgId, setFacilityOrgId] = useState<string>(patient?.facility_organization_id || '');
+  const [facilityOrgId, setFacilityOrgId] = useState<string>(patient?.facility_organization_id || 'none');
   const [showNewFacility, setShowNewFacility] = useState(false);
   const [newFacilityName, setNewFacilityName] = useState('');
   const [newFacilityType, setNewFacilityType] = useState<string>('group_home');
@@ -80,8 +80,8 @@ const PatientOverviewSection = ({ patient, isOpen, onToggle }: PatientOverviewSe
       <CollapsibleContent className="p-4 border border-gray-200 rounded-b-lg space-y-6">
 
         {/* Hidden inputs submit controlled values */}
-        <input type="hidden" name="organization_id" value={orgId} />
-        <input type="hidden" name="facility_organization_id" value={residenceType === 'facility' ? facilityOrgId : ''} />
+        <input type="hidden" name="organization_id" value={orgId === 'none' ? '' : orgId} />
+        <input type="hidden" name="facility_organization_id" value={residenceType === 'facility' && facilityOrgId !== 'none' ? facilityOrgId : ''} />
 
         {/* Patient name + demographics */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -149,7 +149,7 @@ const PatientOverviewSection = ({ patient, isOpen, onToggle }: PatientOverviewSe
             }}>
               <SelectTrigger><SelectValue placeholder="Select organization" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="">No organization</SelectItem>
+                <SelectItem value="none">No organization</SelectItem>
                 {organizations.map(o => (
                   <SelectItem key={o.id} value={o.id}>{o.name}</SelectItem>
                 ))}
@@ -223,7 +223,7 @@ const PatientOverviewSection = ({ patient, isOpen, onToggle }: PatientOverviewSe
                 }}>
                   <SelectTrigger><SelectValue placeholder="Select facility" /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Select facility</SelectItem>
+                    <SelectItem value="none">Select facility</SelectItem>
                     {organizations.map(o => (
                       <SelectItem key={o.id} value={o.id}>{o.name}</SelectItem>
                     ))}
