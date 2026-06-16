@@ -1,6 +1,6 @@
 import { Label } from "@/components/ui/label";
 import { EnhancedInput } from "@/components/ui/enhanced-input";
-import { User, Phone, MapPin } from "lucide-react";
+import { User, Phone, MapPin, Users, Heart } from "lucide-react";
 import { AlertCircle } from "lucide-react";
 
 interface StepPatientInfoProps {
@@ -8,6 +8,9 @@ interface StepPatientInfoProps {
     patient_name: string;
     patient_phone: string;
     patient_address: string;
+    responsible_party_name: string;
+    responsible_party_contact: string;
+    responsible_party_relationship: string;
   };
   onFieldChange: (field: string, value: string) => void;
   fieldErrors: Record<string, string>;
@@ -92,6 +95,51 @@ export function StepPatientInfo({ formData, onFieldChange, fieldErrors, touchedF
               {fieldErrors.patient_address}
             </p>
           )}
+        </div>
+      </div>
+
+      <div className="pt-2">
+        <h3 className="text-base font-semibold">Responsible Party <span className="text-xs text-muted-foreground font-normal">(optional)</span></h3>
+        <p className="text-sm text-muted-foreground">The main family contact or decision-maker. You can add more details later.</p>
+      </div>
+      <div className="space-y-4">
+        <div>
+          <Label htmlFor="responsible_party_name" className="text-base">Name</Label>
+          <EnhancedInput
+            id="responsible_party_name"
+            icon={<Users className="w-4 h-4" />}
+            value={formData.responsible_party_name}
+            onChange={(e) => onFieldChange('responsible_party_name', e.target.value)}
+            placeholder="e.g., Jane Smith"
+            disabled={disabled}
+            className="h-12 text-base"
+          />
+        </div>
+        <div>
+          <Label htmlFor="responsible_party_contact" className="text-base">Phone / Contact</Label>
+          <EnhancedInput
+            id="responsible_party_contact"
+            type="tel"
+            inputMode="tel"
+            icon={<Phone className="w-4 h-4" />}
+            value={formData.responsible_party_contact}
+            onChange={(e) => onFieldChange('responsible_party_contact', e.target.value)}
+            placeholder="(555) 123-4567"
+            disabled={disabled}
+            className="h-12 text-base"
+          />
+        </div>
+        <div>
+          <Label htmlFor="responsible_party_relationship" className="text-base">Relationship</Label>
+          <EnhancedInput
+            id="responsible_party_relationship"
+            icon={<Heart className="w-4 h-4" />}
+            value={formData.responsible_party_relationship}
+            onChange={(e) => onFieldChange('responsible_party_relationship', e.target.value)}
+            placeholder="e.g., Daughter, POA"
+            disabled={disabled}
+            className="h-12 text-base"
+          />
         </div>
       </div>
     </div>

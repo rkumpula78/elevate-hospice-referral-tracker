@@ -4,8 +4,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import MentionTextarea from '@/components/crm/MentionTextarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
@@ -37,6 +37,7 @@ const QuickLogActivityDialog = ({ open, onOpenChange, referralId, patientName }:
   const queryClient = useQueryClient();
   const [activityType, setActivityType] = useState('phone_call');
   const [noteText, setNoteText] = useState('');
+  const [mentionedUserIds, setMentionedUserIds] = useState<string[]>([]);
   const [nextFollowupDate, setNextFollowupDate] = useState<Date | undefined>();
 
   const mutation = useMutation({
@@ -49,7 +50,8 @@ const QuickLogActivityDialog = ({ open, onOpenChange, referralId, patientName }:
           note_text: noteText,
           next_action_date: nextFollowupDate ? format(nextFollowupDate, 'yyyy-MM-dd') : null,
           created_by: user?.email || 'Unknown',
-        });
+          mentioned_user_ids: mentionedUserIds,
+        } as any);
       if (error) throw error;
 
       if (nextFollowupDate) {
@@ -66,6 +68,7 @@ const QuickLogActivityDialog = ({ open, onOpenChange, referralId, patientName }:
       toast({ title: `✅ Activity logged for ${patientName}` });
       onOpenChange(false);
       setNoteText('');
+      setMentionedUserIds([]);
       setNextFollowupDate(undefined);
       setActivityType('phone_call');
     },
@@ -94,7 +97,14 @@ const QuickLogActivityDialog = ({ open, onOpenChange, referralId, patientName }:
           </div>
           <div>
             <Label className="text-sm">Note</Label>
-            <Textarea value={noteText} onChange={e => setNoteText(e.target.value)} placeholder="Brief note..." rows={2} className="mt-1" />
+            <MentionTextarea
+              value={noteText}
+              onChange={setNoteText}
+              onMentionsChange={setMentionedUserIds}
+              placeholder="Brief note... Type @ to notify a teammate"
+              rows={2}
+              className="mt-1"
+            />
           </div>
           <div>
             <Label className="text-sm">Next Follow-up Date</Label>

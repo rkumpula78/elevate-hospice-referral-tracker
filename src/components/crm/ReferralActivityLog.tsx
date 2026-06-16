@@ -4,8 +4,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
+import MentionTextarea, { highlightMentions } from '@/components/crm/MentionTextarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
@@ -46,6 +46,7 @@ const ReferralActivityLog = ({ referralId }: ReferralActivityLogProps) => {
   const [showForm, setShowForm] = useState(false);
   const [activityType, setActivityType] = useState('phone_call');
   const [noteText, setNoteText] = useState('');
+  const [mentionedUserIds, setMentionedUserIds] = useState<string[]>([]);
   const [nextAction, setNextAction] = useState('');
   const [nextActionDate, setNextActionDate] = useState<Date | undefined>();
 
@@ -73,7 +74,8 @@ const ReferralActivityLog = ({ referralId }: ReferralActivityLogProps) => {
           next_action: nextAction || null,
           next_action_date: nextActionDate ? format(nextActionDate, 'yyyy-MM-dd') : null,
           created_by: user?.email || 'Unknown',
-        });
+          mentioned_user_ids: mentionedUserIds,
+        } as any);
       if (error) throw error;
 
       // If next_action_date is set, update the referral's next_followup_date
@@ -90,6 +92,7 @@ const ReferralActivityLog = ({ referralId }: ReferralActivityLogProps) => {
       toast({ title: '✅ Activity logged' });
       setShowForm(false);
       setNoteText('');
+      setMentionedUserIds([]);
       setNextAction('');
       setNextActionDate(undefined);
       setActivityType('phone_call');
@@ -143,7 +146,14 @@ const ReferralActivityLog = ({ referralId }: ReferralActivityLogProps) => {
             </div>
             <div>
               <Label className="text-sm">Note</Label>
-              <Textarea value={noteText} onChange={e => setNoteText(e.target.value)} placeholder="What happened during this interaction..." rows={3} className="mt-1" />
+              <MentionTextarea
+                value={noteText}
+                onChange={setNoteText}
+                onMentionsChange={setMentionedUserIds}
+                placeholder="What happened during this interaction... Type @ to notify a teammate"
+                rows={3}
+                className="mt-1"
+              />
             </div>
             <div>
               <Label className="text-sm">Next Action (optional)</Label>
@@ -180,7 +190,7 @@ const ReferralActivityLog = ({ referralId }: ReferralActivityLogProps) => {
                         </div>
                         <span className="text-xs text-muted-foreground">{format(new Date(a.created_at), 'MMM d, yyyy h:mm a')}</span>
                       </div>
-                      <p className="text-sm mt-1 whitespace-pre-wrap">{a.note_text}</p>
+                      <p className="text-sm mt-1 whitespace-pre-wrap">{highlightMentions(a.note_text)}</p>
                       {a.next_action && (
                         <p className="text-xs text-muted-foreground mt-1">
                           <span className="font-medium">Next:</span> {a.next_action}

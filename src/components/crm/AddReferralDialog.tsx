@@ -5,6 +5,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { logAuditEvent } from '@/lib/auditLog';
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -36,6 +37,9 @@ const INITIAL_FORM = {
   patient_name: '',
   patient_phone: '',
   patient_address: '',
+  responsible_party_name: '',
+  responsible_party_contact: '',
+  responsible_party_relationship: '',
   diagnosis: '',
   insurance: '',
   priority: 'routine' as 'low' | 'routine' | 'urgent',
@@ -58,6 +62,7 @@ const REQUIRED_FIELDS = [
 
 const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const { autoNotifyNewReferral } = useTeamsIntegration();
   const isMobile = useIsMobile();
@@ -252,6 +257,9 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
         patient_name: data.patient_name,
         patient_phone: data.patient_phone || null,
         address: data.patient_address || null,
+        responsible_party_name: data.responsible_party_name || null,
+        responsible_party_contact: data.responsible_party_contact || null,
+        responsible_party_relationship: data.responsible_party_relationship || null,
         diagnosis: data.diagnosis || null,
         insurance: data.insurance || null,
         priority: data.priority,
@@ -261,11 +269,19 @@ const AddReferralDialog = ({ open, onOpenChange }: AddReferralDialogProps) => {
         referral_intake_coordinator: data.referral_intake_coordinator || null,
         status: data.status,
         reason_for_non_admittance: data.reason_for_non_admittance || null,
-        notes: data.notes || null,
         benefit_period_number: data.benefit_period_number
       }).select().single();
       if (error) throw error;
       if (newReferral) {
+        // Save the first update into the unified activity feed (single source of truth)
+        if (data.notes && data.notes.trim()) {
+          await supabase.from('referral_activity_log').insert({
+            referral_id: newReferral.id,
+            activity_type: 'status_update',
+            note_text: data.notes.trim(),
+            created_by: user?.email || 'Unknown',
+          });
+        }
         await logAuditEvent({ action: 'create', tableName: 'referrals', recordId: newReferral.id });
         await autoNotifyNewReferral(newReferral);
         notifyNewReferral(newReferral.id);

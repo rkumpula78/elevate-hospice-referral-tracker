@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -28,11 +28,58 @@ interface StatusChangeItem {
   patient_name?: string;
 }
 
+interface MentionItem {
+  id: string;
+  referral_id: string | null;
+  message: string;
+  actor_email: string | null;
+  created_at: string;
+  patient_name?: string;
+}
+
 const NotificationCenter = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const notifiedIds = useRef<Set<string>>(new Set());
+
+  // Fetch unread @mention notifications for the current user
+  const { data: mentions = [] } = useQuery({
+    queryKey: ['notification-mentions', user?.id],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from('notifications')
+        .select('id, referral_id, message, actor_email, created_at')
+        .eq('user_id', user?.id)
+        .eq('is_read', false)
+        .order('created_at', { ascending: false })
+        .limit(20);
+      if (error) throw error;
+
+      const refIds = [...new Set((data || []).map((d: any) => d.referral_id).filter(Boolean))] as string[];
+      let refMap: Record<string, string> = {};
+      if (refIds.length > 0) {
+        const { data: refs } = await supabase
+          .from('referrals')
+          .select('id, patient_name')
+          .in('id', refIds);
+        refMap = Object.fromEntries((refs || []).map(r => [r.id, r.patient_name]));
+      }
+
+      return (data || []).map((item: any) => ({
+        ...item,
+        patient_name: item.referral_id ? refMap[item.referral_id] : undefined,
+      })) as MentionItem[];
+    },
+    enabled: !!user,
+    refetchInterval: 60_000,
+  });
+
+  const markMentionRead = async (id: string) => {
+    await (supabase as any).from('notifications').update({ is_read: true }).eq('id', id);
+    queryClient.invalidateQueries({ queryKey: ['notification-mentions', user?.id] });
+  };
 
   // Fetch follow-ups that are overdue, due today, or due tomorrow
   const { data: followUps = [] } = useQuery({
@@ -116,7 +163,7 @@ const NotificationCenter = () => {
   const dueToday = followUps.filter(f => isToday(parseISO(f.follow_up_date)));
   const dueTomorrow = followUps.filter(f => isTomorrow(parseISO(f.follow_up_date)));
 
-  const unreadCount = overdue.length + dueToday.length;
+  const unreadCount = overdue.length + dueToday.length + mentions.length;
 
   // Browser notification polling
   const checkBrowserNotifications = useCallback(async () => {
@@ -180,6 +227,32 @@ const NotificationCenter = () => {
         </SheetHeader>
         <ScrollArea className="h-[calc(100vh-6rem)] mt-4 pr-2">
           <div className="space-y-4">
+            {/* Mentions */}
+            {mentions.length > 0 && (
+              <Section title="Mentions" color="text-blue-600" badgeVariant="default" count={mentions.length}>
+                {mentions.map(item => (
+                  <button
+                    key={item.id}
+                    onClick={() => {
+                      markMentionRead(item.id);
+                      if (item.referral_id) navigate(`/referral/${item.referral_id}`);
+                      setOpen(false);
+                    }}
+                    className="w-full text-left p-3 rounded-lg border border-border border-l-4 border-l-blue-500 hover:bg-accent/50 transition-colors"
+                  >
+                    <p className="text-sm font-medium">
+                      {item.actor_email || 'Someone'} mentioned you
+                      {item.patient_name ? ` · ${item.patient_name}` : ''}
+                    </p>
+                    {item.message && (
+                      <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{item.message}</p>
+                    )}
+                    <p className="text-xs text-muted-foreground mt-0.5">{format(parseISO(item.created_at), 'MMM d, h:mm a')}</p>
+                  </button>
+                ))}
+              </Section>
+            )}
+
             {/* Overdue */}
             {overdue.length > 0 && (
               <Section title="Overdue" color="text-destructive" badgeVariant="destructive" count={overdue.length}>
@@ -228,7 +301,7 @@ const NotificationCenter = () => {
                 {statusChanges.map(item => (
                   <button
                     key={item.id}
-                    onClick={() => { navigate(`/referrals/${item.referral_id}`); setOpen(false); }}
+                    onClick={() => { navigate(`/referral/${item.referral_id}`); setOpen(false); }}
                     className="w-full text-left p-3 rounded-lg border border-border hover:bg-accent/50 transition-colors"
                   >
                     <p className="text-sm font-medium">{item.patient_name || 'Unknown patient'}</p>
@@ -241,7 +314,7 @@ const NotificationCenter = () => {
               </Section>
             )}
 
-            {unreadCount === 0 && dueTomorrow.length === 0 && statusChanges.length === 0 && (
+            {unreadCount === 0 && dueTomorrow.length === 0 && statusChanges.length === 0 && mentions.length === 0 && (
               <div className="text-center py-12 text-muted-foreground">
                 <Bell className="w-10 h-10 mx-auto mb-3 opacity-30" />
                 <p className="text-sm">All caught up! No pending notifications.</p>

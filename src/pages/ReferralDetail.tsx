@@ -4,7 +4,8 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Calendar, Phone, Mail, User, Building2, Edit, Plus, Trash2 } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { ArrowLeft, Calendar, Phone, Mail, User, Users, Building2, Edit, Plus, Trash2, ChevronDown } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import {
@@ -37,6 +38,7 @@ const ReferralDetail = () => {
   const navigate = useNavigate();
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showScheduleDialog, setShowScheduleDialog] = useState(false);
+  const [showMore, setShowMore] = useState(false);
 
   const { isAdmin } = useAuth();
   const queryClient = useQueryClient();
@@ -137,6 +139,7 @@ const ReferralDetail = () => {
           </div>
         </div>
 
+        {/* Top: basic patient info + responsible party / contacts */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card>
             <CardHeader>
@@ -180,38 +183,6 @@ const ReferralDetail = () => {
                   </p>
                 </div>
               )}
-              {(referral.caregiver_name || referral.caregiver_contact) && (
-                <div>
-                  <p className="text-sm text-gray-600">Primary Caregiver</p>
-                  <p className="font-medium">
-                    {referral.caregiver_name}
-                    {referral.caregiver_contact && (
-                      <>
-                        {referral.caregiver_name ? ' — ' : ''}
-                        <a href={`tel:${referral.caregiver_contact}`} className="text-blue-600 hover:underline">
-                          {referral.caregiver_contact}
-                        </a>
-                      </>
-                    )}
-                  </p>
-                </div>
-              )}
-              {(referral.emergency_contact || referral.emergency_phone) && (
-                <div>
-                  <p className="text-sm text-gray-600">Emergency Contact</p>
-                  <p className="font-medium">
-                    {referral.emergency_contact}
-                    {referral.emergency_phone && (
-                      <>
-                        {referral.emergency_contact ? ' — ' : ''}
-                        <a href={`tel:${referral.emergency_phone}`} className="text-blue-600 hover:underline">
-                          {referral.emergency_phone}
-                        </a>
-                      </>
-                    )}
-                  </p>
-                </div>
-              )}
               {referral.diagnosis && (
                 <div>
                   <p className="text-sm text-gray-600">Diagnosis</p>
@@ -222,12 +193,6 @@ const ReferralDetail = () => {
                 <div>
                   <p className="text-sm text-gray-600">Insurance</p>
                   <p className="font-medium">{referral.insurance}</p>
-                </div>
-              )}
-              {referral.medicare_number && (
-                <div>
-                  <p className="text-sm text-gray-600">Policy / Medicare #</p>
-                  <p className="font-medium">{referral.medicare_number}</p>
                 </div>
               )}
               {referral.priority && (
@@ -245,8 +210,61 @@ const ReferralDetail = () => {
             </CardContent>
           </Card>
 
-          {/* Right column: Referring Org (compact) + Medicare Eligibility (compact) */}
+          {/* Responsible Party & Contacts + Referring Org */}
           <div className="space-y-4">
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Users className="w-4 h-4" />
+                  <span>Responsible Party & Contacts</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0 space-y-3 text-sm">
+                {(referral.responsible_party_name || referral.responsible_party_contact || referral.responsible_party_relationship) ? (
+                  <div>
+                    <p className="text-xs text-muted-foreground">Responsible Party</p>
+                    <p className="font-medium">
+                      {referral.responsible_party_name}
+                      {referral.responsible_party_relationship ? ` (${referral.responsible_party_relationship})` : ''}
+                    </p>
+                    {referral.responsible_party_contact && (
+                      <a href={`tel:${referral.responsible_party_contact}`} className="text-blue-600 hover:underline">{referral.responsible_party_contact}</a>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-xs text-muted-foreground">No responsible party recorded yet. Use Edit Referral to add one.</p>
+                )}
+                {(referral.caregiver_name || referral.caregiver_contact) && (
+                  <div>
+                    <p className="text-xs text-muted-foreground">Primary Caregiver</p>
+                    <p className="font-medium">
+                      {referral.caregiver_name}
+                      {referral.caregiver_contact && (
+                        <>
+                          {referral.caregiver_name ? ' — ' : ''}
+                          <a href={`tel:${referral.caregiver_contact}`} className="text-blue-600 hover:underline">{referral.caregiver_contact}</a>
+                        </>
+                      )}
+                    </p>
+                  </div>
+                )}
+                {(referral.emergency_contact || referral.emergency_phone) && (
+                  <div>
+                    <p className="text-xs text-muted-foreground">Emergency Contact</p>
+                    <p className="font-medium">
+                      {referral.emergency_contact}
+                      {referral.emergency_phone && (
+                        <>
+                          {referral.emergency_contact ? ' — ' : ''}
+                          <a href={`tel:${referral.emergency_phone}`} className="text-blue-600 hover:underline">{referral.emergency_phone}</a>
+                        </>
+                      )}
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
             {referral.organizations && (
               <Card>
                 <CardHeader className="pb-3">
@@ -275,92 +293,89 @@ const ReferralDetail = () => {
                 </CardContent>
               </Card>
             )}
-
-            <ReferralEligibility referralId={id!} compact />
           </div>
-
-
-          {referral.admission_date && (
-            <BenefitPeriodTracker
-              admissionDate={new Date(referral.admission_date)}
-              patientName={referral.patient_name}
-              compact
-            />
-          )}
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Calendar className="w-5 h-5" />
-                <span>Timeline</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <p className="text-sm text-gray-600">Referral Date</p>
-                <p className="font-medium">
-                  {new Date(referral.referral_date).toLocaleDateString()}
-                </p>
-              </div>
-              {referral.contact_date && (
-                <div>
-                  <p className="text-sm text-gray-600">Contact Date</p>
-                  <p className="font-medium">
-                    {new Date(referral.contact_date).toLocaleDateString()}
-                  </p>
-                </div>
-              )}
-              {referral.admission_date && (
-                <div>
-                  <p className="text-sm text-gray-600">Admission Date</p>
-                  <p className="font-medium">
-                    {new Date(referral.admission_date).toLocaleDateString()}
-                  </p>
-                </div>
-              )}
-              {referral.assigned_marketer && (
-                <div>
-                  <p className="text-sm text-gray-600">Assigned Marketer</p>
-                  <p className="font-medium">{referral.assigned_marketer}</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Care Team */}
-          <CareTeamSection
-            referralId={id!}
-            referral={referral}
-            onUpdate={() => refetch()}
-          />
-
-          {/* Admission Details (shown only when admitted) */}
-          {referral.status === 'admitted' && (
-            <div className="lg:col-span-2">
-              <AdmissionDetailsSection referral={referral} onUpdate={() => refetch()} />
-            </div>
-          )}
-
-          {/* Status Timeline */}
-          <div className="lg:col-span-2">
-            <StatusTimeline referralId={id!} currentStatus={referral.status} />
-          </div>
-
-          {/* Structured Activity Log */}
-          <div className="lg:col-span-2">
-            <ReferralActivityLog referralId={id!} />
-          </div>
-
-
-
-
-          {/* Family Contacts Section */}
-          <Card className="lg:col-span-2">
-            <CardContent className="pt-6">
-              <ReferralFamilyContacts referralId={id!} />
-            </CardContent>
-          </Card>
         </div>
+
+        {/* Primary focus: the unified update feed */}
+        <ReferralActivityLog referralId={id!} />
+
+        {/* Everything else, tucked away */}
+        <Collapsible open={showMore} onOpenChange={setShowMore}>
+          <CollapsibleTrigger asChild>
+            <Button variant="outline" className="w-full justify-between">
+              <span>More details (eligibility, timeline, care team, family contacts)</span>
+              <ChevronDown className={`w-4 h-4 transition-transform ${showMore ? 'rotate-180' : ''}`} />
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="mt-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <ReferralEligibility referralId={id!} compact />
+
+              {referral.admission_date && (
+                <BenefitPeriodTracker
+                  admissionDate={new Date(referral.admission_date)}
+                  patientName={referral.patient_name}
+                  compact
+                />
+              )}
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Calendar className="w-5 h-5" />
+                    <span>Timeline</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <p className="text-sm text-gray-600">Referral Date</p>
+                    <p className="font-medium">{new Date(referral.referral_date).toLocaleDateString()}</p>
+                  </div>
+                  {referral.contact_date && (
+                    <div>
+                      <p className="text-sm text-gray-600">Contact Date</p>
+                      <p className="font-medium">{new Date(referral.contact_date).toLocaleDateString()}</p>
+                    </div>
+                  )}
+                  {referral.admission_date && (
+                    <div>
+                      <p className="text-sm text-gray-600">Admission Date</p>
+                      <p className="font-medium">{new Date(referral.admission_date).toLocaleDateString()}</p>
+                    </div>
+                  )}
+                  {referral.assigned_marketer && (
+                    <div>
+                      <p className="text-sm text-gray-600">Assigned Marketer</p>
+                      <p className="font-medium">{referral.assigned_marketer}</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              <CareTeamSection
+                referralId={id!}
+                referral={referral}
+                onUpdate={() => refetch()}
+              />
+
+              {referral.status === 'admitted' && (
+                <div className="lg:col-span-2">
+                  <AdmissionDetailsSection referral={referral} onUpdate={() => refetch()} />
+                </div>
+              )}
+
+              <div className="lg:col-span-2">
+                <StatusTimeline referralId={id!} currentStatus={referral.status} />
+              </div>
+
+              <Card className="lg:col-span-2">
+                <CardContent className="pt-6">
+                  <ReferralFamilyContacts referralId={id!} />
+                </CardContent>
+              </Card>
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
 
         <EditReferralDialog
           open={showEditDialog}

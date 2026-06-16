@@ -95,15 +95,16 @@ export function StepReview({ formData, organizationName, onFieldChange, onEditSt
         </CardContent>
       </Card>
 
-      {/* Notes */}
+      {/* First update / note */}
       <div>
-        <Label className="text-base">Notes (optional)</Label>
+        <Label className="text-base">First Update (optional)</Label>
+        <p className="text-sm text-muted-foreground mb-1">This is saved as the first entry in the referral's activity feed.</p>
         <CharacterCounterTextarea
           value={formData.notes}
           onChange={(e) => onFieldChange('notes', e.target.value)}
           rows={3}
           maxLength={500}
-          placeholder="Add any additional notes..."
+          placeholder="e.g., Spoke with daughter, scheduling assessment for next week..."
           disabled={disabled}
           className="text-base min-h-[80px]"
         />
