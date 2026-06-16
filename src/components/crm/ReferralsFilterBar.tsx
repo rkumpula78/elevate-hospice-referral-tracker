@@ -70,20 +70,24 @@ export const ReferralsFilterBar = ({
     },
   });
 
-  // Fetch unique assigned marketers
+  // Fetch marketers from profiles (actual app users) to avoid duplicates from free-text referral entries
   const { data: marketers = [] } = useQuery({
     queryKey: ['marketers-filter'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('referrals')
-        .select('assigned_marketer')
-        .not('assigned_marketer', 'is', null)
-        .is('deleted_at', null);
-      
+        .from('profiles')
+        .select('first_name, last_name')
+        .not('first_name', 'is', null)
+        .not('last_name', 'is', null)
+        .order('first_name');
+
       if (error) throw error;
-      
-      const uniqueMarketers = [...new Set(data.map((r) => r.assigned_marketer).filter(Boolean))] as string[];
-      return uniqueMarketers.sort().map((m) => ({ label: m, value: m }));
+
+      return (data || [])
+        .map((p) => `${p.first_name} ${p.last_name}`.trim())
+        .filter(Boolean)
+        .filter((v, i, arr) => arr.indexOf(v) === i) // dedupe
+        .map((name) => ({ label: name, value: name }));
     },
   });
 
