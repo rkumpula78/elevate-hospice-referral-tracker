@@ -556,9 +556,14 @@ const OrganizationDetail = () => {
               <CardContent>
                 <div className="space-y-3">
                   {referrals.map((referral) => (
-                    <div key={referral.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <button
+                      key={referral.id}
+                      type="button"
+                      onClick={() => navigate(`/referrals/${referral.id}`)}
+                      className="w-full text-left flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
+                    >
                       <div>
-                        <p className="font-medium">{referral.patient_name}</p>
+                        <p className="font-medium text-blue-600 hover:underline">{referral.patient_name}</p>
                         <p className="text-sm text-gray-600">
                           {new Date(referral.referral_date).toLocaleDateString()}
                         </p>
@@ -566,7 +571,7 @@ const OrganizationDetail = () => {
                       <Badge className={getStatusColor(referral.status)}>
                         {referral.status}
                       </Badge>
-                    </div>
+                    </button>
                   ))}
                 </div>
               </CardContent>
