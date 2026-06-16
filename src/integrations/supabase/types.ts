@@ -2460,6 +2460,7 @@ export type Database = {
           dnr_status: boolean | null
           emergency_contact: string | null
           emergency_phone: string | null
+          facility_organization_id: string | null
           first_name: string | null
           followup_frequency: string | null
           funeral_arrangements: string | null
@@ -2541,6 +2542,7 @@ export type Database = {
           dnr_status?: boolean | null
           emergency_contact?: string | null
           emergency_phone?: string | null
+          facility_organization_id?: string | null
           first_name?: string | null
           followup_frequency?: string | null
           funeral_arrangements?: string | null
@@ -2622,6 +2624,7 @@ export type Database = {
           dnr_status?: boolean | null
           emergency_contact?: string | null
           emergency_phone?: string | null
+          facility_organization_id?: string | null
           first_name?: string | null
           followup_frequency?: string | null
           funeral_arrangements?: string | null
@@ -2692,6 +2695,13 @@ export type Database = {
             columns: ["cna"]
             isOneToOne: false
             referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referrals_facility_organization_id_fkey"
+            columns: ["facility_organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
           {
