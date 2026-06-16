@@ -351,7 +351,9 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
 
     // Process all form fields
     for (const [key, value] of formData.entries()) {
-      if (key === 'organization_id' && value === 'none') {
+      if (key === 'organization_id' && (value === 'none' || value === '')) {
+        updateData[key] = null;
+      } else if (key === 'facility_organization_id' && value === '') {
         updateData[key] = null;
       } else if (key === 'insurance_verification' || key === 'medical_records_received' || key === 'md_notified') {
         updateData[key] = value === 'on';
@@ -388,7 +390,7 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
       'referral_contact_phone','referral_date','referral_intake_coordinator','referral_source','referring_contact_name',
       'referring_physician','responsible_party_contact','responsible_party_name','responsible_party_relationship',
       'secondary_insurance','social_worker','special_medical_needs','spiritual_preferences','ssn','status',
-      'transport_needs','upcoming_appointments','weight',
+      'transport_needs','upcoming_appointments','weight','facility_organization_id',
     ]);
     Object.keys(updateData).forEach((k) => {
       if (!REFERRALS_COLUMNS.has(k)) delete updateData[k];
@@ -880,26 +882,15 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
             </TabsContent>
 
             <TabsContent value="referral-source" className="space-y-4 bg-white">
+              <div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
+                <p className="text-sm font-medium text-blue-900">Referring Organization</p>
+                <p className="text-sm text-blue-700 mt-0.5">
+                  {organizations?.find(o => o.id === referralData.organization_id)?.name || 'Not set'}
+                  {' '}&mdash; <span className="text-xs">Change this in the <strong>Patient Info</strong> tab above.</span>
+                </p>
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="organization_id" className="text-gray-700">Referring Organization <span className="text-destructive">*</span></Label>
-                  <Select name="organization_id" defaultValue={referralData.organization_id || 'none'}>
-                    <SelectTrigger className="bg-white border-gray-300 text-gray-900">
-                      <SelectValue placeholder="Select organization" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white border border-gray-300 z-[100]">
-                      <SelectItem value="none">No organization</SelectItem>
-                      {organizations?.map((org) => (
-                        <SelectItem key={org.id} value={org.id}>
-                          {org.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Referrals are attributed to organizations for compliance reporting.
-                  </p>
-                </div>
                 <div>
                   <Label htmlFor="referring_contact_name" className="text-gray-700">Clinician/Contact Name at Referring Org</Label>
                   <Input
