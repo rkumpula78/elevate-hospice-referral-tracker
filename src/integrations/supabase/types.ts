@@ -951,6 +951,57 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          activity_log_id: string | null
+          actor_email: string | null
+          created_at: string
+          id: string
+          is_read: boolean
+          message: string
+          referral_id: string | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          activity_log_id?: string | null
+          actor_email?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message?: string
+          referral_id?: string | null
+          type?: string
+          user_id: string
+        }
+        Update: {
+          activity_log_id?: string | null
+          actor_email?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message?: string
+          referral_id?: string | null
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_activity_log_id_fkey"
+            columns: ["activity_log_id"]
+            isOneToOne: false
+            referencedRelation: "referral_activity_log"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_referral_id_fkey"
+            columns: ["referral_id"]
+            isOneToOne: false
+            referencedRelation: "referrals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organization_checklists: {
         Row: {
           checklist_name: string
@@ -2086,6 +2137,7 @@ export type Database = {
           created_at: string
           created_by: string
           id: string
+          mentioned_user_ids: string[]
           next_action: string | null
           next_action_date: string | null
           note_text: string
@@ -2096,6 +2148,7 @@ export type Database = {
           created_at?: string
           created_by?: string
           id?: string
+          mentioned_user_ids?: string[]
           next_action?: string | null
           next_action_date?: string | null
           note_text?: string
@@ -2106,6 +2159,7 @@ export type Database = {
           created_at?: string
           created_by?: string
           id?: string
+          mentioned_user_ids?: string[]
           next_action?: string | null
           next_action_date?: string | null
           note_text?: string

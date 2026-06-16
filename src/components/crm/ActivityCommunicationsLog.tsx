@@ -96,6 +96,7 @@ const ActivityCommunicationsLog = ({ organizationId, referralId, contactId, titl
           organization_id: organizationId || null,
           referral_id: referralId || null,
           contact_id: contactId || null,
+          follow_up_date: activityData.follow_up_required && activityData.follow_up_date ? activityData.follow_up_date : null,
           cost_amount: activityData.cost_amount ? parseFloat(activityData.cost_amount) : null,
           duration_minutes: activityData.duration_minutes ? parseInt(activityData.duration_minutes) : null
         }]);
