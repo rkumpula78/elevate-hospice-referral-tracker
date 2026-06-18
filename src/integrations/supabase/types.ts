@@ -1370,8 +1370,12 @@ export type Database = {
           competitive_landscape: string | null
           contact_email: string | null
           contact_person: string | null
+          contract_expiry_date: string | null
+          contract_notes: string | null
           contract_on_file: boolean | null
+          contract_start_date: string | null
           contract_status: string | null
+          contract_types: string[] | null
           created_at: string | null
           cultural_alignment_score: number | null
           current_hospice_providers: string[] | null
@@ -1431,8 +1435,12 @@ export type Database = {
           competitive_landscape?: string | null
           contact_email?: string | null
           contact_person?: string | null
+          contract_expiry_date?: string | null
+          contract_notes?: string | null
           contract_on_file?: boolean | null
+          contract_start_date?: string | null
           contract_status?: string | null
+          contract_types?: string[] | null
           created_at?: string | null
           cultural_alignment_score?: number | null
           current_hospice_providers?: string[] | null
@@ -1492,8 +1500,12 @@ export type Database = {
           competitive_landscape?: string | null
           contact_email?: string | null
           contact_person?: string | null
+          contract_expiry_date?: string | null
+          contract_notes?: string | null
           contract_on_file?: boolean | null
+          contract_start_date?: string | null
           contract_status?: string | null
+          contract_types?: string[] | null
           created_at?: string | null
           cultural_alignment_score?: number | null
           current_hospice_providers?: string[] | null
