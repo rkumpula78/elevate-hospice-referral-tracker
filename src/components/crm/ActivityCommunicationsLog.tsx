@@ -89,18 +89,39 @@ const ActivityCommunicationsLog = ({ organizationId, referralId, contactId, titl
   // Add activity mutation
   const addActivityMutation = useMutation({
     mutationFn: async (activityData: any) => {
+      // Normalize activity_date: timestamptz, NOT NULL. datetime-local gives "YYYY-MM-DDTHH:mm".
+      const rawDate = (activityData.activity_date || '').trim();
+      let activityDateIso: string;
+      if (!rawDate) {
+        activityDateIso = new Date().toISOString();
+      } else {
+        const parsed = new Date(rawDate);
+        if (isNaN(parsed.getTime())) {
+          throw new Error('Activity date is invalid. Please pick a valid date and time.');
+        }
+        activityDateIso = parsed.toISOString();
+      }
+
+      // Normalize follow_up_date: date column, null when blank
+      const rawFollowUp = (activityData.follow_up_date || '').trim();
+      const followUpDate =
+        activityData.follow_up_required && rawFollowUp ? rawFollowUp : null;
+
+      const payload = {
+        ...activityData,
+        activity_date: activityDateIso,
+        organization_id: organizationId || null,
+        referral_id: referralId || null,
+        contact_id: contactId || null,
+        follow_up_date: followUpDate,
+        cost_amount: activityData.cost_amount ? parseFloat(activityData.cost_amount) : null,
+        duration_minutes: activityData.duration_minutes ? parseInt(activityData.duration_minutes) : null,
+      };
+
       const { error } = await supabase
         .from('activity_communications')
-        .insert([{
-          ...activityData,
-          organization_id: organizationId || null,
-          referral_id: referralId || null,
-          contact_id: contactId || null,
-          follow_up_date: activityData.follow_up_required && activityData.follow_up_date ? activityData.follow_up_date : null,
-          cost_amount: activityData.cost_amount ? parseFloat(activityData.cost_amount) : null,
-          duration_minutes: activityData.duration_minutes ? parseInt(activityData.duration_minutes) : null
-        }]);
-      
+        .insert([payload]);
+
       if (error) throw error;
     },
     onSuccess: () => {
@@ -133,20 +154,43 @@ const ActivityCommunicationsLog = ({ organizationId, referralId, contactId, titl
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Validate: require discussion_points for in-person visits
+    if (!formData.interaction_type) {
+      toast({
+        title: '⚠️ Interaction type required',
+        description: 'Please pick an interaction type before saving.',
+        variant: 'warning',
+      });
+      return;
+    }
+    if (!(formData.completed_by || '').trim()) {
+      toast({
+        title: '⚠️ Name required',
+        description: 'Please enter who completed this activity.',
+        variant: 'warning',
+      });
+      return;
+    }
+    if (!formData.activity_date || isNaN(new Date(formData.activity_date).getTime())) {
+      toast({
+        title: '⚠️ Date required',
+        description: 'Please pick a valid activity date and time.',
+        variant: 'warning',
+      });
+      return;
+    }
+    // Soft, non-blocking hints
     const inPersonTypes = ['in_person_visit', 'lunch_learn', 'inservice', 'community_event'];
     if (inPersonTypes.includes(formData.interaction_type) && (formData.discussion_points || '').trim().length < 10) {
       toast({
-        title: '⚠️ Notes required',
-        description: 'In-person activities require discussion notes (min 10 characters).',
+        title: '⚠️ Notes recommended',
+        description: 'In-person activities are usually logged with discussion notes (10+ characters).',
         variant: 'warning',
       });
     }
-    // Validate: require next_step when follow_up is checked
     if (formData.follow_up_required && !(formData.next_step || '').trim()) {
       toast({
         title: '⚠️ Next step recommended',
-        description: 'Please add a next step when follow-up is required.',
+        description: 'Consider adding a next step when follow-up is required.',
         variant: 'warning',
       });
     }
