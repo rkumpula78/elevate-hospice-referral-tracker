@@ -39,7 +39,7 @@ const OrganizationsList = () => {
   const { isAdmin } = useAuth();
   const queryClient = useQueryClient();
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
-  const [selectedStatus, setSelectedStatus] = useState<string>('all');
+  const [selectedStatus, setSelectedStatus] = useState<string>('active');
   const [selectedRatings, setSelectedRatings] = useState<string[]>([]);
   const [selectedMarketers, setSelectedMarketers] = useState<string[]>([]);
   const [view, setView] = useState<'card' | 'list'>('card');

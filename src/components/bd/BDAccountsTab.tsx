@@ -44,6 +44,19 @@ const TIER_FILTERS = [
   { key: 'E', label: 'E — DD Homes (Deferred)' },
 ];
 
+const TYPE_OPTIONS = [
+  { key: 'assisted_living', label: 'Assisted Living' },
+  { key: 'hospital', label: 'Hospital' },
+  { key: 'clinic', label: 'Cancer Center/Clinic' },
+  { key: 'physician_office', label: 'Physician Office' },
+  { key: 'nursing_home', label: 'Skilled Nursing' },
+  { key: 'home_health', label: 'Home Health' },
+  { key: 'caregiver_services', label: 'Caregiver Services' },
+  { key: 'group_home', label: 'Group Home' },
+  { key: 'referral_source', label: 'Other Referral Source' },
+  { key: 'other', label: 'Other' },
+];
+
 const TIER_CHIP: Record<string, string> = {
   A: 'bg-blue-100 text-blue-800 border-blue-300',
   B: 'bg-teal-100 text-teal-800 border-teal-300',
@@ -90,10 +103,11 @@ const lastContactLabel = (date: string | null) => {
 
 const BDAccountsTab: React.FC = () => {
   const qc = useQueryClient();
-  const [tier, setTier] = useState('all');
+  const [tiers, setTiers] = useState<string[]>([]);
+  const [types, setTypes] = useState<string[]>([]);
   const [statuses, setStatuses] = useState<string[]>([]);
-  const [priority, setPriority] = useState('all');
-  const [marketer, setMarketer] = useState<string>('all');
+  const [priorities, setPriorities] = useState<string[]>([]);
+  const [selectedMarketers, setSelectedMarketers] = useState<string[]>([]);
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(0);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -148,15 +162,12 @@ const BDAccountsTab: React.FC = () => {
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return rows
-      // 'All' hides Tier E (deferred); user must explicitly select E to see them.
-      .filter((a: any) => tier === 'all' ? a.bd_tier !== 'E' : a.bd_tier === tier)
+      // No tier selected hides Tier E (deferred); user must explicitly select E to see them.
+      .filter((a: any) => tiers.length === 0 ? a.bd_tier !== 'E' : tiers.includes(a.bd_tier))
+      .filter((a: any) => types.length === 0 || types.includes(a.type))
       .filter((a: any) => statuses.length === 0 || statuses.includes(a.bd_status))
-      .filter((a: any) => {
-        if (priority === 'all') return true;
-        const p = (a.partnership_priority_level || '').toLowerCase();
-        return p === priority;
-      })
-      .filter((a: any) => marketer === 'all' || (a.assigned_marketer || '') === marketer)
+      .filter((a: any) => priorities.length === 0 || priorities.includes((a.partnership_priority_level || '').toLowerCase()))
+      .filter((a: any) => selectedMarketers.length === 0 || selectedMarketers.includes(a.assigned_marketer || ''))
       .filter((a: any) => !q
         || (a.name || '').toLowerCase().includes(q)
         || (a.city || '').toLowerCase().includes(q)
@@ -169,7 +180,7 @@ const BDAccountsTab: React.FC = () => {
         const db = b.last_contact_date ? new Date(b.last_contact_date).getTime() : 0;
         return da - db;
       });
-  }, [rows, tier, statuses, priority, marketer, search]);
+  }, [rows, tiers, types, statuses, priorities, selectedMarketers, search]);
 
   const summary = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -181,7 +192,7 @@ const BDAccountsTab: React.FC = () => {
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const pageRows = filtered.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE);
 
-  React.useEffect(() => { setPage(0); }, [tier, statuses, priority, marketer, search]);
+  React.useEffect(() => { setPage(0); }, [tiers, types, statuses, priorities, selectedMarketers, search]);
 
 
   const updateField = async (id: string, updates: Record<string, any>) => {
@@ -197,13 +208,21 @@ const BDAccountsTab: React.FC = () => {
       {/* Filters */}
       <div className="space-y-3">
         <div className="flex flex-wrap items-center gap-2">
-          {TIER_FILTERS.map(t => (
+          <Button
+            size="sm"
+            variant={tiers.length === 0 ? 'default' : 'outline'}
+            className="rounded-full"
+            onClick={() => setTiers([])}
+          >
+            All
+          </Button>
+          {TIER_FILTERS.filter(t => t.key !== 'all').map(t => (
             <Button
               key={t.key}
               size="sm"
-              variant={tier === t.key ? 'default' : 'outline'}
+              variant={tiers.includes(t.key) ? 'default' : 'outline'}
               className="rounded-full"
-              onClick={() => setTier(t.key)}
+              onClick={() => setTiers(prev => prev.includes(t.key) ? prev.filter(x => x !== t.key) : [...prev, t.key])}
             >
               {t.label}
             </Button>
@@ -237,29 +256,79 @@ const BDAccountsTab: React.FC = () => {
             </Button>
           )}
 
-          {['all', 'high', 'medium', 'low'].map(p => (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button size="sm" variant="outline" className="rounded-full">
+                Type {types.length > 0 && <Badge variant="secondary" className="ml-2">{types.length}</Badge>}
+                <ChevronDown className="w-4 h-4 ml-1" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start">
+              {TYPE_OPTIONS.map(t => (
+                <DropdownMenuCheckboxItem
+                  key={t.key}
+                  checked={types.includes(t.key)}
+                  onCheckedChange={(checked) =>
+                    setTypes(prev => checked ? [...prev, t.key] : prev.filter(x => x !== t.key))
+                  }
+                >
+                  {t.label}
+                </DropdownMenuCheckboxItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          {types.length > 0 && (
+            <Button size="sm" variant="ghost" onClick={() => setTypes([])}>
+              <X className="w-3.5 h-3.5 mr-1" /> Clear
+            </Button>
+          )}
+
+          <Button
+            size="sm"
+            variant={priorities.length === 0 ? 'default' : 'outline'}
+            className="rounded-full"
+            onClick={() => setPriorities([])}
+          >
+            All
+          </Button>
+          {['high', 'medium', 'low'].map(p => (
             <Button
               key={p}
               size="sm"
-              variant={priority === p ? 'default' : 'outline'}
+              variant={priorities.includes(p) ? 'default' : 'outline'}
               className="rounded-full capitalize"
-              onClick={() => setPriority(p)}
+              onClick={() => setPriorities(prev => prev.includes(p) ? prev.filter(x => x !== p) : [...prev, p])}
             >
               {p}
             </Button>
           ))}
 
-          <Select value={marketer} onValueChange={setMarketer}>
-            <SelectTrigger className="h-8 w-[180px] text-xs rounded-full">
-              <SelectValue placeholder="Marketer" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Marketers</SelectItem>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button size="sm" variant="outline" className="rounded-full">
+                Marketer {selectedMarketers.length > 0 && <Badge variant="secondary" className="ml-2">{selectedMarketers.length}</Badge>}
+                <ChevronDown className="w-4 h-4 ml-1" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="max-h-72 overflow-y-auto">
               {marketerOptions.map(m => (
-                <SelectItem key={m} value={m}>{m}</SelectItem>
+                <DropdownMenuCheckboxItem
+                  key={m}
+                  checked={selectedMarketers.includes(m)}
+                  onCheckedChange={(checked) =>
+                    setSelectedMarketers(prev => checked ? [...prev, m] : prev.filter(x => x !== m))
+                  }
+                >
+                  {m}
+                </DropdownMenuCheckboxItem>
               ))}
-            </SelectContent>
-          </Select>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          {selectedMarketers.length > 0 && (
+            <Button size="sm" variant="ghost" onClick={() => setSelectedMarketers([])}>
+              <X className="w-3.5 h-3.5 mr-1" /> Clear
+            </Button>
+          )}
 
 
           <div className="relative flex-1 min-w-[200px] max-w-sm ml-auto">
