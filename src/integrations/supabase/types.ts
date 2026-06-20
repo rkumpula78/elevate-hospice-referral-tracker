@@ -1366,6 +1366,7 @@ export type Database = {
           bd_status: string | null
           bd_tier: string | null
           bed_count: number | null
+          city: string | null
           competition_level: string | null
           competitive_landscape: string | null
           contact_email: string | null
@@ -1379,7 +1380,9 @@ export type Database = {
           created_at: string | null
           cultural_alignment_score: number | null
           current_hospice_providers: string[] | null
+          current_month_referrals: number | null
           current_provider_satisfaction_score: number | null
+          current_quarter_referrals: number | null
           dba_name: string | null
           decision_maker_email: string | null
           decision_maker_name: string | null
@@ -1393,12 +1396,15 @@ export type Database = {
           geographic_alignment_score: number | null
           gps_latitude: number | null
           gps_longitude: number | null
+          growth_notes: string | null
+          growth_status: string | null
           id: string
           is_active: boolean | null
           last_contact_date: string | null
           last_training_review: string | null
           license_numbers: string[] | null
           medicare_id: string | null
+          monthly_referral_goal: number | null
           name: string
           next_followup_date: string | null
           ownership_type: string | null
@@ -1407,6 +1413,7 @@ export type Database = {
           partnership_score: number | null
           partnership_stage: string | null
           phone: string | null
+          quarterly_referral_goal: number | null
           referral_potential: number | null
           referral_potential_level: string | null
           regulatory_notes: string | null
@@ -1416,11 +1423,15 @@ export type Database = {
           research_completed: boolean | null
           revenue_ytd: number | null
           roi_calculation: Json | null
+          routing_week: number | null
           service_radius: number | null
+          state: string | null
           sub_type: string | null
           type: string
           updated_at: string | null
           website: string | null
+          ytd_referrals: number | null
+          zip_code: string | null
         }
         Insert: {
           account_rating?: string | null
@@ -1431,6 +1442,7 @@ export type Database = {
           bd_status?: string | null
           bd_tier?: string | null
           bed_count?: number | null
+          city?: string | null
           competition_level?: string | null
           competitive_landscape?: string | null
           contact_email?: string | null
@@ -1444,7 +1456,9 @@ export type Database = {
           created_at?: string | null
           cultural_alignment_score?: number | null
           current_hospice_providers?: string[] | null
+          current_month_referrals?: number | null
           current_provider_satisfaction_score?: number | null
+          current_quarter_referrals?: number | null
           dba_name?: string | null
           decision_maker_email?: string | null
           decision_maker_name?: string | null
@@ -1458,12 +1472,15 @@ export type Database = {
           geographic_alignment_score?: number | null
           gps_latitude?: number | null
           gps_longitude?: number | null
+          growth_notes?: string | null
+          growth_status?: string | null
           id?: string
           is_active?: boolean | null
           last_contact_date?: string | null
           last_training_review?: string | null
           license_numbers?: string[] | null
           medicare_id?: string | null
+          monthly_referral_goal?: number | null
           name?: string
           next_followup_date?: string | null
           ownership_type?: string | null
@@ -1472,6 +1489,7 @@ export type Database = {
           partnership_score?: number | null
           partnership_stage?: string | null
           phone?: string | null
+          quarterly_referral_goal?: number | null
           referral_potential?: number | null
           referral_potential_level?: string | null
           regulatory_notes?: string | null
@@ -1481,11 +1499,15 @@ export type Database = {
           research_completed?: boolean | null
           revenue_ytd?: number | null
           roi_calculation?: Json | null
+          routing_week?: number | null
           service_radius?: number | null
+          state?: string | null
           sub_type?: string | null
           type: string
           updated_at?: string | null
           website?: string | null
+          ytd_referrals?: number | null
+          zip_code?: string | null
         }
         Update: {
           account_rating?: string | null
@@ -1496,6 +1518,7 @@ export type Database = {
           bd_status?: string | null
           bd_tier?: string | null
           bed_count?: number | null
+          city?: string | null
           competition_level?: string | null
           competitive_landscape?: string | null
           contact_email?: string | null
@@ -1509,7 +1532,9 @@ export type Database = {
           created_at?: string | null
           cultural_alignment_score?: number | null
           current_hospice_providers?: string[] | null
+          current_month_referrals?: number | null
           current_provider_satisfaction_score?: number | null
+          current_quarter_referrals?: number | null
           dba_name?: string | null
           decision_maker_email?: string | null
           decision_maker_name?: string | null
@@ -1523,12 +1548,15 @@ export type Database = {
           geographic_alignment_score?: number | null
           gps_latitude?: number | null
           gps_longitude?: number | null
+          growth_notes?: string | null
+          growth_status?: string | null
           id?: string
           is_active?: boolean | null
           last_contact_date?: string | null
           last_training_review?: string | null
           license_numbers?: string[] | null
           medicare_id?: string | null
+          monthly_referral_goal?: number | null
           name?: string
           next_followup_date?: string | null
           ownership_type?: string | null
@@ -1537,6 +1565,7 @@ export type Database = {
           partnership_score?: number | null
           partnership_stage?: string | null
           phone?: string | null
+          quarterly_referral_goal?: number | null
           referral_potential?: number | null
           referral_potential_level?: string | null
           regulatory_notes?: string | null
@@ -1546,11 +1575,15 @@ export type Database = {
           research_completed?: boolean | null
           revenue_ytd?: number | null
           roi_calculation?: Json | null
+          routing_week?: number | null
           service_radius?: number | null
+          state?: string | null
           sub_type?: string | null
           type?: string
           updated_at?: string | null
           website?: string | null
+          ytd_referrals?: number | null
+          zip_code?: string | null
         }
         Relationships: []
       }
