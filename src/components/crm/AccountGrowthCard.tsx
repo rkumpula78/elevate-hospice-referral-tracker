@@ -41,10 +41,15 @@ const AccountGrowthCard: React.FC<AccountGrowthCardProps> = ({ organization, onU
       toast({ title: "Growth goals updated successfully" });
       setIsEditing(false);
       queryClient.invalidateQueries({ queryKey: ['organizations'] });
+      queryClient.invalidateQueries({ queryKey: ['organization', organization.id] });
       onUpdate?.();
     },
-    onError: () => {
-      toast({ title: "Error updating goals", variant: "destructive" });
+    onError: (error: any) => {
+      toast({
+        title: "Error updating goals",
+        description: error?.message || "Something went wrong",
+        variant: "destructive",
+      });
     }
   });
 

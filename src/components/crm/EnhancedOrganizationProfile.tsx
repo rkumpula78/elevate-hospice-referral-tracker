@@ -178,6 +178,7 @@ const EnhancedOrganizationProfile = ({ organizationId }: EnhancedOrganizationPro
                     <SelectItem value="assisted_living">Assisted Living Facility (ALF)</SelectItem>
                     <SelectItem value="physician_office">Physician Clinic</SelectItem>
                     <SelectItem value="home_health">Home Health Agency</SelectItem>
+                    <SelectItem value="caregiver_services">Caregiver Services</SelectItem>
                     <SelectItem value="clinic">Community Group</SelectItem>
                     <SelectItem value="other">Other</SelectItem>
                   </SelectContent>

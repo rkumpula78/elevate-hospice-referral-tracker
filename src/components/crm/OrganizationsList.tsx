@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { MultiSelect } from "@/components/ui/multi-select";
 import { Plus, MapPin, User, Edit, ExternalLink, Users, Building, Calendar, Phone, AlertTriangle, CheckCircle, Clock, ArrowUpDown, Search, X as XIcon, Trash2 } from "lucide-react";
 import { AccountRatingBadge, getRatingColor } from './AccountRatingBadge';
 import { Link } from 'react-router-dom';
@@ -37,10 +38,10 @@ const OrganizationsList = () => {
   const { toast } = useToast();
   const { isAdmin } = useAuth();
   const queryClient = useQueryClient();
-  const [selectedType, setSelectedType] = useState<string>('all');
+  const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
-  const [selectedRating, setSelectedRating] = useState<string>('all');
-  const [selectedMarketer, setSelectedMarketer] = useState<string>('all');
+  const [selectedRatings, setSelectedRatings] = useState<string[]>([]);
+  const [selectedMarketers, setSelectedMarketers] = useState<string[]>([]);
   const [view, setView] = useState<'card' | 'list'>('card');
   const [sortConfig, setSortConfig] = useState<{ field: string; direction: 'asc' | 'desc' } | null>(null);
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -96,24 +97,24 @@ const OrganizationsList = () => {
   });
 
   const { data: organizations, isLoading } = useQuery({
-    queryKey: ['organizations', selectedType, selectedStatus, selectedRating, selectedMarketer],
+    queryKey: ['organizations', selectedTypes, selectedStatus, selectedRatings, selectedMarketers],
     queryFn: async () => {
       let query = supabase
         .from('organizations')
         .select('*')
         .order('name');
 
-      if (selectedType !== 'all') {
-        query = query.eq('type', selectedType);
+      if (selectedTypes.length > 0) {
+        query = query.in('type', selectedTypes);
       }
       if (selectedStatus !== 'all') {
         query = query.eq('is_active', selectedStatus === 'active');
       }
-      if (selectedRating !== 'all') {
-        query = query.eq('account_rating', selectedRating);
+      if (selectedRatings.length > 0) {
+        query = query.in('account_rating', selectedRatings);
       }
-      if (selectedMarketer !== 'all') {
-        query = query.eq('assigned_marketer', selectedMarketer);
+      if (selectedMarketers.length > 0) {
+        query = query.in('assigned_marketer', selectedMarketers);
       }
 
       const { data, error } = await query;
@@ -287,6 +288,7 @@ const OrganizationsList = () => {
       case 'physician_office': return 'bg-purple-100 text-purple-800';
       case 'nursing_home': return 'bg-orange-100 text-orange-800';
       case 'home_health': return 'bg-cyan-100 text-cyan-800';
+      case 'caregiver_services': return 'bg-teal-100 text-teal-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -652,16 +654,16 @@ const OrganizationsList = () => {
       {/* Filter Tabs */}
       <div className="flex space-x-1 mb-6 bg-gray-100 p-1 rounded-lg w-fit">
         <Button 
-          variant={selectedRating === 'all' && selectedType === 'all' ? "default" : "ghost"} 
-          className={selectedRating === 'all' && selectedType === 'all' ? "bg-white shadow-sm" : ""}
-          onClick={() => {setSelectedRating('all'); setSelectedType('all');}}
+          variant={selectedRatings.length === 0 && selectedTypes.length === 0 && selectedStatus === 'all' ? "default" : "ghost"} 
+          className={selectedRatings.length === 0 && selectedTypes.length === 0 && selectedStatus === 'all' ? "bg-white shadow-sm" : ""}
+          onClick={() => {setSelectedRatings([]); setSelectedTypes([]); setSelectedStatus('all');}}
         >
           All
         </Button>
         <Button 
-          variant={selectedRating === 'A' ? "default" : "ghost"}
-          className={selectedRating === 'A' ? "bg-white shadow-sm" : ""}
-          onClick={() => setSelectedRating('A')}
+          variant={selectedRatings.includes('A') ? "default" : "ghost"}
+          className={selectedRatings.includes('A') ? "bg-white shadow-sm" : ""}
+          onClick={() => setSelectedRatings(['A'])}
         >
           A-Rated
         </Button>
@@ -684,47 +686,45 @@ const OrganizationsList = () => {
       {/* Filters and View Toggle */}
       <div className="flex justify-between items-center">
         <div className="flex space-x-2">
-          <Select value={selectedType} onValueChange={setSelectedType}>
-            <SelectTrigger className="w-48 bg-white">
-              <SelectValue placeholder="Filter by type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Types</SelectItem>
-              <SelectItem value="assisted_living">Assisted Living</SelectItem>
-              <SelectItem value="hospital">Hospital</SelectItem>
-              <SelectItem value="clinic">Cancer Center/Clinic</SelectItem>
-              <SelectItem value="physician_office">Physician Office</SelectItem>
-              <SelectItem value="nursing_home">Skilled Nursing</SelectItem>
-              <SelectItem value="home_health">Home Health</SelectItem>
-              <SelectItem value="other">Other</SelectItem>
-            </SelectContent>
-          </Select>
+          <MultiSelect
+            className="w-48"
+            placeholder="All Types"
+            selected={selectedTypes}
+            onChange={setSelectedTypes}
+            options={[
+              { value: 'assisted_living', label: 'Assisted Living' },
+              { value: 'hospital', label: 'Hospital' },
+              { value: 'clinic', label: 'Cancer Center/Clinic' },
+              { value: 'physician_office', label: 'Physician Office' },
+              { value: 'nursing_home', label: 'Skilled Nursing' },
+              { value: 'home_health', label: 'Home Health' },
+              { value: 'caregiver_services', label: 'Caregiver Services' },
+              { value: 'other', label: 'Other' },
+            ]}
+          />
 
-          <Select value={selectedRating} onValueChange={setSelectedRating}>
-            <SelectTrigger className="w-40 bg-white">
-              <SelectValue placeholder="Filter by rating" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Ratings</SelectItem>
-              <SelectItem value="A">A - High Priority</SelectItem>
-              <SelectItem value="B">B - Medium-High</SelectItem>
-              <SelectItem value="C">C - Medium</SelectItem>
-              <SelectItem value="P">P - Prospect</SelectItem>
-              <SelectItem value="D">D - Low Priority</SelectItem>
-            </SelectContent>
-          </Select>
+          <MultiSelect
+            className="w-40"
+            placeholder="All Ratings"
+            selected={selectedRatings}
+            onChange={setSelectedRatings}
+            options={[
+              { value: 'A', label: 'A - High Priority' },
+              { value: 'B', label: 'B - Medium-High' },
+              { value: 'C', label: 'C - Medium' },
+              { value: 'P', label: 'P - Prospect' },
+              { value: 'D', label: 'D - Low Priority' },
+            ]}
+          />
 
-          <Select value={selectedMarketer} onValueChange={setSelectedMarketer}>
-            <SelectTrigger className="w-48 bg-white">
-              <SelectValue placeholder="Filter by marketer" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Marketers</SelectItem>
-              {marketers?.map((marketer: string) => (
-                <SelectItem key={marketer} value={marketer}>{marketer}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <MultiSelect
+            className="w-48"
+            placeholder="All Marketers"
+            searchable
+            selected={selectedMarketers}
+            onChange={setSelectedMarketers}
+            options={(marketers || []).map((marketer: string) => ({ value: marketer, label: marketer }))}
+          />
         </div>
 
         <div className="flex items-center gap-2">

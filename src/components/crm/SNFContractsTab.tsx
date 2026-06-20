@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { FileText, GraduationCap, Save, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { differenceInDays, addYears, format, parseISO, isPast } from 'date-fns';
+import ContractDocuments from './ContractDocuments';
 
 const CONTRACT_TYPES = [
   { value: 'patient_care', label: 'Patient Care in Facility' },
@@ -223,12 +224,21 @@ const SNFContractsTab = ({ organization }: SNFContractsTabProps) => {
 
             <div>
               <Label className="text-sm">Last Training Date</Label>
-              <Input
-                type="date"
-                value={lastTraining}
-                onChange={e => setLastTraining(e.target.value)}
-                className="mt-1"
-              />
+              <div className="flex items-center gap-2 mt-1">
+                <Input
+                  type="date"
+                  value={lastTraining}
+                  onChange={e => setLastTraining(e.target.value)}
+                />
+                {lastTraining && (
+                  <Button type="button" variant="outline" size="sm" onClick={() => setLastTraining('')}>
+                    Clear
+                  </Button>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Edit or clear the date if entered by mistake, then click Save.
+              </p>
             </div>
 
             {lastTraining && nextTrainingDue && (
@@ -282,6 +292,8 @@ const SNFContractsTab = ({ organization }: SNFContractsTabProps) => {
           </CardContent>
         </Card>
       </div>
+
+      <ContractDocuments organizationId={organization.id} />
 
       <div className="flex justify-end">
         <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending} className="gap-2">

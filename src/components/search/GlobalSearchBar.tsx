@@ -157,6 +157,68 @@ const GlobalSearchBar = () => {
         } as SearchResult;
       }
 
+      // Advanced search runs directly against the DB (reliable, structured).
+      // The edge function ignored these criteria, so we filter here instead.
+      if (advancedCriteria) {
+        setIsAiQuery(false);
+        const esc = (s?: string) => (s || '').trim().replace(/[%_\\]/g, '');
+        const c = advancedCriteria;
+        const orgName = esc(c.organizationName) || esc(c.facility);
+
+        // Organizations - only when an org/facility name was provided
+        const orgPromise = orgName
+          ? supabase
+              .from('organizations')
+              .select('id, name, type, contact_person, assigned_marketer')
+              .ilike('name', `%${orgName}%`)
+              .eq('is_active', true)
+              .limit(10)
+          : Promise.resolve({ data: [] as any[] });
+
+        // Referrals - only when a referral-relevant criterion is set
+        const hasRefCriteria = !!(c.patientName || c.physician || c.diagnosis ||
+          (c.status && c.status !== 'all') || (c.priority && c.priority !== 'all') || c.dateFrom || c.dateTo);
+        let refQuery = supabase
+          .from('referrals')
+          .select('id, patient_name, status, diagnosis, referring_physician, organizations!organization_id(name)')
+          .is('deleted_at', null)
+          .limit(10);
+        if (c.patientName) refQuery = refQuery.ilike('patient_name', `%${esc(c.patientName)}%`);
+        if (c.physician) refQuery = refQuery.ilike('referring_physician', `%${esc(c.physician)}%`);
+        if (c.diagnosis) refQuery = refQuery.ilike('diagnosis', `%${esc(c.diagnosis)}%`);
+        if (c.status && c.status !== 'all') refQuery = refQuery.eq('status', c.status as any);
+        if (c.priority && c.priority !== 'all') refQuery = refQuery.eq('priority', c.priority);
+        if (c.dateFrom) refQuery = refQuery.gte('created_at', c.dateFrom.toISOString());
+        if (c.dateTo) refQuery = refQuery.lte('created_at', c.dateTo.toISOString());
+        const refPromise = hasRefCriteria ? refQuery : Promise.resolve({ data: [] as any[] });
+
+        // Patients - only when a patient-relevant criterion is set
+        const hasPatCriteria = !!(c.patientName || c.diagnosis);
+        let patQuery = supabase
+          .from('patients')
+          .select('id, first_name, last_name, status, diagnosis')
+          .is('deleted_at', null)
+          .limit(10);
+        if (c.patientName) {
+          const p = esc(c.patientName);
+          patQuery = patQuery.or(`first_name.ilike.%${p}%,last_name.ilike.%${p}%`);
+        }
+        if (c.diagnosis) patQuery = patQuery.ilike('diagnosis', `%${esc(c.diagnosis)}%`);
+        const patPromise = hasPatCriteria ? patQuery : Promise.resolve({ data: [] as any[] });
+
+        const [orgRes, refRes, patRes] = await Promise.all([orgPromise, refPromise, patPromise]);
+        return {
+          type: 'search_results',
+          results: {
+            referrals: (refRes as any).data || [],
+            patients: (patRes as any).data || [],
+            organizations: (orgRes as any).data || [],
+            contacts: [],
+            staff: [],
+          },
+        } as SearchResult;
+      }
+
       // AI mode still uses the edge function
       const { data, error } = await supabase.functions.invoke('ai-search', {
         body: {

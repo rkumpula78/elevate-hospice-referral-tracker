@@ -29,3 +29,6 @@ verify_jwt = false
 
 [functions.elevate-ops-chat]
 verify_jwt = false
+
+[functions.story-intake]
+verify_jwt = false

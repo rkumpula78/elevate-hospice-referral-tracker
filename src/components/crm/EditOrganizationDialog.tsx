@@ -217,6 +217,10 @@ const EditOrganizationDialog = ({ open, onOpenChange, organizationId }: EditOrga
         return value === 'unassigned' ? null : value || null;
       })(),
       contract_status: formData.get('contract_status') as string || organization?.contract_status,
+      routing_week: (() => {
+        const value = formData.get('routing_week') as string;
+        return value && value !== 'none' ? parseInt(value) : null;
+      })(),
       partnership_notes: formData.get('partnership_notes') as string || null,
       
       // Intelligence
@@ -364,6 +368,7 @@ const EditOrganizationDialog = ({ open, onOpenChange, organizationId }: EditOrga
                             <SelectItem value="physician_office">Physician Office</SelectItem>
                             <SelectItem value="nursing_home">Skilled Nursing</SelectItem>
                             <SelectItem value="home_health">Home Health</SelectItem>
+                            <SelectItem value="caregiver_services">Caregiver Services</SelectItem>
                             <SelectItem value="other">Other</SelectItem>
                           </SelectContent>
                         </Select>
@@ -577,6 +582,21 @@ const EditOrganizationDialog = ({ open, onOpenChange, organizationId }: EditOrga
                                 {marketer}
                               </SelectItem>
                             ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label htmlFor="routing_week">Routing Week</Label>
+                        <Select name="routing_week" defaultValue={(organization as any).routing_week ? String((organization as any).routing_week) : 'none'}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="No specific week" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">No specific week</SelectItem>
+                            <SelectItem value="1">Week 1</SelectItem>
+                            <SelectItem value="2">Week 2</SelectItem>
+                            <SelectItem value="3">Week 3</SelectItem>
+                            <SelectItem value="4">Week 4</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>

@@ -3,7 +3,8 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { Bell } from 'lucide-react';
+import { useTrainingReminders } from '@/hooks/useTrainingReminders';
+import { Bell, GraduationCap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
@@ -155,6 +156,9 @@ const NotificationCenter = () => {
     refetchInterval: 60_000,
   });
 
+  // Annual training reminders (contracted orgs not trained this calendar year)
+  const { data: trainingDue = [] } = useTrainingReminders();
+
   // Categorize follow-ups
   const overdue = followUps.filter(f => {
     const d = parseISO(f.follow_up_date);
@@ -163,7 +167,7 @@ const NotificationCenter = () => {
   const dueToday = followUps.filter(f => isToday(parseISO(f.follow_up_date)));
   const dueTomorrow = followUps.filter(f => isTomorrow(parseISO(f.follow_up_date)));
 
-  const unreadCount = overdue.length + dueToday.length + mentions.length;
+  const unreadCount = overdue.length + dueToday.length + mentions.length + trainingDue.length;
 
   // Browser notification polling
   const checkBrowserNotifications = useCallback(async () => {
@@ -291,6 +295,29 @@ const NotificationCenter = () => {
                       setOpen(false);
                     }
                   }} />
+                ))}
+              </Section>
+            )}
+
+            {/* Annual Training Due */}
+            {trainingDue.length > 0 && (
+              <Section title="Annual Training Due" color="text-amber-600" badgeVariant="secondary" count={trainingDue.length}>
+                {trainingDue.map(item => (
+                  <button
+                    key={item.id}
+                    onClick={() => { navigate(`/organizations/${item.id}`); setOpen(false); }}
+                    className="w-full text-left p-3 rounded-lg border border-border border-l-4 border-l-amber-500 hover:bg-accent/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <GraduationCap className="w-4 h-4 text-amber-600 shrink-0" />
+                      <p className="text-sm font-medium">{item.name}</p>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {item.last_training_review
+                        ? `Last trained ${format(parseISO(item.last_training_review), 'MMM d, yyyy')} — due this year (Q${item.quarter})`
+                        : `No training on record — due this year (Q${item.quarter})`}
+                    </p>
+                  </button>
                 ))}
               </Section>
             )}

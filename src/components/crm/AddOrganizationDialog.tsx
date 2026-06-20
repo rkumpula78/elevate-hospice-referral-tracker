@@ -143,6 +143,7 @@ const AddOrganizationDialog = ({ open, onOpenChange }: AddOrganizationDialogProp
                   <SelectItem value="physician_office">Physician Office</SelectItem>
                   <SelectItem value="nursing_home">Skilled Nursing</SelectItem>
                   <SelectItem value="home_health">Home Health</SelectItem>
+                  <SelectItem value="caregiver_services">Caregiver Services</SelectItem>
                   <SelectItem value="referral_source">Other Referral Source</SelectItem>
                 </SelectContent>
               </Select>

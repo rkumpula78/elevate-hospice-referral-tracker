@@ -27,7 +27,7 @@ function parseRoutingWeek(notes: string | null): number | null {
 }
 
 const MyRouteThisWeek = () => {
-  const { displayName } = useAuth();
+  const { displayName, user } = useAuth();
   const navigate = useNavigate();
   const autoWeek = getCurrentWeekOfMonth();
   const [selectedWeek, setSelectedWeek] = useState<string>(String(Math.min(autoWeek, 4)));
@@ -35,17 +35,30 @@ const MyRouteThisWeek = () => {
   const { data: routeOrgs, isLoading } = useQuery({
     queryKey: ['my-route-week', displayName, selectedWeek],
     queryFn: async () => {
+      // Match the marketer tolerantly: case-insensitive, trimmed, and also
+      // against the email local-part. The old exact .eq() match silently
+      // returned nothing when the stored name's casing differed.
+      const candidates = [
+        (displayName || '').trim(),
+        (user?.email?.split('@')[0] || '').trim(),
+      ].filter(Boolean);
+      const orFilter = candidates.map(c => `assigned_marketer.ilike.${c}`).join(',');
+
       const { data: orgs } = await supabase
         .from('organizations')
-        .select('id, name, account_rating, partnership_notes, address, phone')
+        .select('id, name, account_rating, partnership_notes, address, phone, routing_week')
         .eq('is_active', true)
-        .eq('assigned_marketer', displayName);
+        .or(orFilter);
 
       if (!orgs || orgs.length === 0) return [];
 
-      // Filter by routing week
+      // Filter by routing week — prefer the explicit routing_week column,
+      // fall back to the legacy "Week N" tag in partnership_notes.
       const weekNum = parseInt(selectedWeek);
-      const weekOrgs = orgs.filter(o => parseRoutingWeek(o.partnership_notes) === weekNum);
+      const weekOrgs = orgs.filter(o => {
+        const week = (o as any).routing_week ?? parseRoutingWeek(o.partnership_notes);
+        return week === weekNum;
+      });
 
       if (weekOrgs.length === 0) return [];
 

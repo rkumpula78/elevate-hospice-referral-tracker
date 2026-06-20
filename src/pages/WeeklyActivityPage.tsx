@@ -21,17 +21,17 @@ import {
 
 const ACTIVITY_LABELS: Record<string, string> = {
   cold_visit: 'Field Visit',
-  follow_up_visit: 'Follow-Up Visit',
+  followup_visit: 'Follow-Up Visit',
   call: 'Call',
-  co_visit_anneli: 'Co-Visit',
+  covisit_anneli: 'Co-Visit',
   in_service: 'In-Service',
   email: 'Email',
 };
 
 const ACTIVITY_GROUP: Record<string, string> = {
   cold_visit: 'Field Visits',
-  follow_up_visit: 'Field Visits',
-  co_visit_anneli: 'Field Visits',
+  followup_visit: 'Field Visits',
+  covisit_anneli: 'Field Visits',
   in_service: 'In-Services',
   call: 'Calls',
   email: 'Emails',
@@ -188,7 +188,7 @@ const WeeklyActivityPage: React.FC = () => {
       return {
         id: p.id,
         name: `${p.first_name || ''} ${p.last_name || ''}`.trim() || p.email,
-        visits: myActs.filter((a: any) => ['cold_visit', 'follow_up_visit', 'co_visit_anneli', 'in_service'].includes(a.activity_type)).length,
+        visits: myActs.filter((a: any) => ['cold_visit', 'followup_visit', 'covisit_anneli', 'in_service'].includes(a.activity_type)).length,
         calls: myActs.filter((a: any) => a.activity_type === 'call').length,
         emails: myActs.filter((a: any) => a.activity_type === 'email').length,
         referrals: myRefs.length,
@@ -255,7 +255,7 @@ const WeeklyActivityPage: React.FC = () => {
   const totals = useMemo(() => {
     const acts = weekData?.activities || [];
     return {
-      visits: acts.filter((a: any) => ['cold_visit', 'follow_up_visit', 'co_visit_anneli', 'in_service'].includes(a.activity_type)).length,
+      visits: acts.filter((a: any) => ['cold_visit', 'followup_visit', 'covisit_anneli', 'in_service'].includes(a.activity_type)).length,
       calls: acts.filter((a: any) => a.activity_type === 'call').length,
       emails: acts.filter((a: any) => a.activity_type === 'email').length,
       newReferrals: (weekData?.referrals || []).length,

@@ -123,6 +123,7 @@ const OrganizationDetail = () => {
       'assisted_living': 'Assisted Living',
       'physician_office': 'Physician Office',
       'home_health': 'Home Health',
+      'caregiver_services': 'Caregiver Services',
       'cancer_center': 'Cancer Center',
       'hospice': 'Hospice',
       'other': 'Other'

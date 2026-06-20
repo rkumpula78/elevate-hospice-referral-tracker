@@ -69,9 +69,10 @@ const AIQuickHelpInner: React.FC<AIQuickHelpProps> = ({
       if (error) throw error;
       
       setGeneratedMessage(data.message || 'Unable to generate message. Please try again.');
-    } catch (error) {
+    } catch (error: any) {
       console.error('AI generation error:', error);
-      setGeneratedMessage('I apologize, but I encountered an error. Please try again or contact support.');
+      const detail = error?.message ? ` (${error.message})` : '';
+      setGeneratedMessage(`I apologize, but I encountered an error${detail}. Please try again or contact support.`);
     } finally {
       setLoading(false);
     }

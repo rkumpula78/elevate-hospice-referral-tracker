@@ -242,9 +242,11 @@ ${context === 'family' ?
     // Use Lovable AI Gateway instead of OpenAI directly
     const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
     if (!lovableApiKey) {
+      // Return 200 so the client reliably reads and shows this specific reason
+      // (non-2xx responses get collapsed into a generic error on the client).
       return new Response(
-        JSON.stringify({ message: 'AI service is not configured. Please contact your administrator.', success: false }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ message: 'AI service is not configured: the LOVABLE_API_KEY secret is missing. Ask an admin to add it in Supabase Edge Function secrets.', success: false }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -267,19 +269,27 @@ ${context === 'family' ?
 
     if (!aiResponse.ok) {
       const status = aiResponse.status;
+      // Return 200 with success:false in all cases so the client surfaces the
+      // real reason instead of a generic "encountered an error" message.
       if (status === 429) {
         return new Response(
           JSON.stringify({ message: 'AI service is temporarily rate limited. Please try again in a moment.', success: false }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
       if (status === 402) {
         return new Response(
-          JSON.stringify({ message: 'AI credits exhausted. Please add funds in Lovable settings.', success: false }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          JSON.stringify({ message: 'AI credits exhausted. Please add funds/credits to the Lovable AI workspace.', success: false }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-      throw new Error(`AI gateway error: ${status}`);
+      let detail = '';
+      try { detail = (await aiResponse.text()).slice(0, 200); } catch { /* ignore */ }
+      console.error(`AI gateway error: ${status} ${detail}`);
+      return new Response(
+        JSON.stringify({ message: `AI request failed (gateway status ${status}). Ask an admin to verify the AI model and API key. ${detail}`.trim(), success: false }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     const aiData = await aiResponse.json();

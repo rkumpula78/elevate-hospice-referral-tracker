@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Calendar, User, Phone, Mail, MessageSquare, Users, Video, BookOpen, Coffee, MapPin, Send } from 'lucide-react';
+import { Plus, Calendar, User, Phone, Mail, MessageSquare, Users, Video, BookOpen, Coffee, MapPin, Send, Pencil, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface ActivityCommunicationsLogProps {
@@ -25,6 +25,7 @@ const ActivityCommunicationsLog = ({ organizationId, referralId, contactId, titl
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [showAddForm, setShowAddForm] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     activity_date: new Date().toISOString().slice(0, 16),
     completed_by: '',
@@ -118,21 +119,73 @@ const ActivityCommunicationsLog = ({ organizationId, referralId, contactId, titl
         duration_minutes: activityData.duration_minutes ? parseInt(activityData.duration_minutes) : null,
       };
 
+      if (editingId) {
+        const { error } = await supabase
+          .from('activity_communications')
+          .update(payload)
+          .eq('id', editingId);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('activity_communications')
+          .insert([payload]);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['activity-communications'] });
+      toast({ title: editingId ? 'Activity updated successfully' : 'Activity logged successfully' });
+      resetForm();
+    },
+    onError: (error) => {
+      toast({ title: 'Error saving activity', description: error.message, variant: 'destructive' });
+    }
+  });
+
+  // Delete activity mutation
+  const deleteActivityMutation = useMutation({
+    mutationFn: async (id: string) => {
       const { error } = await supabase
         .from('activity_communications')
-        .insert([payload]);
-
+        .delete()
+        .eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['activity-communications'] });
-      toast({ title: 'Activity logged successfully' });
-      resetForm();
+      toast({ title: 'Activity deleted' });
     },
-    onError: (error) => {
-      toast({ title: 'Error logging activity', description: error.message, variant: 'destructive' });
+    onError: (error: any) => {
+      toast({ title: 'Error deleting activity', description: error.message, variant: 'destructive' });
     }
   });
+
+  // datetime-local expects local wall-clock; convert stored UTC to local.
+  const toLocalInput = (iso?: string) => {
+    if (!iso) return new Date().toISOString().slice(0, 16);
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return new Date().toISOString().slice(0, 16);
+    return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+  };
+
+  const startEdit = (activity: any) => {
+    setEditingId(activity.id);
+    setFormData({
+      activity_date: toLocalInput(activity.activity_date),
+      completed_by: activity.completed_by || '',
+      interaction_type: activity.interaction_type || '',
+      purpose: activity.purpose || [],
+      outcome_sentiment: activity.outcome_sentiment || 'neutral',
+      discussion_points: activity.discussion_points || '',
+      materials_provided: activity.materials_provided || [],
+      next_step: activity.next_step || '',
+      follow_up_required: !!activity.follow_up_required,
+      follow_up_date: activity.follow_up_date || '',
+      cost_amount: activity.cost_amount != null ? String(activity.cost_amount) : '',
+      duration_minutes: activity.duration_minutes != null ? String(activity.duration_minutes) : ''
+    });
+    setShowAddForm(true);
+  };
 
   const resetForm = () => {
     setFormData({
@@ -149,6 +202,7 @@ const ActivityCommunicationsLog = ({ organizationId, referralId, contactId, titl
       cost_amount: '',
       duration_minutes: ''
     });
+    setEditingId(null);
     setShowAddForm(false);
   };
 
@@ -246,7 +300,7 @@ const ActivityCommunicationsLog = ({ organizationId, referralId, contactId, titl
       {showAddForm && (
         <Card>
           <CardHeader>
-            <CardTitle>Log New Activity</CardTitle>
+            <CardTitle>{editingId ? 'Edit Activity' : 'Log New Activity'}</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -411,7 +465,7 @@ const ActivityCommunicationsLog = ({ organizationId, referralId, contactId, titl
                   Cancel
                 </Button>
                 <Button type="submit" disabled={addActivityMutation.isPending}>
-                  Log Activity
+                  {editingId ? 'Save Changes' : 'Log Activity'}
                 </Button>
               </div>
             </form>
@@ -437,9 +491,33 @@ const ActivityCommunicationsLog = ({ organizationId, referralId, contactId, titl
                       </p>
                     </div>
                   </div>
-                  <Badge className={getSentimentColor(activity.outcome_sentiment)}>
-                    {activity.outcome_sentiment.replace('_', ' ')}
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <Badge className={getSentimentColor(activity.outcome_sentiment)}>
+                      {activity.outcome_sentiment.replace('_', ' ')}
+                    </Badge>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7"
+                      onClick={() => startEdit(activity)}
+                      aria-label="Edit activity"
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-red-600 hover:text-red-700"
+                      onClick={() => {
+                        if (window.confirm('Delete this activity? This cannot be undone.')) {
+                          deleteActivityMutation.mutate(activity.id);
+                        }
+                      }}
+                      aria-label="Delete activity"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </Button>
+                  </div>
                 </div>
 
                 {activity.purpose && activity.purpose.length > 0 && (

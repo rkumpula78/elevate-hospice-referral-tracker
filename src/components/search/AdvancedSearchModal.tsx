@@ -19,6 +19,7 @@ interface AdvancedSearchModalProps {
 export interface SearchCriteria {
   patientName?: string;
   medicalRecordNumber?: string;
+  organizationName?: string;
   facility?: string;
   physician?: string;
   diagnosis?: string;
@@ -120,6 +121,16 @@ export const AdvancedSearchModal = ({ open, onOpenChange, onSearch }: AdvancedSe
           <div className="space-y-4">
             <h3 className="text-sm font-semibold text-foreground">Referral Source</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="organizationName">Organization Name</Label>
+                <Input
+                  id="organizationName"
+                  value={criteria.organizationName || ''}
+                  onChange={(e) => handleCriteriaChange('organizationName', e.target.value)}
+                  placeholder="Search by organization name..."
+                  className="bg-background"
+                />
+              </div>
               <div>
                 <Label htmlFor="facility">Referring Facility</Label>
                 <Input

@@ -7,6 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useTrainingReminders } from '@/hooks/useTrainingReminders';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { FloatingActionButton } from '@/components/ui/floating-action-button';
 import QuickAddDialog from '@/components/crm/QuickAddDialog';
@@ -19,7 +20,7 @@ import {
   format, startOfDay, startOfWeek, startOfMonth, differenceInDays, parseISO,
 } from 'date-fns';
 import {
-  Clock, AlertTriangle, FileText, Building, BarChart3, Phone, ChevronRight,
+  Clock, AlertTriangle, FileText, Building, BarChart3, Phone, ChevronRight, GraduationCap,
 } from 'lucide-react';
 
 const MyDayView = () => {
@@ -28,6 +29,8 @@ const MyDayView = () => {
   const isMobile = useIsMobile();
   const queryClient = useQueryClient();
   const [showQuickAdd, setShowQuickAdd] = useState(false);
+
+  const { data: trainingDue } = useTrainingReminders();
 
   const today = format(new Date(), 'yyyy-MM-dd');
   const todayStart = startOfDay(new Date()).toISOString();
@@ -387,6 +390,38 @@ const MyDayView = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Annual Training Due */}
+      {trainingDue && trainingDue.length > 0 && (
+        <Card className="border-amber-300/50">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-semibold flex items-center gap-2">
+              <GraduationCap className="h-4 w-4 text-amber-600" />
+              Annual Training Due
+              <Badge variant="secondary" className="ml-auto text-xs">{trainingDue.length}</Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {trainingDue.map((org) => (
+              <div
+                key={org.id}
+                className="flex items-center justify-between p-2 rounded-md hover:bg-accent/50 cursor-pointer transition-colors"
+                onClick={() => navigate(`/organizations/${org.id}`)}
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium truncate">{org.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {org.last_training_review
+                      ? `Last trained ${format(parseISO(org.last_training_review), 'MMM d, yyyy')} — due this year`
+                      : 'No training on record — due this year'}
+                  </p>
+                </div>
+                <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0 ml-2" />
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 

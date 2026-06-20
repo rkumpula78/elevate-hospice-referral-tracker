@@ -17,9 +17,9 @@ import LogVisitSheet, { type BDActivityRecord } from './LogVisitSheet';
 
 const ACTIVITY_LABELS: Record<string, string> = {
   cold_visit: 'Cold Visit',
-  follow_up_visit: 'Follow-Up',
+  followup_visit: 'Follow-Up',
   call: 'Call',
-  co_visit_anneli: 'Co-Visit',
+  covisit_anneli: 'Co-Visit',
   in_service: 'In-Service',
   email: 'Email',
 };

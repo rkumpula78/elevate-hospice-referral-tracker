@@ -19,9 +19,9 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 
 const ACTIVITY_TYPES = [
   { key: 'cold_visit', label: 'Cold Visit' },
-  { key: 'follow_up_visit', label: 'Follow-Up Visit' },
+  { key: 'followup_visit', label: 'Follow-Up Visit' },
   { key: 'call', label: 'Call' },
-  { key: 'co_visit_anneli', label: 'Co-Visit w/ Anneli' },
+  { key: 'covisit_anneli', label: 'Co-Visit w/ Anneli' },
   { key: 'in_service', label: 'In-Service/Education' },
   { key: 'email', label: 'Email' },
 ] as const;
@@ -84,7 +84,7 @@ const LogVisitSheet: React.FC<LogVisitSheetProps> = ({ open, onOpenChange, initi
 
   // Auto-toggle anneli_present when co-visit selected
   useEffect(() => {
-    if (activityType === 'co_visit_anneli' && !anneliPresent) setAnneliPresent(true);
+    if (activityType === 'covisit_anneli' && !anneliPresent) setAnneliPresent(true);
   }, [activityType]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const { data: accounts = [] } = useQuery({
