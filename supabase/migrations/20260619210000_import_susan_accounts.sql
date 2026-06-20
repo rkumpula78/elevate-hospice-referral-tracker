@@ -3,6 +3,13 @@
 -- Idempotent: each row inserted only if an organization with the same name does not already exist.
 -- assigned_marketer = 'Susan Harken'. GPS lat/long left null (populated by geocode-address on next edit).
 
+-- Ensure structured location columns exist (mirrors 20260619200000; IF NOT EXISTS makes this safe
+-- to run standalone in the SQL Editor even if that migration hasn't been applied to this DB yet).
+ALTER TABLE public.organizations
+  ADD COLUMN IF NOT EXISTS city TEXT,
+  ADD COLUMN IF NOT EXISTS state TEXT,
+  ADD COLUMN IF NOT EXISTS zip_code TEXT;
+
 INSERT INTO public.organizations
   (name, type, address, city, state, zip_code, phone, contact_person, partnership_notes, assigned_marketer, is_active)
 SELECT v.name, v.type, v.address, v.city, v.state, v.zip_code, v.phone, v.contact_person, v.partnership_notes, 'Susan Harken', true

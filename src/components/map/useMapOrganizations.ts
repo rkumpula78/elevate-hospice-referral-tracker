@@ -69,13 +69,13 @@ export function useMapOrganizations() {
 
       const { data: referralCounts } = await supabase
         .from('referrals' as any)
-        .select('referring_organization_id')
+        .select('organization_id')
         .gte('created_at', ytdStart);
 
       const refCountMap: Record<string, number> = {};
       (referralCounts || []).forEach((r: any) => {
-        if (r.referring_organization_id) {
-          refCountMap[r.referring_organization_id] = (refCountMap[r.referring_organization_id] || 0) + 1;
+        if (r.organization_id) {
+          refCountMap[r.organization_id] = (refCountMap[r.organization_id] || 0) + 1;
         }
       });
 
