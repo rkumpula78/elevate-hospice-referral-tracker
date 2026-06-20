@@ -7,7 +7,28 @@ export interface MapFiltersState {
   lastVisit: 'all' | 'overdue' | 'recent';
   orgTypes: string[];
   marketers: string[];
+  bdTiers: string[];
+  routingWeeks: number[];
+  contractOnFile: 'all' | 'yes' | 'no';
+  activeStatus: 'all' | 'active' | 'inactive';
+  cities: string[];
+  zipQuery: string;
+  myAccountsOnly: boolean;
 }
+
+export const DEFAULT_MAP_FILTERS: MapFiltersState = {
+  ratings: [],
+  lastVisit: 'all',
+  orgTypes: [],
+  marketers: [],
+  bdTiers: [],
+  routingWeeks: [],
+  contractOnFile: 'all',
+  activeStatus: 'active',
+  cities: [],
+  zipQuery: '',
+  myAccountsOnly: false,
+};
 
 export interface MapOrganization {
   id: string;
@@ -20,15 +41,25 @@ export interface MapOrganization {
   assigned_marketer: string | null;
   ytd_referrals: number;
   last_visit_date: string | null;
+  city: string | null;
+  state: string | null;
+  zip_code: string | null;
+  bd_tier: string | null;
+  routing_week: number | null;
+  is_active: boolean | null;
+  contract_on_file: boolean | null;
+  next_scheduled_visit: string | null;
 }
 
 export function useMapOrganizations() {
   const orgsQuery = useQuery({
     queryKey: ['map-organizations'],
     queryFn: async () => {
+      // select('*') keeps the map resilient if a newer column (city/zip/routing_week/
+      // next_scheduled_visit) hasn't been applied to this DB yet.
       const { data: orgs, error } = await supabase
         .from('organizations')
-        .select('id, name, type, account_rating, gps_latitude, gps_longitude, address, assigned_marketer')
+        .select('*')
         .not('gps_latitude', 'is', null)
         .not('gps_longitude', 'is', null);
 
@@ -62,7 +93,7 @@ export function useMapOrganizations() {
         }
       });
 
-      return (orgs || []).map(org => ({
+      return (orgs || []).map((org: any) => ({
         id: org.id,
         name: org.name,
         type: org.type,
@@ -70,9 +101,17 @@ export function useMapOrganizations() {
         gps_latitude: Number(org.gps_latitude),
         gps_longitude: Number(org.gps_longitude),
         address: org.address,
-        assigned_marketer: (org as any).assigned_marketer ?? null,
+        assigned_marketer: org.assigned_marketer ?? null,
         ytd_referrals: refCountMap[org.id] || 0,
         last_visit_date: lastVisitMap[org.id] || null,
+        city: org.city ?? null,
+        state: org.state ?? null,
+        zip_code: org.zip_code ?? null,
+        bd_tier: org.bd_tier ?? null,
+        routing_week: org.routing_week ?? null,
+        is_active: org.is_active ?? null,
+        contract_on_file: org.contract_on_file ?? null,
+        next_scheduled_visit: org.next_scheduled_visit ?? null,
       })) as MapOrganization[];
     },
   });
@@ -107,18 +146,35 @@ export function useMapOrganizations() {
 
   const marketers = marketersQuery.data || [];
 
-
+  // Count of orgs that have an address but no coordinates (they never show on the map).
+  const missingCoordsQuery = useQuery({
+    queryKey: ['map-missing-coords'],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from('organizations')
+        .select('id', { count: 'exact', head: true })
+        .is('gps_latitude', null)
+        .not('address', 'is', null);
+      return count || 0;
+    },
+  });
 
   return {
     organizations: orgsQuery.data || [],
     orgTypes: orgTypesQuery.data || [],
     marketers,
+    missingCoordsCount: missingCoordsQuery.data || 0,
     isLoading: orgsQuery.isLoading,
     error: orgsQuery.error,
   };
 }
 
-export function filterOrganizations(orgs: MapOrganization[], filters: MapFiltersState): MapOrganization[] {
+export function filterOrganizations(
+  orgs: MapOrganization[],
+  filters: MapFiltersState,
+  currentMarketerName?: string | null,
+): MapOrganization[] {
+  const myName = (currentMarketerName || '').toLowerCase().trim();
   return orgs.filter(org => {
     if (filters.ratings.length > 0 && !filters.ratings.includes(org.account_rating || 'C')) {
       return false;
@@ -130,6 +186,24 @@ export function filterOrganizations(orgs: MapOrganization[], filters: MapFilters
       const m = org.assigned_marketer || '__unassigned__';
       if (!filters.marketers.includes(m)) return false;
     }
+    if (filters.myAccountsOnly && myName) {
+      if (!(org.assigned_marketer || '').toLowerCase().includes(myName)) return false;
+    }
+    if (filters.bdTiers.length > 0 && !filters.bdTiers.includes(org.bd_tier || '__none__')) {
+      return false;
+    }
+    if (filters.routingWeeks.length > 0) {
+      if (org.routing_week == null || !filters.routingWeeks.includes(org.routing_week)) return false;
+    }
+    if (filters.contractOnFile === 'yes' && !org.contract_on_file) return false;
+    if (filters.contractOnFile === 'no' && org.contract_on_file) return false;
+    if (filters.activeStatus === 'active' && org.is_active === false) return false;
+    if (filters.activeStatus === 'inactive' && org.is_active !== false) return false;
+    if (filters.cities.length > 0 && !filters.cities.includes(org.city || '__none__')) {
+      return false;
+    }
+    const zq = (filters.zipQuery || '').trim();
+    if (zq && !(org.zip_code || '').startsWith(zq)) return false;
     if (filters.lastVisit === 'overdue') {
       if (!org.last_visit_date) return true;
       const daysSince = (Date.now() - new Date(org.last_visit_date).getTime()) / (1000 * 60 * 60 * 24);
@@ -161,8 +235,12 @@ export function toGeoJSON(orgs: MapOrganization[]): GeoJSON.FeatureCollection {
           name: org.name,
           type: org.type,
           account_rating: org.account_rating || 'C',
+          assigned_marketer: org.assigned_marketer || '__unassigned__',
           ytd_referrals: org.ytd_referrals,
           last_visit_date: org.last_visit_date,
+          next_scheduled_visit: org.next_scheduled_visit,
+          city: org.city,
+          zip_code: org.zip_code,
           needs_visit: needsVisit,
         },
       };

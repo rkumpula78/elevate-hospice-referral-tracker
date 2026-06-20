@@ -12,6 +12,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { addToQueue } from '@/lib/offlineQueue';
+import { useDuplicateCheck } from '@/hooks/useDuplicateCheck';
+import DuplicateWarning from '@/components/common/DuplicateWarning';
 
 interface MobileQuickReferralSheetProps {
   open: boolean;
@@ -34,6 +36,7 @@ export function MobileQuickReferralSheet({ open, onOpenChange }: MobileQuickRefe
   const [orgId, setOrgId] = useState('');
   const [priority, setPriority] = useState('routine');
   const [note, setNote] = useState('');
+  const { matches: duplicateReferrals } = useDuplicateCheck('referrals', patientName, { enabled: open });
 
   React.useEffect(() => {
     if (open) {
@@ -114,6 +117,14 @@ export function MobileQuickReferralSheet({ open, onOpenChange }: MobileQuickRefe
               className="h-12 text-base"
               autoFocus
             />
+            <div className="mt-2">
+              <DuplicateWarning
+                matches={duplicateReferrals}
+                entity="referral"
+                getHref={(id) => `/referral/${id}`}
+                onOpenExisting={() => onOpenChange(false)}
+              />
+            </div>
           </div>
 
           <div>

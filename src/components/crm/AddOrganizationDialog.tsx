@@ -13,6 +13,8 @@ import { useState } from 'react';
 import { PhoneInput } from "@/components/ui/phone-input";
 import { EmailInput } from "@/components/ui/email-input";
 import { Loader2 } from "lucide-react";
+import { useDuplicateCheck } from "@/hooks/useDuplicateCheck";
+import DuplicateWarning from "@/components/common/DuplicateWarning";
 
 interface AddOrganizationDialogProps {
   open: boolean;
@@ -32,6 +34,7 @@ const AddOrganizationDialog = ({ open, onOpenChange }: AddOrganizationDialogProp
     assigned_marketer: ''
   });
   const [emailValid, setEmailValid] = useState(true);
+  const { matches: duplicateOrgs } = useDuplicateCheck('organizations', formData.name, { enabled: open });
 
   // Fetch all users for marketer assignment
   const { data: marketers = [] } = useQuery({
@@ -149,7 +152,14 @@ const AddOrganizationDialog = ({ open, onOpenChange }: AddOrganizationDialogProp
               </Select>
             </div>
           </div>
-          
+
+          <DuplicateWarning
+            matches={duplicateOrgs}
+            entity="organization"
+            getHref={(id) => `/organizations/${id}`}
+            onOpenExisting={() => onOpenChange(false)}
+          />
+
           <div>
             <Label htmlFor="assigned_marketer">Assigned Marketer</Label>
             <Select

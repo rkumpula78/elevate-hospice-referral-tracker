@@ -12,6 +12,8 @@ import { X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
+import { useDuplicateCheck } from "@/hooks/useDuplicateCheck";
+import DuplicateWarning from "@/components/common/DuplicateWarning";
 
 interface EnhancedAddOrganizationDialogProps {
   open: boolean;
@@ -58,6 +60,7 @@ const EnhancedAddOrganizationDialog = ({ open, onOpenChange }: EnhancedAddOrgani
 
   const [licenseInput, setLicenseInput] = useState('');
   const [hospiceInput, setHospiceInput] = useState('');
+  const { matches: duplicateOrgs } = useDuplicateCheck('organizations', formData.name, { enabled: open });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -172,6 +175,13 @@ const EnhancedAddOrganizationDialog = ({ open, onOpenChange }: EnhancedAddOrgani
                   />
                 </div>
               </div>
+
+              <DuplicateWarning
+                matches={duplicateOrgs}
+                entity="organization"
+                getHref={(id) => `/organizations/${id}`}
+                onOpenExisting={() => onOpenChange(false)}
+              />
 
               <div className="grid grid-cols-2 gap-4">
                 <div>

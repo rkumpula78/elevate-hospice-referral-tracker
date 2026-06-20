@@ -8,6 +8,8 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { ChevronDown, ChevronUp, Home, Building2, Plus, X } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useDuplicateCheck } from '@/hooks/useDuplicateCheck';
+import DuplicateWarning from '@/components/common/DuplicateWarning';
 
 const ORG_TYPES = [
   { value: 'hospital', label: 'Hospital' },
@@ -42,6 +44,9 @@ const PatientOverviewSection = ({ patient, isOpen, onToggle }: PatientOverviewSe
   const [newFacilityName, setNewFacilityName] = useState('');
   const [newFacilityType, setNewFacilityType] = useState<string>('group_home');
   const [creatingFacility, setCreatingFacility] = useState(false);
+
+  const { matches: duplicateOrgs } = useDuplicateCheck('organizations', newOrgName, { enabled: showNewOrg });
+  const { matches: duplicateFacilities } = useDuplicateCheck('organizations', newFacilityName, { enabled: showNewFacility });
 
   const { data: organizations = [], refetch: refetchOrgs } = useQuery({
     queryKey: ['organizations-for-patient-overview'],
@@ -162,6 +167,7 @@ const PatientOverviewSection = ({ patient, isOpen, onToggle }: PatientOverviewSe
             <div className="border rounded-lg p-3 bg-muted/30 space-y-2">
               <p className="text-sm font-medium">New Organization</p>
               <Input value={newOrgName} onChange={e => setNewOrgName(e.target.value)} placeholder="Organization name" />
+              <DuplicateWarning matches={duplicateOrgs} entity="organization" getHref={(id) => `/organizations/${id}`} />
               <Select value={newOrgType} onValueChange={setNewOrgType}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -236,6 +242,7 @@ const PatientOverviewSection = ({ patient, isOpen, onToggle }: PatientOverviewSe
                 <div className="border rounded-lg p-3 bg-muted/30 space-y-2">
                   <p className="text-sm font-medium">New Facility</p>
                   <Input value={newFacilityName} onChange={e => setNewFacilityName(e.target.value)} placeholder="Facility name" />
+                  <DuplicateWarning matches={duplicateFacilities} entity="organization" getHref={(id) => `/organizations/${id}`} />
                   <Select value={newFacilityType} onValueChange={setNewFacilityType}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>

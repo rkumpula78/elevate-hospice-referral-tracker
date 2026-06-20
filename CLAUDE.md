@@ -4,141 +4,79 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Overview
 
-This is a hospice referral tracking CRM application for Elevate Hospice & Palliative Care. It's a comprehensive dashboard system for managing referrals, patient tracking, organization relationships, training programs, and compliance metrics in the hospice care industry.
+Hospice referral tracking CRM for Elevate Hospice & Palliative Care. Single-page React app (Vite) backed by Supabase (Postgres + Auth + Edge Functions). It manages referrals, patients, partner organizations, scheduling/visits, hospice compliance (benefit periods / F2F), business-development activity, training, and an AI assistant.
 
-## Common Development Commands
+This repo is also edited through the **Lovable** platform (see `LOVABLE_README.md`); changes made there are committed automatically. Keep edits compatible with that workflow.
 
-### React/TypeScript Development
+## Commands
+
 ```bash
-npm install          # Install dependencies
-npm run dev          # Start development server (Vite)
-npm run build        # Build for production
-npm run build:dev    # Build in development mode
-npm run lint         # Run ESLint
-npm run preview      # Preview production build
+npm install        # or: bun install  (bun.lock is committed)
+npm run dev        # Vite dev server on http://localhost:8080
+npm run build      # production build
+npm run build:dev  # build in development mode (sourcemaps, no minify)
+npm run lint       # ESLint over the repo
+npm run preview    # serve the production build
 ```
 
-### Development Workflow
-- The project uses Vite for fast development and hot reloading
-- All TypeScript files should be type-checked before committing
-- Run linting to maintain code quality standards
+There is **no test runner configured** — no `npm test`, no test files. Don't assume a test harness exists; verify changes via `npm run build` + `npm run lint`.
 
-## High-Level Architecture
+### Supabase (local/edge)
+Edge functions live in `supabase/functions/*/index.ts` (Deno). Deploy with the Supabase CLI, e.g. `supabase functions deploy <name>`. Function JWT settings are in `supabase/config.toml` — most functions run with `verify_jwt = false` and do their own auth. DB schema changes are tracked as ordered SQL files in `supabase/migrations/` (90+ files).
 
-### Tech Stack
-- **Frontend**: React 18 + TypeScript + Vite
-- **UI Framework**: shadcn/ui components with Radix UI primitives
-- **Styling**: Tailwind CSS with custom configuration
-- **State Management**: React Query for server state, React hooks for local state
-- **Routing**: React Router DOM v6
-- **Database**: Supabase (PostgreSQL) with real-time subscriptions
-- **Authentication**: Supabase Auth with email domain restrictions (@elevatehospiceaz.com)
-- **Charts**: Recharts for data visualization
-- **Forms**: React Hook Form with Zod validation
-- **Date Handling**: date-fns for date manipulation
+## Architecture
 
-### Application Structure
+### Routing & layout (`src/App.tsx`)
+- Everything except `/auth` is wrapped in `<ProtectedRoute>` → `<ProtectedLayout>` (sidebar + routed content).
+- Index `/` redirects to `/my-day` (the default landing page, not `/dashboard`).
+- Page components are in `src/pages/`; route names map closely to file names (e.g. `referrals` → `ReferralsPage`, detail routes `referral/:id`, `patient/:id`, `organizations/:id`).
+- `admin/*` routes are additionally wrapped in `<AdminRoute>`.
 
-#### Core Pages & Features
-- **Dashboard**: KPI metrics, alerts, census tracking, and performance charts
-- **Referrals**: Patient referral management with comprehensive tracking
-- **Organizations**: Healthcare facility relationship management
-- **Patients**: Patient information and care coordination
-- **Training**: Educational content delivery and progress tracking
-- **Analytics**: Performance metrics and reporting
-- **Compliance**: Regulatory tracking and metrics
+### Auth & authorization
+- Supabase Auth with **hard email-domain restriction to `@elevatehospiceaz.com`**, enforced client-side in `src/hooks/useAuth.tsx` (sign-in and sign-up) and server-side in the `validate-signup` edge function. Preserve this check when touching auth.
+- `useAuth` is the source of truth for `user`, `session`, `roles`, and `isAdmin`. Roles come from the `user_roles` table.
+- `useRole()` / `AdminRoute` / `ProtectedRoute` gate access. Use these rather than re-deriving role logic.
+- `src/lib/featureFlags.ts` holds small per-email allow-lists for in-progress features (e.g. Ask Elevate AI). Gate new experimental features there.
 
-#### Database Schema (Supabase)
-The application uses a comprehensive PostgreSQL schema with key tables:
-- `referrals` - Core patient referral data with status tracking
-- `organizations` - Healthcare facilities and partnership information
-- `patients` - Patient demographics and care information
-- `activity_communications` - CRM activity tracking
-- `organization_contacts` - Key contacts at partner facilities
-- `marketer_training_progress` - Training completion tracking
-- `compliance_metrics` - Regulatory compliance data
-- `visits` - Patient visit scheduling and tracking
+### Data layer
+- **`src/integrations/supabase/client.ts` and `types.ts` are auto-generated — do not hand-edit.** `types.ts` (3000+ lines) is the generated `Database` type; regenerate it from the schema rather than editing. Import the client as `import { supabase } from "@/integrations/supabase/client"`.
+- Server state goes through **React Query** (`@tanstack/react-query`). The global client (in `App.tsx`) is configured `networkMode: 'offlineFirst'` with a 5-min `staleTime`. Mutations should invalidate the relevant query keys.
+- Note the schema has **two related referral tables**: `referrals` and `hospice_referrals`. Check which one a feature uses before querying/writing.
 
-#### Component Organization
-```
-src/
-├── components/
-│   ├── ui/           # shadcn/ui components (buttons, forms, etc.)
-│   ├── auth/         # Authentication components
-│   ├── crm/          # CRM-specific components
-│   ├── charts/       # Data visualization components
-│   ├── training/     # Training module components
-│   └── layout/       # Layout and navigation components
-├── pages/            # Route components
-├── hooks/            # Custom React hooks (useAuth, useProfile)
-├── lib/              # Utility functions
-└── integrations/
-    └── supabase/     # Supabase client and type definitions
-```
+### Offline-first PWA
+This is a real offline app, not just cached assets:
+- `vite-plugin-pwa` (config in `vite.config.ts`) with Workbox runtime caching. Supabase `rest/*` is `NetworkOnly`; `auth/*` is `NetworkFirst`.
+- Writes made while offline are queued via `src/lib/offlineQueue.ts` and flushed by `useOfflineSync` (mounted in `App.tsx`). `OfflineBanner` shows connectivity. When adding mutations that must survive offline, route them through the queue rather than calling `supabase` directly.
 
-### Key Architectural Patterns
+### Domain logic (`src/lib/`)
+Business rules live here, separate from components — read these before changing related UI:
+- `benefitPeriodLogic.ts` — hospice benefit-period math and Face-to-Face (F2F) certification deadlines (90-day periods 1–2, 60-day periods 3+). Core compliance logic.
+- `followUpLogic.ts` — referral follow-up scheduling rules.
+- `validationSchemas.ts` — Zod schemas used with React Hook Form.
+- `auditLog.ts` — writes to `admin_audit_log`; use for tracked admin actions.
+- `webhookNotifier.ts` — client side of outbound notifications (actual delivery is server-side).
+- `formatters.ts`, `geocode.ts`, `exportUtils.ts`, `constants.ts`, `utils.ts` (the shadcn `cn` helper).
 
-#### Authentication & Authorization
-- Domain-restricted authentication (@elevatehospiceaz.com only)
-- Role-based access through user profiles
-- Protected routes using `ProtectedRoute` component
-- Session management with Supabase Auth
+### Edge functions (`supabase/functions/`)
+Server-side logic and anything requiring secrets:
+- AI: `ai-assist`, `ai-search`, `elevate-ops-chat` (the "Ask Elevate" / ops chat assistant).
+- Maps: `get-mapbox-token`, `geocode-address`, `mapbox-directions` (Mapbox tokens never ship to the client).
+- Notifications: `teams-webhook`, `notify-webhook`, `send-admission-email`.
+- Admin: `admin-users` (privileged user management), `validate-signup` (domain enforcement).
 
-#### State Management Philosophy
-- **Server State**: React Query for caching, synchronization, and optimistic updates
-- **Local State**: React hooks (useState, useReducer) for component state
-- **Form State**: React Hook Form for complex form handling
-- **Global State**: Context API for authentication and theme management
+### Microsoft Teams integration
+Notification routing config is in `src/config/teamsRouting.ts`, but **all webhook URLs are intentionally blank client-side** — routing/delivery happens entirely in the `teams-webhook` edge function using `TEAMS_WEBHOOK_URL` secrets. Never put webhook URLs in client code. See `docs/teams-integration-setup.md`.
 
-#### Data Flow Architecture
-- Components use React Query hooks for data fetching
-- Mutations invalidate relevant queries for real-time updates
-- Optimistic updates for better user experience
-- Error boundaries for graceful error handling
+### Components (`src/components/`)
+- `ui/` — shadcn/ui primitives (Radix-based). Add new shadcn components here; alias `@/` → `src/`.
+- Feature folders mirror domains: `crm/`, `referrals/`, `dashboard/`, `kpis/`, `bd/`, `teams/`, `training/`, `stories/`, `map/`, `charts/`, `reports/`, `search/`, `settings/`, `notifications/`, `mobile/`, `offline/`, `onboarding/`, `value-props/`, `chat/`, `auth/`, `layout/`.
 
-#### UI/UX Patterns
-- Consistent shadcn/ui component usage across the application
-- Responsive design with Tailwind CSS breakpoints
-- Loading states and skeleton components
-- Toast notifications using Sonner
-- Modal dialogs for forms and confirmations
+### Responsive / mobile
+`useBreakpoint`/`use-responsive` drive layout; `MobileFAB` and the `mobile/` components provide a phone experience. The sidebar defaults open only on desktop.
 
-### Supabase Integration
-
-#### Client Configuration
-- Auto-generated TypeScript types from database schema
-- Row Level Security (RLS) policies for data access control
-- Real-time subscriptions for live data updates
-- Edge functions for server-side logic
-
-#### Database Relationships
-- Foreign key relationships between referrals, organizations, and patients
-- Many-to-many relationships for contacts and training modules
-- Comprehensive audit trails with created_at/updated_at timestamps
-
-### Performance Considerations
-- React Query caching reduces unnecessary API calls
-- Component lazy loading for code splitting
-- Optimized bundle size with Vite's tree shaking
-- Image optimization and lazy loading where applicable
-
-### Development Workflow Integration
-- Built for deployment on Lovable platform
-- Git-based workflow with automatic deployments
-- Environment variable management through Supabase
-- TypeScript strict mode for type safety
-
-### Business Logic Domains
-- **Referral Management**: Patient intake, status tracking, and care coordination
-- **Relationship Management**: Healthcare facility partnerships and contact management
-- **Training & Compliance**: Educational content delivery and regulatory tracking
-- **Analytics & Reporting**: Performance metrics and business intelligence
-- **Census Management**: Patient count tracking and capacity planning
-
-### Security & Compliance
-- HIPAA-conscious data handling patterns
-- Audit trails for all data modifications
-- Secure authentication with domain restrictions
-- Data encryption at rest and in transit through Supabase
-
-This architecture supports rapid development cycles while maintaining healthcare industry standards for data security and regulatory compliance.
+## Conventions
+- Path alias `@/` → `src/` (configured in `vite.config.ts` and `tsconfig`).
+- UI feedback: Sonner toasts (`import { toast } from "sonner"`) plus the shadcn `Toaster`.
+- Dates: `date-fns` is primary; `moment` is also present in places — prefer `date-fns` for new code.
+- Manual chunks split `mapbox-gl` and chart libs (`recharts`, `react-big-calendar`) in `vite.config.ts`; keep heavy deps out of the main bundle.
+- TypeScript is lenient here (`tsconfig` relaxes strict null/unused checks) — don't rely on strict-mode guarantees.

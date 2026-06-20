@@ -1,13 +1,17 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '@/hooks/useAuth';
+import { backfillOrgLocations } from '@/lib/geocode';
 import MapFilters from './MapFilters';
 import MapSearch from './MapSearch';
 import MapListView from './MapListView';
 import RoutePlanner from './RoutePlanner';
-import { useMapOrganizations, filterOrganizations, toGeoJSON, type MapFiltersState, type MapOrganization } from './useMapOrganizations';
+import MapStatsBar, { type ColorBy } from './MapStatsBar';
+import { useMapOrganizations, filterOrganizations, toGeoJSON, DEFAULT_MAP_FILTERS, type MapFiltersState, type MapOrganization } from './useMapOrganizations';
 import { buildPopupHTML } from './MapMarkerPopup';
 import { ViewToggle } from '@/components/ui/view-toggle';
 
@@ -15,22 +19,91 @@ const RATING_COLORS: Record<string, string> = {
   A: '#22c55e',
   B: '#3b82f6',
   C: '#f59e0b',
+  P: '#a855f7',
   D: '#9ca3af',
 };
+
+// Distinct, readable palette for color-by-marketer / color-by-type.
+const PALETTE = [
+  '#2563eb', '#16a34a', '#ea580c', '#db2777', '#7c3aed', '#0891b2',
+  '#ca8a04', '#dc2626', '#4f46e5', '#059669', '#d97706', '#9333ea',
+];
+
+const FILTERS_STORAGE_KEY = 'territory-map-filters';
+
+// Build a Mapbox circle-color expression for the chosen "color by" mode.
+function buildColorExpression(colorBy: ColorBy, orgs: MapOrganization[]): any {
+  if (colorBy === 'overdue') {
+    return ['case', ['==', ['get', 'needs_visit'], true], '#ef4444', '#22c55e'];
+  }
+  if (colorBy === 'rating') {
+    return ['match', ['get', 'account_rating'],
+      'A', RATING_COLORS.A, 'B', RATING_COLORS.B, 'C', RATING_COLORS.C,
+      'P', RATING_COLORS.P, 'D', RATING_COLORS.D, RATING_COLORS.C];
+  }
+  const key = colorBy === 'marketer' ? 'assigned_marketer' : 'type';
+  const distinct = Array.from(new Set(orgs.map(o => (colorBy === 'marketer' ? (o.assigned_marketer || '__unassigned__') : o.type)))).filter(Boolean);
+  if (distinct.length === 0) return '#9ca3af';
+  const pairs: any[] = [];
+  distinct.forEach((v, i) => { pairs.push(v, PALETTE[i % PALETTE.length]); });
+  return ['match', ['get', key], ...pairs, '#9ca3af'];
+}
+
+function loadStoredFilters(): MapFiltersState | null {
+  try {
+    const raw = localStorage.getItem(FILTERS_STORAGE_KEY);
+    if (!raw) return null;
+    return { ...DEFAULT_MAP_FILTERS, ...JSON.parse(raw) };
+  } catch {
+    return null;
+  }
+}
 
 const MapComponent = () => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
-  const [filters, setFilters] = useState<MapFiltersState>({ ratings: [], lastVisit: 'all', orgTypes: [], marketers: [] });
+  const [filters, setFilters] = useState<MapFiltersState>(() => loadStoredFilters() ?? DEFAULT_MAP_FILTERS);
+  const [colorBy, setColorBy] = useState<ColorBy>('rating');
   const [routeActive, setRouteActive] = useState(false);
   const [routeStops, setRouteStops] = useState<MapOrganization[]>([]);
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
+  const [backfilling, setBackfilling] = useState(false);
+  const [backfillProgress, setBackfillProgress] = useState<{ done: number; total: number } | null>(null);
   const { toast } = useToast();
-  const { organizations, orgTypes, marketers, isLoading: orgsLoading } = useMapOrganizations();
+  const { isAdmin, displayName } = useAuth();
+  const queryClient = useQueryClient();
+  const { organizations, orgTypes, marketers, missingCoordsCount, isLoading: orgsLoading } = useMapOrganizations();
 
-  const filteredOrgs = filterOrganizations(organizations, filters);
+  const currentMarketerName = displayName || null;
+  const filteredOrgs = useMemo(
+    () => filterOrganizations(organizations, filters, currentMarketerName),
+    [organizations, filters, currentMarketerName],
+  );
+
+  // Distinct, sorted cities for the City filter.
+  const cities = useMemo(
+    () => Array.from(new Set(organizations.map(o => o.city).filter(Boolean) as string[])).sort(),
+    [organizations],
+  );
+
+  // Persist filters across visits.
+  useEffect(() => {
+    try { localStorage.setItem(FILTERS_STORAGE_KEY, JSON.stringify(filters)); } catch { /* ignore */ }
+  }, [filters]);
+
+  // First-time default: field marketers (non-admins) start scoped to their own accounts.
+  // Capture whether stored filters existed at mount, before the persist effect writes.
+  const hadStoredFilters = useRef(loadStoredFilters() !== null);
+  const appliedDefaultRef = useRef(false);
+  useEffect(() => {
+    if (appliedDefaultRef.current || hadStoredFilters.current) return;
+    if (!isAdmin && currentMarketerName) {
+      appliedDefaultRef.current = true;
+      setFilters(prev => ({ ...prev, myAccountsOnly: true }));
+    }
+  }, [isAdmin, currentMarketerName]);
 
   // Fly to an organization on search select
   const handleSearchSelect = useCallback((org: MapOrganization) => {
@@ -47,6 +120,9 @@ const MapComponent = () => {
           account_rating: org.account_rating || 'C',
           ytd_referrals: org.ytd_referrals,
           last_visit_date: org.last_visit_date,
+          type: org.type,
+          assigned_marketer: org.assigned_marketer,
+          next_scheduled_visit: org.next_scheduled_visit,
         }))
         .addTo(m);
     }, 1600);
@@ -214,6 +290,9 @@ const MapComponent = () => {
             account_rating: props.account_rating,
             ytd_referrals: props.ytd_referrals,
             last_visit_date: props.last_visit_date,
+            type: props.type,
+            assigned_marketer: props.assigned_marketer,
+            next_scheduled_visit: props.next_scheduled_visit,
           }))
           .addTo(m);
       });
@@ -232,15 +311,31 @@ const MapComponent = () => {
   const organizationsRef = useRef(organizations);
   organizationsRef.current = organizations;
 
-  // Update GeoJSON source when filtered data changes
+  // Update GeoJSON source + auto-fit to the filtered results when data changes
   useEffect(() => {
     const m = map.current;
     if (!m) return;
     const source = m.getSource('organizations') as mapboxgl.GeoJSONSource | undefined;
-    if (source) {
-      source.setData(toGeoJSON(filteredOrgs));
+    if (!source) return;
+    source.setData(toGeoJSON(filteredOrgs));
+
+    if (filteredOrgs.length === 1) {
+      const o = filteredOrgs[0];
+      m.easeTo({ center: [o.gps_longitude, o.gps_latitude], zoom: 13, duration: 800 });
+    } else if (filteredOrgs.length > 1) {
+      const bounds = new mapboxgl.LngLatBounds();
+      filteredOrgs.forEach(o => bounds.extend([o.gps_longitude, o.gps_latitude]));
+      m.fitBounds(bounds, { padding: 80, maxZoom: 13, duration: 800 });
     }
+    // 0 results: leave the current view as-is (empty-state fallback).
   }, [filteredOrgs]);
+
+  // Recolor points when the "color by" mode (or the underlying data) changes.
+  useEffect(() => {
+    const m = map.current;
+    if (!m || !m.getLayer('unclustered-point')) return;
+    m.setPaintProperty('unclustered-point', 'circle-color', buildColorExpression(colorBy, organizations));
+  }, [colorBy, organizations, isLoading, orgsLoading]);
 
   const handleRouteCalculated = useCallback((geometry: GeoJSON.LineString, duration: number, distance: number) => {
     const m = map.current;
@@ -273,6 +368,26 @@ const MapComponent = () => {
     if (m.getLayer('route-line')) m.removeLayer('route-line');
     if (m.getSource('route')) m.removeSource('route');
   }, []);
+
+  const handleBackfill = useCallback(async () => {
+    setBackfilling(true);
+    setBackfillProgress({ done: 0, total: 0 });
+    try {
+      const result = await backfillOrgLocations((done, total) => setBackfillProgress({ done, total }));
+      toast({
+        title: 'Location backfill complete',
+        description: `${result.updated} updated, ${result.failed} failed of ${result.total}.`,
+      });
+      queryClient.invalidateQueries({ queryKey: ['map-organizations'] });
+      queryClient.invalidateQueries({ queryKey: ['map-missing-coords'] });
+      queryClient.invalidateQueries({ queryKey: ['map-org-types'] });
+    } catch (e: any) {
+      toast({ title: 'Backfill failed', description: e?.message || 'Unknown error', variant: 'destructive' });
+    } finally {
+      setBackfilling(false);
+      setBackfillProgress(null);
+    }
+  }, [toast, queryClient]);
 
   return (
     <div className="relative w-full" style={{ height: '100%', minHeight: '500px' }}>
@@ -327,7 +442,9 @@ const MapComponent = () => {
                 onChange={setFilters}
                 orgTypes={orgTypes}
                 marketers={marketers}
+                cities={cities}
                 orgCount={filteredOrgs.length}
+                showMyAccounts={!!currentMarketerName}
               />
             )}
           </div>
@@ -339,6 +456,18 @@ const MapComponent = () => {
               onRemoveStop={(id) => { setRouteStops(prev => prev.filter(s => s.id !== id)); clearRoute(); }}
               onClearStops={() => { setRouteStops([]); clearRoute(); }}
               onRouteCalculated={handleRouteCalculated}
+            />
+          )}
+          {viewMode === 'card' && (
+            <MapStatsBar
+              orgs={filteredOrgs}
+              colorBy={colorBy}
+              onColorByChange={setColorBy}
+              missingCoordsCount={missingCoordsCount}
+              isAdmin={isAdmin}
+              onBackfill={handleBackfill}
+              backfilling={backfilling}
+              backfillProgress={backfillProgress}
             />
           )}
         </>

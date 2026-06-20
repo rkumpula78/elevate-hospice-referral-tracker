@@ -74,13 +74,24 @@ serve(async (req) => {
       )
     }
 
-    const [longitude, latitude] = geoData.features[0].center;
+    const feature = geoData.features[0];
+    const [longitude, latitude] = feature.center;
+
+    // Pull structured location parts out of Mapbox's `context` array.
+    // Context ids look like "place.123" (city), "region.123" (state), "postcode.123" (zip).
+    const context: any[] = Array.isArray(feature.context) ? feature.context : [];
+    const findCtx = (prefix: string) => context.find((c) => typeof c?.id === 'string' && c.id.startsWith(prefix));
+    const city = findCtx('place')?.text ?? null;
+    const regionCtx = findCtx('region');
+    // region short_code is like "US-AZ" — prefer the 2-letter state abbreviation.
+    const state = (regionCtx?.short_code?.split('-')[1] ?? regionCtx?.text) ?? null;
+    const zip_code = findCtx('postcode')?.text ?? null;
 
     // If organization_id provided, update using the user's authenticated client (respects RLS)
     if (organization_id) {
       const { error: updateError } = await supabaseClient
         .from('organizations')
-        .update({ gps_latitude: latitude, gps_longitude: longitude })
+        .update({ gps_latitude: latitude, gps_longitude: longitude, city, state, zip_code })
         .eq('id', organization_id);
 
       if (updateError) {
@@ -90,7 +101,7 @@ serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ latitude, longitude }),
+      JSON.stringify({ latitude, longitude, city, state, zip_code }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   } catch (error) {

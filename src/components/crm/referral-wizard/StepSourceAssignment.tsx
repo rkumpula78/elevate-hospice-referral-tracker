@@ -5,6 +5,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { EnhancedInput } from "@/components/ui/enhanced-input";
 import { Plus, User, AlertCircle } from "lucide-react";
 import ReferringContactSelector from "../ReferringContactSelector";
+import { useDuplicateCheck } from "@/hooks/useDuplicateCheck";
+import DuplicateWarning from "@/components/common/DuplicateWarning";
 
 interface StepSourceAssignmentProps {
   formData: {
@@ -40,6 +42,7 @@ export function StepSourceAssignment({
   showNewOrgForm, setShowNewOrgForm, newOrgName, setNewOrgName, newOrgType, setNewOrgType,
   disabled, fieldErrors = {}, touchedFields = {}, onFieldBlur
 }: StepSourceAssignmentProps) {
+  const { matches: duplicateOrgs } = useDuplicateCheck('organizations', newOrgName, { enabled: showNewOrgForm });
   return (
     <div className="space-y-4">
       <h3 className="text-base font-semibold">Source & Assignment</h3>
@@ -77,6 +80,7 @@ export function StepSourceAssignment({
               <Button type="button" variant="ghost" size="sm" onClick={() => { setShowNewOrgForm(false); setNewOrgName(''); }}>Cancel</Button>
             </div>
             <Input placeholder="Organization Name" value={newOrgName} onChange={(e) => setNewOrgName(e.target.value)} disabled={disabled} />
+            <DuplicateWarning matches={duplicateOrgs} entity="organization" getHref={(id) => `/organizations/${id}`} />
             <Select value={newOrgType} onValueChange={setNewOrgType} disabled={disabled}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>

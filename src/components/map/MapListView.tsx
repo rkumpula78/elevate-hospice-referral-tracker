@@ -51,6 +51,8 @@ const MapListView = ({ organizations }: MapListViewProps) => {
           <TableRow>
             <TableHead><SortHeader label="Name" field="name" currentSort={sort} onSort={handleSort} /></TableHead>
             <TableHead><SortHeader label="Type" field="type" currentSort={sort} onSort={handleSort} /></TableHead>
+            <TableHead><SortHeader label="City" field="city" currentSort={sort} onSort={handleSort} /></TableHead>
+            <TableHead><SortHeader label="Zip" field="zip_code" currentSort={sort} onSort={handleSort} /></TableHead>
             <TableHead><SortHeader label="Rating" field="account_rating" currentSort={sort} onSort={handleSort} /></TableHead>
             <TableHead><SortHeader label="Last Visit" field="last_visit_date" currentSort={sort} onSort={handleSort} /></TableHead>
             <TableHead><SortHeader label="YTD Referrals" field="ytd_referrals" currentSort={sort} onSort={handleSort} /></TableHead>
@@ -65,6 +67,8 @@ const MapListView = ({ organizations }: MapListViewProps) => {
             >
               <TableCell className="font-medium">{org.name}</TableCell>
               <TableCell className="text-muted-foreground">{org.type}</TableCell>
+              <TableCell className="text-muted-foreground">{org.city || '—'}</TableCell>
+              <TableCell className="text-muted-foreground">{org.zip_code || '—'}</TableCell>
               <TableCell><AccountRatingBadge rating={org.account_rating} /></TableCell>
               <TableCell>
                 <span className={isOverdue(org.last_visit_date) ? 'text-destructive font-medium' : 'text-muted-foreground'}>
@@ -75,7 +79,7 @@ const MapListView = ({ organizations }: MapListViewProps) => {
             </TableRow>
           ))}
           {sorted.length === 0 && (
-            <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">No organizations match filters</TableCell></TableRow>
+            <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">No organizations match filters</TableCell></TableRow>
           )}
         </TableBody>
       </Table>
