@@ -37,6 +37,18 @@ const ACTIVITY_GROUP: Record<string, string> = {
   email: 'Emails',
 };
 
+// activity_communications uses its own interaction_type values (org-page "Log Activity").
+const COMM_LABELS: Record<string, string> = {
+  in_person_visit: 'Visit',
+  lunch_learn: 'Lunch & Learn',
+  phone_call: 'Call',
+  email: 'Email',
+  virtual_meeting: 'Virtual Meeting',
+  event: 'Event',
+};
+const COMM_VISIT_TYPES = ['in_person_visit', 'lunch_learn', 'event'];
+const COMM_CALL_TYPES = ['phone_call', 'virtual_meeting'];
+
 const DAY_LABELS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
 const MARKETER_ALL = '__all__';
@@ -132,6 +144,24 @@ const WeeklyActivityPage: React.FC = () => {
       const { data: activityLogs, error: lErr } = await logQ;
       if (lErr) throw lErr;
 
+      // activity_communications (the org-page "Log Activity" log most marketers use).
+      // completed_by stores an email (quick-log) or a typed name (full form), so match both.
+      let commQ = supabase
+        .from('activity_communications')
+        .select('id, organization_id, activity_date, interaction_type, completed_by, discussion_points')
+        .gte('activity_date', `${startISO}T00:00:00`)
+        .lte('activity_date', `${endISO}T23:59:59`);
+      if (activeProfile) {
+        const ors: string[] = [];
+        if (activeProfile.email) ors.push(`completed_by.eq.${activeProfile.email}`);
+        const full = `${activeProfile.first_name ?? ''} ${activeProfile.last_name ?? ''}`.trim();
+        if (full) ors.push(`completed_by.ilike.%${full}%`);
+        if (activeProfile.first_name) ors.push(`completed_by.ilike.%${activeProfile.first_name}%`);
+        if (ors.length) commQ = commQ.or(ors.join(','));
+      }
+      const { data: comms, error: cErr } = await commQ;
+      if (cErr) throw cErr;
+
       // day notes
       let noteQ = (supabase as any)
         .from('marketer_day_notes')
@@ -143,14 +173,14 @@ const WeeklyActivityPage: React.FC = () => {
       if (nErr) throw nErr;
 
       // resolve org names
-      const orgIds = Array.from(new Set((activities || []).map((a: any) => a.organization_id).filter(Boolean))) as string[];
+      const orgIds = Array.from(new Set([...(activities || []), ...(comms || [])].map((a: any) => a.organization_id).filter(Boolean))) as string[];
       let orgs: Record<string, { id: string; name: string }> = {};
       if (orgIds.length) {
         const { data: o } = await supabase.from('organizations').select('id, name').in('id', orgIds);
         (o || []).forEach((x: any) => { orgs[x.id] = x; });
       }
 
-      return { activities: activities || [], referrals: referrals || [], history: filteredHistory, activityLogs: activityLogs || [], notes: notes || [], orgs };
+      return { activities: activities || [], referrals: referrals || [], history: filteredHistory, activityLogs: activityLogs || [], comms: comms || [], notes: notes || [], orgs };
     },
   });
 
@@ -225,10 +255,10 @@ const WeeklyActivityPage: React.FC = () => {
 
   // Group activities by day
   const byDay = useMemo(() => {
-    const map: Record<string, { activities: any[]; referrals: any[]; history: any[]; activityLogs: any[]; notes: any[] }> = {};
+    const map: Record<string, { activities: any[]; referrals: any[]; history: any[]; activityLogs: any[]; comms: any[]; notes: any[] }> = {};
     days.forEach((d) => {
       const key = format(d, 'yyyy-MM-dd');
-      map[key] = { activities: [], referrals: [], history: [], activityLogs: [], notes: [] };
+      map[key] = { activities: [], referrals: [], history: [], activityLogs: [], comms: [], notes: [] };
     });
     weekData?.activities.forEach((a: any) => {
       if (map[a.activity_date]) map[a.activity_date].activities.push(a);
@@ -245,6 +275,10 @@ const WeeklyActivityPage: React.FC = () => {
       const key = format(parseISO(l.created_at), 'yyyy-MM-dd');
       if (map[key]) map[key].activityLogs.push(l);
     });
+    weekData?.comms?.forEach((c: any) => {
+      const key = format(parseISO(c.activity_date), 'yyyy-MM-dd');
+      if (map[key]) map[key].comms.push(c);
+    });
     weekData?.notes.forEach((n: any) => {
       if (map[n.note_date]) map[n.note_date].notes.push(n);
     });
@@ -254,10 +288,14 @@ const WeeklyActivityPage: React.FC = () => {
   // Totals
   const totals = useMemo(() => {
     const acts = weekData?.activities || [];
+    const comms = weekData?.comms || [];
     return {
-      visits: acts.filter((a: any) => ['cold_visit', 'followup_visit', 'covisit_anneli', 'in_service'].includes(a.activity_type)).length,
-      calls: acts.filter((a: any) => a.activity_type === 'call').length,
-      emails: acts.filter((a: any) => a.activity_type === 'email').length,
+      visits: acts.filter((a: any) => ['cold_visit', 'followup_visit', 'covisit_anneli', 'in_service'].includes(a.activity_type)).length
+        + comms.filter((c: any) => COMM_VISIT_TYPES.includes(c.interaction_type)).length,
+      calls: acts.filter((a: any) => a.activity_type === 'call').length
+        + comms.filter((c: any) => COMM_CALL_TYPES.includes(c.interaction_type)).length,
+      emails: acts.filter((a: any) => a.activity_type === 'email').length
+        + comms.filter((c: any) => c.interaction_type === 'email').length,
       newReferrals: (weekData?.referrals || []).length,
       admits: (weekData?.history || []).filter((h: any) => h.new_status === 'admitted').length,
       patientUpdates: (weekData?.activityLogs || []).length,
@@ -273,7 +311,7 @@ const WeeklyActivityPage: React.FC = () => {
     days.forEach((d) => {
       const key = format(d, 'yyyy-MM-dd');
       const data = byDay[key];
-      const items = data.activities.length + data.referrals.length + data.history.length + data.notes.length;
+      const items = data.activities.length + data.comms.length + data.referrals.length + data.history.length + data.notes.length;
       if (items === 0) return;
       lines.push(`${format(d, 'EEEE')}`);
       // Group by category
@@ -281,6 +319,11 @@ const WeeklyActivityPage: React.FC = () => {
       data.activities.forEach((a: any) => {
         const g = ACTIVITY_GROUP[a.activity_type] || ACTIVITY_LABELS[a.activity_type] || 'Other';
         const name = weekData?.orgs[a.organization_id]?.name || 'Unknown';
+        (groups[g] = groups[g] || []).push(name);
+      });
+      data.comms.forEach((c: any) => {
+        const g = COMM_LABELS[c.interaction_type] || 'Activity';
+        const name = weekData?.orgs[c.organization_id]?.name || 'Unknown';
         (groups[g] = groups[g] || []).push(name);
       });
       Object.entries(groups).forEach(([g, names]) => {
@@ -433,7 +476,7 @@ const WeeklyActivityPage: React.FC = () => {
               const key = format(d, 'yyyy-MM-dd');
               const data = byDay[key];
               const isToday = isSameDay(d, new Date());
-              const empty = data.activities.length + data.referrals.length + data.history.length + data.activityLogs.length + data.notes.length === 0;
+              const empty = data.activities.length + data.referrals.length + data.history.length + data.activityLogs.length + data.comms.length + data.notes.length === 0;
 
               // Group activities by category
               const groups: Record<string, any[]> = {};
@@ -522,6 +565,31 @@ const WeeklyActivityPage: React.FC = () => {
                             </li>
                           ))}
                         </ul>
+                      </div>
+                    )}
+
+                    {data.comms.length > 0 && (
+                      <div>
+                        <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">
+                          Activity Log ({data.comms.length})
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {data.comms.map((c: any) => {
+                            const org = weekData?.orgs[c.organization_id];
+                            return (
+                              <Link
+                                key={c.id}
+                                to={org ? `/organizations/${org.id}` : '#'}
+                                className="text-sm bg-muted/60 hover:bg-muted px-2 py-1 rounded border"
+                              >
+                                {org?.name || 'Activity'}
+                                <span className="ml-1 text-xs text-muted-foreground">
+                                  ({COMM_LABELS[c.interaction_type] || (c.interaction_type || '').replace(/_/g, ' ')})
+                                </span>
+                              </Link>
+                            );
+                          })}
+                        </div>
                       </div>
                     )}
 
