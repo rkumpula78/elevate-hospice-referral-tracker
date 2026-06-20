@@ -4,7 +4,6 @@ import { MessageSquare, X, Sparkles, Building2, Users, Loader2, Copy, Check } fr
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { canUseAskElevateAI } from '@/lib/featureFlags';
 
 interface AIQuickHelpProps {
   contactName?: string;
@@ -361,7 +360,9 @@ const AIQuickHelpInner: React.FC<AIQuickHelpProps> = ({
 
 const AIQuickHelp: React.FC<AIQuickHelpProps> = (props) => {
   const { user } = useAuth();
-  if (!canUseAskElevateAI(user)) return null;
+  // AI Message Help is for all signed-in staff. (Ask Elevate AI stays allow-listed
+  // separately via canUseAskElevateAI in the sidebar nav + AskElevateAIPage.)
+  if (!user) return null;
   return <AIQuickHelpInner {...props} />;
 };
 
