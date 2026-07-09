@@ -247,20 +247,23 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
   });
   const linkedPatientId = linkedPatient?.id ?? null;
 
-  // Fetch documents linked to this referral's patient record
+  // Fetch documents linked to this referral (pre-admission) OR its patient record (post-admission)
   const { data: documents } = useQuery({
-    queryKey: ['referral-documents', linkedPatientId],
+    queryKey: ['referral-documents', referralId, linkedPatientId],
     queryFn: async () => {
-      if (!linkedPatientId) return [];
+      if (!referralId && !linkedPatientId) return [];
+      const filters: string[] = [];
+      if (referralId) filters.push(`referral_id.eq.${referralId}`);
+      if (linkedPatientId) filters.push(`patient_id.eq.${linkedPatientId}`);
       const { data, error } = await supabase
         .from('patient_documents')
         .select('*')
-        .eq('patient_id', linkedPatientId)
+        .or(filters.join(','))
         .order('created_at', { ascending: false });
       if (error) throw error;
       return data;
     },
-    enabled: open && !!linkedPatientId,
+    enabled: open && (!!referralId || !!linkedPatientId),
   });
 
   // Mutation for updating referral data
