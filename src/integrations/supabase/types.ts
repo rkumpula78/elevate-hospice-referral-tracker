@@ -1792,6 +1792,7 @@ export type Database = {
           file_size: number | null
           id: string
           patient_id: string | null
+          referral_id: string | null
           updated_at: string
           uploaded_by: string | null
         }
@@ -1804,6 +1805,7 @@ export type Database = {
           file_size?: number | null
           id?: string
           patient_id?: string | null
+          referral_id?: string | null
           updated_at?: string
           uploaded_by?: string | null
         }
@@ -1816,6 +1818,7 @@ export type Database = {
           file_size?: number | null
           id?: string
           patient_id?: string | null
+          referral_id?: string | null
           updated_at?: string
           uploaded_by?: string | null
         }
@@ -1825,6 +1828,13 @@ export type Database = {
             columns: ["patient_id"]
             isOneToOne: false
             referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_documents_referral_id_fkey"
+            columns: ["referral_id"]
+            isOneToOne: false
+            referencedRelation: "referrals"
             referencedColumns: ["id"]
           },
         ]

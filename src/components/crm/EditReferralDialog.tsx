@@ -247,20 +247,23 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
   });
   const linkedPatientId = linkedPatient?.id ?? null;
 
-  // Fetch documents linked to this referral's patient record
+  // Fetch documents linked to this referral (pre-admission) OR its patient record (post-admission)
   const { data: documents } = useQuery({
-    queryKey: ['referral-documents', linkedPatientId],
+    queryKey: ['referral-documents', referralId, linkedPatientId],
     queryFn: async () => {
-      if (!linkedPatientId) return [];
+      if (!referralId && !linkedPatientId) return [];
+      const filters: string[] = [];
+      if (referralId) filters.push(`referral_id.eq.${referralId}`);
+      if (linkedPatientId) filters.push(`patient_id.eq.${linkedPatientId}`);
       const { data, error } = await supabase
         .from('patient_documents')
         .select('*')
-        .eq('patient_id', linkedPatientId)
+        .or(filters.join(','))
         .order('created_at', { ascending: false });
       if (error) throw error;
       return data;
     },
-    enabled: open && !!linkedPatientId,
+    enabled: open && (!!referralId || !!linkedPatientId),
   });
 
   // Mutation for updating referral data
@@ -319,11 +322,12 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
   
   const uploadDocumentMutation = useMutation({
     mutationFn: async ({ file, documentType }: { file: File; documentType: string }) => {
-      if (!linkedPatientId) {
-        throw new Error('Documents can only be uploaded after the referral has been admitted.');
+      if (!linkedPatientId && !referralId) {
+        throw new Error('Save the referral before uploading documents.');
       }
       setUploading(true);
-      const fileName = `${linkedPatientId}/${Date.now()}-${file.name}`;
+      const pathPrefix = linkedPatientId ? linkedPatientId : `referral-${referralId}`;
+      const fileName = `${pathPrefix}/${Date.now()}-${file.name}`;
 
       const { error: uploadError } = await supabase.storage
         .from('patient-documents')
@@ -335,12 +339,13 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
         .from('patient_documents')
         .insert({
           patient_id: linkedPatientId,
+          referral_id: referralId,
           file_name: file.name,
           file_path: fileName,
           file_size: file.size,
           content_type: file.type,
           document_type: documentType
-        })
+        } as any)
         .select()
         .single();
 
@@ -348,7 +353,7 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
       return docData;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['referral-documents', linkedPatientId] });
+      queryClient.invalidateQueries({ queryKey: ['referral-documents', referralId, linkedPatientId] });
       toast({ title: 'Document uploaded successfully' });
       setUploading(false);
     },
@@ -373,7 +378,7 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
       if (dbError) throw dbError;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['referral-documents', linkedPatientId] });
+      queryClient.invalidateQueries({ queryKey: ['referral-documents', referralId, linkedPatientId] });
       toast({ title: 'Document deleted successfully' });
     },
     onError: (error) => {
