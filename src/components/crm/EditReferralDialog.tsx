@@ -378,7 +378,7 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
       if (dbError) throw dbError;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['referral-documents', linkedPatientId] });
+      queryClient.invalidateQueries({ queryKey: ['referral-documents', referralId, linkedPatientId] });
       toast({ title: 'Document deleted successfully' });
     },
     onError: (error) => {
