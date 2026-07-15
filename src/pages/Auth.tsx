@@ -1,6 +1,6 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import LoginForm from '@/components/auth/LoginForm';
 import PasswordUpdateForm from '@/components/auth/PasswordUpdateForm';
 import { useAuth } from '@/hooks/useAuth';
@@ -110,6 +110,12 @@ const Auth = () => {
   const [isSignUp, setIsSignUp] = useState(false);
   const { user, session, loading } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  // Preserve ?next=/some/path across sign-in so OAuth consent (or other deep
+  // links) resume after auth. Must be a same-origin path.
+  const nextParam = searchParams.get('next');
+  const safeNext = nextParam && nextParam.startsWith('/') && !nextParam.startsWith('//') ? nextParam : null;
 
   const authHash = useMemo(() => parseAuthHash(), []);
   const isRecoveryFlow = authHash.type === 'recovery' || authHash.type === 'invite';
@@ -131,9 +137,14 @@ const Auth = () => {
       if (window.location.hash) {
         window.history.replaceState({}, document.title, window.location.pathname);
       }
+      if (safeNext) {
+        // Full-page nav so OAuth consent (or other deep links) get a clean load.
+        window.location.href = safeNext;
+        return;
+      }
       navigate('/dashboard');
     }
-  }, [user, loading, navigate]);
+  }, [user, loading, navigate, safeNext]);
 
   const toggleMode = () => {
     setIsSignUp(!isSignUp);

@@ -40,6 +40,7 @@ import StoryLibraryPage from "./pages/StoryLibraryPage";
 import BDDashboardPage from "./pages/BDDashboardPage";
 import MyDayPage from "./pages/MyDayPage";
 import WeeklyActivityPage from "./pages/WeeklyActivityPage";
+import OAuthConsent from "./pages/OAuthConsent";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -119,6 +120,7 @@ const App = () => (
           <OfflineSyncProvider>
             <Routes>
               <Route path="/auth" element={<Auth />} />
+              <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
               <Route path="/*" element={
                 <ProtectedRoute>
                   <ProtectedLayout />

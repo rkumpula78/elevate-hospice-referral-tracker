@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -9,6 +9,7 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const { user, loading } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -22,7 +23,11 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   }
 
   if (!user) {
-    return <Navigate to="/auth" replace />;
+    // Preserve the current URL so post-login redirects land back on the
+    // originally requested page (e.g. /.lovable/oauth/consent?...).
+    const next = location.pathname + location.search + location.hash;
+    const suffix = next && next !== '/' ? `?next=${encodeURIComponent(next)}` : '';
+    return <Navigate to={`/auth${suffix}`} replace />;
   }
 
   return <>{children}</>;
