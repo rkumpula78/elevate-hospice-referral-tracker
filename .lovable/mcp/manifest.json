@@ -1,0 +1,166 @@
+{
+  "version": 1,
+  "sdk_version": "0.22.2",
+  "path": "/functions/v1/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://qpjdiargpivwtbakkfpo.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "elevate-hospice-mcp",
+      "version": "0.1.0",
+      "title": "Elevate Hospice Referral Dashboard"
+    },
+    "tools": [
+      {
+        "name": "list_referrals",
+        "title": "List referrals",
+        "description": "List hospice referrals visible to the signed-in user, most recent first. Optionally filter by status, priority, or assigned marketer.",
+        "annotations": {
+          "readOnlyHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "description": "Referral status (e.g. new_referral, contacted, assessment_scheduled, admitted, discharged)."
+            },
+            "priority": {
+              "type": "string",
+              "enum": [
+                "routine",
+                "urgent",
+                "stat"
+              ]
+            },
+            "assigned_marketer": {
+              "type": "string",
+              "description": "Email or name of the assigned marketer."
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "description": "Max rows to return (default 25)."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_referral",
+        "title": "Get referral",
+        "description": "Fetch a single referral by its UUID, including clinical and source details.",
+        "annotations": {
+          "readOnlyHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Referral UUID."
+            }
+          },
+          "required": [
+            "id"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_organizations",
+        "title": "List partner organizations",
+        "description": "List referring/partner organizations (facilities, physician groups, SNFs). Optional text search on name and city.",
+        "annotations": {
+          "readOnlyHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "search": {
+              "type": "string",
+              "description": "Case-insensitive substring match against name or city."
+            },
+            "account_rating": {
+              "type": "string",
+              "enum": [
+                "A",
+                "B",
+                "C",
+                "D"
+              ]
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "upcoming_visits",
+        "title": "Upcoming visits",
+        "description": "List scheduled visits in the next N days (default 7), soonest first.",
+        "annotations": {
+          "readOnlyHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "days": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 60
+            },
+            "assigned_to": {
+              "type": "string",
+              "description": "Filter by assigned staff email or name."
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "dashboard_stats",
+        "title": "Dashboard stats",
+        "description": "Aggregate CRM KPIs: current census, monthly referral counts, conversion rate, and average response time.",
+        "annotations": {
+          "readOnlyHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
