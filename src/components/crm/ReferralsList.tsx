@@ -175,22 +175,16 @@ const ReferralsList = ({ initialFilter, defaultView = 'card', excludePalliative 
         .eq('id', id);
       if (error) throw error;
 
-      // If status is admitted, send email notification
+      // If status is admitted, send a PHI-free email notification
       if (status === 'admitted') {
         const { data: referralData } = await supabase
           .from('referrals')
-          .select('*, organizations!organization_id(name)')
+          .select('id, priority, organizations!organization_id(name)')
           .eq('id', id)
           .single();
 
-        const { data: patientData } = await supabase
-          .from('patients')
-          .select('*')
-          .eq('referral_id', id)
-          .maybeSingle();
-
         if (referralData) {
-          const emailData = formatEmailData(referralData, patientData);
+          const emailData = formatEmailData(referralData);
           const emailResult = await sendAdmissionNotification(emailData);
           
           if (emailResult.success) {
