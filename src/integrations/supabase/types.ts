@@ -3286,10 +3286,6 @@ export type Database = {
       }
     }
     Functions: {
-      dreamlit_auth_admin_executor: {
-        Args: { command: string }
-        Returns: undefined
-      }
       get_dashboard_stats: { Args: never; Returns: Json }
       get_kpi_metrics: { Args: never; Returns: Json }
       get_org_name: { Args: { org_id: string }; Returns: string }
