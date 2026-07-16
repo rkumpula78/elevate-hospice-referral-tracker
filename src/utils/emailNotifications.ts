@@ -1,17 +1,13 @@
 import { supabase } from "@/integrations/supabase/client";
 
+// HIPAA: this notification is intentionally PHI-free. EmailJS is a third-party
+// provider without a BAA, so we only send operational metadata (no patient
+// name, DOB, diagnosis, or clinical flags). Staff open the CRM for details.
 interface AdmissionEmailData {
-  patient_first_name: string;
-  patient_last_name: string;
-  patient_dob: string;
-  primary_insurance: string;
+  referral_id: string;
   referral_source: string;
-  responsible_party: string;
-  caregiver_name: string;
-  diagnosis: string;
-  advanced_directive: string;
-  dnr_status: string;
-  next_steps: string;
+  priority: string;
+  admitted_at: string;
   intake_specialist_email: string;
 }
 
@@ -26,7 +22,6 @@ export const sendAdmissionNotification = async (emailData: AdmissionEmailData) =
       return { success: false, error };
     }
 
-    console.log('Admission email sent successfully');
     return { success: true, result: data };
   } catch (error) {
     console.error('Failed to send admission email:', error);
@@ -34,19 +29,16 @@ export const sendAdmissionNotification = async (emailData: AdmissionEmailData) =
   }
 };
 
-export const formatEmailData = (referralData: any, patientData: any): AdmissionEmailData => {
+export const formatEmailData = (referralData: {
+  id: string;
+  priority?: string | null;
+  organizations?: { name?: string | null } | null;
+}): AdmissionEmailData => {
   return {
-    patient_first_name: patientData?.first_name || referralData?.patient_name?.split(' ')[0] || 'N/A',
-    patient_last_name: patientData?.last_name || referralData?.patient_name?.split(' ').slice(1).join(' ') || 'N/A',
-    patient_dob: patientData?.date_of_birth || 'N/A',
-    primary_insurance: patientData?.primary_insurance || referralData?.insurance || 'N/A',
-    referral_source: referralData?.organizations?.name || 'N/A',
-    responsible_party: patientData?.responsible_party_name || 'N/A',
-    caregiver_name: patientData?.caregiver_name || 'N/A',
-    diagnosis: patientData?.diagnosis || referralData?.diagnosis || 'N/A',
-    advanced_directive: patientData?.advanced_directive ? 'Yes' : 'No',
-    dnr_status: patientData?.dnr_status ? 'Yes' : 'No',
-    next_steps: patientData?.next_steps || 'N/A',
-    intake_specialist_email: 'intake@elevatehospice.com'
+    referral_id: referralData.id,
+    referral_source: referralData.organizations?.name || 'Unknown source',
+    priority: referralData.priority || 'routine',
+    admitted_at: new Date().toISOString(),
+    intake_specialist_email: 'intake@elevatehospiceaz.com'
   };
 };

@@ -8,14 +8,12 @@ const corsHeaders = {
 
 const ALLOWED_EMAIL_DOMAIN = '@elevatehospiceaz.com';
 
-// Whitelist of allowed template parameter keys
+// HIPAA: EmailJS is a third-party provider without a BAA, so this whitelist is
+// strictly PHI-free. No patient identifiers, clinical data, or contact details
+// may ever be added here. The email tells staff to open the CRM for details.
 const ALLOWED_TEMPLATE_KEYS = [
-  'patient_name', 'admission_date', 'diagnosis', 'physician',
-  'referral_source', 'insurance', 'address', 'phone',
-  'emergency_contact', 'emergency_phone', 'notes',
+  'referral_id', 'referral_source', 'priority', 'admitted_at',
   'intake_specialist_email', 'intake_specialist_name',
-  'referring_facility', 'priority', 'status',
-  'assigned_marketer', 'contact_person',
 ];
 
 serve(async (req) => {
