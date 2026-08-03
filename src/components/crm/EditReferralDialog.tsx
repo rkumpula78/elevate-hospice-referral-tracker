@@ -500,10 +500,17 @@ const EditReferralDialog = ({ open, onOpenChange, referralId }: EditReferralDial
         { key: 'responsible_party_name', label: 'Responsible Party' },
       ];
 
+      const hasValue = (v: any) => v !== null && v !== undefined && (typeof v !== 'string' ? true : !!v.trim());
+      // Fall back to the saved record: fields living on tabs that weren't rendered
+      // aren't present in the submitted FormData, but they are still saved values.
+      const resolve = (key: string) =>
+        Object.prototype.hasOwnProperty.call(updateData, key) ? updateData[key] : (referralData as any)?.[key];
+
       const missing = admissionRequiredFields.filter(f => {
-        const val = updateData[f.key] || (f.alt ? updateData[f.alt] : null);
-        return !val || (typeof val === 'string' && !val.trim());
+        const val = hasValue(resolve(f.key)) ? resolve(f.key) : (f.alt ? resolve(f.alt) : null);
+        return !hasValue(val);
       });
+
 
       if (missing.length > 0) {
         toast({
