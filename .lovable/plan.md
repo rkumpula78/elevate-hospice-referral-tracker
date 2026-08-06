@@ -1,71 +1,50 @@
-## Goal
+# Referral & Admission Reporting Dashboard
 
-Turn the freeform Monday-Friday recap emails into structured data in the CRM, so marketers log their week as they go and management can quickly see who is active, what was done, and what's coming next.
+## The core problem to fix first
 
-The good news: you already capture the underlying data — `bd_activities` (field visits, calls, in-services, co-visits, emails) and `referrals` (new intakes, evals scheduled, admits). We just need a **Weekly Activity** view that rolls these up by marketer / by week in the exact format your team writes today.
+Today's Reports/Analytics pages count an admission as "current status = admitted". In the live data that is 56 records — but 189 referrals actually have an admission date, because once a patient is discharged or passes away the status changes and they drop out of the count. Every admission and conversion number in the app is currently understated by roughly 3x.
 
-## What this builds
+New rule for all reporting: **an admission is any referral with an admission date**, regardless of its current status. Referral volume is counted by referral date (falling back to created date).
 
-### 1. Weekly Activity page (`/weekly-activity`)
-A new page reachable from the sidebar with three controls at the top:
-- **Marketer** dropdown (defaults to "Me" for marketers; "All" for admins)
-- **Week** picker (defaults to current week, prev/next arrows)
-- **Export / Copy** button (copies a plain-text recap to the clipboard in the John/Susan format, and exports CSV/PDF)
+## What gets built
 
-Body shows a **Monday → Friday grid**, each day with:
-- Activities logged that day grouped by type (Field Visits, Calls, Emails, In-Services, Co-Visits, Office/Meetings)
-- Each item links to the organization
-- New referrals created that day (patient name + status, links to referral)
-- Status changes on existing referrals (e.g., "Eval Scheduled", "Admitted") pulled from `referral_status_history`
-- Free-text "day note" the marketer can add (e.g., "Office F/U with Judith", "CRM training")
+A single reporting hub at `/reports`, reorganized into tabs, with one shared period filter (this month, last month, last 3/6/12 months, year to date, custom range) and CSV/print export on every section.
 
-Footer of each week shows totals: visits, calls, emails, new referrals, evals scheduled, admits.
+### Tab 1 — Overview
+Top row of metric cards for the selected period, each with change vs. the prior equal period:
+- Referrals received
+- Admissions
+- Conversion rate (admissions / referrals)
+- Average days from referral to admission
+- Active pipeline (open referrals not yet resolved)
 
-### 2. Management rollup (admins only)
-At the top of the same page when "All" marketers is selected:
-- Table of marketers × this week's totals (visits / calls / new referrals / admits / accounts touched)
-- "Last activity logged" timestamp per marketer — red if >2 business days ago
-- Click a row to drill into that marketer's week view
+Below: a combined monthly bar + line chart showing referrals and admissions side by side for the last 12 months, with the conversion-rate line overlaid.
 
-### 3. Quick "Day Note" capture
-Small button on the dashboard and on the Weekly Activity page: **"Add note for today"** — captures things that aren't a visit or call (chamber meetings, training, market research, office time). Stored in a new lightweight `marketer_day_notes` table so they show up in the weekly recap without polluting `bd_activities`.
+### Tab 2 — Referral Sources
+- Table of referring organizations: referrals, admissions, conversion rate, average days to admit, last referral date — sortable, with each row linking to the organization page.
+- Source-type breakdown (physician office, assisted living, hospital, SNF, home health, other) as a share-of-volume chart plus admissions per type.
+- Top-growing and declining sources: this period vs. prior period, so management can see which accounts are heating up or going quiet.
 
-### 4. Sidebar entry
-New nav item **"Weekly Activity"** under the Marketing/CRM group, with a small badge showing "X activities this week" for the current user.
+### Tab 3 — Admissions
+- Month-by-month admissions list with patient, admit date, referring organization, referral-to-admit days, and current status (active / discharged / deceased).
+- Admission source mix for the period.
+- Outcome breakdown of everything referred in the period: admitted, declined, not appropriate, lost to follow-up, palliative outreach, still open.
 
-## What does NOT change
+### Tab 4 — Team
+- Per-marketer referrals, admissions, conversion rate, and logged activity volume for the period.
+- Keeps the existing Activity Compliance card.
 
-- `bd_activities`, `activity_communications`, `referrals`, `referral_status_history` schemas stay as-is — this is a read view over existing data plus one new small table for day notes.
-- Existing Log Visit / Quick Log Activity flows stay the same; they're what feed this page.
-- No changes to permissions model — marketers see their own data, admins see all (uses existing `has_role` / `is_admin`).
+### Data quality note surfaced in the UI
+Some records are inconsistent (a handful of referrals dated in the future, 16 marked admitted with no admission date, activity where admission date exists on non-admitted statuses). The Overview tab gets a small "Data quality" link listing counts of these records so they can be cleaned up rather than silently skewing reports.
+
+## Exports
+Every table exports to CSV with the same rows shown on screen, and the whole page supports print-to-PDF for sharing with management, using the existing export utilities.
 
 ## Technical notes
+- New shared hook (e.g. `src/hooks/useReferralReporting.ts`) holding the period logic and the canonical predicates: admissions = `admission_date is not null`; referral month = `coalesce(referral_date, created_at)`; open pipeline = statuses not in the resolved set. All tabs read from it so list totals and headline numbers always agree.
+- Monthly aggregates run through a new `SECURITY DEFINER` SQL function (`get_referral_report(start, end)`) returning JSON, so the 434+ row scans and per-organization rollups happen in Postgres instead of pulling rows into the browser; per-row tables still query `referrals` directly with the explicit `organizations!organization_id` foreign-key hint.
+- React Query keyed on the period; charts use the existing Recharts setup and chart export button; page uses `PageLayout` and mobile tab-scroll conventions.
+- `AnalyticsPage` keeps its current role as the quick-glance view but is switched over to the same admission definition so it stops disagreeing with Reports.
 
-- New table `marketer_day_notes` (user_id, note_date, content) with RLS: users manage their own; admins read all. Standard GRANTs + service_role.
-- New page `src/pages/WeeklyActivityPage.tsx` + components `WeeklyGrid.tsx`, `MarketerRollupTable.tsx`, `DayNoteDialog.tsx`.
-- Data fetched with React Query in one batched call per week (bd_activities + referrals created + status_history + day_notes) filtered by `assigned_marketer` and date range.
-- Copy-to-clipboard format mirrors the John/Susan recap structure so the team can paste it straight into chat/email.
-- Route added in `src/App.tsx`; sidebar entry in `AppSidebar.tsx`.
-
-```text
-┌─ Weekly Activity ───────────── [ Marketer: John ▾ ] [ ◀ Jun 8–12 ▶ ] [ Copy / Export ]
-│
-│ Mon Jun 8 — Field Visits (5)
-│   • Immanuel Campus      • Freedom Plaza Care    • The Forum at Desert Harbor
-│   • Peoria Post Acute    • Lake Pleasant Post Acute
-│   Day note: —
-│
-│ Tue Jun 9 — Office, Email Outreach (5), Market Research
-│   Emails: Sunview Health, Sun City Health, ...
-│   New referral: Adele Araza — Eval Scheduled
-│   Day note: Created 7 orgs for Healthy U Clinics
-│
-│ ... Wed / Thu / Fri ...
-│
-│ Totals: 18 visits · 12 calls · 10 emails · 2 new referrals · 1 admit
-└────────────────────────────────────────────────────────────────────────────
-```
-
-## Open question
-
-Should the **"Day Note"** be one free-text field per day (simple, matches today's style) or a small structured list (meeting, training, admin, market research) so management can filter? I'd recommend free-text for v1 and add categories later if useful — let me know if you'd rather start structured.
+## Out of scope for this pass
+Scheduled/emailed reports, saved custom report builder, and census/compliance reporting (already covered on other pages).
