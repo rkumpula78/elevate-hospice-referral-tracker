@@ -43,13 +43,21 @@ export const useTeamsIntegration = () => {
   // Send new referral notification
   const sendNewReferralNotification = useMutation({
     mutationFn: async (referral: Referral) => {
-      await teamsService.notifyNewReferral(referral);
+      return await teamsService.notifyNewReferral(referral);
     },
-    onSuccess: () => {
-      toast({
-        title: "Teams notification sent",
-        description: "New referral notification sent to Teams channel"
-      });
+    onSuccess: (result) => {
+      if (result.status === 'sent') {
+        toast({
+          title: "Teams notification sent",
+          description: "New referral notification sent to Teams channel"
+        });
+      } else {
+        toast({
+          title: "Teams notification not sent",
+          description: result.reason || "Teams webhook is not configured",
+          variant: "destructive"
+        });
+      }
       refetchNotifications();
     },
     onError: (error) => {
@@ -64,13 +72,21 @@ export const useTeamsIntegration = () => {
   // Send F2F deadline notification
   const sendF2FDeadlineNotification = useMutation({
     mutationFn: async ({ referral, daysUntilDeadline }: { referral: Referral; daysUntilDeadline: number }) => {
-      await teamsService.notifyF2FDeadline(referral, daysUntilDeadline);
+      return await teamsService.notifyF2FDeadline(referral, daysUntilDeadline);
     },
-    onSuccess: () => {
-      toast({
-        title: "F2F alert sent",
-        description: "Face-to-face deadline alert sent to Teams"
-      });
+    onSuccess: (result) => {
+      if (result.status === 'sent') {
+        toast({
+          title: "F2F alert sent",
+          description: "Face-to-face deadline alert sent to Teams"
+        });
+      } else {
+        toast({
+          title: "F2F alert not sent",
+          description: result.reason || "Teams webhook is not configured",
+          variant: "destructive"
+        });
+      }
       refetchNotifications();
     },
     onError: (error) => {
@@ -89,13 +105,21 @@ export const useTeamsIntegration = () => {
       oldStatus: string; 
       newStatus: string;
     }) => {
-      await teamsService.notifyStatusChange(referral, oldStatus, newStatus);
+      return await teamsService.notifyStatusChange(referral, oldStatus, newStatus);
     },
-    onSuccess: () => {
-      toast({
-        title: "Status update sent",
-        description: "Referral status change sent to Teams"
-      });
+    onSuccess: (result) => {
+      if (result.status === 'sent') {
+        toast({
+          title: "Status update sent",
+          description: "Referral status change sent to Teams"
+        });
+      } else {
+        toast({
+          title: "Status update not sent",
+          description: result.reason || "Teams webhook is not configured",
+          variant: "destructive"
+        });
+      }
       refetchNotifications();
     },
     onError: (error) => {

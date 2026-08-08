@@ -3,6 +3,16 @@ import type { Database } from '@/integrations/supabase/types';
 
 type Referral = Database['public']['Tables']['referrals']['Row'];
 
+// P0.1 notification truthfulness: every send returns a typed result so the UI
+// can never show success when nothing was delivered. Missing configuration is
+// reported as 'skipped', provider errors throw and surface as 'failed'.
+export type DeliveryStatus = 'sent' | 'skipped';
+
+export interface DeliveryResult {
+  status: DeliveryStatus;
+  reason?: string;
+}
+
 export interface TeamsNotificationPayload {
   title: string;
   text: string;
@@ -58,7 +68,7 @@ class TeamsIntegrationService {
   /**
    * Send notification to Teams about a new referral
    */
-  async notifyNewReferral(referral: Referral, webhookUrl?: string, getTeamMemberMention?: (name: string) => any): Promise<void> {
+  async notifyNewReferral(referral: Referral, webhookUrl?: string, getTeamMemberMention?: (name: string) => any): Promise<DeliveryResult> {
     const notificationType = 'new_referral';
     const payload = this.buildNewReferralPayload(referral, getTeamMemberMention);
     
@@ -67,11 +77,12 @@ class TeamsIntegrationService {
       const targetWebhookUrl = webhookUrl || await this.getWebhookUrl(notificationType, referral);
       
       if (!targetWebhookUrl) {
-        console.warn('No webhook URL configured for new referral notifications');
-        return;
+        return await this.recordSkipped(notificationType, referral.id, referral.organization_id,
+          'No Teams webhook configured for new referral notifications');
       }
 
       await this.sendN8nNotification(payload, notificationType, referral.id, referral.organization_id, targetWebhookUrl);
+      return { status: 'sent' };
     } catch (error) {
       console.error('Failed to send new referral notification:', error);
       throw error;
@@ -81,7 +92,7 @@ class TeamsIntegrationService {
   /**
    * Send notification for F2F deadline alerts
    */
-  async notifyF2FDeadline(referral: Referral, daysUntilDeadline: number): Promise<void> {
+  async notifyF2FDeadline(referral: Referral, daysUntilDeadline: number): Promise<DeliveryResult> {
     const notificationType = 'f2f_deadline';
     const payload = this.buildF2FDeadlinePayload(referral, daysUntilDeadline);
     
@@ -89,11 +100,12 @@ class TeamsIntegrationService {
       const webhookUrl = await this.getWebhookUrl('f2f_alerts', referral);
       
       if (!webhookUrl) {
-        console.warn('No webhook URL configured for F2F deadline notifications');
-        return;
+        return await this.recordSkipped(notificationType, referral.id, referral.organization_id,
+          'No Teams webhook configured for F2F deadline notifications');
       }
 
       await this.sendN8nNotification(payload, notificationType, referral.id, referral.organization_id, webhookUrl);
+      return { status: 'sent' };
     } catch (error) {
       console.error('Failed to send F2F deadline notification:', error);
       throw error;
@@ -103,7 +115,7 @@ class TeamsIntegrationService {
   /**
    * Send notification for status changes
    */
-  async notifyStatusChange(referral: Referral, oldStatus: string, newStatus: string): Promise<void> {
+  async notifyStatusChange(referral: Referral, oldStatus: string, newStatus: string): Promise<DeliveryResult> {
     const notificationType = 'status_change';
     const payload = this.buildStatusChangePayload(referral, oldStatus, newStatus);
     
@@ -111,11 +123,12 @@ class TeamsIntegrationService {
       const webhookUrl = await this.getWebhookUrl('status_changes', referral);
       
       if (!webhookUrl) {
-        console.warn('No webhook URL configured for status change notifications');
-        return;
+        return await this.recordSkipped(notificationType, referral.id, referral.organization_id,
+          'No Teams webhook configured for status change notifications');
       }
 
       await this.sendN8nNotification(payload, notificationType, referral.id, referral.organization_id, webhookUrl);
+      return { status: 'sent' };
     } catch (error) {
       console.error('Failed to send status change notification:', error);
       throw error;
@@ -186,6 +199,34 @@ class TeamsIntegrationService {
     }
 
     return eventId;
+  }
+
+  /**
+   * Record a skipped delivery (missing configuration) so the outcome is
+   * auditable, and return a typed result the UI must not present as success.
+   */
+  private async recordSkipped(
+    notificationType: string,
+    referralId: string,
+    organizationId: string | null,
+    reason: string
+  ): Promise<DeliveryResult> {
+    console.warn(reason);
+    try {
+      await supabase
+        .from('teams_notifications')
+        .insert({
+          notification_type: notificationType,
+          referral_id: referralId,
+          organization_id: organizationId,
+          status: 'skipped',
+          error_message: reason,
+          attempt_count: 0
+        });
+    } catch (dbError) {
+      console.error('Failed to record skipped notification:', dbError);
+    }
+    return { status: 'skipped', reason };
   }
 
   /**
