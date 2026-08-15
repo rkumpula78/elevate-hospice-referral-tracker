@@ -41,7 +41,6 @@ const TIER_FILTERS = [
   { key: 'B', label: 'B — Home Health' },
   { key: 'C', label: 'C — SNFs' },
   { key: 'D', label: 'D — Physicians' },
-  { key: 'E', label: 'E — DD Homes (Deferred)' },
 ];
 
 const TYPE_OPTIONS = [
