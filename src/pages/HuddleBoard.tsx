@@ -14,7 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   Play, Square, Plus, ChevronRight, ChevronLeft, Clock, Target, TrendingUp,
   MessageSquarePlus, Link2, CheckCircle2, X, RefreshCw, Check, ArrowRight,
-  Info, StickyNote,
+  Info, StickyNote, RotateCcw,
 } from "lucide-react";
 
 const ORG_ROUTE = (id: string) => `/organizations/${id}`;
