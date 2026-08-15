@@ -40,6 +40,7 @@ import StoryLibraryPage from "./pages/StoryLibraryPage";
 import BDDashboardPage from "./pages/BDDashboardPage";
 import MyDayPage from "./pages/MyDayPage";
 import WeeklyActivityPage from "./pages/WeeklyActivityPage";
+import HuddleBoard from "./pages/HuddleBoard";
 import OAuthConsent from "./pages/OAuthConsent";
 
 const queryClient = new QueryClient({
