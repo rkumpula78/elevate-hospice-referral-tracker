@@ -1,0 +1,2 @@
+UPDATE public.huddle_metrics SET owner_label = 'Jodie + Bethany', updated_at = now() WHERE metric_key IN ('net_census_change','current_adc');
+UPDATE public.huddle_metrics SET is_active = false, updated_at = now() WHERE metric_key = 'dd_group_home_touches';
