@@ -37,7 +37,6 @@ import MapPage from "./pages/MapPage";
 import KPIPage from "./pages/KPIPage";
 import AskElevateAIPage from "./pages/AskElevateAIPage";
 import StoryLibraryPage from "./pages/StoryLibraryPage";
-import BDDashboardPage from "./pages/BDDashboardPage";
 import MyDayPage from "./pages/MyDayPage";
 import WeeklyActivityPage from "./pages/WeeklyActivityPage";
 import HuddleBoard from "./pages/HuddleBoard";
@@ -85,7 +84,6 @@ const ProtectedLayout = () => {
               <Route path="kpi" element={<KPIPage />} />
               <Route path="ask-elevate" element={<AskElevateAIPage />} />
               <Route path="stories" element={<StoryLibraryPage />} />
-              <Route path="bd-dashboard" element={<BDDashboardPage />} />
               <Route path="weekly-activity" element={<WeeklyActivityPage />} />
               <Route path="huddle" element={<HuddleBoard />} />
               <Route path="settings" element={<SettingsPage />} />

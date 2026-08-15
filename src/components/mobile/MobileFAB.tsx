@@ -94,6 +94,11 @@ export function MobileFAB() {
         open={showAddReferral}
         onOpenChange={setShowAddReferral}
       />
+
+      <LogVisitSheet
+        open={showLogVisit}
+        onOpenChange={setShowLogVisit}
+      />
     </>
   );
 }
