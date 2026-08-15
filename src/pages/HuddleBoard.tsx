@@ -14,7 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   Play, Square, Plus, ChevronRight, ChevronLeft, Clock, Target, TrendingUp,
   MessageSquarePlus, Link2, CheckCircle2, X, RefreshCw, Check, ArrowRight,
-  Info, StickyNote,
+  Info, StickyNote, RotateCcw,
 } from "lucide-react";
 
 const ORG_ROUTE = (id: string) => `/organizations/${id}`;
@@ -323,8 +323,8 @@ export default function HuddleBoard() {
       supabase.from("v_huddle_worklist").select("*").order("days_idle", { ascending: false }).limit(400),
     ]);
     setMetrics((m as Metric[]) ?? []);
-    setProducers((prod as OrgPulse[]) ?? []);
-    setTargets((tgt as OrgPulse[]) ?? []);
+    setProducers((prod as unknown as OrgPulse[]) ?? []);
+    setTargets((tgt as unknown as OrgPulse[]) ?? []);
     setItems((it as Item[]) ?? []);
     setWork((wk as Work[]) ?? []);
     if (meetingId) {
@@ -369,7 +369,24 @@ export default function HuddleBoard() {
     await loadAll(meeting.id);
   };
 
+  const resetMeeting = async () => {
+    if (!meeting) return;
+    if (!confirm("Reset this huddle to zero? All numbers, notes, and segment progress for this meeting are cleared. Past meetings and open items are untouched.")) return;
+    const { error: se } = await supabase.from("huddle_snapshots")
+      .update({ value: null, note: null, status: null, entered_by: null, entered_at: null })
+      .eq("meeting_id", meeting.id);
+    if (se) return alert(se.message);
+    const { data: mt, error: me } = await supabase.from("huddle_meetings")
+      .update({ segments_done: [], segment_notes: {}, avg_rating: null, updated_at: new Date().toISOString() })
+      .eq("id", meeting.id).select().single();
+    if (me) return alert(me.message);
+    setMeeting(mt as Meeting);
+    setDone([]); setSegNotes({}); setNoteDraft(""); setSeg(0); setSecs(0); setRunning(false);
+    await loadAll(meeting.id);
+  };
+
   const persist = async (nextDone: string[], nextNotes: Record<string, string>) => {
+
     if (!meeting) return;
     setDone(nextDone); setSegNotes(nextNotes);
     await supabase.from("huddle_meetings")
@@ -393,7 +410,7 @@ export default function HuddleBoard() {
     if (!meeting) return;
     const { data: { user } } = await supabase.auth.getUser();
     const { data, error } = await supabase.from("huddle_snapshots")
-      .update({ value, note, source, entered_by: user?.id ?? null, entered_at: new Date().toISOString() })
+      .update({ value, note, source: source as "partial" | "self_reported" | "system", entered_by: user?.id ?? null, entered_at: new Date().toISOString() })
       .eq("meeting_id", meeting.id).eq("metric_key", key).select().single();
     if (error) return console.error(error);
     setSnaps((p) => ({ ...p, [key]: data as Snapshot }));
@@ -434,6 +451,12 @@ export default function HuddleBoard() {
               system data <b className="text-slate-900">{systemPct}%</b>
             </div>
             <button onClick={() => loadAll(meeting?.id)} className="rounded-lg border border-slate-200 p-1.5 hover:bg-slate-50"><RefreshCw className="h-4 w-4 text-slate-400" /></button>
+            {meeting && (
+              <button onClick={resetMeeting} title="Reset this huddle to zero"
+                className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-1.5 text-[13px] font-semibold text-slate-600 hover:bg-slate-50">
+                <RotateCcw className="h-4 w-4" /> Reset
+              </button>
+            )}
             {!live ? (
               <button onClick={openMeeting} className="flex items-center gap-1.5 rounded-lg bg-teal-600 px-3 py-1.5 text-[13px] font-semibold text-white hover:bg-teal-700"><Play className="h-4 w-4" /> Start</button>
             ) : (
