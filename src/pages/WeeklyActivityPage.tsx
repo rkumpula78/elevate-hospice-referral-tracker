@@ -330,11 +330,11 @@ const WeeklyActivityPage: React.FC = () => {
         lines.push(`  ${g} (${names.length}): ${names.join(', ')}`);
       });
       data.referrals.forEach((r: any) => {
-        lines.push(`  New Referral: ${r.patient_name || `${r.first_name || ''} ${r.last_name || ''}`.trim()}`);
+        lines.push(`  New Referral: ${r.id.slice(0, 8)} (${r.status?.replace(/_/g, ' ')})`);
       });
       data.history.forEach((h: any) => {
         if (h.new_status === 'admitted') {
-          lines.push(`  Admitted: ${h.referrals?.patient_name || 'Unknown'}`);
+          lines.push(`  Admitted: ${h.referral_id.slice(0, 8)}`);
         }
       });
       data.notes.forEach((n: any) => {
