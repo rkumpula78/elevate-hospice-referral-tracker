@@ -323,8 +323,8 @@ export default function HuddleBoard() {
       supabase.from("v_huddle_worklist").select("*").order("days_idle", { ascending: false }).limit(400),
     ]);
     setMetrics((m as Metric[]) ?? []);
-    setProducers((prod as OrgPulse[]) ?? []);
-    setTargets((tgt as OrgPulse[]) ?? []);
+    setProducers((prod as unknown as OrgPulse[]) ?? []);
+    setTargets((tgt as unknown as OrgPulse[]) ?? []);
     setItems((it as Item[]) ?? []);
     setWork((wk as Work[]) ?? []);
     if (meetingId) {
