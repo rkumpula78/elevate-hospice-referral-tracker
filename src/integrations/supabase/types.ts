@@ -4028,19 +4028,6 @@ export type Database = {
       }
     }
     Views: {
-      v_bd_weekly_dashboard: {
-        Row: {
-          admissions_this_month: number | null
-          anneli_covisits_this_week: number | null
-          crm_compliance_pct: number | null
-          doctorcare_pct: number | null
-          new_referrals_this_week: number | null
-          pipeline: Json | null
-          visits_this_week: number | null
-          week_of: string | null
-        }
-        Relationships: []
-      }
       v_huddle_open_items: {
         Row: {
           body: string | null
