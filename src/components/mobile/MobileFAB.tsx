@@ -23,8 +23,10 @@ export function MobileFAB() {
 
   const handleAction = (action: 'note' | 'visit' | 'referral') => {
     setIsOpen(false);
-    if (action === 'note' || action === 'visit') {
+    if (action === 'note') {
       setShowQuickNote(true);
+    } else if (action === 'visit') {
+      setShowLogVisit(true);
     } else if (action === 'referral') {
       setShowAddReferral(true);
     }
