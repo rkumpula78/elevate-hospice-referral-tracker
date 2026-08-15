@@ -122,6 +122,13 @@ export type Database = {
             referencedRelation: "referrals"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "activities_referral_id_fkey"
+            columns: ["referral_id"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_worklist"
+            referencedColumns: ["id"]
+          },
         ]
       }
       activity_communications: {
@@ -241,6 +248,13 @@ export type Database = {
             columns: ["referral_id"]
             isOneToOne: false
             referencedRelation: "referrals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activity_communications_referral_id_fkey"
+            columns: ["referral_id"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_worklist"
             referencedColumns: ["id"]
           },
         ]
@@ -468,6 +482,13 @@ export type Database = {
             columns: ["referral_id"]
             isOneToOne: false
             referencedRelation: "referrals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bereavement_tracking_referral_id_fkey"
+            columns: ["referral_id"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_worklist"
             referencedColumns: ["id"]
           },
         ]
@@ -1113,6 +1134,13 @@ export type Database = {
             referencedRelation: "referrals"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "huddle_items_referral_id_fkey"
+            columns: ["referral_id"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_worklist"
+            referencedColumns: ["id"]
+          },
         ]
       }
       huddle_meetings: {
@@ -1123,6 +1151,8 @@ export type Database = {
           facilitator_id: string | null
           id: string
           meeting_date: string
+          segment_notes: Json
+          segments_done: Json
           started_at: string | null
           status: Database["public"]["Enums"]["huddle_meeting_status"]
           summary: string | null
@@ -1135,6 +1165,8 @@ export type Database = {
           facilitator_id?: string | null
           id?: string
           meeting_date: string
+          segment_notes?: Json
+          segments_done?: Json
           started_at?: string | null
           status?: Database["public"]["Enums"]["huddle_meeting_status"]
           summary?: string | null
@@ -1147,6 +1179,8 @@ export type Database = {
           facilitator_id?: string | null
           id?: string
           meeting_date?: string
+          segment_notes?: Json
+          segments_done?: Json
           started_at?: string | null
           status?: Database["public"]["Enums"]["huddle_meeting_status"]
           summary?: string | null
@@ -1572,6 +1606,13 @@ export type Database = {
             columns: ["referral_id"]
             isOneToOne: false
             referencedRelation: "referrals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_referral_id_fkey"
+            columns: ["referral_id"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_worklist"
             referencedColumns: ["id"]
           },
         ]
@@ -2531,6 +2572,13 @@ export type Database = {
             referencedRelation: "referrals"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "patient_documents_referral_id_fkey"
+            columns: ["referral_id"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_worklist"
+            referencedColumns: ["id"]
+          },
         ]
       }
       patient_evaluations: {
@@ -2785,6 +2833,13 @@ export type Database = {
             referencedRelation: "referrals"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "patients_referral_id_fkey"
+            columns: ["referral_id"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_worklist"
+            referencedColumns: ["id"]
+          },
         ]
       }
       profiles: {
@@ -2922,6 +2977,13 @@ export type Database = {
             referencedRelation: "referrals"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "referral_activity_log_referral_id_fkey"
+            columns: ["referral_id"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_worklist"
+            referencedColumns: ["id"]
+          },
         ]
       }
       referral_assessments: {
@@ -2961,6 +3023,13 @@ export type Database = {
             columns: ["referral_id"]
             isOneToOne: false
             referencedRelation: "referrals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referral_assessments_referral_id_fkey"
+            columns: ["referral_id"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_worklist"
             referencedColumns: ["id"]
           },
         ]
@@ -3097,6 +3166,13 @@ export type Database = {
             referencedRelation: "referrals"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "referral_eligibility_referral_id_fkey"
+            columns: ["referral_id"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_worklist"
+            referencedColumns: ["id"]
+          },
         ]
       }
       referral_family_contacts: {
@@ -3144,6 +3220,13 @@ export type Database = {
             referencedRelation: "referrals"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "referral_family_contacts_referral_id_fkey"
+            columns: ["referral_id"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_worklist"
+            referencedColumns: ["id"]
+          },
         ]
       }
       referral_status_history: {
@@ -3180,6 +3263,13 @@ export type Database = {
             columns: ["referral_id"]
             isOneToOne: false
             referencedRelation: "referrals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referral_status_history_referral_id_fkey"
+            columns: ["referral_id"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_worklist"
             referencedColumns: ["id"]
           },
         ]
@@ -3775,6 +3865,13 @@ export type Database = {
             referencedRelation: "referrals"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "teams_notifications_referral_id_fkey"
+            columns: ["referral_id"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_worklist"
+            referencedColumns: ["id"]
+          },
         ]
       }
       user_preferences: {
@@ -3876,6 +3973,13 @@ export type Database = {
             referencedRelation: "referrals"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "visits_referral_id_fkey"
+            columns: ["referral_id"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_worklist"
+            referencedColumns: ["id"]
+          },
         ]
       }
       webhook_config: {
@@ -3950,6 +4054,13 @@ export type Database = {
             referencedRelation: "referrals"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "webhook_logs_referral_id_fkey"
+            columns: ["referral_id"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_worklist"
+            referencedColumns: ["id"]
+          },
         ]
       }
       whatsapp_conversation_state: {
@@ -4022,6 +4133,13 @@ export type Database = {
             columns: ["referral_id"]
             isOneToOne: false
             referencedRelation: "referrals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_notification_queue_referral_id_fkey"
+            columns: ["referral_id"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_worklist"
             referencedColumns: ["id"]
           },
         ]
@@ -4122,6 +4240,13 @@ export type Database = {
             referencedRelation: "referrals"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "huddle_items_referral_id_fkey"
+            columns: ["referral_id"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_worklist"
+            referencedColumns: ["id"]
+          },
         ]
       }
       v_huddle_org_pulse: {
@@ -4154,6 +4279,15 @@ export type Database = {
           relationship_temperature: string | null
           target_goal: string | null
           target_rank: number | null
+        }
+        Relationships: []
+      }
+      v_huddle_pipeline_now: {
+        Row: {
+          new_7d: number | null
+          stalled: number | null
+          status: string | null
+          total: number | null
         }
         Relationships: []
       }
@@ -4220,6 +4354,51 @@ export type Database = {
           target_rank: number | null
         }
         Relationships: []
+      }
+      v_huddle_worklist: {
+        Row: {
+          assigned_marketer: string | null
+          created_at: string | null
+          days_idle: number | null
+          days_open: number | null
+          id: string | null
+          is_stalled: boolean | null
+          loss_reason: string | null
+          organization_id: string | null
+          organization_name: string | null
+          ref_code: string | null
+          status: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referrals_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referrals_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_org_pulse"
+            referencedColumns: ["organization_id"]
+          },
+          {
+            foreignKeyName: "referrals_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_target_accounts"
+            referencedColumns: ["organization_id"]
+          },
+          {
+            foreignKeyName: "referrals_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_top_producers"
+            referencedColumns: ["organization_id"]
+          },
+        ]
       }
     }
     Functions: {
