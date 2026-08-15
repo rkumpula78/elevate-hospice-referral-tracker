@@ -304,8 +304,8 @@ export default function HuddleBoard() {
       supabase.from("v_huddle_open_items").select("*").order("carried_count", { ascending: false }),
     ]);
     setMetrics((m as Metric[]) ?? []);
-    setProducers((prod as OrgPulse[]) ?? []);
-    setTargets((tgt as OrgPulse[]) ?? []);
+    setProducers((prod as unknown as OrgPulse[]) ?? []);
+    setTargets((tgt as unknown as OrgPulse[]) ?? []);
     setItems((it as Item[]) ?? []);
     if (meetingId) {
       const { data: s } = await supabase.from("huddle_snapshots").select("*").eq("meeting_id", meetingId);
@@ -350,7 +350,7 @@ export default function HuddleBoard() {
     if (!meeting) return;
     const { data: { user } } = await supabase.auth.getUser();
     const { data, error } = await supabase.from("huddle_snapshots")
-      .update({ value, note, source, entered_by: user?.id ?? null, entered_at: new Date().toISOString() })
+      .update({ value, note, source: source as "partial" | "self_reported" | "system", entered_by: user?.id ?? null, entered_at: new Date().toISOString() })
       .eq("meeting_id", meeting.id).eq("metric_key", key).select().single();
     if (error) return console.error(error);
     setSnaps((p) => ({ ...p, [key]: data as Snapshot }));
