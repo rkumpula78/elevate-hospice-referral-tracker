@@ -451,6 +451,12 @@ export default function HuddleBoard() {
               system data <b className="text-slate-900">{systemPct}%</b>
             </div>
             <button onClick={() => loadAll(meeting?.id)} className="rounded-lg border border-slate-200 p-1.5 hover:bg-slate-50"><RefreshCw className="h-4 w-4 text-slate-400" /></button>
+            {meeting && (
+              <button onClick={resetMeeting} title="Reset this huddle to zero"
+                className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-1.5 text-[13px] font-semibold text-slate-600 hover:bg-slate-50">
+                <RotateCcw className="h-4 w-4" /> Reset
+              </button>
+            )}
             {!live ? (
               <button onClick={openMeeting} className="flex items-center gap-1.5 rounded-lg bg-teal-600 px-3 py-1.5 text-[13px] font-semibold text-white hover:bg-teal-700"><Play className="h-4 w-4" /> Start</button>
             ) : (
