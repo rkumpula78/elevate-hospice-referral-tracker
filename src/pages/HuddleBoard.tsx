@@ -369,7 +369,24 @@ export default function HuddleBoard() {
     await loadAll(meeting.id);
   };
 
+  const resetMeeting = async () => {
+    if (!meeting) return;
+    if (!confirm("Reset this huddle to zero? All numbers, notes, and segment progress for this meeting are cleared. Past meetings and open items are untouched.")) return;
+    const { error: se } = await supabase.from("huddle_snapshots")
+      .update({ value: null, note: null, status: null, entered_by: null, entered_at: null })
+      .eq("meeting_id", meeting.id);
+    if (se) return alert(se.message);
+    const { data: mt, error: me } = await supabase.from("huddle_meetings")
+      .update({ segments_done: [], segment_notes: {}, avg_rating: null, updated_at: new Date().toISOString() })
+      .eq("id", meeting.id).select().single();
+    if (me) return alert(me.message);
+    setMeeting(mt as Meeting);
+    setDone([]); setSegNotes({}); setNoteDraft(""); setSeg(0); setSecs(0); setRunning(false);
+    await loadAll(meeting.id);
+  };
+
   const persist = async (nextDone: string[], nextNotes: Record<string, string>) => {
+
     if (!meeting) return;
     setDone(nextDone); setSegNotes(nextNotes);
     await supabase.from("huddle_meetings")
