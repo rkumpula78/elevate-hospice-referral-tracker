@@ -10,6 +10,7 @@
  * to the existing referral page for detail.
  */
 import { useEffect, useMemo, useState, useCallback } from "react";
+import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Play, Square, Plus, ChevronRight, Clock, AlertTriangle, Target,
@@ -18,7 +19,7 @@ import {
 
 /* ---------- config ---------- */
 const ORG_ROUTE = (id: string) => `/organizations/${id}`;
-const REFERRAL_ROUTE = (id: string) => `/referrals/${id}`;
+const REFERRAL_ROUTE = (id: string) => `/referral/${id}`;
 
 const SEGMENTS = [
   { key: "wins",       label: "Wins & Story",        minutes: 5  },
@@ -180,12 +181,12 @@ function OrgCard({ o, onNote, onWatch }: { o: OrgPulse; onNote: (o: OrgPulse) =>
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-3 hover:border-teal-300 hover:shadow-sm">
       <div className="flex items-start justify-between gap-2">
-        <a href={ORG_ROUTE(o.organization_id)} className="min-w-0 group">
+        <Link to={ORG_ROUTE(o.organization_id)} className="min-w-0 group">
           <div className="truncate text-[13px] font-semibold text-slate-800 group-hover:text-sky-700">{o.name}</div>
           <div className="truncate text-[11px] text-slate-500">
             {(o.org_type ?? "").replace(/_/g, " ")}{o.city ? ` · ${o.city}` : ""}{o.assigned_marketer ? ` · ${o.assigned_marketer}` : ""}
           </div>
-        </a>
+        </Link>
         <div className="flex shrink-0 gap-1">
           <button onClick={() => onNote(o)} title="Quick note" className="rounded-md border border-slate-200 p-1 hover:bg-slate-50">
             <MessageSquarePlus className="h-3.5 w-3.5 text-slate-500" />
@@ -236,9 +237,9 @@ function ItemRow({ item, live, onNote, onResolve }: {
             {item.is_overdue && <Pill tone="red">overdue</Pill>}
             {item.is_expired && <Pill tone="amber">expired</Pill>}
             {item.organization_name && (
-              <a href={item.organization_id ? ORG_ROUTE(item.organization_id) : "#"} className="text-[11px] font-semibold text-sky-700 hover:underline">
+              <Link to={item.organization_id ? ORG_ROUTE(item.organization_id) : "#"} className="text-[11px] font-semibold text-sky-700 hover:underline">
                 {item.organization_name}
-              </a>
+              </Link>
             )}
           </div>
           <div className="mt-1 text-[13px] font-semibold text-slate-800">{item.title}</div>
