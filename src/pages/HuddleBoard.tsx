@@ -350,7 +350,7 @@ export default function HuddleBoard() {
     if (!meeting) return;
     const { data: { user } } = await supabase.auth.getUser();
     const { data, error } = await supabase.from("huddle_snapshots")
-      .update({ value, note, source, entered_by: user?.id ?? null, entered_at: new Date().toISOString() })
+      .update({ value, note, source: source as "partial" | "self_reported" | "system", entered_by: user?.id ?? null, entered_at: new Date().toISOString() })
       .eq("meeting_id", meeting.id).eq("metric_key", key).select().single();
     if (error) return console.error(error);
     setSnaps((p) => ({ ...p, [key]: data as Snapshot }));
