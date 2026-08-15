@@ -304,8 +304,8 @@ export default function HuddleBoard() {
       supabase.from("v_huddle_open_items").select("*").order("carried_count", { ascending: false }),
     ]);
     setMetrics((m as Metric[]) ?? []);
-    setProducers((prod as OrgPulse[]) ?? []);
-    setTargets((tgt as OrgPulse[]) ?? []);
+    setProducers((prod as unknown as OrgPulse[]) ?? []);
+    setTargets((tgt as unknown as OrgPulse[]) ?? []);
     setItems((it as Item[]) ?? []);
     if (meetingId) {
       const { data: s } = await supabase.from("huddle_snapshots").select("*").eq("meeting_id", meetingId);
