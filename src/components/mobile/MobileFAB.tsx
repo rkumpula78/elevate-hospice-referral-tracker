@@ -4,6 +4,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import { QuickNoteSheet } from './QuickNoteSheet';
 import { MobileQuickReferralSheet } from './MobileQuickReferralSheet';
+import LogVisitSheet from '@/components/bd/LogVisitSheet';
 import { useLocation } from 'react-router-dom';
 
 export function MobileFAB() {
@@ -11,6 +12,7 @@ export function MobileFAB() {
   const [isOpen, setIsOpen] = useState(false);
   const [showQuickNote, setShowQuickNote] = useState(false);
   const [showAddReferral, setShowAddReferral] = useState(false);
+  const [showLogVisit, setShowLogVisit] = useState(false);
   const location = useLocation();
 
   if (!isMobile) return null;
