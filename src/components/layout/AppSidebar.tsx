@@ -22,6 +22,7 @@ import {
   GraduationCap,
   Sunrise,
   CalendarRange,
+  Users,
 } from "lucide-react";
 import {
   Sidebar,
