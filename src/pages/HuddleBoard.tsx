@@ -402,7 +402,7 @@ export default function HuddleBoard() {
   };
   const go = (i: number) => { if (i < 0 || i >= SEGMENTS.length) return; setSeg(i); setSecs(0); };
   const nextSeg = async () => {
-    await persist(done.includes(segKey) ? done : [...done, segKey], { ...segNotes, [segKey]: noteDraft });
+    await persist(done, { ...segNotes, [segKey]: noteDraft });
     if (seg < SEGMENTS.length - 1) { go(seg + 1); setRunning(true); }
   };
 
