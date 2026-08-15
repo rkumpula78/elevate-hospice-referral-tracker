@@ -14,6 +14,116 @@ export type Database = {
   }
   public: {
     Tables: {
+      activities: {
+        Row: {
+          activity_type: Database["public"]["Enums"]["activity_kind"]
+          anneli_present: boolean
+          contact_id: string | null
+          created_at: string
+          duration_minutes: number | null
+          id: string
+          legacy_ref: string | null
+          logged_by: string | null
+          logged_by_label: string | null
+          next_step: string | null
+          next_step_date: string | null
+          notes: string | null
+          occurred_at: string
+          organization_id: string
+          outcome: Database["public"]["Enums"]["activity_outcome"]
+          referral_id: string | null
+          source: Database["public"]["Enums"]["activity_source"]
+        }
+        Insert: {
+          activity_type: Database["public"]["Enums"]["activity_kind"]
+          anneli_present?: boolean
+          contact_id?: string | null
+          created_at?: string
+          duration_minutes?: number | null
+          id?: string
+          legacy_ref?: string | null
+          logged_by?: string | null
+          logged_by_label?: string | null
+          next_step?: string | null
+          next_step_date?: string | null
+          notes?: string | null
+          occurred_at?: string
+          organization_id: string
+          outcome?: Database["public"]["Enums"]["activity_outcome"]
+          referral_id?: string | null
+          source?: Database["public"]["Enums"]["activity_source"]
+        }
+        Update: {
+          activity_type?: Database["public"]["Enums"]["activity_kind"]
+          anneli_present?: boolean
+          contact_id?: string | null
+          created_at?: string
+          duration_minutes?: number | null
+          id?: string
+          legacy_ref?: string | null
+          logged_by?: string | null
+          logged_by_label?: string | null
+          next_step?: string | null
+          next_step_date?: string | null
+          notes?: string | null
+          occurred_at?: string
+          organization_id?: string
+          outcome?: Database["public"]["Enums"]["activity_outcome"]
+          referral_id?: string | null
+          source?: Database["public"]["Enums"]["activity_source"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activities_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "organization_contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activities_logged_by_fkey"
+            columns: ["logged_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activities_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activities_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_org_pulse"
+            referencedColumns: ["organization_id"]
+          },
+          {
+            foreignKeyName: "activities_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_target_accounts"
+            referencedColumns: ["organization_id"]
+          },
+          {
+            foreignKeyName: "activities_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_top_producers"
+            referencedColumns: ["organization_id"]
+          },
+          {
+            foreignKeyName: "activities_referral_id_fkey"
+            columns: ["referral_id"]
+            isOneToOne: false
+            referencedRelation: "referrals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       activity_communications: {
         Row: {
           activity_date: string
@@ -104,6 +214,27 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activity_communications_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_org_pulse"
+            referencedColumns: ["organization_id"]
+          },
+          {
+            foreignKeyName: "activity_communications_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_target_accounts"
+            referencedColumns: ["organization_id"]
+          },
+          {
+            foreignKeyName: "activity_communications_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_top_producers"
+            referencedColumns: ["organization_id"]
           },
           {
             foreignKeyName: "activity_communications_referral_id_fkey"
@@ -269,6 +400,27 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bd_activities_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_org_pulse"
+            referencedColumns: ["organization_id"]
+          },
+          {
+            foreignKeyName: "bd_activities_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_target_accounts"
+            referencedColumns: ["organization_id"]
+          },
+          {
+            foreignKeyName: "bd_activities_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_top_producers"
+            referencedColumns: ["organization_id"]
           },
         ]
       }
@@ -437,6 +589,27 @@ export type Database = {
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "checklist_completions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_org_pulse"
+            referencedColumns: ["organization_id"]
+          },
+          {
+            foreignKeyName: "checklist_completions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_target_accounts"
+            referencedColumns: ["organization_id"]
+          },
+          {
+            foreignKeyName: "checklist_completions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_top_producers"
+            referencedColumns: ["organization_id"]
+          },
         ]
       }
       communication_templates: {
@@ -567,6 +740,27 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "competitive_analysis_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_org_pulse"
+            referencedColumns: ["organization_id"]
+          },
+          {
+            foreignKeyName: "competitive_analysis_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_target_accounts"
+            referencedColumns: ["organization_id"]
+          },
+          {
+            foreignKeyName: "competitive_analysis_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_top_producers"
+            referencedColumns: ["organization_id"]
           },
         ]
       }
@@ -725,6 +919,386 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      huddle_item_notes: {
+        Row: {
+          author_id: string | null
+          author_label: string | null
+          body: string
+          created_at: string
+          id: string
+          item_id: string
+          meeting_id: string | null
+        }
+        Insert: {
+          author_id?: string | null
+          author_label?: string | null
+          body: string
+          created_at?: string
+          id?: string
+          item_id: string
+          meeting_id?: string | null
+        }
+        Update: {
+          author_id?: string | null
+          author_label?: string | null
+          body?: string
+          created_at?: string
+          id?: string
+          item_id?: string
+          meeting_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "huddle_item_notes_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "huddle_item_notes_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "huddle_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "huddle_item_notes_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_open_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "huddle_item_notes_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "huddle_meetings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      huddle_items: {
+        Row: {
+          body: string | null
+          carried_count: number
+          contact_id: string | null
+          created_at: string
+          created_by: string | null
+          due_date: string | null
+          expires_on: string | null
+          goal_text: string | null
+          id: string
+          organization_id: string | null
+          origin_meeting_id: string | null
+          owner_id: string | null
+          owner_label: string | null
+          priority: number
+          referral_id: string | null
+          resolution: string | null
+          resolved_at: string | null
+          status: Database["public"]["Enums"]["huddle_item_status"]
+          title: string
+          type: Database["public"]["Enums"]["huddle_item_type"]
+          updated_at: string
+        }
+        Insert: {
+          body?: string | null
+          carried_count?: number
+          contact_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          due_date?: string | null
+          expires_on?: string | null
+          goal_text?: string | null
+          id?: string
+          organization_id?: string | null
+          origin_meeting_id?: string | null
+          owner_id?: string | null
+          owner_label?: string | null
+          priority?: number
+          referral_id?: string | null
+          resolution?: string | null
+          resolved_at?: string | null
+          status?: Database["public"]["Enums"]["huddle_item_status"]
+          title: string
+          type: Database["public"]["Enums"]["huddle_item_type"]
+          updated_at?: string
+        }
+        Update: {
+          body?: string | null
+          carried_count?: number
+          contact_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          due_date?: string | null
+          expires_on?: string | null
+          goal_text?: string | null
+          id?: string
+          organization_id?: string | null
+          origin_meeting_id?: string | null
+          owner_id?: string | null
+          owner_label?: string | null
+          priority?: number
+          referral_id?: string | null
+          resolution?: string | null
+          resolved_at?: string | null
+          status?: Database["public"]["Enums"]["huddle_item_status"]
+          title?: string
+          type?: Database["public"]["Enums"]["huddle_item_type"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "huddle_items_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "organization_contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "huddle_items_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "huddle_items_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "huddle_items_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_org_pulse"
+            referencedColumns: ["organization_id"]
+          },
+          {
+            foreignKeyName: "huddle_items_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_target_accounts"
+            referencedColumns: ["organization_id"]
+          },
+          {
+            foreignKeyName: "huddle_items_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_top_producers"
+            referencedColumns: ["organization_id"]
+          },
+          {
+            foreignKeyName: "huddle_items_origin_meeting_id_fkey"
+            columns: ["origin_meeting_id"]
+            isOneToOne: false
+            referencedRelation: "huddle_meetings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "huddle_items_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "huddle_items_referral_id_fkey"
+            columns: ["referral_id"]
+            isOneToOne: false
+            referencedRelation: "referrals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      huddle_meetings: {
+        Row: {
+          avg_rating: number | null
+          closed_at: string | null
+          created_at: string
+          facilitator_id: string | null
+          id: string
+          meeting_date: string
+          started_at: string | null
+          status: Database["public"]["Enums"]["huddle_meeting_status"]
+          summary: string | null
+          updated_at: string
+        }
+        Insert: {
+          avg_rating?: number | null
+          closed_at?: string | null
+          created_at?: string
+          facilitator_id?: string | null
+          id?: string
+          meeting_date: string
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["huddle_meeting_status"]
+          summary?: string | null
+          updated_at?: string
+        }
+        Update: {
+          avg_rating?: number | null
+          closed_at?: string | null
+          created_at?: string
+          facilitator_id?: string | null
+          id?: string
+          meeting_date?: string
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["huddle_meeting_status"]
+          summary?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "huddle_meetings_facilitator_id_fkey"
+            columns: ["facilitator_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      huddle_metrics: {
+        Row: {
+          auto_sql_key: string | null
+          category: Database["public"]["Enums"]["huddle_metric_category"]
+          created_at: string
+          direction: string
+          help_text: string | null
+          id: string
+          is_active: boolean
+          label: string
+          metric_key: string
+          owner_id: string | null
+          owner_label: string | null
+          sort_order: number
+          source_mode: Database["public"]["Enums"]["huddle_metric_source"]
+          target_text: string | null
+          target_value: number | null
+          unit: string | null
+          updated_at: string
+        }
+        Insert: {
+          auto_sql_key?: string | null
+          category: Database["public"]["Enums"]["huddle_metric_category"]
+          created_at?: string
+          direction?: string
+          help_text?: string | null
+          id?: string
+          is_active?: boolean
+          label: string
+          metric_key: string
+          owner_id?: string | null
+          owner_label?: string | null
+          sort_order?: number
+          source_mode?: Database["public"]["Enums"]["huddle_metric_source"]
+          target_text?: string | null
+          target_value?: number | null
+          unit?: string | null
+          updated_at?: string
+        }
+        Update: {
+          auto_sql_key?: string | null
+          category?: Database["public"]["Enums"]["huddle_metric_category"]
+          created_at?: string
+          direction?: string
+          help_text?: string | null
+          id?: string
+          is_active?: boolean
+          label?: string
+          metric_key?: string
+          owner_id?: string | null
+          owner_label?: string | null
+          sort_order?: number
+          source_mode?: Database["public"]["Enums"]["huddle_metric_source"]
+          target_text?: string | null
+          target_value?: number | null
+          unit?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "huddle_metrics_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      huddle_snapshots: {
+        Row: {
+          entered_at: string
+          entered_by: string | null
+          id: string
+          meeting_id: string
+          metric_key: string
+          note: string | null
+          owner_id: string | null
+          prior_value: number | null
+          source: Database["public"]["Enums"]["huddle_metric_source"]
+          status: string | null
+          target_value: number | null
+          value: number | null
+          value_text: string | null
+        }
+        Insert: {
+          entered_at?: string
+          entered_by?: string | null
+          id?: string
+          meeting_id: string
+          metric_key: string
+          note?: string | null
+          owner_id?: string | null
+          prior_value?: number | null
+          source?: Database["public"]["Enums"]["huddle_metric_source"]
+          status?: string | null
+          target_value?: number | null
+          value?: number | null
+          value_text?: string | null
+        }
+        Update: {
+          entered_at?: string
+          entered_by?: string | null
+          id?: string
+          meeting_id?: string
+          metric_key?: string
+          note?: string | null
+          owner_id?: string | null
+          prior_value?: number | null
+          source?: Database["public"]["Enums"]["huddle_metric_source"]
+          status?: string | null
+          target_value?: number | null
+          value?: number | null
+          value_text?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "huddle_snapshots_entered_by_fkey"
+            columns: ["entered_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "huddle_snapshots_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "huddle_meetings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "huddle_snapshots_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       liaison_goals: {
         Row: {
@@ -1224,6 +1798,27 @@ export type Database = {
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "organization_contacts_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_org_pulse"
+            referencedColumns: ["organization_id"]
+          },
+          {
+            foreignKeyName: "organization_contacts_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_target_accounts"
+            referencedColumns: ["organization_id"]
+          },
+          {
+            foreignKeyName: "organization_contacts_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_top_producers"
+            referencedColumns: ["organization_id"]
+          },
         ]
       }
       organization_documents: {
@@ -1271,6 +1866,27 @@ export type Database = {
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "organization_documents_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_org_pulse"
+            referencedColumns: ["organization_id"]
+          },
+          {
+            foreignKeyName: "organization_documents_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_target_accounts"
+            referencedColumns: ["organization_id"]
+          },
+          {
+            foreignKeyName: "organization_documents_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_top_producers"
+            referencedColumns: ["organization_id"]
+          },
         ]
       }
       organization_kpis: {
@@ -1317,6 +1933,27 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "organization_kpis_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_org_pulse"
+            referencedColumns: ["organization_id"]
+          },
+          {
+            foreignKeyName: "organization_kpis_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_target_accounts"
+            referencedColumns: ["organization_id"]
+          },
+          {
+            foreignKeyName: "organization_kpis_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_top_producers"
+            referencedColumns: ["organization_id"]
           },
         ]
       }
@@ -1400,6 +2037,8 @@ export type Database = {
           growth_status: string | null
           id: string
           is_active: boolean | null
+          is_pinned_producer: boolean
+          is_target_account: boolean
           last_contact_date: string | null
           last_training_review: string | null
           license_numbers: string[] | null
@@ -1427,6 +2066,9 @@ export type Database = {
           service_radius: number | null
           state: string | null
           sub_type: string | null
+          target_added_at: string | null
+          target_goal: string | null
+          target_rank: number | null
           type: string
           updated_at: string | null
           website: string | null
@@ -1476,6 +2118,8 @@ export type Database = {
           growth_status?: string | null
           id?: string
           is_active?: boolean | null
+          is_pinned_producer?: boolean
+          is_target_account?: boolean
           last_contact_date?: string | null
           last_training_review?: string | null
           license_numbers?: string[] | null
@@ -1503,6 +2147,9 @@ export type Database = {
           service_radius?: number | null
           state?: string | null
           sub_type?: string | null
+          target_added_at?: string | null
+          target_goal?: string | null
+          target_rank?: number | null
           type: string
           updated_at?: string | null
           website?: string | null
@@ -1552,6 +2199,8 @@ export type Database = {
           growth_status?: string | null
           id?: string
           is_active?: boolean | null
+          is_pinned_producer?: boolean
+          is_target_account?: boolean
           last_contact_date?: string | null
           last_training_review?: string | null
           license_numbers?: string[] | null
@@ -1579,6 +2228,9 @@ export type Database = {
           service_radius?: number | null
           state?: string | null
           sub_type?: string | null
+          target_added_at?: string | null
+          target_goal?: string | null
+          target_rank?: number | null
           type?: string
           updated_at?: string | null
           website?: string | null
@@ -1665,6 +2317,27 @@ export type Database = {
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "partnership_agreements_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_org_pulse"
+            referencedColumns: ["organization_id"]
+          },
+          {
+            foreignKeyName: "partnership_agreements_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_target_accounts"
+            referencedColumns: ["organization_id"]
+          },
+          {
+            foreignKeyName: "partnership_agreements_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_top_producers"
+            referencedColumns: ["organization_id"]
+          },
         ]
       }
       partnership_performance_metrics: {
@@ -1738,6 +2411,27 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partnership_performance_metrics_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_org_pulse"
+            referencedColumns: ["organization_id"]
+          },
+          {
+            foreignKeyName: "partnership_performance_metrics_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_target_accounts"
+            referencedColumns: ["organization_id"]
+          },
+          {
+            foreignKeyName: "partnership_performance_metrics_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_top_producers"
+            referencedColumns: ["organization_id"]
           },
         ]
       }
@@ -2760,6 +3454,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "referrals_facility_organization_id_fkey"
+            columns: ["facility_organization_id"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_org_pulse"
+            referencedColumns: ["organization_id"]
+          },
+          {
+            foreignKeyName: "referrals_facility_organization_id_fkey"
+            columns: ["facility_organization_id"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_target_accounts"
+            referencedColumns: ["organization_id"]
+          },
+          {
+            foreignKeyName: "referrals_facility_organization_id_fkey"
+            columns: ["facility_organization_id"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_top_producers"
+            referencedColumns: ["organization_id"]
+          },
+          {
             foreignKeyName: "referrals_marketer_fkey"
             columns: ["marketer"]
             isOneToOne: false
@@ -2772,6 +3487,27 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referrals_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_org_pulse"
+            referencedColumns: ["organization_id"]
+          },
+          {
+            foreignKeyName: "referrals_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_target_accounts"
+            referencedColumns: ["organization_id"]
+          },
+          {
+            foreignKeyName: "referrals_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_top_producers"
+            referencedColumns: ["organization_id"]
           },
           {
             foreignKeyName: "referrals_primary_rn_fkey"
@@ -3010,6 +3746,27 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "teams_notifications_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_org_pulse"
+            referencedColumns: ["organization_id"]
+          },
+          {
+            foreignKeyName: "teams_notifications_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_target_accounts"
+            referencedColumns: ["organization_id"]
+          },
+          {
+            foreignKeyName: "teams_notifications_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_top_producers"
+            referencedColumns: ["organization_id"]
           },
           {
             foreignKeyName: "teams_notifications_referral_id_fkey"
@@ -3284,8 +4041,213 @@ export type Database = {
         }
         Relationships: []
       }
+      v_huddle_open_items: {
+        Row: {
+          body: string | null
+          carried_count: number | null
+          contact_id: string | null
+          created_at: string | null
+          created_by: string | null
+          due_date: string | null
+          expires_on: string | null
+          goal_text: string | null
+          id: string | null
+          is_expired: boolean | null
+          is_overdue: boolean | null
+          last_note: string | null
+          note_count: number | null
+          organization_id: string | null
+          organization_name: string | null
+          origin_meeting_id: string | null
+          owner_id: string | null
+          owner_label: string | null
+          owner_name: string | null
+          priority: number | null
+          referral_id: string | null
+          resolution: string | null
+          resolved_at: string | null
+          status: Database["public"]["Enums"]["huddle_item_status"] | null
+          title: string | null
+          type: Database["public"]["Enums"]["huddle_item_type"] | null
+          updated_at: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "huddle_items_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "organization_contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "huddle_items_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "huddle_items_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "huddle_items_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_org_pulse"
+            referencedColumns: ["organization_id"]
+          },
+          {
+            foreignKeyName: "huddle_items_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_target_accounts"
+            referencedColumns: ["organization_id"]
+          },
+          {
+            foreignKeyName: "huddle_items_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_top_producers"
+            referencedColumns: ["organization_id"]
+          },
+          {
+            foreignKeyName: "huddle_items_origin_meeting_id_fkey"
+            columns: ["origin_meeting_id"]
+            isOneToOne: false
+            referencedRelation: "huddle_meetings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "huddle_items_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "huddle_items_referral_id_fkey"
+            columns: ["referral_id"]
+            isOneToOne: false
+            referencedRelation: "referrals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_huddle_org_pulse: {
+        Row: {
+          activities_30d: number | null
+          admits_90d: number | null
+          assigned_marketer: string | null
+          bd_status: string | null
+          bd_tier: string | null
+          city: string | null
+          days_since_touch: number | null
+          is_pinned_producer: boolean | null
+          is_target_account: boolean | null
+          last_activity_at: string | null
+          last_activity_outcome: string | null
+          last_activity_type: string | null
+          last_contact_date: string | null
+          last_next_step: string | null
+          last_next_step_date: string | null
+          monthly_referral_goal: number | null
+          name: string | null
+          never_touched: boolean | null
+          next_followup_date: string | null
+          open_referrals: number | null
+          org_type: string | null
+          organization_id: string | null
+          referrals_30d: number | null
+          referrals_7d: number | null
+          referrals_90d: number | null
+          relationship_temperature: string | null
+          target_goal: string | null
+          target_rank: number | null
+        }
+        Relationships: []
+      }
+      v_huddle_target_accounts: {
+        Row: {
+          activities_30d: number | null
+          admits_90d: number | null
+          assigned_marketer: string | null
+          bd_status: string | null
+          bd_tier: string | null
+          city: string | null
+          days_since_touch: number | null
+          is_pinned_producer: boolean | null
+          is_target_account: boolean | null
+          last_activity_at: string | null
+          last_activity_outcome: string | null
+          last_activity_type: string | null
+          last_contact_date: string | null
+          last_next_step: string | null
+          last_next_step_date: string | null
+          monthly_referral_goal: number | null
+          name: string | null
+          next_followup_date: string | null
+          open_referrals: number | null
+          org_type: string | null
+          organization_id: string | null
+          referrals_30d: number | null
+          referrals_7d: number | null
+          referrals_90d: number | null
+          relationship_temperature: string | null
+          target_goal: string | null
+          target_rank: number | null
+        }
+        Relationships: []
+      }
+      v_huddle_top_producers: {
+        Row: {
+          activities_30d: number | null
+          admits_90d: number | null
+          assigned_marketer: string | null
+          bd_status: string | null
+          bd_tier: string | null
+          city: string | null
+          days_since_touch: number | null
+          is_pinned_producer: boolean | null
+          is_target_account: boolean | null
+          last_activity_at: string | null
+          last_activity_outcome: string | null
+          last_activity_type: string | null
+          last_contact_date: string | null
+          last_next_step: string | null
+          last_next_step_date: string | null
+          monthly_referral_goal: number | null
+          name: string | null
+          next_followup_date: string | null
+          open_referrals: number | null
+          org_type: string | null
+          organization_id: string | null
+          referrals_30d: number | null
+          referrals_7d: number | null
+          referrals_90d: number | null
+          relationship_temperature: string | null
+          target_goal: string | null
+          target_rank: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
+      fn_huddle_auto_metrics: {
+        Args: { p_end: string; p_start: string }
+        Returns: {
+          metric_key: string
+          value: number
+        }[]
+      }
+      fn_huddle_close_meeting: {
+        Args: { p_meeting_id: string }
+        Returns: undefined
+      }
+      fn_huddle_open_meeting: { Args: { p_date?: string }; Returns: string }
       get_dashboard_stats: { Args: never; Returns: Json }
       get_kpi_metrics: { Args: never; Returns: Json }
       get_org_name: { Args: { org_id: string }; Returns: string }
@@ -3300,6 +4262,18 @@ export type Database = {
       is_admin: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
+      activity_kind:
+        | "visit"
+        | "call"
+        | "in_service"
+        | "lunch_learn"
+        | "drop_by"
+        | "event"
+        | "email"
+        | "co_visit"
+        | "other"
+      activity_outcome: "positive" | "neutral" | "negative" | "no_contact"
+      activity_source: "mobile" | "web" | "import" | "n8n"
       app_role: "admin" | "user"
       care_team_role:
         | "nurse"
@@ -3308,6 +4282,16 @@ export type Database = {
         | "chaplain"
         | "aide"
         | "lpn"
+      huddle_item_status:
+        | "open"
+        | "resolved"
+        | "dropped"
+        | "graduated"
+        | "escalated"
+      huddle_item_type: "issue" | "commitment" | "watch"
+      huddle_meeting_status: "draft" | "live" | "closed"
+      huddle_metric_category: "leading" | "pipeline" | "lagging" | "meta"
+      huddle_metric_source: "self_reported" | "partial" | "system"
       patient_status:
         | "active"
         | "discharged"
@@ -3486,6 +4470,19 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      activity_kind: [
+        "visit",
+        "call",
+        "in_service",
+        "lunch_learn",
+        "drop_by",
+        "event",
+        "email",
+        "co_visit",
+        "other",
+      ],
+      activity_outcome: ["positive", "neutral", "negative", "no_contact"],
+      activity_source: ["mobile", "web", "import", "n8n"],
       app_role: ["admin", "user"],
       care_team_role: [
         "nurse",
@@ -3495,6 +4492,17 @@ export const Constants = {
         "aide",
         "lpn",
       ],
+      huddle_item_status: [
+        "open",
+        "resolved",
+        "dropped",
+        "graduated",
+        "escalated",
+      ],
+      huddle_item_type: ["issue", "commitment", "watch"],
+      huddle_meeting_status: ["draft", "live", "closed"],
+      huddle_metric_category: ["leading", "pipeline", "lagging", "meta"],
+      huddle_metric_source: ["self_reported", "partial", "system"],
       patient_status: [
         "active",
         "discharged",
