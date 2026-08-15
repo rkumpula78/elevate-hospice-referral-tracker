@@ -87,6 +87,7 @@ const ProtectedLayout = () => {
               <Route path="stories" element={<StoryLibraryPage />} />
               <Route path="bd-dashboard" element={<BDDashboardPage />} />
               <Route path="weekly-activity" element={<WeeklyActivityPage />} />
+              <Route path="huddle" element={<HuddleBoard />} />
               <Route path="settings" element={<SettingsPage />} />
               <Route path="admin/users" element={
                 <AdminRoute>
