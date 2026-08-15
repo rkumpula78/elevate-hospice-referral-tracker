@@ -4,6 +4,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import { QuickNoteSheet } from './QuickNoteSheet';
 import { MobileQuickReferralSheet } from './MobileQuickReferralSheet';
+import LogVisitSheet from '@/components/bd/LogVisitSheet';
 import { useLocation } from 'react-router-dom';
 
 export function MobileFAB() {
@@ -11,6 +12,7 @@ export function MobileFAB() {
   const [isOpen, setIsOpen] = useState(false);
   const [showQuickNote, setShowQuickNote] = useState(false);
   const [showAddReferral, setShowAddReferral] = useState(false);
+  const [showLogVisit, setShowLogVisit] = useState(false);
   const location = useLocation();
 
   if (!isMobile) return null;
@@ -21,8 +23,10 @@ export function MobileFAB() {
 
   const handleAction = (action: 'note' | 'visit' | 'referral') => {
     setIsOpen(false);
-    if (action === 'note' || action === 'visit') {
+    if (action === 'note') {
       setShowQuickNote(true);
+    } else if (action === 'visit') {
+      setShowLogVisit(true);
     } else if (action === 'referral') {
       setShowAddReferral(true);
     }
@@ -89,6 +93,11 @@ export function MobileFAB() {
       <MobileQuickReferralSheet
         open={showAddReferral}
         onOpenChange={setShowAddReferral}
+      />
+
+      <LogVisitSheet
+        open={showLogVisit}
+        onOpenChange={setShowLogVisit}
       />
     </>
   );
