@@ -62,6 +62,7 @@ const primaryItems = [
   { title: "Schedule", url: "/schedule", icon: Calendar },
   { title: "Weekly Activity", url: "/weekly-activity", icon: CalendarRange },
   { title: "BD Dashboard", url: "/bd-dashboard", icon: TrendingUp },
+  { title: "Huddle", url: "/huddle", icon: Users },
 ];
 
 const baseToolsItems = [
