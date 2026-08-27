@@ -98,6 +98,23 @@ const BDPipelineCard: React.FC<Props> = ({ organization }) => {
                 </Select>
               </div>
             </div>
+            <div className="flex items-center justify-between rounded-md border p-2">
+              <div>
+                <div className="text-sm font-medium">Huddle target account</div>
+                <div className="text-xs text-muted-foreground">Show this org under "Target accounts" on the Huddle board</div>
+              </div>
+              <Button
+                size="sm"
+                variant={organization.is_target_account ? 'default' : 'outline'}
+                onClick={() => patch(
+                  { is_target_account: !organization.is_target_account },
+                  organization.is_target_account ? 'Removed from target accounts' : 'Added to target accounts'
+                )}
+              >
+                {organization.is_target_account ? 'Target' : 'Not a target'}
+              </Button>
+            </div>
+
             <div className="grid grid-cols-2 gap-3 text-sm pt-1">
               <div>
                 <div className="text-xs text-muted-foreground">Last Contact</div>
