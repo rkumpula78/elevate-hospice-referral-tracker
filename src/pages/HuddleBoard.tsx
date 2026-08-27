@@ -192,7 +192,7 @@ function MetricTile({ metric, snap, live, onSave }: {
 }
 
 /* ---------------- org card ---------------- */
-function OrgCard({ o, onNote, onWatch }: { o: OrgPulse; onNote: (o: OrgPulse) => void; onWatch: (o: OrgPulse) => void }) {
+function OrgCard({ o, onNote, onWatch, onUntarget }: { o: OrgPulse; onNote: (o: OrgPulse) => void; onWatch: (o: OrgPulse) => void; onUntarget?: (o: OrgPulse) => void }) {
   const stale = o.never_touched || (o.days_since_touch ?? 999) > 30;
   return (
     <div className="rounded-lg border border-slate-200 bg-white p-2.5 hover:border-teal-300">
@@ -206,8 +206,14 @@ function OrgCard({ o, onNote, onWatch }: { o: OrgPulse; onNote: (o: OrgPulse) =>
         <div className="flex shrink-0 gap-0.5">
           <button onClick={() => onNote(o)} title="Quick note" className="rounded p-1 text-slate-400 hover:bg-slate-100"><MessageSquarePlus className="h-3.5 w-3.5" /></button>
           <button onClick={() => onWatch(o)} title="Add to board" className="rounded p-1 text-slate-400 hover:bg-slate-100"><Link2 className="h-3.5 w-3.5" /></button>
+          {onUntarget && (
+            <button onClick={() => onUntarget(o)} title="Remove from target accounts" className="rounded p-1 text-slate-400 hover:bg-red-50 hover:text-red-500">
+              <span className="block h-3.5 w-3.5 text-[13px] leading-[14px]">×</span>
+            </button>
+          )}
         </div>
       </div>
+
       <div className="mt-1.5 flex flex-wrap gap-1">
         <Pill tone={o.referrals_30d > 0 ? "teal" : "slate"}>{o.referrals_30d} · 30d</Pill>
         <Pill>{o.referrals_90d} · 90d</Pill>
