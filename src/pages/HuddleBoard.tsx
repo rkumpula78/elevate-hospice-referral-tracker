@@ -604,7 +604,15 @@ export default function HuddleBoard() {
             <section>
               <h2 className="mb-1.5 text-[10.5px] font-bold uppercase tracking-widest text-amber-600"><Target className="mr-1 inline h-3.5 w-3.5" />Target accounts — convert these</h2>
               <div className="grid gap-2 sm:grid-cols-2">
-                {targets.map((o) => <OrgCard key={o.organization_id} o={o} onNote={(x) => setModal({ kind: "note", org: x })} onWatch={(x) => setModal({ kind: "watch", org: x })} />)}
+                {targets.map((o) => <OrgCard key={o.organization_id} o={o} onNote={(x) => setModal({ kind: "note", org: x })} onWatch={(x) => setModal({ kind: "watch", org: x })}
+                  onUntarget={async (x) => {
+                    if (!confirm(`Remove ${x.name} from target accounts?`)) return;
+                    const { error } = await supabase.from("organizations").update({ is_target_account: false }).eq("id", x.organization_id);
+                    if (error) { toast.error(error.message); return; }
+                    setTargets((prev) => prev.filter((p) => p.organization_id !== x.organization_id));
+                    toast.success(`${x.name} removed from target accounts`);
+                  }} />)}
+
               </div>
             </section>
           </div>
