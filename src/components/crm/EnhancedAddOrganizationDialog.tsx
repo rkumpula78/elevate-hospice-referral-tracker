@@ -94,8 +94,9 @@ const EnhancedAddOrganizationDialog = ({ open, onOpenChange }: EnhancedAddOrgani
 
 
     if (error) {
-      toast.error('Failed to create organization');
+      toast.error(`Failed to create organization: ${error.message}`);
       console.error('Error creating organization:', error);
+
     } else {
       toast.success('Organization created successfully');
       // Auto-geocode address in background
