@@ -4402,6 +4402,16 @@ export type Database = {
       }
     }
     Functions: {
+      find_matching_patient: {
+        Args: {
+          _dob?: string
+          _exclude_id?: string
+          _first_name: string
+          _last_name: string
+          _phone?: string
+        }
+        Returns: string
+      }
       fn_huddle_auto_metrics: {
         Args: { p_end: string; p_start: string }
         Returns: {
