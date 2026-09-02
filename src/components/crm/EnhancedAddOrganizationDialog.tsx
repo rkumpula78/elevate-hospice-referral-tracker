@@ -64,19 +64,34 @@ const EnhancedAddOrganizationDialog = ({ open, onOpenChange }: EnhancedAddOrgani
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    const dataToSubmit = {
+
+    if (!formData.name.trim()) {
+      toast.error('Organization name is required');
+      return;
+    }
+    if (!formData.type) {
+      toast.error('Please select an organization type');
+      return;
+    }
+
+    const raw: Record<string, any> = {
       ...formData,
       bed_count: formData.bed_count ? parseInt(formData.bed_count) : null,
       service_radius: formData.service_radius ? parseInt(formData.service_radius) : null,
-      referral_potential: parseInt(formData.referral_potential)
+      referral_potential: parseInt(formData.referral_potential) || null,
     };
+
+    // Empty strings break Postgres CHECK constraints (e.g. ownership_type) — send null instead
+    const dataToSubmit = Object.fromEntries(
+      Object.entries(raw).map(([k, v]) => [k, v === '' ? null : v])
+    ) as typeof raw;
 
     const { data: inserted, error } = await supabase
       .from('organizations')
-      .insert([dataToSubmit])
+      .insert([dataToSubmit as any])
       .select('id')
       .single();
+
 
     if (error) {
       toast.error('Failed to create organization');
