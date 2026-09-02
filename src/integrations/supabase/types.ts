@@ -529,6 +529,20 @@ export type Database = {
             referencedRelation: "patients"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "care_team_assignments_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "v_patient_duplicate_candidates"
+            referencedColumns: ["patient_id_a"]
+          },
+          {
+            foreignKeyName: "care_team_assignments_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "v_patient_duplicate_candidates"
+            referencedColumns: ["patient_id_b"]
+          },
         ]
       }
       census_entries: {
@@ -2515,6 +2529,20 @@ export type Database = {
             referencedRelation: "patients"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "patient_attachments_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "v_patient_duplicate_candidates"
+            referencedColumns: ["patient_id_a"]
+          },
+          {
+            foreignKeyName: "patient_attachments_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "v_patient_duplicate_candidates"
+            referencedColumns: ["patient_id_b"]
+          },
         ]
       }
       patient_documents: {
@@ -2564,6 +2592,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "patients"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_documents_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "v_patient_duplicate_candidates"
+            referencedColumns: ["patient_id_a"]
+          },
+          {
+            foreignKeyName: "patient_documents_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "v_patient_duplicate_candidates"
+            referencedColumns: ["patient_id_b"]
           },
           {
             foreignKeyName: "patient_documents_referral_id_fkey"
@@ -4397,6 +4439,51 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_huddle_top_producers"
             referencedColumns: ["organization_id"]
+          },
+        ]
+      }
+      v_patient_duplicate_candidates: {
+        Row: {
+          created_at_a: string | null
+          created_at_b: string | null
+          dob_a: string | null
+          dob_b: string | null
+          first_name_a: string | null
+          first_name_b: string | null
+          last_name: string | null
+          patient_id_a: string | null
+          patient_id_b: string | null
+          referral_id_a: string | null
+          referral_id_b: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patients_referral_id_fkey"
+            columns: ["referral_id_b"]
+            isOneToOne: false
+            referencedRelation: "referrals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patients_referral_id_fkey"
+            columns: ["referral_id_a"]
+            isOneToOne: false
+            referencedRelation: "referrals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patients_referral_id_fkey"
+            columns: ["referral_id_b"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_worklist"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patients_referral_id_fkey"
+            columns: ["referral_id_a"]
+            isOneToOne: false
+            referencedRelation: "v_huddle_worklist"
+            referencedColumns: ["id"]
           },
         ]
       }
